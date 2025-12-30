@@ -21,6 +21,11 @@ export const assertDatabaseConnection = async (): Promise<void> => {
       dbName: ENV_VARIABLE.MONGO_DB_NAME as string,
     });
     console.log('MongoDB database connection has been established successfully.');
+    
+    /***** WhatsApp Initializations *****/
+    const { WhatsAppService } = await import('./services/concrete/whatsAppService');
+    const whatsAppService = new WhatsAppService();
+    await whatsAppService.initializeAllSessions();
 
     /***** Redis  Authentication *****/
     //await connectRedis();

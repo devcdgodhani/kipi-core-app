@@ -21,6 +21,7 @@ import { IAuthTokenAttributes, IUserAttributes } from '../../interfaces';
 import { AuthTokenService } from './authTokenService';
 import { OtpService } from './otpService';
 import { UserService } from './userService';
+import { WhatsAppService } from './whatsAppService';
 import { TOtpCreate } from '../../types/otp';
 import { addMinutes, getTime, getUnixTime } from 'date-fns';
 import { TAuthTokenCreate } from '../../types/authToken';
@@ -30,6 +31,7 @@ export class AuthService implements IAuthService {
   private userService = new UserService();
   private authTokenService = new AuthTokenService();
   private otpService = new OtpService();
+  private whatsAppService = new WhatsAppService();
   constructor() {}
 
   checkUserAccountExist = async (
@@ -188,8 +190,8 @@ export class AuthService implements IAuthService {
       });
     }
     if (user.mobile) {
-      //
-    }
+      await this.whatsAppService.sendOtpViaWhatsApp(user.countryCode + user.mobile, newOtp);
+    } 
     return token;
   };
 }

@@ -18,3 +18,14 @@ export enum AUTH_SUCCESS_MESSAGES {
   LOGGED_IN_SUCCESS = 'Logged in successfully',
   LOG_OUT_SUCCESS = 'Logout successfully',
 }
+
+export enum WHATSAPP_SUCCESS_MESSAGES {
+  CREATE_SUCCESS = 'Session created and initializing',
+  GET_SUCCESS = 'Session fetched successfully',
+  UPDATE_SUCCESS = 'Session updated successfully',
+  DELETE_SUCCESS = 'Session deleted successfully',
+  INITIALIZE_SUCCESS = 'Session initialization started',
+  LOGOUT_SUCCESS = 'Session logged out',
+  MESSAGE_SENT = 'Message sent successfully',
+  BULK_MESSAGE_SENT = 'Bulk message process completed',
+}

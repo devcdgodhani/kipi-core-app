@@ -10,6 +10,7 @@ import {
   PipelineStage,
   DeleteResult,
   ObjectId,
+  Document,
 } from 'mongoose';
 import { IPaginationData } from '../../interfaces';
 
