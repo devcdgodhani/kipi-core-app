@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 import { ENV_VARIABLE } from '../configs';
 import {
   HTTP_STATUS_CODE,
@@ -94,8 +95,8 @@ export default class AuthController {
         code: HTTP_STATUS_CODE.OK.CODE,
         message: AUTH_SUCCESS_MESSAGES.LOGGED_IN_SUCCESS,
         data: {
-          ...loggedInUser,
           tokens: [accessToken, refreshToken],
+          user: loggedInUser
         },
       };
 
@@ -227,7 +228,7 @@ export default class AuthController {
       });
 
       const user = await this.userService.findOne({
-        id: req.user._id,
+        _id: req.user._id,
       });
 
       if (!user) {
@@ -239,8 +240,8 @@ export default class AuthController {
       }
 
       const isPasswordValid = await this.authService.verifyPassword(
-        user.password || '',
-        bodyData.password || ''
+        bodyData.oldPassword || '',
+        user.password || ''
       );
       if (!isPasswordValid) {
         throw new ApiError(
@@ -271,13 +272,16 @@ export default class AuthController {
     try {
       const reqData = req.body;
 
+      const orConditions: any[] = [
+          { email: reqData.email },
+          { mobile: reqData.email },
+      ];
+      if (isValidObjectId(reqData.email)) {
+          orConditions.push({ _id: reqData.email });
+      }
+
       const user = await this.userService.findOne({
-        $or: [
-          { email: reqData.username },
-          { mobile: reqData.username },
-          { username: reqData.username },
-          { id: reqData.username },
-        ],
+        $or: orConditions,
         type: reqData.type,
       });
       if (!user) {
@@ -329,9 +333,9 @@ export default class AuthController {
       } else {
         updateData.isMobileVerified = true;
       }
-      await this.userService.updateOne({ id: req.user._id }, updateData, { userId: req.user._id });
+      await this.userService.updateOne({ _id: req.user._id }, updateData, { userId: req.user._id });
       await this.otpService.updateOne(
-        { id: otp._id },
+        { _id: otp._id },
         { usesCount: (otp.usesCount || 0) + 1 },
         { userId: req.user._id }
       );
@@ -388,7 +392,7 @@ export default class AuthController {
 
       const newPassword = await this.authService.generateHashPassword(reqData.newPassword);
       await this.userService.updateOne(
-        { id: req.user._id },
+        { _id: req.user._id },
         { password: newPassword },
         { userId: req.user._id }
       );
@@ -410,7 +414,7 @@ export default class AuthController {
       const response: IApiResponse<IUserAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: USER_SUCCESS_MESSAGES.PASSWORD_UPDATED,
+        message: AUTH_SUCCESS_MESSAGES.LOGGED_IN_SUCCESS,
         data: req.user,
       };
 
@@ -419,4 +423,5 @@ export default class AuthController {
       return next(err);
     }
   };
+
 }

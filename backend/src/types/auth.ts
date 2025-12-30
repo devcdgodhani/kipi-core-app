@@ -4,7 +4,7 @@ import { IUserAttributes } from '../interfaces/user';
 
 /************* sign in **************/
 export type TAuthSignInReq = {
-  username: string;
+  email: string;
   password: string;
 };
 export type TAuthSignInRes = IApiResponse<{

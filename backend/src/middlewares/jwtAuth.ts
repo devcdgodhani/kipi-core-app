@@ -7,6 +7,7 @@ import {
   TOKEN_TYPE,
   USER_ERROR_MESSAGES,
   OTP_ERROR_MESSAGES,
+  USER_DEFAULT_ATTRIBUTES,
 } from '../constants';
 import { ApiError } from '../helpers';
 import { UserService } from '../services/concrete/userService';
@@ -80,7 +81,7 @@ export const jwtAuth =
         );
       }
 
-      const user = await userService.findOne({ id: decoded.sub });
+      const user = await userService.findOne({ _id: decoded.sub });
       if (!user) {
         throw new ApiError(
           HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
@@ -91,14 +92,19 @@ export const jwtAuth =
 
       if (!user.isVerified && tokenType !== TOKEN_TYPE.OTP_TOKEN) {
         throw new ApiError(
-          HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
-          HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
+          HTTP_STATUS_CODE.PENDING_ACCOUNT_VERIFICATION.CODE,
+          HTTP_STATUS_CODE.PENDING_ACCOUNT_VERIFICATION.STATUS,
           AUTH_ERROR_MESSAGES.PENDING_ACCOUNT_VERIFICATION
         );
       }
 
-      delete user.password;
-      req.user = user;
+      const safeUser: any = {};
+      USER_DEFAULT_ATTRIBUTES.forEach((attr) => {
+        if ((user as any)[attr] !== undefined) {
+          safeUser[attr] = (user as any)[attr];
+        }
+      });
+      req.user = safeUser;
       req.token = { ...decoded };
       return next();
     } catch (error) {

@@ -23,9 +23,9 @@ export default class AuthValidator {
   loginValidator = validate(
     z.object({
       body: z.object({
-        username: z.string(),
+        email: z.string().email(),
         password: z.string(),
-        type: z.enum(USER_TYPE),
+        type: z.nativeEnum(USER_TYPE),
       }),
     })
   );
@@ -43,7 +43,7 @@ export default class AuthValidator {
   changePasswordValidator = validate(
     z.object({
       body: z.object({
-        password: z.string(),
+        oldPassword: z.string(),
         newPassword: z.string().min(6),
       }),
     })
@@ -53,9 +53,9 @@ export default class AuthValidator {
   sendOtpValidator = validate(
     z.object({
       body: z.object({
-        username: z.string(),
-        type: z.enum(USER_TYPE),
-        otpType: z.enum(OTP_TYPE),
+        email: z.string().email(),
+        type: z.nativeEnum(USER_TYPE),
+        otpType: z.nativeEnum(OTP_TYPE),
       }),
     })    
   );
@@ -79,4 +79,5 @@ export default class AuthValidator {
       }),
     })
   );
+
 }

@@ -11,7 +11,7 @@ export const AUTH_TOKEN_EXPIRATION_IN_MINUTES: Record<TOKEN_TYPE, number> = {
 
 const TEMPLATES = path.join(process.cwd(), 'templates');
 export const EJS_TEMPLATES = {
-  ACCOUNT_VERIFICATION: path.join(TEMPLATES, 'ejs', 'verification-account.ejs'),
+  ACCOUNT_VERIFICATION: path.join(TEMPLATES, 'ejs', 'verification-otp.ejs'),
 };
 
 export const API_BASE_URL = path.join(ENV_VARIABLE.SERVER_URL, 'api/v1');
@@ -21,7 +21,7 @@ export const OPEN_API = {
 };
 
 export enum EMAIL_SUBJECT_MESSAGE {
-  ACCOUNT_VERIFICATION = 'Account Verification',
+  ACCOUNT_VERIFICATION = 'Verify Your Account - OTP Code',
 }
 
 export const APP_DETAILS = {

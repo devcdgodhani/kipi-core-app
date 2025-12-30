@@ -16,13 +16,6 @@ export const UserSchema = new Schema<IUserDocument>(
       maxLength: 50,
       trim: true,
     },
-    username: {
-      type: String,
-      required: false,
-      unique: true,
-      index: true,
-      trim: true,
-    },
     password: {
       type: String,
       required: false,

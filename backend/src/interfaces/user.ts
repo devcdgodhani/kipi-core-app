@@ -6,7 +6,6 @@ export interface IUserAttributes extends IDefaultAttributes {
   _id: ObjectId;
   firstName: string;
   lastName: string;
-  username: string;
   password?: string;
   mobile: string;
   countryCode?: string;

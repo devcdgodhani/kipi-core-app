@@ -1,14 +1,16 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { publicRoutes } from './public/publicRoutes';
 import { privateRoutes } from './private/privateRoutes';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
+
+const NotFoundLazy = lazy(() => import('../pages/NotFound'));
 
 const router = createBrowserRouter([
     publicRoutes,
     privateRoutes,
     {
         path: '*',
-        element: <div>Not Found</div>,
+        element: <NotFoundLazy />,
     }
 ]);
 

@@ -3,7 +3,7 @@ import { publicRoutes } from './public/publicRoutes';
 import { privateRoutes } from './private/privateRoutes';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy } from './lazy';
 import { ROUTES } from './routeConfig';
 
 const router = createBrowserRouter([
@@ -36,7 +36,7 @@ const router = createBrowserRouter([
     ...publicRoutes,
     {
         path: '*',
-        element: <div>Not Found</div>,
+        element: <NotFoundLazy />,
     }
 ]);
 

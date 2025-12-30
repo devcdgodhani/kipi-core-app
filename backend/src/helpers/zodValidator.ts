@@ -12,9 +12,15 @@ export const validate = (schema: z.ZodSchema) =>
         params: req.params,
       });
       // Replace req objects with validated data to ensure only defined fields are used
-      req.body = (validatedData as any).body || req.body;
-      req.query = (validatedData as any).query || req.query;
-      req.params = (validatedData as any).params || req.params;
+      if ((validatedData as any).body) {
+        req.body = (validatedData as any).body;
+      }
+      if ((validatedData as any).query) {
+        Object.assign(req.query, (validatedData as any).query);
+      }
+      if ((validatedData as any).params) {
+        Object.assign(req.params, (validatedData as any).params);
+      }
       return next();
     } catch (error) {
       if (error instanceof ZodError) {
