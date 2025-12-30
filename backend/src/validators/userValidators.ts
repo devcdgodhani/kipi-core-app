@@ -20,6 +20,10 @@ const userCreateSchema = z.object({
 
 const userUpdateSchema = z.object({
   status: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().email().optional(),
+  mobile: z.string().optional(),
 });
 
 export default class UserValidator {
@@ -50,29 +54,12 @@ export default class UserValidator {
     })
   );
 
-  bulkCreate = validate(
+  updateById = validate(
     z.object({
-      body: z.array(userCreateSchema),
-    })
-  );
-
-  updateByFilter = validate(
-    z.object({
-      body: z.object({
-        filter: userFilterSchema.partial(),
-        update: userUpdateSchema.partial(),
+      params: z.object({
+        id: z.string(),
       }),
-    })
-  );
-
-  updateManyByFilter = validate(
-    z.object({
-      body: z.array(
-        z.object({
-          filter: userFilterSchema.partial(),
-          update: userUpdateSchema.partial(),
-        })
-      ),
+      body: userUpdateSchema.partial(),
     })
   );
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, USER_SUCCESS_MESSAGES } from '../constants';
-import { UserService } from '../services';
+import { UserService } from '../services/concrete/userService';
 import { IApiResponse, IPaginationData, IUserAttributes } from '../interfaces';
 
 export default class UserController {
@@ -14,7 +14,6 @@ export default class UserController {
       const reqData = req.body;
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
-        // searchFields: ['email'],
       });
 
       const user = await this.userService.findOne(filter, options);
@@ -37,7 +36,6 @@ export default class UserController {
       const reqData = req.body;
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
-        // searchFields: ['email'],
       });
 
       const userList = await this.userService.findAll(filter, options);
@@ -59,7 +57,6 @@ export default class UserController {
       const reqData = req.body;
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
-        // searchFields: ['email'],
       });
 
       const userList = await this.userService.findAllWithPagination(filter, options);
@@ -92,34 +89,12 @@ export default class UserController {
   };
 
   /*********** Update users ***********/
-  updateManyByFilter = async (req: Request, res: Response, next: NextFunction) => {
+  updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      let reqData = req.body;
-      if (!Array.isArray(reqData)) reqData = [reqData];
-      for (const updateData of reqData) {
-        const { filter } = this.userService.generateFilter({
-          filters: updateData.filter,
-        });
-        await this.userService.update(filter, updateData.update, { userId: req.user._id });
-      }
-      const response: IApiResponse = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
-        code: HTTP_STATUS_CODE.OK.CODE,
-        message: USER_SUCCESS_MESSAGES.UPDATE_SUCCESS,
-      };
-      return res.status(response.status).json(response);
-    } catch (err) {
-      return next(err);
-    }
-  };
+      const { id } = req.params;
+      const updateData = req.body;
 
-  updateOneByFilter = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const reqData = req.body;
-      const { filter } = this.userService.generateFilter({
-        filters: reqData.filter,
-      });
-      await this.userService.updateOne(filter, reqData.update, { userId: req.user._id });
+      await this.userService.updateOne({ _id: id }, updateData, { userId: req.user._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,

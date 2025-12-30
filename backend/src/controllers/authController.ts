@@ -11,14 +11,17 @@ import {
   OTP_TYPE,
 } from '../constants';
 import { ApiError } from '../helpers';
-import { UserService, AuthTokenService, AuthService, OtpService } from '../services';
+import { UserService } from '../services/concrete/userService';
+import { AuthTokenService } from '../services/concrete/authTokenService';
+import { AuthService } from '../services/concrete/authService';
+import { OtpService } from '../services/concrete/otpService';
 import {
   TAuthRefreshTokenRes,
   TAuthSignInRes,
   TAuthSignUpRes,
   TAuthVerifyOtpRes,
-  TGenerateTokenParams,
-} from '../types';
+} from '../types/auth';
+import { TGenerateTokenParams } from '../types/common';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IApiResponse, IAuthTokenAttributes, IUserAttributes } from '../interfaces';
 import { getTime } from 'date-fns';
