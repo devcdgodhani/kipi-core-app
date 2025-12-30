@@ -11,4 +11,3 @@ export class UserService
     super(UserModel);
   }
 }
-export const userService = new UserService();

@@ -5,7 +5,7 @@ import { AUTH_ACTION_TYPE } from '../../../constants';
 // Schema
 const AuthActionHistorySchema = new Schema<IAuthActionHistoryDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: false },
     type: { type: String, enum: Object.values(AUTH_ACTION_TYPE), required: false },
     actionAt: { type: Number, required: false },
     deviceId: { type: String, required: false },

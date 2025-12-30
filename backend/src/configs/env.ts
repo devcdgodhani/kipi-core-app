@@ -9,6 +9,12 @@ const envSchema = z
     NODE_ENV: z.enum(['local', 'development', 'production', 'test']),
     PORT: z.coerce.number().default(3000),
 
+    PG_DB_PORT: z.coerce.number().default(5432),
+    PG_DB_HOST: z.string(),
+    PG_DB_USER: z.string(),
+    PG_DB_PASSWORD: z.string(),
+    PG_DB_NAME: z.string(),
+
     MONGO_DB_CONNECTION_URL: z.string(),
     MONGO_DB_NAME: z.string().optional(),
 
@@ -64,6 +70,12 @@ const value = result.data;
 export const ENV_VARIABLE: IEnvVariables = {
   NODE_ENV: value.NODE_ENV,
   PORT: value.PORT,
+
+  PG_DB_HOST: value.PG_DB_HOST,
+  PG_DB_PORT: value.PG_DB_PORT,
+  PG_DB_USER: value.PG_DB_USER,
+  PG_DB_PASSWORD: value.PG_DB_PASSWORD,
+  PG_DB_NAME: value.PG_DB_NAME,
 
   MONGO_DB_CONNECTION_URL: value.MONGO_DB_CONNECTION_URL,
   MONGO_DB_NAME: value.MONGO_DB_NAME as string,

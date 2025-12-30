@@ -7,7 +7,6 @@ import {
   TOKEN_TYPE,
   USER_ERROR_MESSAGES,
   OTP_ERROR_MESSAGES,
-  USER_TYPE,
 } from '../constants';
 import { ApiError } from '../helpers';
 import { UserService, AuthTokenService } from '../services';
@@ -16,7 +15,7 @@ const userService = new UserService();
 const authTokenService = new AuthTokenService();
 
 export const jwtAuth =
-  (tokenType: TOKEN_TYPE = TOKEN_TYPE.ACCESS_TOKEN, ...allowedRoles: USER_TYPE[]) =>
+  (tokenType: TOKEN_TYPE = TOKEN_TYPE.ACCESS_TOKEN) =>
   async (req: Request, _res: Response, next: NextFunction) => {
     try {
       const { query, params, body } = req;
@@ -80,7 +79,7 @@ export const jwtAuth =
         );
       }
 
-      const user = await userService.findOne({ _id: decoded.sub });
+      const user = await userService.findOne({ id: decoded.sub });
       if (!user) {
         throw new ApiError(
           HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
@@ -94,14 +93,6 @@ export const jwtAuth =
           HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
           HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
           AUTH_ERROR_MESSAGES.PENDING_ACCOUNT_VERIFICATION
-        );
-      }
-
-      if (allowedRoles.length > 0 && !allowedRoles.includes(user.type as USER_TYPE)) {
-        throw new ApiError(
-          HTTP_STATUS_CODE.FORBIDDEN.CODE,
-          HTTP_STATUS_CODE.FORBIDDEN.STATUS,
-          AUTH_ERROR_MESSAGES.UNAUTHORIZED_ACCESS
         );
       }
 

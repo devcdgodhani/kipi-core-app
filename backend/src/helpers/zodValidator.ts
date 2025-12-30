@@ -6,19 +6,15 @@ import { HTTP_STATUS_CODE } from '../constants';
 export const validate = (schema: z.ZodSchema) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validatedData = (await schema.parseAsync({
-        body: req.body || {},
-        query: req.query || {},
-        params: req.params || {},
-      })) as any;
-
-      // Merge all validated data into req.body as requested to avoid 'getter-only' property errors
-      req.body = {
-        ...(validatedData.body || {}),
-        ...(validatedData.query || {}),
-        ...(validatedData.params || {}),
-      };
-
+      const validatedData = await schema.parseAsync({
+        body: req.body,
+        query: req.query,
+        params: req.params,
+      });
+      // Replace req objects with validated data to ensure only defined fields are used
+      req.body = (validatedData as any).body || req.body;
+      req.query = (validatedData as any).query || req.query;
+      req.params = (validatedData as any).params || req.params;
       return next();
     } catch (error) {
       if (error instanceof ZodError) {

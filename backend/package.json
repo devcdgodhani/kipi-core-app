@@ -8,9 +8,6 @@
     "update:core:packages": "npm uninstall core-db-models interface-types && npm install core-db-models interface-types",
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "seed": "ts-node-dev --transpile-only src/db/mongodb/seeders/index.ts --seed",
-    "seed:clear": "ts-node-dev --transpile-only src/db/mongodb/seeders/index.ts --clear",
-    "seed:fresh": "ts-node-dev --transpile-only src/db/mongodb/seeders/index.ts --clear --seed",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"**/*.{ts,js,json,md}\""
   },
@@ -29,7 +26,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.0",
     "morgan": "^1.10.1",
-    "multer": "^2.0.2",
     "nodemailer": "^7.0.9",
     "reflect-metadata": "^0.1.14",
     "socket.io": "^4.8.1",
@@ -41,13 +37,11 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@faker-js/faker": "^7.6.0",
     "@types/bcrypt": "^6.0.0",
     "@types/compression": "^1.8.1",
     "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.0.0",
     "@types/nodemailer": "^7.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",

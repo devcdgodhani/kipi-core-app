@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { jwtAuth } from '../../../middlewares';
-import { TOKEN_TYPE } from '../../../constants';
-import AuthController from '../../../controllers/authController';
-import AuthValidator from '../../../validators/authValidators';
+import { jwtAuth } from '../../../../middlewares';
+import { TOKEN_TYPE } from '../../../../constants';
+import AuthController from '../../../../controllers/authController';
+import AuthValidator from '../../../../validators/authValidators';
 
 const router = Router();
 const authController = new AuthController();
@@ -175,7 +175,6 @@ router.post(
  *             properties:
  *               username:
  *                 type: string
- *                 description: Can be email, mobile, username or _id
  *               type:
  *                 $ref: '#/components/schemas/UserType'
  *               otpType:
