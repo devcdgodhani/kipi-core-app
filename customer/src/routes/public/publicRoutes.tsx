@@ -1,8 +1,7 @@
 import { type RouteObject } from 'react-router-dom';
 import PublicGuard from './PublicGuard';
-import { LoginLazy } from '../lazy';
+import { LoginLazy, RegisterLazy, VerifyOTPLazy, ForgotPasswordLazy, ResetPasswordLazy } from '../lazy';
 import { ROUTES } from '../routeConfig';
-
 export const publicRoutes: RouteObject[] = [
     // Guest only routes (Redirect if logged in)
     {
@@ -11,6 +10,22 @@ export const publicRoutes: RouteObject[] = [
             {
                 path: ROUTES.LOGIN,
                 element: <LoginLazy />,
+            },
+            {
+                path: ROUTES.REGISTER,
+                element: <RegisterLazy />,
+            },
+            {
+                path: ROUTES.VERIFY_OTP,
+                element: <VerifyOTPLazy />,
+            },
+            {
+                path: ROUTES.FORGOT_PASSWORD,
+                element: <ForgotPasswordLazy />,
+            },
+            {
+                path: ROUTES.RESET_PASSWORD,
+                element: <ResetPasswordLazy />,
             },
         ],
     },

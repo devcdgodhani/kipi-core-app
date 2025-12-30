@@ -1,6 +1,6 @@
 import { type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
-import { OrdersLazy, ProfileLazy } from '../lazy';
+import { OrdersLazy, ProfileLazy, ChangePasswordLazy } from '../lazy';
 import { ROUTES } from '../routeConfig';
 
 export const privateRoutes: RouteObject = {
@@ -13,6 +13,10 @@ export const privateRoutes: RouteObject = {
         {
             path: ROUTES.PROFILE,
             element: <ProfileLazy />,
+        },
+        {
+            path: ROUTES.CHANGE_PASSWORD,
+            element: <ChangePasswordLazy />,
         },
     ],
 };

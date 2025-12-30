@@ -14,6 +14,7 @@ import {
   OPEN_API,
   EMAIL_SUBJECT_MESSAGE,
   APP_DETAILS,
+  USER_DEFAULT_ATTRIBUTES,
 } from '../../constants';
 import { ApiError, generateOtp, sendEmail } from '../../helpers';
 import { IAuthTokenAttributes, IUserAttributes } from '../../interfaces';
@@ -74,13 +75,12 @@ export class AuthService implements IAuthService {
   };
 
   userLogin = async (
-    loginData: Pick<IUserAttributes, 'username' | 'password' | 'type'>
+    loginData: Pick<IUserAttributes, 'email' | 'password' | 'type'>
   ): Promise<Omit<IUserAttributes, 'password'>> => {
     const user = await this.userService.findOne({
       $or: [
-        { email: loginData.username },
-        { mobile: loginData.username },
-        { username: loginData.username },
+        { email: loginData.email },
+        { mobile: loginData.email },
       ],
       type: loginData.type,
     });
@@ -105,14 +105,19 @@ export class AuthService implements IAuthService {
       );
     }
     if (!user.isVerified) {
-      throw new ApiError(
-        HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
-        HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
-        AUTH_ERROR_MESSAGES.PENDING_ACCOUNT_VERIFICATION
-      );
+       throw new ApiError(
+          HTTP_STATUS_CODE.PENDING_ACCOUNT_VERIFICATION.CODE,
+          HTTP_STATUS_CODE.PENDING_ACCOUNT_VERIFICATION.STATUS,
+          AUTH_ERROR_MESSAGES.PENDING_ACCOUNT_VERIFICATION
+        );
     }
-    delete user.password;
-    return user;
+    const safeUser: any = {};
+    USER_DEFAULT_ATTRIBUTES.forEach((attr) => {
+        if ((user as any)[attr] !== undefined) {
+             safeUser[attr] = (user as any)[attr];
+        }
+    });
+    return safeUser;
   };
 
   sendOtpAndGetOtpToken = async (
@@ -120,6 +125,18 @@ export class AuthService implements IAuthService {
     type: OTP_TYPE,
     maxUses: number = 1
   ): Promise<IAuthTokenAttributes> => {
+    // Delete all previous OTPs of the same type for this user
+    await this.otpService.delete({
+      userId: user._id,
+      type,
+    });
+
+    // Delete all previous OTP tokens of the same type for this user (if any)
+    await this.authTokenService.delete({
+      userId: user._id,
+      type: TOKEN_TYPE.OTP_TOKEN,
+    });
+
     const expiredAt = getTime(addMinutes(new Date(), AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN));
 
     const generateTokens: TOKEN_TYPE[] = [];
@@ -157,10 +174,9 @@ export class AuthService implements IAuthService {
     });
 
     if (user.email) {
-      const verificationLink = `${OPEN_API.ACCOUNT_VERIFICATION}?token=${token.token}&&otp=${newOtp}&&otpType=${OTP_TYPE.ACCOUNT_CREATE}`;
       const html = await ejs.renderFile(EJS_TEMPLATES.ACCOUNT_VERIFICATION, {
-        userName: user.username,
-        verificationLink,
+        userName: user.firstName || 'User',
+        otp: newOtp,
         appName: APP_DETAILS.APP_NAME,
         supportEmail: APP_DETAILS.SUPPORT_EMAIL,
         expiresIn: `${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes`,

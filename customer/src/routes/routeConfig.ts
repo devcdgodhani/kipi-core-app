@@ -1,6 +1,8 @@
 export const ROUTES = {
     ROOT: '/',
     LOGIN: '/login',
+    REGISTER: '/register',
+    VERIFY_OTP: '/verify-otp',
     PRODUCTS: {
         ROOT: '/products',
         DETAILS: '/products/:id',
@@ -8,4 +10,7 @@ export const ROUTES = {
     CART: '/cart',
     ORDERS: '/orders',
     PROFILE: '/profile',
+    CHANGE_PASSWORD: '/change-password',
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
 };

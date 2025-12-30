@@ -1,0 +1,17 @@
+export const USER_DEFAULT_ATTRIBUTES = [
+  'firstName',
+  'lastName',
+  'email',
+  'mobile',
+  'countryCode',
+  'profileImage',
+  'type',
+  'isVerified',
+  'isEmailVerified',
+  'isMobileVerified',
+  'status',
+  'createdAt',
+  'updatedAt',
+  '_id',
+  'gender',
+];
