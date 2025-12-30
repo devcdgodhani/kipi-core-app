@@ -13,6 +13,7 @@ import {
   ProjectionType,
   DeleteResult,
   ObjectId,
+  Document,
 } from 'mongoose';
 import { IMongooseCommonService } from '../contracts/mongooseCommonServiceInterface';
 import { IPaginationData } from '../../interfaces';

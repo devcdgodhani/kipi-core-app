@@ -8,6 +8,7 @@ export const ROUTES = {
         PRODUCTS: 'products',
         ORDERS: 'orders',
         USERS: 'users',
+        WHATSAPP: 'whatsapp',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',
