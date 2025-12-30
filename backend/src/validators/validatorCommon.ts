@@ -1,0 +1,13 @@
+import { z } from 'zod';
+
+export const paginationSchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).default(10),
+  isPaginate: z.boolean().optional(),
+  order: z.record(z.string(), z.union([z.literal(1), z.literal(-1)])).optional(),
+});
+
+export const baseFilterSchema = z.object({
+  _id: z.string().optional(),
+  search: z.string().optional(),
+});
