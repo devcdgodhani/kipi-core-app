@@ -1,6 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { HTTP_STATUS_CODE, OTP_TYPE, USER_TYPE } from '../constants';
+import { OTP_TYPE, USER_TYPE } from '../constants';
 import { validate } from '../helpers/zodValidator';
 
 export default class AuthValidator {

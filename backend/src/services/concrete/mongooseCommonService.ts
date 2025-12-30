@@ -14,7 +14,7 @@ import {
   DeleteResult,
   ObjectId,
 } from 'mongoose';
-import { IMongooseCommonService } from '../../services';
+import { IMongooseCommonService } from '../contracts/mongooseCommonServiceInterface';
 import { IPaginationData } from '../../interfaces';
 import { Schema } from 'mongoose';
 

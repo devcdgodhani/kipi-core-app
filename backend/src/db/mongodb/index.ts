@@ -1,5 +1,5 @@
 import mongoose, { ConnectOptions } from 'mongoose';
-import { TMongoDbConfig } from '../../types'; 
+import { TMongoDbConfig } from '../../types/common'; 
 import { baseSchemaPlugin } from './plugins/baseSchema';
 import { softDeletePlugin } from './plugins/softDeletePlugin';
 

@@ -9,7 +9,8 @@ import {
   OTP_ERROR_MESSAGES,
 } from '../constants';
 import { ApiError } from '../helpers';
-import { UserService, AuthTokenService } from '../services';
+import { UserService } from '../services/concrete/userService';
+import { AuthTokenService } from '../services/concrete/authTokenService';
 
 const userService = new UserService();
 const authTokenService = new AuthTokenService();

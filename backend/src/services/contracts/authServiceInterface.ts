@@ -1,6 +1,6 @@
 import { OTP_TYPE } from '../../constants';
 import { IAuthTokenAttributes, IUserAttributes } from '../../interfaces';
-import { TGenerateTokenParams } from '../../types';
+import { TGenerateTokenParams } from '../../types/common';
 
 export interface IAuthService {
   checkUserAccountExist: (user: Partial<IUserAttributes>) => Promise<IUserAttributes | null>;
