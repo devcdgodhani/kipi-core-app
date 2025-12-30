@@ -6,4 +6,3 @@ export * from './errorMessages';
 // export * from './permissionsEnum'
 export * from './successMessages';
 export * from './app';
-export * from './product';

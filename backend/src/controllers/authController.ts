@@ -407,7 +407,7 @@ export default class AuthController {
       const response: IApiResponse<IUserAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: USER_SUCCESS_MESSAGES.GET_SUCCESS,
+        message: USER_SUCCESS_MESSAGES.PASSWORD_UPDATED,
         data: req.user,
       };
 

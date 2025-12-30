@@ -84,4 +84,4 @@ export const UserSchema = new Schema<IUserDocument>(
 );
 
 // Create model
-export const UserModel = model<IUserDocument>('User', UserSchema);
+export const UserModel = model<IUserDocument>('users', UserSchema);

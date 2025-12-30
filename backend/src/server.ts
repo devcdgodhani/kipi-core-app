@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import compression from 'compression';
-import indexRoutes from './routes/api/v1';
+import indexRoutes from './routes';
 import path from 'path';
 import cors from 'cors';
 import { ENV_VARIABLE } from './configs';

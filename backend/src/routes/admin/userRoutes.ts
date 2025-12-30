@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import UserController from '../../../controllers/userController';
-import UserValidator from '../../../validators/userValidators';
+import UserController from '../../../../controllers/userController';
+import UserValidator from '../../../../validators/userValidators';
 
 const router = Router();
 const userController = new UserController();
@@ -22,10 +22,6 @@ const userValidator = new UserValidator();
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: _id
- *         schema:
- *           type: string
  *       - in: query
  *         name: email
  *         schema:
@@ -119,11 +115,6 @@ router.put('/bulkUpdate', userValidator.updateByFilter, userController.updateMan
  *           schema:
  *             type: object
  *             properties:
- *               filter:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
  *               update:
  *                 type: object
  *                 properties:
@@ -152,11 +143,6 @@ router.put('/updateOneByFilter', userValidator.updateByFilter, userController.up
  *             items:
  *               type: object
  *               properties:
- *                 filter:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
  *                 update:
  *                   type: object
  *                   properties:

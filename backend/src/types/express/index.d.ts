@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     export interface Request {
       user: IUserAttributes & { deviceIp?: string };
-      token: JwtPayload & { otpType?: string };
+      token: JwtPayload;
     }
   }
 }

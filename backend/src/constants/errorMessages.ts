@@ -20,7 +20,6 @@ export enum AUTH_ERROR_MESSAGES {
   INVALID_USERNAME = 'Invalid username!',
   INVALID_PASSWORD = 'Invalid password!',
   PENDING_ACCOUNT_VERIFICATION = 'Account Verification is pending!',
-  UNAUTHORIZED_ACCESS = 'Insufficient permissions for this node!',
 }
 
 export enum OTP_ERROR_MESSAGES {

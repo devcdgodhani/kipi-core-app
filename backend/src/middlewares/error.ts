@@ -10,7 +10,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   try {
     let { status, code, message } = err;
 
-    if (ENV_VARIABLE.NODE_ENV !== 'test' && err.status !== 401) {
+    if (ENV_VARIABLE.NODE_ENV !== 'test') {
       console.log('errorHandler', err);
     }
 
@@ -40,7 +40,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
       status,
     };
 
-    if ((ENV_VARIABLE.NODE_ENV === 'development' || ENV_VARIABLE.NODE_ENV === 'local') && err.status !== 401) {
+    if (ENV_VARIABLE.NODE_ENV === 'development' || ENV_VARIABLE.NODE_ENV === 'local') {
       logger.error(err);
       response.error = err.stack;
     }

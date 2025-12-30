@@ -14,7 +14,7 @@ export default class AuthValidator {
         firstName: z.string().max(50),
         lastName: z.string().max(50),
         countryCode: z.string(),
-        type: z.enum(Object.values(USER_TYPE)).optional(),
+        type: z.enum(USER_TYPE).optional(),
         gender: z.string().optional(),
       }),
     })
