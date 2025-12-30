@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Editor/IDE history
+.history
+
+# Lockfiles (if you don’t want to commit them)
+package-lock.json
+yarn.lock
+
+# Logs
+npm-debug.log*
+logs
+
+#env
+.env
