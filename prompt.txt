@@ -1,24 +1,32 @@
-follow below instructions for task. just create attibute module one module now only.
-** attributetes Module **
+follow below instructions for task. create products module and product skus module two modules.
+** products Module adn sku module **
 
 1. requirements
- - user can manage  attributes
- - i want  attributes dynamic like meesho, flipcart, amazon etc... app 
- - attributes will be selected while create category or sub category
+-product and sku will be two seperate modules but connected
+ - user can manage  product
+ - i want  product management dynamic like meesho, flipcart, amazon etc... app 
+ - product will have multiple images
+ - product will have multiple skus
+ - product will have multiple categories and sub categories
+ - product will have multiple attributes from selected categories and sub categories
+ - product will have multiple skus/varients from selected attributes which has variant flag true
+-product will use prise management
+-also skus/varients will use prise management inherit from product but can be override
+-with sku there should lot selection options
+- there will tabs for create or update products for basic details, varints, media, price management,stocke management, etc..
+-stock management will be done from sku. and it will update stock to main product stock.
 
 2. backend tasks
  - Create module using the Module Generation Blueprint. Follow the standard structure of the User module(type,interface,enum, etc..).
- - create  attribute model
- - create crud for  attribute model
- - need lot getAll and paginated by filter
- - attrubute will dynamic fully with all posible value type
- - add  attribute seeder for all posible option with current category and sub category and store in arry so next time not create already created attributes
- - add attribute id to category model.in category add or update attribute id added in categoryModel
+ - create  product model and sku model
+ - create crud for  both model
+- add above requirment in apis and models
  - need  attribute management fully dynamic like meesho, flipcart, amazon etc... app
 
 3. Admin App tasks
  - Create module using the Module Generation Blueprint. Follow the standard structure in our app.
- - create ui for backend task and  attribute management add in drawer 
+ - create ui for backend task and  products add in drawer 
+  - create ui for backend task and  skus add in drawer 
  - use common filer for filter 
- - when attribute are seleted from child category their parent category attributes will preselected and can not be removed from child category
+- add above requirment and apis integration in ui
  - need  attribute management fully dynamic like meesho, flipcart, amazon etc... app
