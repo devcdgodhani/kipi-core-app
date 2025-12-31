@@ -6,9 +6,7 @@ import {
     Image as ImageIcon,
     Tag,
     IndianRupee,
-    Box,
     Settings,
-    Layers,
     Trash2,
     PlusCircle,
     Info,
@@ -51,7 +49,11 @@ const ProductForm: React.FC = () => {
     });
 
     const [allCategories, setAllCategories] = useState<ICategory[]>([]);
+    const [categoryTree, setCategoryTree] = useState<ICategory[]>([]);
     const [relevantAttributes, setRelevantAttributes] = useState<IAttribute[]>([]);
+    const [variantAttributes, setVariantAttributes] = useState<IAttribute[]>([]);
+    const [variantConfig, setVariantConfig] = useState<Record<string, string[]>>({});
+    const [generatedSkus, setGeneratedSkus] = useState<any[]>([]);
     const [productSkus, setProductSkus] = useState<ISku[]>([]);
 
     const [loading, setLoading] = useState(false);
@@ -59,11 +61,25 @@ const ProductForm: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+    const flattenCategories = (cats: ICategory[]): ICategory[] => {
+        let flat: ICategory[] = [];
+        cats.forEach(cat => {
+            flat.push(cat);
+            if (cat.children && cat.children.length > 0) {
+                flat = [...flat, ...flattenCategories(cat.children)];
+            }
+        });
+        return flat;
+    };
+
     const fetchInitialData = useCallback(async () => {
         setPageLoading(true);
         try {
-            const catRes = await categoryService.getAll({ isTree: false });
-            if (catRes?.data) setAllCategories(catRes.data);
+            const catRes = await categoryService.getAll({ isTree: true });
+            if (catRes?.data) {
+                setCategoryTree(catRes.data);
+                setAllCategories(flattenCategories(catRes.data));
+            }
 
             if (isEdit) {
                 const prodRes = await productService.getOne(id!);
@@ -98,7 +114,7 @@ const ProductForm: React.FC = () => {
     useEffect(() => {
         const fetchAttributes = async () => {
             const categoryIds = (formData.categoryIds || []) as string[];
-            if (categoryIds.length === 0) {
+            if (categoryIds.length === 0 || allCategories.length === 0) {
                 setRelevantAttributes([]);
                 return;
             }
@@ -115,9 +131,13 @@ const ProductForm: React.FC = () => {
 
                 if (allAttrIds.length > 0) {
                     const attrRes = await attributeService.getAll({ _id: allAttrIds as any });
-                    if (attrRes?.data) setRelevantAttributes(attrRes.data);
+                    if (attrRes?.data) {
+                        setRelevantAttributes(attrRes.data);
+                        setVariantAttributes(attrRes.data.filter((a: any) => a.isVariant));
+                    }
                 } else {
                     setRelevantAttributes([]);
+                    setVariantAttributes([]);
                 }
             } catch (err) {
                 console.error('Failed to fetch relevant attributes', err);
@@ -127,6 +147,71 @@ const ProductForm: React.FC = () => {
         fetchAttributes();
     }, [formData.categoryIds, allCategories]);
 
+    const generateSkusLocally = () => {
+        const variants = variantAttributes.filter(attr => variantConfig[attr._id]?.length > 0);
+        if (variants.length === 0) {
+            alert('Please select at least one value for variant attributes');
+            return;
+        }
+
+        const optionSets = variants.map(v => variantConfig[v._id]);
+        const combinations = combinationsFlat(optionSets);
+
+        const newSkus = combinations.map((combo) => {
+            const attrs = Array.isArray(combo) ? combo : [combo];
+            const variantAttributesData = variants.map((v, idx) => ({
+                attributeId: v._id,
+                value: attrs[idx]
+            }));
+
+            const skuCode = `${formData.name?.substring(0, 3).toUpperCase()}-${attrs.join('-').toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+
+            return {
+                skuCode,
+                price: formData.salePrice || formData.basePrice || 0,
+                quantity: 0,
+                variantAttributes: variantAttributesData,
+                status: 'ACTIVE'
+            };
+        });
+
+        setGeneratedSkus(newSkus);
+    };
+
+    function combinationsFlat(arrays: any[][]) {
+        if (arrays.length === 0) return [];
+        if (arrays.length === 1) return arrays[0].map(item => [item]);
+
+        let result: any[][] = [[]];
+        for (const array of arrays) {
+            const temp: any[][] = [];
+            for (const x of result) {
+                for (const y of array) {
+                    temp.push([...x, y]);
+                }
+            }
+            result = temp;
+        }
+        return result;
+    }
+
+    const handleGeneratedSkuChange = (index: number, field: string, value: any) => {
+        const updated = [...generatedSkus];
+        updated[index] = { ...updated[index], [field]: value };
+        setGeneratedSkus(updated);
+    };
+
+    const handleVariantConfigToggle = (attrId: string, value: string) => {
+        setVariantConfig(prev => {
+            const current = prev[attrId] || [];
+            const exists = current.includes(value);
+            return {
+                ...prev,
+                [attrId]: exists ? current.filter(v => v !== value) : [...current, value]
+            };
+        });
+    };
+
     const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -135,13 +220,33 @@ const ProductForm: React.FC = () => {
         }));
     };
 
+    const getParentIds = (cats: ICategory[], targetId: string, parents: string[] = []): string[] | null => {
+        for (const cat of cats) {
+            if (cat._id === targetId) return parents;
+            if (cat.children) {
+                const found = getParentIds(cat.children, targetId, [...parents, cat._id]);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
     const handleCategoryToggle = (catId: string) => {
         setFormData(prev => {
             const current = (prev.categoryIds as string[]) || [];
-            const exists = current.includes(catId);
+            const isRemoving = current.includes(catId);
+
+            let nextIds = isRemoving ? current.filter(id => id !== catId) : [...current, catId];
+
+            // If adding a child, auto-select all its parents
+            if (!isRemoving) {
+                const parents = getParentIds(categoryTree, catId) || [];
+                nextIds = Array.from(new Set([...nextIds, ...parents]));
+            }
+
             return {
                 ...prev,
-                categoryIds: exists ? current.filter(id => id !== catId) : [...current, catId]
+                categoryIds: nextIds
             };
         });
     };
@@ -163,6 +268,32 @@ const ProductForm: React.FC = () => {
         });
     };
 
+    const CategoryTreeItem: React.FC<{ cat: ICategory; level: number }> = ({ cat, level }) => {
+        const categoryIds = (formData.categoryIds || []) as string[];
+        const isSelected = categoryIds.includes(cat._id);
+
+        return (
+            <div className="space-y-1">
+                <div
+                    onClick={() => handleCategoryToggle(cat._id)}
+                    style={{ paddingLeft: `${level * 1.5 + 1}rem` }}
+                    className={`flex items-center gap-3 py-2 px-4 cursor-pointer transition-all rounded-xl border-2 ${isSelected ? 'bg-primary/5 border-primary text-primary' : 'hover:bg-gray-50 border-transparent text-gray-600'
+                        }`}
+                >
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                        {isSelected && <CheckCircle2 size={10} className="text-white" />}
+                    </div>
+                    <span className={`text-[11px] font-mono tracking-tight ${isSelected ? 'font-black' : 'font-bold'}`}>{cat.name}</span>
+                </div>
+                {cat.children && cat.children.length > 0 && (
+                    <div className="space-y-1">
+                        {cat.children.map(child => <CategoryTreeItem key={child._id} cat={child} level={level + 1} />)}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -170,11 +301,16 @@ const ProductForm: React.FC = () => {
         setSuccess(null);
 
         try {
+            const submitData = {
+                ...formData,
+                skus: generatedSkus.length > 0 ? generatedSkus : productSkus
+            };
+
             if (isEdit) {
-                await productService.update(id!, formData);
+                await productService.update(id!, submitData);
                 setSuccess('Product architecture updated successfully!');
             } else {
-                const res = await productService.create(formData);
+                const res = await productService.create(submitData);
                 setSuccess('New product established successfully!');
                 setTimeout(() => {
                     navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', (res.data as any)._id));
@@ -216,16 +352,13 @@ const ProductForm: React.FC = () => {
                             <Info size={16} /> Basic Details
                         </Tab>
                         <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
-                            <Layers size={16} /> Taxonomy & Attrs
-                        </Tab>
-                        <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
                             <IndianRupee size={16} /> Pricing Hub
                         </Tab>
                         <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
                             <ImageIcon size={16} /> Media Assets
                         </Tab>
-                        <Tab disabled={!isEdit} className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[150px]">
-                            <Barcode size={16} /> SKUs / Variants
+                        <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
+                            <Barcode size={16} /> SKUs & Config
                         </Tab>
                     </TabList>
 
@@ -242,7 +375,7 @@ const ProductForm: React.FC = () => {
                                     placeholder="Detailed product story..."
                                 />
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-4">
                                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Market Status</label>
                                 <select
                                     name="status"
@@ -255,46 +388,42 @@ const ProductForm: React.FC = () => {
                                     ))}
                                 </select>
                             </div>
+
+                            <div className="space-y-4 pt-4 mt-4 border-t border-gray-100">
+                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
+                                    <Tag size={16} className="text-primary" /> Core Taxonomy
+                                </h3>
+                                <div className="bg-gray-50/50 rounded-[2rem] border-2 border-gray-100 p-6 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                    {categoryTree.length === 0 && (
+                                        <div className="text-center py-8 text-gray-400 font-bold uppercase text-[10px]">
+                                            No categories initialized
+                                        </div>
+                                    )}
+                                    <div className="space-y-2">
+                                        {categoryTree.map(cat => <CategoryTreeItem key={cat._id} cat={cat} level={0} />)}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </TabPanel>
 
                     <TabPanel>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in text-gray-700">
+                        <div className="animate-fade-in text-gray-700 space-y-8">
+                            {/* Section 1: Product Specifications (Non-variant) */}
                             <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50">
-                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-                                    <Tag size={16} className="text-primary" /> Select Categories
-                                </h3>
-                                <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
-                                    {allCategories.map(cat => {
-                                        const categoryIds = (formData.categoryIds || []) as string[];
-                                        const isSelected = categoryIds.includes(cat._id);
-                                        return (
-                                            <div
-                                                key={cat._id}
-                                                onClick={() => handleCategoryToggle(cat._id)}
-                                                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${isSelected ? 'bg-primary border-primary text-white' : 'bg-gray-50 border-transparent text-gray-600 hover:border-gray-200'
-                                                    }`}
-                                            >
-                                                <span className="text-xs font-bold">{cat.name}</span>
-                                                {isSelected && <CheckCircle2 size={14} />}
-                                            </div>
-                                        );
-                                    })}
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
+                                        <Settings size={16} className="text-primary" /> Product Specifications
+                                    </h3>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Static attributes for all variants</span>
                                 </div>
-                            </div>
-
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50">
-                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-                                    <Settings size={16} className="text-primary" /> Dynamic Attributes
-                                </h3>
                                 {((formData.categoryIds || []) as string[]).length === 0 ? (
-                                    <div className="text-center py-12 text-gray-400">
-                                        <Info size={32} className="mx-auto mb-2 opacity-20" />
-                                        <p className="text-xs font-bold uppercase tracking-widest">Select categories to reveal attributes</p>
+                                    <div className="text-center py-8 text-gray-400">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest">Select target categories under 'Basic Details'</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-6">
-                                        {relevantAttributes.map(attr => {
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {relevantAttributes.filter(a => !a.isVariant).map(attr => {
                                             const valObj = formData.attributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attr._id);
                                             return (
                                                 <div key={attr._id} className="space-y-2">
@@ -303,9 +432,9 @@ const ProductForm: React.FC = () => {
                                                         <select
                                                             value={valObj?.value || ''}
                                                             onChange={(e) => handleAttributeValueChange(attr._id, e.target.value)}
-                                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-sm"
+                                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
                                                         >
-                                                            <option value="">Select Option</option>
+                                                            <option value="">Select</option>
                                                             {attr.options?.map(o => (
                                                                 <option key={o.value} value={o.value}>{o.label}</option>
                                                             ))}
@@ -315,144 +444,162 @@ const ProductForm: React.FC = () => {
                                                             type="text"
                                                             value={valObj?.value || ''}
                                                             onChange={(e) => handleAttributeValueChange(attr._id, e.target.value)}
-                                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-sm"
-                                                            placeholder={`Enter ${attr.name}...`}
+                                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
+                                                            placeholder={`Value...`}
                                                         />
                                                     )}
                                                 </div>
                                             );
                                         })}
-                                        {relevantAttributes.length === 0 && (
-                                            <p className="text-center py-8 text-gray-400 text-[10px] font-bold uppercase tracking-widest">No attributes linked to selected categories</p>
+                                        {relevantAttributes.filter(a => !a.isVariant).length === 0 && (
+                                            <div className="col-span-3 py-6 text-center text-gray-400 text-[10px] font-bold uppercase">No specification attributes found</div>
                                         )}
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </TabPanel>
 
-                    <TabPanel>
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-8 animate-fade-in text-gray-700">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <CustomInput label="Base Price (Market)" name="basePrice" type="number" value={formData.basePrice || 0} onChange={handleGeneralChange} required />
-                                <CustomInput label="Sale Price (Platform)" name="salePrice" type="number" value={formData.salePrice || 0} onChange={handleGeneralChange} />
-                                <CustomInput label="Discount Percentage (%)" name="discount" type="number" value={formData.discount || 0} onChange={handleGeneralChange} />
-                            </div>
-                            <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-white rounded-2xl text-primary shadow-sm">
-                                        <IndianRupee size={24} />
-                                    </div>
+                            {/* Section 2: Variant Generation Ecosystem */}
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-8">
+                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
                                     <div>
-                                        <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest block">Actual Listing Price</span>
-                                        <span className="text-2xl font-black text-primary tracking-tighter">₹ {formData.salePrice || formData.basePrice || 0}</span>
+                                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">SKU Architecture Engine</h3>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Configure variant permutations</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <CustomButton type="button" onClick={generateSkusLocally} className="rounded-xl h-10 px-6 text-[10px]">
+                                            <PlusCircle size={14} className="mr-2" /> Build Local SKUs
+                                        </CustomButton>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Currency Config</span>
-                                    <span className="font-bold text-gray-900">{formData.currency || 'INR'} - Indian Rupee</span>
-                                </div>
-                            </div>
-                        </div>
-                    </TabPanel>
 
-                    <TabPanel>
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6 animate-fade-in text-gray-700">
-                            <CustomInput label="Main Banner (Hero Image URL)" name="mainImage" value={formData.mainImage || ''} onChange={handleGeneralChange} placeholder="https://..." />
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-1">
-                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Gallery Assets</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, images: [...(prev.images || []), ''] }))}
-                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
-                                    >
-                                        + Add Asset
-                                    </button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {formData.images?.map((img, idx) => (
-                                        <div key={idx} className="flex gap-2">
-                                            <input
-                                                value={img}
-                                                onChange={(e) => {
-                                                    const newImgs = [...(formData.images || [])];
-                                                    newImgs[idx] = e.target.value;
-                                                    setFormData(prev => ({ ...prev, images: newImgs }));
-                                                }}
-                                                className="flex-1 border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
-                                                placeholder="Asset URL..."
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const newImgs = (formData.images || []).filter((_, i) => i !== idx);
-                                                    setFormData(prev => ({ ...prev, images: newImgs }));
-                                                }}
-                                                className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </TabPanel>
-
-                    <TabPanel>
-                        {isEdit ? (
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6 animate-fade-in text-gray-700">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Live Variants</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Found {productSkus.length} Unique SKUs</p>
-                                    </div>
-                                    <CustomButton
-                                        type="button"
-                                        onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE + `?productId=${id}`)}
-                                        className="rounded-xl h-10 px-4 text-[10px]"
-                                    >
-                                        <PlusCircle size={14} className="mr-2" /> Architect Variant
-                                    </CustomButton>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {productSkus.map(sku => (
-                                        <div key={sku._id} className="p-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex items-center justify-between group hover:border-primary/20 transition-all">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-primary shadow-sm">
-                                                    <Barcode size={20} />
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs font-black text-gray-900 uppercase block">{sku.skuCode}</span>
-                                                    <span className="text-[10px] font-bold text-primary">{sku.quantity} in Stock</span>
-                                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {variantAttributes.map(attr => (
+                                        <div key={attr._id} className="space-y-4">
+                                            <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                                                <input type="checkbox" className="w-4 h-4 rounded text-primary focus:ring-primary" checked={!!variantConfig[attr._id]} onChange={(e) => {
+                                                    if (e.target.checked) setVariantConfig(p => ({ ...p, [attr._id]: [] }));
+                                                    else setVariantConfig(p => { const next = { ...p }; delete next[attr._id]; return next; });
+                                                }} />
+                                                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none pt-0.5">{attr.name}</label>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))}
-                                                className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all opacity-0 group-hover:opacity-100"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
+                                            {variantConfig[attr._id] && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.options?.map(opt => {
+                                                        const isSelected = variantConfig[attr._id].includes(opt.value);
+                                                        return (
+                                                            <button
+                                                                key={opt.value}
+                                                                type="button"
+                                                                onClick={() => handleVariantConfigToggle(attr._id, opt.value)}
+                                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border-2 ${isSelected
+                                                                    ? 'bg-primary border-primary text-white shadow-md'
+                                                                    : 'bg-white border-gray-100 text-gray-500 hover:border-primary/20 hover:text-primary'
+                                                                    }`}
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
-                                    {productSkus.length === 0 && (
-                                        <div className="col-span-2 text-center py-12 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200">
-                                            <Box size={32} className="mx-auto mb-2 opacity-10" />
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No variants defined for this product</p>
+                                    {variantAttributes.length === 0 && (
+                                        <div className="col-span-3 py-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 italic">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No variant configurations available for selection</p>
                                         </div>
                                     )}
                                 </div>
+
+                                {generatedSkus.length > 0 && (
+                                    <div className="mt-8 space-y-4 pt-8 border-t border-gray-50">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Locally Prepared SKUs ({generatedSkus.length})</h4>
+                                            <button type="button" onClick={() => setGeneratedSkus([])} className="text-[10px] font-bold text-rose-500 hover:underline uppercase tracking-widest">Wipe Local Storage</button>
+                                        </div>
+                                        <div className="overflow-x-auto rounded-[1.5rem] border border-gray-100 shadow-sm">
+                                            <table className="w-full text-left text-[11px]">
+                                                <thead className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 uppercase tracking-wider text-gray-400 font-black">
+                                                    <tr>
+                                                        <th className="px-6 py-4">SKU Identity</th>
+                                                        <th className="px-6 py-4 text-center">Price Point (₹)</th>
+                                                        <th className="px-6 py-4 text-center">Initial Inventory</th>
+                                                        <th className="px-6 py-4 text-right">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-50 bg-white">
+                                                    {generatedSkus.map((sku, idx) => (
+                                                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <span className="font-mono font-black text-primary bg-primary/5 px-2 py-1 rounded text-[10px]">{sku.skuCode}</span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <input
+                                                                    type="number"
+                                                                    value={sku.price}
+                                                                    onChange={(e) => handleGeneratedSkuChange(idx, 'price', Number(e.target.value))}
+                                                                    className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
+                                                                />
+                                                            </td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <input
+                                                                    type="number"
+                                                                    value={sku.quantity}
+                                                                    onChange={(e) => handleGeneratedSkuChange(idx, 'quantity', Number(e.target.value))}
+                                                                    className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
+                                                                />
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setGeneratedSkus(prev => prev.filter((_, i) => i !== idx))}
+                                                                    className="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        ) : (
-                            <div className="p-12 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-gray-200 animate-fade-in text-gray-700">
-                                <PlusCircle size={48} className="mx-auto mb-4 text-primary opacity-20" />
-                                <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Variant Architecture Blocked</h3>
-                                <p className="text-sm text-gray-500 max-w-xs mx-auto mt-2">Finish establishing the core product first to unlock its variant ecosystem.</p>
-                            </div>
-                        )}
+
+                            {/* Section 3: Live SKUs (For Edit Mode) */}
+                            {isEdit && productSkus.length > 0 && (
+                                <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Authenticated Variants</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Live in Master Catalog</p>
+                                        </div>
+                                        <CustomButton type="button" onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE + `?productId=${id}`)} className="rounded-xl h-10 px-4 text-[10px]">
+                                            <PlusCircle size={14} className="mr-2" /> Direct Architecture
+                                        </CustomButton>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {productSkus.map(sku => (
+                                            <div key={sku._id} className="p-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex items-center justify-between group hover:border-primary/20 transition-all">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-primary shadow-sm">
+                                                        <Barcode size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs font-black text-gray-900 uppercase block">{sku.skuCode}</span>
+                                                        <span className="text-[10px] font-bold text-primary">{sku.quantity} in Stock</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))} className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all opacity-0 group-hover:opacity-100 shadow-sm">
+                                                    <Edit2 size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </TabPanel>
                 </Tabs>
 

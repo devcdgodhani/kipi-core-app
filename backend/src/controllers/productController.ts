@@ -95,11 +95,16 @@ export default class ProductController {
   /*********** Create Product ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData: TProductCreateReq = req.body;
+      const { skus, ...reqData }: TProductCreateReq = req.body;
       const slug = slugify(reqData.name, { lower: true });
       const createData = { ...reqData, slug };
       
       const newProduct = await this.productService.create(createData as any, { userId: req.user?._id });
+
+      // Sync SKUs
+      if (skus) {
+          await this.productService.syncSkus(newProduct, skus, req.user?._id);
+      }
 
       const response: TProductRes = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
@@ -117,13 +122,21 @@ export default class ProductController {
   updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const updateData: TProductUpdateReq = req.body;
+      const { skus, ...updateData }: TProductUpdateReq = req.body;
 
       if (updateData.name) {
         (updateData as any).slug = slugify(updateData.name, { lower: true });
       }
 
       await this.productService.updateOne({ _id: id }, updateData as any, { userId: req.user?._id });
+
+      // Sync SKUs if provided
+      if (skus) {
+          const product = await this.productService.findById(id);
+          if (product) {
+              await this.productService.syncSkus(product, skus, req.user?._id);
+          }
+      }
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
