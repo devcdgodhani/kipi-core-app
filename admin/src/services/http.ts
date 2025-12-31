@@ -5,6 +5,9 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: {
+    indexes: null, // serializes { type: ['A', 'B'] } as type=A&type=B
+  },
 });
 
 axiosInstance.interceptors.request.use(

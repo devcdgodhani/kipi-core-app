@@ -109,7 +109,11 @@ export class MongooseCommonService<T, TDoc extends Document>
         }
 
         case 'Boolean':
-          filter[field] = value === 'true' || value === true;
+          if (Array.isArray(value)) {
+            filter[field] = { $in: value.map((v) => v === 'true' || v === true) };
+          } else {
+            filter[field] = value === 'true' || value === true;
+          }
           break;
 
         case 'Array':
