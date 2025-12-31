@@ -2,7 +2,9 @@ import { IApiResponse, IPaginationData } from '../interfaces';
 import { IProductAttributes } from '../interfaces/product';
 
 /***************** Requests *******************/
-export type TProductCreateReq = Omit<IProductAttributes, '_id' | 'createdAt' | 'updatedAt' | 'slug' | 'stock'>; 
+export type TProductCreateReq = Omit<IProductAttributes, '_id' | 'createdAt' | 'updatedAt' | 'slug' | 'stock'> & {
+  skus?: any[];
+}; 
 
 export type TProductUpdateReq = Partial<TProductCreateReq>;
 

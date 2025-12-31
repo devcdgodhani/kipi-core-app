@@ -40,7 +40,18 @@ const productCreateSchema = z.object({
   })).optional(),
   
   status: z.nativeEnum(PRODUCT_STATUS).optional(),
-  stock: z.number().optional()
+  stock: z.number().optional(),
+  skus: z.array(z.object({
+    skuCode: z.string(),
+    price: z.number().min(0),
+    quantity: z.number().min(0),
+    variantAttributes: z.array(z.object({
+      attributeId: z.string(),
+      value: z.any()
+    })).optional(),
+    images: z.array(z.string()).optional(),
+    status: z.string().optional()
+  })).optional()
 });
 
 const productUpdateSchema = productCreateSchema.partial();
