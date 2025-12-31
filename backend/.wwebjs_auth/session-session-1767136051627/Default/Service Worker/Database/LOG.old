@@ -1,2 +1,3 @@
-2025/12/31-04:37:34.130 28b6f Creating DB /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-session-1767136051627/Default/Service Worker/Database since it was missing.
-2025/12/31-04:37:34.133 28b6f Reusing MANIFEST /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-session-1767136051627/Default/Service Worker/Database/MANIFEST-000001
+2025/12/31-04:52:56.415 2952d Reusing MANIFEST /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-session-1767136051627/Default/Service Worker/Database/MANIFEST-000001
+2025/12/31-04:52:56.416 2952d Recovering log #3
+2025/12/31-04:52:56.416 2952d Reusing old log /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-session-1767136051627/Default/Service Worker/Database/000003.log 

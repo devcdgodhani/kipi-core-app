@@ -83,9 +83,9 @@ const Login: React.FC = () => {
             <div className="w-full max-w-md bg-transparent p-8 rounded-3xl">
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-primary mb-2">
-                        <span className="font-bold text-lg">N</span>
+                        <span className="font-bold text-lg">K</span>
                     </div>
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-primary mb-8">NIKEN</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-primary mb-8">KIPI</div>
 
                     <h1 className="text-4xl font-bold text-primary mb-2">Welcome Back</h1>
                     <p className="text-sm text-primary/60">Sign in to your account to continue</p>
