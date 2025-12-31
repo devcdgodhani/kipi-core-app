@@ -1,20 +1,21 @@
-**Lot Module **
+**Category attributes Module **
 
 1. requirements
- - user can manage lots
- - lots has sku quantities with base price
- - should has start or end date or both
- - lot can be type of supplier which is user type or lot can be self manufacture
+ - user can manage category
+ - category should nested tree. with parent and child category reference same model
 
 2. backend tasks
  - Create module using the Module Generation Blueprint. Follow the standard structure of the User module.
- - follow backend structure like other modules
- - create lotModel
- - create crud for lot model 
- - need lot getAll and paginated by date filter on start and end
- - populate user details with paginate api
+ - create categoryModel
+ - create crud for categoryModel
+ - need lot getAll and paginated by date filter
+ - populate parent details with paginate api and getAll api
+ - for get all category in tree view getAll used with tree flag
+ - need category management like meesho, flipcart, amazon etc... app
 
 3. Admin App tasks
- - Create module using the Module Generation Blueprint. Follow the standard structure app.
- - create ui for backend task and lot management add in drawer 
+ - Create module using the Module Generation Blueprint. Follow the standard structure in our app.
+ - create ui for backend task and category management add in drawer 
  - use common filer for filter 
+ - use accordion view list 
+ - need category management like meesho, flipcart, amazon etc... app

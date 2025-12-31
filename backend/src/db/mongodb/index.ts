@@ -24,3 +24,5 @@ export * from './models/authTokenModel';
 export * from './models/otpModel';
 export * from './models/userModel';
 export * from './models/whatsAppSessionModel';
+export * from './models/lotModel';
+export * from './models/categoryModel';

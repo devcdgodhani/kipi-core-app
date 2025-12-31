@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy } from '../lazy';
 import { ROUTES } from '../routeConfig';
 
 export const privateRoutes: RouteObject = {
@@ -34,6 +34,14 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.WHATSAPP,
                     element: <WhatsAppLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.LOTS,
+                    element: <ManageLotsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.CATEGORIES,
+                    element: <ManageCategoriesLazy />,
                 },
                 {
                     path: ROUTES.PROFILE,
