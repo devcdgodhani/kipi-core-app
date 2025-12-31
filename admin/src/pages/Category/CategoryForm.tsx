@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sliders } from 'lucide-react';
 import { categoryService } from '../../services/category.service';
+import { attributeService } from '../../services/attribute.service';
 import { CATEGORY_STATUS, type ICategory } from '../../types/category';
+import type { IAttribute } from '../../types/attribute';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
@@ -22,6 +24,7 @@ const CategoryForm: React.FC = () => {
         image: string;
         status: CATEGORY_STATUS;
         order: number;
+        attributeIds: string[];
     }>({
         name: '',
         parentId: parentIdParam || null,
@@ -29,8 +32,13 @@ const CategoryForm: React.FC = () => {
         image: '',
         status: CATEGORY_STATUS.ACTIVE,
         order: 0,
+        attributeIds: []
     });
+
     const [allCategories, setAllCategories] = useState<ICategory[]>([]);
+    const [availableAttributes, setAvailableAttributes] = useState<IAttribute[]>([]);
+    const [parentInheritedIds, setParentInheritedIds] = useState<string[]>([]);
+
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,37 +47,31 @@ const CategoryForm: React.FC = () => {
         const fetchInitialData = async () => {
             setPageLoading(true);
             try {
-                // Fetch all categories for parent selection
-                const res = await categoryService.getAll({ isTree: false });
-                if (res?.data) {
-                    setAllCategories(res.data);
+                // Fetch attributes
+                const attrRes = await attributeService.getAll({ status: 'ACTIVE' }); // Assuming filtering by active
+                if (attrRes?.data) {
+                    setAvailableAttributes(attrRes.data);
                 }
 
-                // Fetch category details if edit
-                if (isEdit) {
-                    // Assuming getAll returns everything, we might find it in the list or fetch individually.
-                    // Ideally fetch one. Category service usually has getOne or we filter.
-                    // categoryService.getAll returns array.
-                    // Let's try to find in the already fetched list if we can, or just re-fetch properly.
-                    // Given the previous pattern, let's assume we can finding it or fetching it.
-                    // If no getOne, we filter local allCategories if available?
-                    // But wait, allCategories might not have everything if paginated? 
-                    // But here getAll implies all for categories typically.
-                    // Let's rely on finding it in the response of getAll for now as per CategoryList logic (which used getAll).
-                    // Or ideally implement getOne.
-                    // Let's try to find it in the fetched `res.data`.
-                    if (res?.data) {
-                        const match = res.data.find((c: any) => c._id === id);
-                        if (match) {
-                            setFormData({
-                                name: match.name,
-                                parentId: typeof match.parentId === 'object' ? match.parentId?._id : match.parentId || null,
-                                description: match.description || '',
-                                image: match.image || '',
-                                status: match.status,
-                                order: match.order || 0,
-                            });
-                        }
+                // Fetch categories
+                const catRes = await categoryService.getAll({ isTree: false });
+                if (catRes?.data) {
+                    setAllCategories(catRes.data);
+                }
+
+                // If Edit, populate form
+                if (isEdit && catRes?.data) {
+                    const match = catRes.data.find((c: any) => c._id === id);
+                    if (match) {
+                        setFormData({
+                            name: match.name,
+                            parentId: typeof match.parentId === 'object' ? match.parentId?._id : match.parentId || null,
+                            description: match.description || '',
+                            image: match.image || '',
+                            status: match.status,
+                            order: match.order || 0,
+                            attributeIds: match.attributeIds || []
+                        });
                     }
                 }
             } catch (err: any) {
@@ -82,12 +84,62 @@ const CategoryForm: React.FC = () => {
         fetchInitialData();
     }, [id, isEdit]);
 
+    // Handle Parent ID changes to inheriting attributes
+    useEffect(() => {
+        const updateInheritedAttributes = async () => {
+            if (formData.parentId && formData.parentId !== 'null') {
+                // Find parent in the loaded list
+                let parent = allCategories.find(c => c._id === formData.parentId);
+
+                // If not found in list (maybe partial load?), fetch it
+                if (!parent) {
+                    try {
+                        const res = await categoryService.getOne(formData.parentId);
+                        parent = res.data;
+                    } catch (e) {
+                        console.error("Failed to fetch parent category", e);
+                    }
+                }
+
+                if (parent && parent.attributeIds && parent.attributeIds.length > 0) {
+                    setParentInheritedIds(parent.attributeIds);
+                    // Merge inherited IDs into selected IDs
+                    setFormData(prev => ({
+                        ...prev,
+                        attributeIds: Array.from(new Set([...prev.attributeIds, ...parent!.attributeIds!]))
+                    }));
+                } else {
+                    setParentInheritedIds([]);
+                }
+            } else {
+                setParentInheritedIds([]);
+            }
+        };
+
+        updateInheritedAttributes();
+    }, [formData.parentId, allCategories]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: name === 'order' ? Number(value) : (value === 'null' ? null : value)
         }));
+    };
+
+    const toggleAttribute = (attrId: string) => {
+        if (parentInheritedIds.includes(attrId)) return; // Prevents removing inherited
+
+        setFormData(prev => {
+            const exists = prev.attributeIds.includes(attrId);
+            let newIds;
+            if (exists) {
+                newIds = prev.attributeIds.filter(id => id !== attrId);
+            } else {
+                newIds = [...prev.attributeIds, attrId];
+            }
+            return { ...prev, attributeIds: newIds };
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -128,65 +180,121 @@ const CategoryForm: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 max-w-4xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                        <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl text-center font-bold uppercase tracking-wider">
-                            {error}
+            <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {error && (
+                                <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl text-center font-bold uppercase tracking-wider">
+                                    {error}
+                                </div>
+                            )}
+
+                            <CustomInput label="Category Name" name="name" value={formData.name} onChange={handleChange} placeholder="Fashion, Electronics, etc." required />
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Parent Hierarchy</label>
+                                <select
+                                    name="parentId"
+                                    value={formData.parentId || 'null'}
+                                    onChange={handleChange}
+                                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
+                                >
+                                    <option value="null">Root Category (No Parent)</option>
+                                    {allCategories.filter(c => c._id !== id).map(c => (
+                                        <option key={c._id} value={c._id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <CustomInput label="Display Image URL" name="image" value={formData.image} onChange={handleChange} placeholder="https://..." />
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                                    <select
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
+                                    >
+                                        <option value={CATEGORY_STATUS.ACTIVE}>Visible / Active</option>
+                                        <option value={CATEGORY_STATUS.INACTIVE}>Hidden / Inactive</option>
+                                    </select>
+                                </div>
+                                <CustomInput label="Sort Order" name="order" type="number" value={formData.order} onChange={handleChange} />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700 min-h-[100px]"
+                                    placeholder="Brief overview of this category..."
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-6 border-t border-gray-100">
+                                <button type="button" onClick={() => navigate(-1)} className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all">Cancel</button>
+                                <CustomButton type="submit" disabled={loading} className="flex-1 rounded-2xl h-14">{loading ? 'Processing...' : isEdit ? 'Update Hub' : 'Establish Category'}</CustomButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 h-full max-h-[800px] overflow-y-auto">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
+                            <div className="p-2 rounded-xl bg-violet-50 text-violet-500">
+                                <Sliders size={20} />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Attributes</h3>
                         </div>
-                    )}
 
-                    <CustomInput label="Category Name" name="name" value={formData.name} onChange={handleChange} placeholder="Fashion, Electronics, etc." required />
+                        <p className="text-xs text-gray-400 mb-4 font-medium leading-relaxed">
+                            Associate attributes with this category. Inherited attributes from parent categories cannot be removed.
+                        </p>
 
-                    <div className="flex flex-col gap-2">
-                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Parent Hierarchy</label>
-                        <select
-                            name="parentId"
-                            value={formData.parentId || 'null'}
-                            onChange={handleChange}
-                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                        >
-                            <option value="null">Root Category (No Parent)</option>
-                            {allCategories.filter(c => c._id !== id).map(c => (
-                                <option key={c._id} value={c._id}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                        <div className="space-y-3">
+                            {availableAttributes.length > 0 ? availableAttributes.map(attr => {
+                                const isInherited = parentInheritedIds.includes(attr._id);
+                                const isSelected = formData.attributeIds.includes(attr._id) || isInherited;
 
-                    <CustomInput label="Display Image URL" name="image" value={formData.image} onChange={handleChange} placeholder="https://..." />
-
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="flex flex-col gap-2">
-                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                            >
-                                <option value={CATEGORY_STATUS.ACTIVE}>Visible / Active</option>
-                                <option value={CATEGORY_STATUS.INACTIVE}>Hidden / Inactive</option>
-                            </select>
+                                return (
+                                    <label
+                                        key={attr._id}
+                                        className={`flex items-start gap-3 p-3 rounded-2xl transition-all cursor-pointer border ${isSelected
+                                                ? (isInherited ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-primary/5 border-primary/20')
+                                                : 'hover:bg-gray-50 border-transparent hover:border-gray-100'
+                                            }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            disabled={isInherited}
+                                            onChange={() => toggleAttribute(attr._id)}
+                                            className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
+                                        />
+                                        <div>
+                                            <span className={`block text-sm font-bold ${isSelected ? 'text-gray-900' : 'text-gray-600'
+                                                }`}>
+                                                {attr.name}
+                                                {isInherited && <span className="ml-2 text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded-md uppercase tracking-wider">Inherited</span>}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 uppercase tracking-wider">{attr.valueType}</span>
+                                        </div>
+                                    </label>
+                                );
+                            }) : (
+                                <div className="text-center py-8 text-gray-400 text-xs">
+                                    No attributes available
+                                </div>
+                            )}
                         </div>
-                        <CustomInput label="Sort Order" name="order" type="number" value={formData.order} onChange={handleChange} />
                     </div>
-
-                    <div className="flex flex-col gap-2">
-                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700 min-h-[100px]"
-                            placeholder="Brief overview of this category..."
-                        />
-                    </div>
-
-                    <div className="flex gap-4 pt-6 border-t border-gray-100">
-                        <button type="button" onClick={() => navigate(-1)} className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all">Cancel</button>
-                        <CustomButton type="submit" disabled={loading} className="flex-1 rounded-2xl h-14">{loading ? 'Processing...' : isEdit ? 'Update Hub' : 'Establish Category'}</CustomButton>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     );

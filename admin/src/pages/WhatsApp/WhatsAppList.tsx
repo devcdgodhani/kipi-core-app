@@ -265,7 +265,7 @@ const WhatsAppList: React.FC = () => {
                                         className="relative p-3 bg-white border-2 border-dashed border-blue-200 rounded-2xl shadow-inner group-hover:border-primary/50 transition-colors"
                                     >
                                         <img src={session.qrCode} alt="WhatsApp QR" className="w-40 h-40 object-contain" />
-                                        <div className="absolute inset-0 bg-blue-500/5 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="absolute inset-0 bg-blue-500/5 rounded-2xl flex items-center justify-center ">
                                             <div className="bg-white/90 p-2 rounded-lg shadow-sm">
                                                 <Eye className="text-primary" size={24} />
                                             </div>

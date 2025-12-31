@@ -17,3 +17,6 @@ export const ManageCategoryFormLazy = lazy(() => import('../../pages/Category/Ca
 export const ManageUserFormLazy = lazy(() => import('../../pages/User/UserForm'));
 export const ForgotPasswordLazy = lazy(() => import('../../pages/Auth/ForgotPassword'));
 export const ResetPasswordLazy = lazy(() => import('../../pages/Auth/ResetPassword'));
+export const ManageAttributesLazy = lazy(() => import('../../pages/Attribute/AttributeList'));
+export const ManageAttributeFormLazy = lazy(() => import('../../pages/Attribute/AttributeForm'));
+

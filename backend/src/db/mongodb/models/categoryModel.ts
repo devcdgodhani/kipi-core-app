@@ -11,6 +11,7 @@ const categorySchema = new Schema<ICategoryDocument>(
     image: { type: String },
     status: { type: String, enum: Object.values(CATEGORY_STATUS), default: CATEGORY_STATUS.ACTIVE },
     order: { type: Number, default: 0 },
+    attributeIds: [{ type: Schema.Types.ObjectId, ref: 'Attribute' }],
   },
   {
     timestamps: true,

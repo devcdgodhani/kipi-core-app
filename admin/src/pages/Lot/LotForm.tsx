@@ -307,7 +307,7 @@ const LotForm: React.FC = () => {
                                                     <span className="text-sm font-black text-primary">-{adj.quantity}</span>
                                                     <button
                                                         onClick={() => handleRemoveAdjustment(adj._id)}
-                                                        className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-300 hover:text-red-500 bg-white rounded-lg border border-gray-100 hover:border-red-100 transition-all shadow-sm"
+                                                        className="text-gray-400 hover:text-red-500 p-1.5 text-gray-300 hover:text-red-500 bg-white rounded-lg border border-gray-100 hover:border-red-100 transition-all shadow-sm"
                                                     >
                                                         <Trash2 size={12} />
                                                     </button>

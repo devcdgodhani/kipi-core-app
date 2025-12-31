@@ -20,6 +20,7 @@ export interface ICategory {
   createdAt: string;
   updatedAt: string;
   children?: ICategory[];
+  attributeIds?: string[];
 }
 
 export interface ICategoryFilters {

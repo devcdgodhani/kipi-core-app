@@ -26,3 +26,4 @@ export * from './models/userModel';
 export * from './models/whatsAppSessionModel';
 export * from './models/lotModel';
 export * from './models/categoryModel';
+export * from './models/attributeModel';

@@ -5,9 +5,6 @@ import {
     Plus,
     Edit2,
     Trash2,
-    ChevronLeft,
-    ChevronRight,
-    Loader2,
     RotateCcw,
     Calendar,
     BadgeDollarSign,
@@ -18,8 +15,9 @@ import { useNavigate } from 'react-router-dom';
 import { lotService } from '../../services/lot.service';
 import { type ILot, type ILotFilters, LOT_STATUS, LOT_TYPE } from '../../types/lot';
 import CustomButton from '../../components/common/Button';
-import { Table } from '../../components/common/Table';
+import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
+import { AdjustQuantityModal } from '../../components/lot/AdjustQuantityModal';
 import { ROUTES } from '../../routes/routeConfig';
 
 const LotList: React.FC = () => {
@@ -134,10 +132,11 @@ const LotList: React.FC = () => {
         (Array.isArray(filters[k as keyof ILotFilters]) ? (filters[k as keyof ILotFilters] as any[]).length > 0 : true)
     ).length;
 
-    const columns = [
+    const columns: Column<ILot>[] = [
         {
             header: 'Lot Details',
-            accessor: (lot: ILot) => (
+            key: 'details',
+            render: (lot) => (
                 <div className="flex items-center gap-4 py-1">
                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-inner">
                         <Package size={24} />
@@ -155,7 +154,8 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Supplier / Origin',
-            accessor: (lot: ILot) => (
+            key: 'supplier',
+            render: (lot) => (
                 <div className="flex flex-col gap-1 py-1">
                     {lot.type === LOT_TYPE.SUPPLIER && lot.supplierId ? (
                         <>
@@ -170,7 +170,8 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Inventory',
-            accessor: (lot: ILot) => (
+            key: 'inventory',
+            render: (lot) => (
                 <div className="flex flex-col gap-1.5 py-1">
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-600">Qty:</span>
@@ -187,7 +188,8 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Value',
-            accessor: (lot: ILot) => (
+            key: 'value',
+            render: (lot) => (
                 <div className="flex items-center gap-2 text-emerald-600 font-black">
                     <BadgeDollarSign size={16} />
                     <span>₹{lot.basePrice}</span>
@@ -196,7 +198,8 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Timeline',
-            accessor: (lot: ILot) => (
+            key: 'timeline',
+            render: (lot) => (
                 <div className="flex flex-col gap-1 py-1">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                         <Calendar size={12} className="text-primary" />
@@ -211,7 +214,8 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Status',
-            accessor: (lot: ILot) => (
+            key: 'status',
+            render: (lot) => (
                 <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${lot.status === LOT_STATUS.ACTIVE ? 'bg-green-50 text-green-600 border-green-100' :
                     lot.status === LOT_STATUS.COMPLETED ? 'bg-blue-50 text-blue-600 border-blue-100' :
                         'bg-gray-50 text-gray-400 border-gray-100'
@@ -222,8 +226,10 @@ const LotList: React.FC = () => {
         },
         {
             header: 'Actions',
-            accessor: (lot: ILot) => (
-                <div className="flex items-center gap-1">
+            key: 'actions',
+            align: 'right' as const,
+            render: (lot) => (
+                <div className="flex items-center gap-1 justify-end">
                     <button
                         onClick={() => { setSelectedLot(lot); setShowAdjustModal(true); }}
                         className="p-3 text-orange-500 hover:bg-orange-50 rounded-2xl transition-all hover:scale-110 active:scale-90 border border-transparent hover:border-orange-100"
@@ -338,62 +344,22 @@ const LotList: React.FC = () => {
                 currentFilters={filters}
             />
 
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden min-h-[400px] relative">
-                {loading && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-3">
-                            <Loader2 size={40} className="text-primary animate-spin" />
-                            <p className="text-sm font-bold text-primary uppercase tracking-widest">Loading Lots...</p>
-                        </div>
-                    </div>
-                )}
-
-                <Table
-                    data={lots}
-                    columns={columns}
-                    keyExtractor={(lot) => lot._id}
-                />
-
-                {!loading && lots.length === 0 && (
-                    <div className="py-20 flex flex-col items-center justify-center text-gray-400">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                            <Package size={32} className="opacity-20" />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900">No lots found</h3>
-                        <p className="text-sm font-medium">Try adjusting your filters or search terms</p>
-                    </div>
-                )}
-            </div>
-
-            {pagination.totalPages > 0 && (
-                <div className="flex items-center justify-between bg-white px-8 py-4 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                        Showing <span className="text-primary">{lots.length}</span> of <span className="text-primary">{pagination.totalRecords}</span> lots
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <button
-                            disabled={filters.page === 1 || loading}
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page! - 1 }))}
-                            className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-0"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-
-                        <div className="flex items-center gap-1 px-4 py-2 bg-primary/5 border border-primary/10 rounded-xl">
-                            <span className="text-sm font-black text-primary">{pagination.currentPage}</span>
-                            <span className="text-[10px] font-bold text-primary/40 uppercase tracking-tighter">/ {pagination.totalPages}</span>
-                        </div>
-
-                        <button
-                            disabled={filters.page === pagination.totalPages || loading}
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page! + 1 }))}
-                            className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-0"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                </div>
-            )}
+            <Table
+                data={lots}
+                columns={columns}
+                isLoading={loading}
+                keyExtractor={(lot) => lot._id}
+                emptyMessage="No lots found"
+                pagination={pagination.totalRecords > 0 ? {
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalRecords: pagination.totalRecords,
+                    pageSize: filters.limit || 10,
+                    onPageChange: (page) => setFilters(prev => ({ ...prev, page })),
+                    hasPreviousPage: pagination.currentPage > 1,
+                    hasNextPage: pagination.currentPage < pagination.totalPages
+                } : undefined}
+            />
 
             {showAdjustModal && selectedLot && (
                 <AdjustQuantityModal
@@ -408,5 +374,3 @@ const LotList: React.FC = () => {
 };
 
 export default LotList;
-
-import { AdjustQuantityModal } from '../../components/lot/AdjustQuantityModal';
