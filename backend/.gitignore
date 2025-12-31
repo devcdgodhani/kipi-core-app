@@ -17,3 +17,5 @@ logs
 
 #env
 .env
+
+backend/.wwebjs_auth

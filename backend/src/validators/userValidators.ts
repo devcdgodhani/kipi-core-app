@@ -1,20 +1,25 @@
 import { z } from 'zod';
 import { validate } from '../helpers/zodValidator';
-import { baseFilterSchema, paginationSchema } from './validatorCommon';
+import { 
+  baseFilterSchema, 
+  paginationSchema, 
+  stringFilter, 
+  booleanFilter 
+} from './validatorCommon';
 
 const userFilterSchema = baseFilterSchema.extend({
-  email: z.union([z.string(), z.array(z.string())]).optional(),
-  mobile: z.union([z.string(), z.array(z.string())]).optional(),
-  firstName: z.union([z.string(), z.array(z.string())]).optional(),
-  lastName: z.union([z.string(), z.array(z.string())]).optional(),
-  type: z.union([z.string(), z.array(z.string())]).optional(),
-  status: z.union([z.string(), z.array(z.string())]).optional(),
-  isEmailVerified: z.union([z.string(), z.array(z.string())]).optional(),
-  isMobileVerified: z.union([z.string(), z.array(z.string())]).optional(),
-  isVerified: z.union([z.string(), z.array(z.string())]).optional(),
-  gender: z.union([z.string(), z.array(z.string())]).optional(),
-  countryCode: z.union([z.string(), z.array(z.string())]).optional(),
-}).strict();
+  email: stringFilter,
+  mobile: stringFilter,
+  firstName: stringFilter,
+  lastName: stringFilter,
+  type: stringFilter,
+  status: stringFilter,
+  isEmailVerified: booleanFilter,
+  isMobileVerified: booleanFilter,
+  isVerified: booleanFilter,
+  gender: stringFilter,
+  countryCode: stringFilter,
+});
 
 const userCreateSchema = z.object({
   email: z.string().email(),

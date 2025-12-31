@@ -7,7 +7,7 @@ export default class AuthValidator {
   registerValidator = validate(
     z.object({
       body: z.object({
-        email: z.email(),
+        email: z.string().email(),
         mobile: z.string(),
         password: z.string().min(6),
         firstName: z.string().max(50),

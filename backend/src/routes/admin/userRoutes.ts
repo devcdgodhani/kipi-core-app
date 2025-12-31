@@ -8,11 +8,17 @@ const userController = new UserController();
 const userValidator = new UserValidator();
 
 /***************** base crud structure*******************/
-router.get('/getOne', userValidator.getOne, userController.getOne);
+router.route('/getOne')
+  .get(userValidator.getOne, userController.getOne)
+  .post(userValidator.getOne, userController.getOne);
 
-router.get('/getAll', userValidator.getAll, userController.getAll);
+router.route('/getAll')
+  .get(userValidator.getAll, userController.getAll)
+  .post(userValidator.getAll, userController.getAll);
 
-router.get('/getWithPagination', userValidator.getWithPagination, userController.getWithPagination);
+router.route('/getWithPagination')
+  .get(userValidator.getWithPagination, userController.getWithPagination)
+  .post(userValidator.getWithPagination, userController.getWithPagination);
 
 router.put('/:id', userValidator.updateById, userController.updateById);
 

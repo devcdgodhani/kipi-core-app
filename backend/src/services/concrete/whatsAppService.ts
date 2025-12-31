@@ -2,12 +2,14 @@ import { Client, LocalAuth } from 'whatsapp-web.js';
 import QRCode from 'qrcode';
 import { Document } from 'mongoose';
 import { WhatsAppSessionModel } from '../../db/mongodb/models/whatsAppSessionModel';
-import { IWhatsAppSessionAttributes, IWhatsAppSessionDocument, WHATSAPP_SESSION_STATUS } from '../../interfaces';
+import { IWhatsAppSessionAttributes, IWhatsAppSessionDocument } from '../../interfaces';
+import { WHATSAPP_SESSION_STATUS } from '../../constants';
 import { getTime } from 'date-fns';
 import { MongooseCommonService } from './mongooseCommonService';
 import { APP_DETAILS } from '../../constants';
+import { IWhatsAppService } from '../contracts/whatsAppServiceInterface';
 
-export class WhatsAppService extends MongooseCommonService<IWhatsAppSessionAttributes, IWhatsAppSessionDocument> {
+export class WhatsAppService extends MongooseCommonService<IWhatsAppSessionAttributes, IWhatsAppSessionDocument> implements IWhatsAppService {
   private static clients: Map<string, Client> = new Map();
 
   constructor() {

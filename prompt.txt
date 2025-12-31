@@ -1,0 +1,20 @@
+**Lot Module **
+
+1. requirements
+ - user can manage lots
+ - lots has sku quantities with base price
+ - should has start or end date or both
+ - lot can be type of supplier which is user type or lot can be self manufacture
+
+2. backend tasks
+ - Create module using the Module Generation Blueprint. Follow the standard structure of the User module.
+ - follow backend structure like other modules
+ - create lotModel
+ - create crud for lot model 
+ - need lot getAll and paginated by date filter on start and end
+ - populate user details with paginate api
+
+3. Admin App tasks
+ - Create module using the Module Generation Blueprint. Follow the standard structure app.
+ - create ui for backend task and lot management add in drawer 
+ - use common filer for filter 
