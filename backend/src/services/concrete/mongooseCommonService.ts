@@ -132,9 +132,10 @@ export class MongooseCommonService<T, TDoc extends Document>
           break;
       }
     }
-    if (filters.isPaginate) {
-      filterOptions.limit = filters.limit as number;
-      filterOptions.page = filters.page;
+    // Check if pagination parameters exist or isPaginate flag is set
+    if (filters.isPaginate || filters.page || filters.limit) {
+      filterOptions.limit = Number(filters.limit) || 10;
+      filterOptions.page = Number(filters.page) || 1;
       filterOptions.order = filters.order;
     }
 

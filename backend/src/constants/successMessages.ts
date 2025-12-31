@@ -43,3 +43,10 @@ export enum CATEGORY_SUCCESS_MESSAGES {
   UPDATE_SUCCESS = 'Category details updated successfully',
   DELETE_SUCCESS = 'Category deleted successfully',
 }
+
+export enum ATTRIBUTE_SUCCESS_MESSAGES {
+  CREATE_SUCCESS = 'Attribute created successfully',
+  GET_SUCCESS = 'Attribute details retrieved successfully',
+  UPDATE_SUCCESS = 'Attribute details updated successfully',
+  DELETE_SUCCESS = 'Attribute deleted successfully',
+}

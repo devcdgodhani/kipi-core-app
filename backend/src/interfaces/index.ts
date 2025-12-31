@@ -2,6 +2,7 @@ export * from './user';
 export * from './whatsAppSession';
 export * from './lot';
 export * from './category';
+export * from './attribute';
 export * from './common';
 export * from './authToken';
 export * from './otp';

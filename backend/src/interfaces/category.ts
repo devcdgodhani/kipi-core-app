@@ -11,7 +11,9 @@ export interface ICategoryAttributes extends IDefaultAttributes {
   image?: string;
   status: CATEGORY_STATUS;
   order: number;
+  attributeIds?: ObjectId[]; // Ref to Attribute
 }
+
 
 export interface ICategoryDocument extends ICategoryAttributes, Document {
   _id: any;

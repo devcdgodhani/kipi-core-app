@@ -9,16 +9,13 @@ import {
     ShieldAlert,
     Mail,
     Phone,
-    ChevronLeft,
-    ChevronRight,
-    Loader2,
     RotateCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/user.service';
 import { type IUser, type IUserFilters, USER_STATUS, USER_TYPE } from '../../types/user';
 import CustomButton from '../../components/common/Button';
-import { Table } from '../../components/common/Table';
+import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { ROUTES } from '../../routes/routeConfig';
 
@@ -166,10 +163,11 @@ const UserList: React.FC = () => {
         (Array.isArray(filters[k as keyof IUserFilters]) ? (filters[k as keyof IUserFilters] as any[]).length > 0 : true)
     ).length;
 
-    const columns = [
+    const columns: Column<IUser>[] = [
         {
             header: 'User Profile',
-            accessor: (user: IUser) => (
+            key: 'profile',
+            render: (user) => (
                 <div className="flex items-center gap-4 py-1">
                     <div className="relative group">
                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xl border border-primary/10 shadow-inner group-hover:scale-105 transition-transform duration-300">
@@ -194,7 +192,8 @@ const UserList: React.FC = () => {
         },
         {
             header: 'Credentials',
-            accessor: (user: IUser) => (
+            key: 'credentials',
+            render: (user) => (
                 <div className="flex flex-col gap-1.5 py-1">
                     <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/20 transition-colors">
                         <Mail size={12} className="text-primary/40 group-hover:text-primary/70 transition-colors" />
@@ -211,7 +210,8 @@ const UserList: React.FC = () => {
         },
         {
             header: 'Security',
-            accessor: (user: IUser) => (
+            key: 'security',
+            render: (user) => (
                 <div className="flex flex-col gap-2">
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border ${user.isVerified
                         ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
@@ -231,11 +231,13 @@ const UserList: React.FC = () => {
         },
         {
             header: 'Action / Status',
-            accessor: (user: IUser) => (
-                <div className="flex items-center gap-3">
+            key: 'actions',
+            align: 'right' as const,
+            render: (user) => (
+                <div className="flex items-center justify-end gap-3">
                     <button
                         onClick={() => handleStatusToggle(user)}
-                        className={`group relative flex items-center h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all overflow-hidden border-2 ${user.status === USER_STATUS.ACTIVE
+                        className={`group relative flex items-center h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all overflow-hidden border-2 cursor-pointer ${user.status === USER_STATUS.ACTIVE
                             ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100 hover:shadow-green-200'
                             : 'bg-white border-gray-100 text-gray-400 hover:border-primary/20 hover:text-primary shadow-sm'
                             }`}
@@ -359,64 +361,22 @@ const UserList: React.FC = () => {
                 currentFilters={filters}
             />
 
-            {/* Content Table */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden min-h-[400px] relative">
-                {loading && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-3">
-                            <Loader2 size={40} className="text-primary animate-spin" />
-                            <p className="text-sm font-bold text-primary uppercase tracking-widest">Loading Users...</p>
-                        </div>
-                    </div>
-                )}
-
-                <Table
-                    data={users}
-                    columns={columns}
-                    keyExtractor={(user) => user._id}
-                />
-
-                {!loading && users.length === 0 && (
-                    <div className="py-20 flex flex-col items-center justify-center text-gray-400">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                            <Loader2 size={32} className="opacity-20" />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900">No users found</h3>
-                        <p className="text-sm font-medium">Try adjusting your filters or search terms</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Pagination Controls */}
-            {pagination.totalPages > 0 && (
-                <div className="flex items-center justify-between bg-white px-8 py-4 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                        Showing <span className="text-primary">{users.length}</span> of <span className="text-primary">{pagination.totalRecords}</span> members
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <button
-                            disabled={filters.page === 1 || loading}
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page! - 1 }))}
-                            className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-0"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-
-                        <div className="flex items-center gap-1 px-4 py-2 bg-primary/5 border border-primary/10 rounded-xl">
-                            <span className="text-sm font-black text-primary">{pagination.currentPage}</span>
-                            <span className="text-[10px] font-bold text-primary/40 uppercase tracking-tighter">/ {pagination.totalPages}</span>
-                        </div>
-
-                        <button
-                            disabled={filters.page === pagination.totalPages || loading}
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page! + 1 }))}
-                            className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-0"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                </div>
-            )}
+            <Table
+                data={users}
+                columns={columns}
+                isLoading={loading}
+                keyExtractor={(user) => user._id}
+                emptyMessage="No users found"
+                pagination={pagination.totalRecords > 0 ? {
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalRecords: pagination.totalRecords,
+                    pageSize: filters.limit || 10,
+                    onPageChange: (page) => setFilters(prev => ({ ...prev, page })),
+                    hasPreviousPage: pagination.currentPage > 1,
+                    hasNextPage: pagination.currentPage < pagination.totalPages
+                } : undefined}
+            />
         </div>
     );
 };
