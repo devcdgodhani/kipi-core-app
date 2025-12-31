@@ -13,7 +13,7 @@ const categoryFilterSchema = baseFilterSchema.extend({
   slug: stringFilter,
   parentId: stringFilter,
   status: stringFilter,
-  isTree: z.number().optional(),
+  isTree: z.boolean().optional(),
 });
 
 const categoryCreateSchema = z.object({

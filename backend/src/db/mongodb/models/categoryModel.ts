@@ -11,10 +11,6 @@ const categorySchema = new Schema<ICategoryDocument>(
     image: { type: String },
     status: { type: String, enum: Object.values(CATEGORY_STATUS), default: CATEGORY_STATUS.ACTIVE },
     order: { type: Number, default: 0 },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    deletedAt: { type: Date },
   },
   {
     timestamps: true,

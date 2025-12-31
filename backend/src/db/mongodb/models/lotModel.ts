@@ -14,10 +14,6 @@ const lotSchema = new Schema<ILotDocument>(
     endDate: { type: Date },
     status: { type: String, enum: Object.values(LOT_STATUS), default: LOT_STATUS.ACTIVE },
     notes: { type: String },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    deletedAt: { type: Date },
   },
   {
     timestamps: true,
