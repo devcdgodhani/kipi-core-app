@@ -26,6 +26,7 @@ import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Table, type Column } from '../../components/common/Table';
 import 'react-tabs/style/react-tabs.css';
 
 const ProductForm: React.FC = () => {
@@ -96,7 +97,22 @@ const ProductForm: React.FC = () => {
 
                     // Fetch associated SKUs
                     const skuRes = await skuService.getAll({ productId: id });
-                    if (skuRes?.data) setProductSkus(skuRes.data);
+                    if (skuRes?.data) {
+                        setProductSkus(skuRes.data);
+
+                        // Extract variant configuration from existing SKUs
+                        const config: Record<string, string[]> = {};
+                        skuRes.data.forEach((sku: ISku) => {
+                            sku.variantAttributes?.forEach((va: any) => {
+                                const attrId = typeof va.attributeId === 'object' ? va.attributeId._id : va.attributeId;
+                                if (!config[attrId]) config[attrId] = [];
+                                if (!config[attrId].includes(va.value)) {
+                                    config[attrId].push(va.value);
+                                }
+                            });
+                        });
+                        setVariantConfig(config);
+                    }
                 }
             }
         } catch (err: any) {
@@ -603,24 +619,50 @@ const ProductForm: React.FC = () => {
                                             <PlusCircle size={14} className="mr-2" /> Direct Architecture
                                         </CustomButton>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {productSkus.map(sku => (
-                                            <div key={sku._id} className="p-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex items-center justify-between group hover:border-primary/20 transition-all">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-primary shadow-sm">
-                                                        <Barcode size={20} />
+                                    <Table
+                                        data={productSkus}
+                                        keyExtractor={(item) => item._id!}
+                                        columns={[
+                                            {
+                                                header: 'SKU Identity',
+                                                render: (sku) => (
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
+                                                            <Barcode size={16} />
+                                                        </div>
+                                                        <span className="font-mono font-black text-primary text-[10px]">{sku.skuCode}</span>
                                                     </div>
-                                                    <div>
-                                                        <span className="text-xs font-black text-gray-900 uppercase block">{sku.skuCode}</span>
-                                                        <span className="text-[10px] font-bold text-primary">{sku.quantity} in Stock</span>
-                                                    </div>
-                                                </div>
-                                                <button type="button" onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))} className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all opacity-0 group-hover:opacity-100 shadow-sm">
-                                                    <Edit2 size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                )
+                                            },
+                                            {
+                                                header: 'Price Point',
+                                                align: 'center',
+                                                render: (sku) => <span className="font-black text-gray-700">₹{sku.salePrice || sku.price}</span>
+                                            },
+                                            {
+                                                header: 'Inventory',
+                                                align: 'center',
+                                                render: (sku) => (
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${sku.quantity > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                        {sku.quantity} in Stock
+                                                    </span>
+                                                )
+                                            },
+                                            {
+                                                header: 'Actions',
+                                                align: 'right',
+                                                render: (sku) => (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id!))}
+                                                        className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all shadow-sm border border-gray-100"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                )
+                                            }
+                                        ]}
+                                    />
                                 </div>
                             )}
                         </div>
