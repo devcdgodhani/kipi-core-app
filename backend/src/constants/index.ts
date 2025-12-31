@@ -5,3 +5,5 @@ export * from './defaultModelAttributes';
 export * from './errorMessages';
 export * from './httpStatusAndCode';
 export * from './successMessages';
+export * from './product';
+export * from './sku';

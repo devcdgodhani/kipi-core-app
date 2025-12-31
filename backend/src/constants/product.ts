@@ -1,0 +1,6 @@
+export enum PRODUCT_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  DRAFT = 'DRAFT',
+  ARCHIVED = 'ARCHIVED',
+}
