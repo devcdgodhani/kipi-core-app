@@ -101,27 +101,44 @@ const SkuForm: React.FC = () => {
     };
 
     const fetchVariantAttributes = async (productId: string) => {
+        if (!productId) {
+            setVariantAttributes([]);
+            return;
+        }
         try {
             const prodRes = await productService.getOne(productId);
-            if (prodRes?.data) {
-                const categoryIds = (prodRes.data.categoryIds || []) as string[];
+            // According to axios interceptor, prodRes is the response body: { data: Product, ... }
+            const product = prodRes?.data;
+            if (product) {
+                const categoryIds = (product.categoryIds || []).map((c: any) =>
+                    typeof c === 'object' ? c._id : c
+                );
+
                 if (categoryIds.length > 0) {
                     const attrRes = await attributeService.getAll({
                         categoryIds: categoryIds as any,
                         isVariant: true
                     });
                     if (attrRes?.data) setVariantAttributes(attrRes.data);
+                } else {
+                    setVariantAttributes([]);
                 }
             }
         } catch (err) {
             console.error('Failed to fetch variant attributes', err);
+            setVariantAttributes([]);
         }
     };
 
     const onProductChange = (productId: string) => {
         setFormData(prev => ({ ...prev, productId }));
-        fetchVariantAttributes(productId);
-        fetchSiblingSkus(productId);
+        if (productId) {
+            fetchVariantAttributes(productId);
+            fetchSiblingSkus(productId);
+        } else {
+            setVariantAttributes([]);
+            setSiblingSkus([]);
+        }
     };
 
     const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -159,10 +176,7 @@ const SkuForm: React.FC = () => {
             if (isEdit) {
                 await skuService.update(id!, formData);
                 setSuccess('SKU parameters refined successfully!');
-            } else {
-                await skuService.create(formData);
-                setSuccess('SKU variant established successfully!');
-                setTimeout(() => navigate('/' + ROUTES.DASHBOARD.SKUS), 1500);
+                setTimeout(() => fetchInitialData(), 1000);
             }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Transaction error');
@@ -177,14 +191,20 @@ const SkuForm: React.FC = () => {
         <div className="p-6 space-y-6">
             <div className="flex items-center justify-between bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <button type="button" onClick={() => navigate(-1)} className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                        <ChevronLeft size={24} className="text-gray-700" />
+                    <button type="button" onClick={() => navigate(-1)} className="p-3 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all shadow-sm group">
+                        <ChevronLeft size={24} className="text-gray-400 group-hover:text-primary transition-colors" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">{isEdit ? 'Refine SKU' : 'Establish SKU'}</h1>
-                        <p className="text-sm text-gray-500 font-medium">Define variant specific properties and availability</p>
+                        <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase font-mono">{isEdit ? 'Refine SKU Architecture' : 'SKU Configuration'}</h1>
+                        <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">Lifecycle & Variant Identity Management</p>
                     </div>
                 </div>
+                {isEdit && (
+                    <div className="flex items-center gap-3 px-6 py-2 bg-emerald-50 rounded-full border border-emerald-100">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active In Master Catalog</span>
+                    </div>
+                )}
             </div>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -215,26 +235,29 @@ const SkuForm: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6">
-                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
-                            <Layers size={16} className="text-primary" /> Variant Specifications
-                        </h3>
+                    <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 space-y-8">
+                        <div className="flex items-center justify-between border-b border-gray-50 pb-6">
+                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-[0.2em] flex items-center gap-2">
+                                <Layers size={18} className="text-primary" /> Variant Specifications
+                            </h3>
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">Immutable Identity</span>
+                        </div>
                         {variantAttributes.length === 0 ? (
-                            <div className="py-6 text-center text-gray-400 font-bold uppercase text-[10px] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
-                                Select a product to reveal variant attributes
+                            <div className="py-12 text-center text-gray-400 font-bold uppercase text-[10px] bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                                No variant attributes detected for the parent product
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {variantAttributes.map(attr => {
                                     const valObj = formData.variantAttributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attr._id);
                                     return (
-                                        <div key={attr._id} className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{attr.name}</label>
+                                        <div key={attr._id} className="space-y-3 group">
+                                            <label className="text-[10px] font-black text-gray-400 group-focus-within:text-primary uppercase tracking-[0.2em] ml-1 transition-colors">{attr.name}</label>
                                             {attr.inputType === 'DROPDOWN' || attr.valueType === 'SELECT' ? (
                                                 <select
                                                     value={valObj?.value || ''}
                                                     onChange={(e) => handleVariantAttrChange(attr._id, e.target.value)}
-                                                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-sm"
+                                                    className="w-full border-2 border-gray-100 bg-gray-50/30 rounded-[1.2rem] py-4 px-5 focus:outline-none focus:border-primary/30 focus:bg-white transition-all font-bold text-gray-700 text-sm shadow-sm"
                                                 >
                                                     <option value="">Select Option</option>
                                                     {attr.options?.map(o => (
@@ -246,7 +269,7 @@ const SkuForm: React.FC = () => {
                                                     type="text"
                                                     value={valObj?.value || ''}
                                                     onChange={(e) => handleVariantAttrChange(attr._id, e.target.value)}
-                                                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-sm"
+                                                    className="w-full border-2 border-gray-100 bg-gray-50/30 rounded-[1.2rem] py-4 px-5 focus:outline-none focus:border-primary/30 focus:bg-white transition-all font-bold text-gray-700 text-sm shadow-sm"
                                                 />
                                             )}
                                         </div>
@@ -338,41 +361,59 @@ const SkuForm: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6">
-                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
-                            <Barcode size={16} className="text-primary" /> Product Variants Catalog
-                        </h3>
-                        <div className="space-y-3">
+                    <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-2xl shadow-gray-200/40 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-[0.2em] flex items-center gap-2">
+                                <Barcode size={18} className="text-primary" /> Architecture Siblings
+                            </h3>
+                            <div className="px-2 py-1 bg-primary/5 rounded-lg text-[9px] font-black text-primary uppercase">{siblingSkus.length} Items</div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {siblingSkus.map(sku => (
                                 <div
                                     key={sku._id}
                                     onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id!))}
-                                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${sku._id === id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-primary/20 bg-gray-50/30'}`}
+                                    className={`p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer flex items-center justify-between group ${sku._id === id ? 'border-primary bg-primary/5 shadow-inner' : 'border-gray-50 hover:border-primary/20 bg-gray-50/30'}`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-primary">
-                                            <Barcode size={14} />
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${sku._id === id ? 'bg-primary text-white' : 'bg-white border border-gray-100 text-gray-400 group-hover:text-primary'}`}>
+                                            <Barcode size={18} />
                                         </div>
                                         <div>
-                                            <span className="text-[10px] font-black text-gray-900 uppercase block">{sku.skuCode}</span>
-                                            <span className="text-[9px] font-bold text-primary">₹{sku.salePrice || sku.price}</span>
+                                            <span className="text-[11px] font-black text-gray-900 uppercase block tracking-tight">{sku.skuCode}</span>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[10px] font-bold text-primary">₹{sku.salePrice || sku.price}</span>
+                                                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                                <span className="text-[10px] font-bold text-gray-400">{sku.quantity} units</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className={`w-2 h-2 rounded-full ${sku.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-gray-300'}`} />
+                                    <div className={`w-2.5 h-2.5 rounded-full border-4 border-white shadow-sm ${sku.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
                                 </div>
                             ))}
                             {siblingSkus.length === 0 && (
-                                <p className="text-[10px] text-gray-400 font-bold uppercase text-center py-4">No other variants found</p>
+                                <div className="text-center py-12 bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Single Architecture Variant</p>
+                                </div>
                             )}
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-4">
-                        {error && <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 text-xs font-bold text-center">{error}</div>}
-                        {success && <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 text-xs font-bold text-center">{success}</div>}
-                        <CustomButton type="submit" disabled={loading} className="w-full rounded-2xl h-14 shadow-xl shadow-primary/20">
-                            <Save size={20} className="mr-2" /> {loading ? 'Syncing...' : isEdit ? 'Update Variant' : 'Finalize SKU'}
-                        </CustomButton>
+                        {error && <div className="p-4 bg-rose-50 text-rose-600 rounded-[1.5rem] border border-rose-100 text-[10px] font-black uppercase tracking-widest text-center">{error}</div>}
+                        {success && <div className="p-4 bg-emerald-50 text-emerald-600 rounded-[1.5rem] border border-emerald-100 text-[10px] font-black uppercase tracking-widest text-center">{success}</div>}
+
+                        {isEdit ? (
+                            <CustomButton type="submit" disabled={loading} className="w-full rounded-[1.5rem] h-16 shadow-2xl shadow-primary/30 text-xs font-black uppercase tracking-[0.2em]">
+                                <Save size={20} className="mr-3" /> {loading ? 'Synchronizing...' : 'Sync Variant Adjustments'}
+                            </CustomButton>
+                        ) : (
+                            <div className="p-6 bg-amber-50 rounded-[1.5rem] border border-amber-100 text-center">
+                                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest leading-relaxed">
+                                    Manual SKU creation is restricted. Use the Product Configuration Engine to generate new variants.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </form>

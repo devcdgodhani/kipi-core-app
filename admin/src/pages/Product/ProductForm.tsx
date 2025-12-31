@@ -26,7 +26,7 @@ import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { Table, type Column } from '../../components/common/Table';
+import { Table } from '../../components/common/Table';
 import 'react-tabs/style/react-tabs.css';
 
 const ProductForm: React.FC = () => {
@@ -615,9 +615,6 @@ const ProductForm: React.FC = () => {
                                             <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Authenticated Variants</h3>
                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Live in Master Catalog</p>
                                         </div>
-                                        <CustomButton type="button" onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE + `?productId=${id}`)} className="rounded-xl h-10 px-4 text-[10px]">
-                                            <PlusCircle size={14} className="mr-2" /> Direct Architecture
-                                        </CustomButton>
                                     </div>
                                     <Table
                                         data={productSkus}
@@ -652,13 +649,31 @@ const ProductForm: React.FC = () => {
                                                 header: 'Actions',
                                                 align: 'right',
                                                 render: (sku) => (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id!))}
-                                                        className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all shadow-sm border border-gray-100"
-                                                    >
-                                                        <Edit2 size={14} />
-                                                    </button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id!))}
+                                                            className="p-2 bg-white text-gray-400 rounded-xl hover:text-primary hover:shadow-md transition-all shadow-sm border border-gray-100"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => {
+                                                                if (window.confirm(`Are you sure you want to terminate SKU ${sku.skuCode}?`)) {
+                                                                    try {
+                                                                        await skuService.delete(sku._id!);
+                                                                        setProductSkus(prev => prev.filter(s => s._id !== sku._id));
+                                                                    } catch (err) {
+                                                                        alert('Failed to delete SKU from catalog');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="p-2 bg-white text-rose-300 rounded-xl hover:text-rose-500 hover:shadow-md transition-all shadow-sm border border-gray-100"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
                                                 )
                                             }
                                         ]}
