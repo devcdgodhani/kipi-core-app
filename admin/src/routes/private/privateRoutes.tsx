@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy } from '../lazy';
 import { ROUTES } from '../routeConfig';
 
 export const privateRoutes: RouteObject = {
@@ -23,6 +23,27 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.PRODUCTS,
                     element: <ManageProductsLazy />,
                 },
+                {
+                    path: ROUTES.DASHBOARD.PRODUCTS_CREATE,
+                    element: <ManageProductFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.PRODUCTS_EDIT,
+                    element: <ManageProductFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.SKUS,
+                    element: <ManageSkusLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.SKUS_CREATE,
+                    element: <ManageSkuFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.SKUS_EDIT,
+                    element: <ManageSkuFormLazy />,
+                },
+
                 {
                     path: ROUTES.DASHBOARD.ORDERS,
                     element: <ManageOrdersLazy />,

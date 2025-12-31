@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { GENDER, SIGN_UP_TYPE, USER_STATUS, USER_TYPE } from '../constants';
 import { IDefaultAttributes } from './common';
 

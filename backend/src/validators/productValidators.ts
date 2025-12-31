@@ -1,0 +1,90 @@
+import { z } from 'zod';
+import { validate } from '../helpers/zodValidator';
+import { 
+  baseFilterSchema, 
+  paginationSchema, 
+  stringFilter, 
+  numberFilter 
+} from './validatorCommon';
+import { PRODUCT_STATUS } from '../constants/product';
+
+const productFilterSchema = baseFilterSchema.extend({
+  name: stringFilter,
+  status: stringFilter,
+  categoryIds: stringFilter,
+  slug: stringFilter,
+  basePrice: numberFilter,
+  salePrice: numberFilter,
+  discount: numberFilter,
+});
+
+const productCreateSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  
+  basePrice: z.number().min(0),
+  salePrice: z.number().optional(),
+  discount: z.number().optional(),
+  currency: z.string().optional().default('INR'),
+  
+  images: z.array(z.string()).optional(),
+  mainImage: z.string().optional(),
+  
+  categoryIds: z.array(z.string()).optional(),
+  
+  attributes: z.array(z.object({
+    attributeId: z.string(),
+    value: z.any(),
+    label: z.string().optional()
+  })).optional(),
+  
+  status: z.nativeEnum(PRODUCT_STATUS).optional(),
+  stock: z.number().optional()
+});
+
+const productUpdateSchema = productCreateSchema.partial();
+
+export default class ProductValidator {
+  getOne = validate(
+    z.object({
+      body: productFilterSchema.partial().optional(),
+      query: productFilterSchema.partial().optional(),
+    })
+  );
+
+  getAll = validate(
+    z.object({
+      body: productFilterSchema.partial().optional(),
+      query: productFilterSchema.partial().optional(),
+    })
+  );
+
+  getWithPagination = validate(
+    z.object({
+      body: productFilterSchema.partial().merge(paginationSchema).optional(),
+      query: productFilterSchema.partial().merge(paginationSchema).optional(),
+    })
+  );
+
+  create = validate(
+    z.object({
+      body: productCreateSchema,
+    })
+  );
+
+  updateById = validate(
+    z.object({
+      params: z.object({
+        id: z.string(),
+      }),
+      body: productUpdateSchema,
+    })
+  );
+
+  deleteByFilter = validate(
+    z.object({
+      body: productFilterSchema.partial(),
+    })
+  );
+}

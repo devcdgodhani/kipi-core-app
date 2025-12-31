@@ -7,6 +7,11 @@ export const lotService = {
     return axiosInstance.post<any, { data: IPaginationData<ILot>, message: string }>('/lot/getWithPagination', filters);
   },
 
+  getAll: async (filters: ILotFilters) => {
+    return axiosInstance.post<any, { data: ILot[], message: string }>('/lot/getAll', filters);
+  },
+
+
   getOne: async (id: string) => {
     return axiosInstance.post<any, { data: ILot, message: string }>('/lot/getOne', { _id: id });
   },

@@ -6,7 +6,13 @@ export const ROUTES = {
     DASHBOARD: {
         ROOT: '/dashboard',
         PRODUCTS: 'products',
+        PRODUCTS_CREATE: 'products/create',
+        PRODUCTS_EDIT: 'products/edit/:id',
+        SKUS: 'skus',
+        SKUS_CREATE: 'skus/create',
+        SKUS_EDIT: 'skus/edit/:id',
         ORDERS: 'orders',
+
         USERS: 'users',
         USERS_CREATE: 'users/create',
         USERS_EDIT: 'users/edit/:id',

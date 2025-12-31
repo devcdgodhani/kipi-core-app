@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { TOKEN_TYPE } from '../constants';
 import { IDefaultAttributes } from './common';
 
