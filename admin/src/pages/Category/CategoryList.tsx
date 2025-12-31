@@ -9,27 +9,25 @@ import {
     RotateCcw,
     ChevronDown,
     ChevronRight,
-    Waypoints,
     FolderTree,
     Image as ImageIcon
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { categoryService } from '../../services/category.service';
 import type { ICategory, ICategoryFilters } from '../../types/category';
 import { CATEGORY_STATUS } from '../../types/category';
-import CustomButton from '../../components/common/Button';
-import CustomInput from '../../components/common/Input';
-import { Modal } from '../../components/common/Modal';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
+import { ROUTES } from '../../routes/routeConfig';
 
 const CategoryList: React.FC = () => {
+    const navigate = useNavigate();
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [isTreeView, setIsTreeView] = useState(true);
+
+    // Always tree view by default as per requirement
+    const isTreeView = true;
 
     // Filters State
     const [filters, setFilters] = useState<ICategoryFilters>({
@@ -105,15 +103,12 @@ const CategoryList: React.FC = () => {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={() => setIsTreeView(!isTreeView)}
-                        className={`flex items-center gap-2 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest border-2 transition-all ${isTreeView ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-gray-100 text-gray-400'}`}
+                        onClick={() => navigate('/' + ROUTES.DASHBOARD.CATEGORIES_CREATE)}
+                        className="p-3 bg-primary text-white rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                        title="Add Root Category"
                     >
-                        {isTreeView ? <Waypoints size={16} /> : <FolderTree size={16} />}
-                        {isTreeView ? 'Tree View' : 'Flat View'}
+                        <Plus size={20} />
                     </button>
-                    <CustomButton onClick={() => setShowCreateModal(true)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8">
-                        <Plus size={20} className="mr-2" /> New Category
-                    </CustomButton>
                 </div>
             </div>
 
@@ -180,8 +175,9 @@ const CategoryList: React.FC = () => {
                             <CategoryItem
                                 key={cat._id}
                                 category={cat}
-                                onEdit={(c) => { setSelectedCategory(c); setShowEditModal(true); }}
+                                onEdit={(c) => navigate('/' + ROUTES.DASHBOARD.CATEGORIES_EDIT.replace(':id', c._id))}
                                 onDelete={(id) => handleDeleteCategory(id)}
+                                onAddSub={(id) => navigate('/' + ROUTES.DASHBOARD.CATEGORIES_CREATE + '?parentId=' + id)}
                                 level={0}
                             />
                         ))
@@ -196,23 +192,6 @@ const CategoryList: React.FC = () => {
                     )}
                 </div>
             </div>
-
-            {showCreateModal && (
-                <CategoryFormModal
-                    isOpen={showCreateModal}
-                    onClose={() => setShowCreateModal(false)}
-                    onSuccess={() => { setShowCreateModal(false); fetchCategories(); }}
-                />
-            )}
-
-            {showEditModal && selectedCategory && (
-                <CategoryFormModal
-                    isOpen={showEditModal}
-                    category={selectedCategory}
-                    onClose={() => { setShowEditModal(false); setSelectedCategory(null); }}
-                    onSuccess={() => { setShowEditModal(false); setSelectedCategory(null); fetchCategories(); }}
-                />
-            )}
         </div>
     );
 };
@@ -221,10 +200,11 @@ interface CategoryItemProps {
     category: ICategory;
     onEdit: (cat: ICategory) => void;
     onDelete: (id: string) => void;
+    onAddSub: (id: string) => void;
     level: number;
 }
 
-const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, onDelete, level }) => {
+const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, onDelete, onAddSub, level }) => {
     const [isOpen, setIsOpen] = useState(level === 0);
     const hasChildren = category.children && category.children.length > 0;
 
@@ -264,6 +244,13 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, onDelete,
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
+                        onClick={(e) => { e.stopPropagation(); onAddSub(category._id); }}
+                        className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"
+                        title="Add Sub-Category"
+                    >
+                        <Plus size={16} />
+                    </button>
+                    <button
                         onClick={(e) => { e.stopPropagation(); onEdit(category); }}
                         className="p-2 text-primary hover:bg-primary/5 rounded-xl transition-all"
                     >
@@ -286,138 +273,13 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, onDelete,
                             category={child}
                             onEdit={onEdit}
                             onDelete={onDelete}
+                            onAddSub={onAddSub}
                             level={level + 1}
                         />
                     ))}
                 </div>
             )}
         </div>
-    );
-};
-
-interface CategoryFormModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-    category?: ICategory;
-}
-
-const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ isOpen, onClose, onSuccess, category }) => {
-    const isEdit = !!category;
-    const [formData, setFormData] = useState({
-        name: category?.name || '',
-        parentId: typeof category?.parentId === 'object' ? category?.parentId?._id : category?.parentId || null,
-        description: category?.description || '',
-        image: category?.image || '',
-        status: category?.status || CATEGORY_STATUS.ACTIVE,
-        order: category?.order || 0,
-    });
-    const [allCategories, setAllCategories] = useState<ICategory[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchAll = async () => {
-            try {
-                const res = await categoryService.getAll({ isTree: false });
-                if (res?.data) {
-                    setAllCategories(res.data);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        };
-        fetchAll();
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'order' ? Number(value) : (value === 'null' ? null : value)
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-
-        try {
-            if (isEdit) {
-                await categoryService.update(category!._id, formData as any);
-            } else {
-                await categoryService.create(formData as any);
-            }
-            onSuccess();
-        } catch (err: any) {
-            setError(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'create'} category`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Refine Category' : 'Architect New Category'}>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                {error && (
-                    <div className="p-3 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl text-center font-bold uppercase tracking-wider">
-                        {error}
-                    </div>
-                )}
-
-                <CustomInput label="Category Name" name="name" value={formData.name} onChange={handleChange} placeholder="Fashion, Electronics, etc." required />
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Parent Hierarchy</label>
-                    <select
-                        name="parentId"
-                        value={formData.parentId || 'null'}
-                        onChange={handleChange}
-                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                    >
-                        <option value="null">Root Category (No Parent)</option>
-                        {allCategories.filter(c => c._id !== category?._id).map(c => (
-                            <option key={c._id} value={c._id}>{c.name}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <CustomInput label="Display Image URL" name="image" value={formData.image} onChange={handleChange} placeholder="https://..." />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
-                        <select
-                            name="status"
-                            value={formData.status}
-                            onChange={handleChange}
-                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                        >
-                            <option value={CATEGORY_STATUS.ACTIVE}>Visible / Active</option>
-                            <option value={CATEGORY_STATUS.INACTIVE}>Hidden / Inactive</option>
-                        </select>
-                    </div>
-                    <CustomInput label="Sort Order" name="order" type="number" value={formData.order} onChange={handleChange} />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700 min-h-[80px]"
-                        placeholder="Brief overview of this category..."
-                    />
-                </div>
-
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                    <button type="button" onClick={onClose} className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all">Cancel</button>
-                    <CustomButton type="submit" disabled={loading} className="flex-1 rounded-2xl h-14">{loading ? 'Processing...' : isEdit ? 'Update Hub' : 'Establish Category'}</CustomButton>
-                </div>
-            </form>
-        </Modal>
     );
 };
 

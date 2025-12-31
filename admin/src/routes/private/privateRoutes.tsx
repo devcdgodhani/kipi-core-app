@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy } from '../lazy';
 import { ROUTES } from '../routeConfig';
 
 export const privateRoutes: RouteObject = {
@@ -32,6 +32,14 @@ export const privateRoutes: RouteObject = {
                     element: <ManageUsersLazy />,
                 },
                 {
+                    path: ROUTES.DASHBOARD.USERS_CREATE,
+                    element: <ManageUserFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.USERS_EDIT, // routeConfig handles :id
+                    element: <ManageUserFormLazy />,
+                },
+                {
                     path: ROUTES.DASHBOARD.WHATSAPP,
                     element: <WhatsAppLazy />,
                 },
@@ -40,8 +48,24 @@ export const privateRoutes: RouteObject = {
                     element: <ManageLotsLazy />,
                 },
                 {
+                    path: ROUTES.DASHBOARD.LOTS_CREATE,
+                    element: <ManageLotFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.LOTS_EDIT,
+                    element: <ManageLotFormLazy />,
+                },
+                {
                     path: ROUTES.DASHBOARD.CATEGORIES,
                     element: <ManageCategoriesLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.CATEGORIES_CREATE,
+                    element: <ManageCategoryFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.CATEGORIES_EDIT,
+                    element: <ManageCategoryFormLazy />,
                 },
                 {
                     path: ROUTES.PROFILE,

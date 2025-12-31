@@ -25,7 +25,7 @@ export default class AuthValidator {
       body: z.object({
         email: z.string().email(),
         password: z.string(),
-        type: z.nativeEnum(USER_TYPE),
+        type: z.enum(USER_TYPE),
       }),
     })
   );
@@ -54,8 +54,8 @@ export default class AuthValidator {
     z.object({
       body: z.object({
         email: z.string().email(),
-        type: z.nativeEnum(USER_TYPE),
-        otpType: z.nativeEnum(OTP_TYPE),
+        type: z.enum(USER_TYPE),
+        otpType: z.enum(OTP_TYPE),
       }),
     })    
   );

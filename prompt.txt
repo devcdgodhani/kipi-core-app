@@ -1,21 +1,25 @@
-**Category attributes Module **
+fololow below instruction to permoe task. just create product attibute one module now only. do not create product module right now we will do it in next time.
+
+**product attributetes Module **
 
 1. requirements
- - user can manage category
- - category should nested tree. with parent and child category reference same model
+ - user can manage product attributes
+ - i want product attributes dynamic like meesho, flipcart, amazon etc... app 
+ - attributes will be selected while create category or sub category
 
 2. backend tasks
  - Create module using the Module Generation Blueprint. Follow the standard structure of the User module.
- - create categoryModel
- - create crud for categoryModel
- - need lot getAll and paginated by date filter
- - populate parent details with paginate api and getAll api
- - for get all category in tree view getAll used with tree flag
- - need category management like meesho, flipcart, amazon etc... app
+ - create product attribute model
+ - create crud for product attribute model
+ - need lot getAll and paginated by filter
+- for multiple value it should array of value
+ - need product attribute management like meesho, flipcart, amazon etc... app
+ - add product attribute seeder for all posible option with current category and sub category and store in arry so next time not create already created attributes
+ - merge product attribute with category and sub category seeder so both can work
 
 3. Admin App tasks
  - Create module using the Module Generation Blueprint. Follow the standard structure in our app.
- - create ui for backend task and category management add in drawer 
+ - create ui for backend task and product attribute management add in drawer 
  - use common filer for filter 
- - use accordion view list 
- - need category management like meesho, flipcart, amazon etc... app
+ - when attribute are seleted from child category their parent category attributes will preselected and can not be removed from child category
+ - need product attribute management like meesho, flipcart, amazon etc... app

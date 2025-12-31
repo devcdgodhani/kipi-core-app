@@ -1,6 +1,13 @@
 import { Document, ObjectId } from 'mongoose';
 import { IDefaultAttributes } from './common';
-import { LOT_TYPE, LOT_STATUS } from '../constants';
+import { LOT_TYPE, LOT_STATUS, ADJUST_QUANTITY_TYPE } from '../constants';
+
+export interface IAdjustQuantity {
+  quantity: number;
+  type: ADJUST_QUANTITY_TYPE;
+  reason: string;
+  date?: Date;
+}
 
 export interface ILotAttributes extends IDefaultAttributes {
   _id: ObjectId;
@@ -12,6 +19,7 @@ export interface ILotAttributes extends IDefaultAttributes {
   remainingQuantity: number;
   startDate?: Date;
   endDate?: Date;
+  adjustQuantity?: IAdjustQuantity[];
   status: LOT_STATUS;
   notes?: string;
 }
