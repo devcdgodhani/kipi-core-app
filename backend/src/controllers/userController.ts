@@ -11,7 +11,7 @@ export default class UserController {
   /*********** Fetch users ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
+      const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -33,7 +33,7 @@ export default class UserController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
+      const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -54,7 +54,7 @@ export default class UserController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
+      const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -77,10 +77,14 @@ export default class UserController {
   /*********** Create users ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const response = {
+      const userData = req.body;
+      const newUser = await this.userService.create(userData, { userId: req.user?._id });
+
+      const response: IApiResponse<IUserAttributes> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: USER_SUCCESS_MESSAGES.CREATE_SUCCESS,
+        data: newUser,
       };
       return res.status(response.status).json(response);
     } catch (err) {

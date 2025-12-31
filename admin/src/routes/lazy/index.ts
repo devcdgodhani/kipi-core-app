@@ -6,7 +6,7 @@ export const VerifyOTPLazy = lazy(() => import('../../pages/Auth/VerifyOTP'));
 export const DashboardLazy = lazy(() => import('../../pages/Dashboard/Index'));
 export const ManageProductsLazy = lazy(() => import('../../pages/Dashboard/ManageProducts'));
 export const ManageOrdersLazy = lazy(() => import('../../pages/Dashboard/ManageOrders'));
-export const ManageUsersLazy = lazy(() => import('../../pages/Dashboard/ManageUsers'));
+export const ManageUsersLazy = lazy(() => import('../../pages/User/UserList'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
 export const ChangePasswordLazy = lazy(() => import('../../pages/Auth/ChangePassword'));
 export const WhatsAppLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppList'));
