@@ -86,38 +86,49 @@ const CategoryForm: React.FC = () => {
 
     // Handle Parent ID changes to inheriting attributes
     useEffect(() => {
-        const updateInheritedAttributes = async () => {
+        const fetchParentAndInherit = async () => {
+            // Capture currently inherited IDs (from previous parent) to remove them
+            const oldInherited = parentInheritedIds;
+            let newInherited: string[] = [];
+
             if (formData.parentId && formData.parentId !== 'null') {
-                // Find parent in the loaded list
-                let parent = allCategories.find(c => c._id === formData.parentId);
+                try {
+                    // Fetch fresh parent data
+                    const res = await categoryService.getOne(formData.parentId);
+                    const parent = res.data;
 
-                // If not found in list (maybe partial load?), fetch it
-                if (!parent) {
-                    try {
-                        const res = await categoryService.getOne(formData.parentId);
-                        parent = res.data;
-                    } catch (e) {
-                        console.error("Failed to fetch parent category", e);
+                    if (parent && parent.attributeIds && parent.attributeIds.length > 0) {
+                        newInherited = parent.attributeIds.map((id: any) =>
+                            typeof id === 'object' ? id._id : id
+                        );
                     }
+                } catch (e) {
+                    console.error("Failed to fetch parent attributes for inheritance", e);
                 }
-
-                if (parent && parent.attributeIds && parent.attributeIds.length > 0) {
-                    setParentInheritedIds(parent.attributeIds);
-                    // Merge inherited IDs into selected IDs
-                    setFormData(prev => ({
-                        ...prev,
-                        attributeIds: Array.from(new Set([...prev.attributeIds, ...parent!.attributeIds!]))
-                    }));
-                } else {
-                    setParentInheritedIds([]);
-                }
-            } else {
-                setParentInheritedIds([]);
             }
+
+            // Update inherited state
+            setParentInheritedIds(newInherited);
+
+            // Update Form Data: Remove old inherited, Add new inherited
+            setFormData(prev => {
+                const currentIds = prev.attributeIds || [];
+                // Filter out IDs that were inherited from the OLD parent
+                const cleanedIds = currentIds.filter(id => !oldInherited.includes(id));
+
+                // Merge new inherited IDs
+                const finalIds = Array.from(new Set([...cleanedIds, ...newInherited]));
+
+                return {
+                    ...prev,
+                    attributeIds: finalIds
+                };
+            });
         };
 
-        updateInheritedAttributes();
-    }, [formData.parentId, allCategories]);
+        fetchParentAndInherit();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData.parentId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -266,8 +277,8 @@ const CategoryForm: React.FC = () => {
                                     <label
                                         key={attr._id}
                                         className={`flex items-start gap-3 p-3 rounded-2xl transition-all cursor-pointer border ${isSelected
-                                                ? (isInherited ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-primary/5 border-primary/20')
-                                                : 'hover:bg-gray-50 border-transparent hover:border-gray-100'
+                                            ? (isInherited ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-primary/5 border-primary/20')
+                                            : 'hover:bg-gray-50 border-transparent hover:border-gray-100'
                                             }`}
                                     >
                                         <input

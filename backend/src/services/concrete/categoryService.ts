@@ -31,4 +31,26 @@ export class CategoryService extends MongooseCommonService<ICategoryAttributes, 
     }
     return tree;
   }
+  softDelete = async (filter: any, options: any = {}): Promise<any> => {
+    const categoriesToDelete = await this.model.find(filter).select('_id');
+    const ids = categoriesToDelete.map((c) => c._id);
+
+    if (ids.length > 0) {
+      const subCategoryCount = await this.model.countDocuments({
+        parentId: { $in: ids },
+      });
+
+      if (subCategoryCount > 0) {
+        throw new Error(`Cannot delete category because it has active sub-categories.`);
+      }
+    }
+
+    return this.model
+      .updateMany(
+        filter,
+        { deletedBy: options.userId, deletedAt: new Date() } as any,
+        options
+      )
+      .exec();
+  };
 }

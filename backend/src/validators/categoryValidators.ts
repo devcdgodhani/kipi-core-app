@@ -23,6 +23,7 @@ const categoryCreateSchema = z.object({
   image: z.string().optional(),
   status: z.enum(CATEGORY_STATUS).optional(),
   order: z.number().optional(),
+  attributeIds: z.array(z.string()).optional(),
 }).strict();
 
 const categoryUpdateSchema = categoryCreateSchema.partial();
