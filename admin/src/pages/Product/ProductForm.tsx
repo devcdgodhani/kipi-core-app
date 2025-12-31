@@ -171,6 +171,7 @@ const ProductForm: React.FC = () => {
                 price: formData.salePrice || formData.basePrice || 0,
                 quantity: 0,
                 variantAttributes: variantAttributesData,
+                images: [],
                 status: 'ACTIVE'
             };
         });
@@ -352,13 +353,10 @@ const ProductForm: React.FC = () => {
                             <Info size={16} /> Basic Details
                         </Tab>
                         <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
-                            <IndianRupee size={16} /> Pricing Hub
+                            <Barcode size={16} /> SKUs & Config
                         </Tab>
                         <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
                             <ImageIcon size={16} /> Media Assets
-                        </Tab>
-                        <Tab className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest outline-none border-none text-gray-400 aria-selected:bg-white aria-selected:text-primary aria-selected:shadow-xl aria-selected:shadow-gray-200 min-w-[150px]">
-                            <Barcode size={16} /> SKUs & Config
                         </Tab>
                     </TabList>
 
@@ -387,6 +385,32 @@ const ProductForm: React.FC = () => {
                                         <option key={s} value={s}>{s}</option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div className="space-y-6 pt-6 border-t border-gray-100">
+                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
+                                    <IndianRupee size={16} className="text-primary" /> Pricing Management
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <CustomInput label="Base Price (Market)" name="basePrice" type="number" value={formData.basePrice || 0} onChange={handleGeneralChange} required />
+                                    <CustomInput label="Sale Price (Platform)" name="salePrice" type="number" value={formData.salePrice || 0} onChange={handleGeneralChange} />
+                                    <CustomInput label="Discount (%)" name="discount" type="number" value={formData.discount || 0} onChange={handleGeneralChange} />
+                                </div>
+                                <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white rounded-2xl text-primary shadow-sm">
+                                            <IndianRupee size={24} />
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest block">Listing Price</span>
+                                            <span className="text-2xl font-black text-primary tracking-tighter">₹ {formData.salePrice || formData.basePrice || 0}</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Base Currency</span>
+                                        <span className="font-bold text-gray-900 text-xs">{formData.currency || 'INR'}</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-4 pt-4 mt-4 border-t border-gray-100">
@@ -599,6 +623,127 @@ const ProductForm: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </TabPanel>
+
+                    <TabPanel>
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-10 animate-fade-in text-gray-700">
+                            <div>
+                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
+                                    <ImageIcon size={16} className="text-primary" /> Product Media Assets
+                                </h3>
+                                <div className="space-y-6">
+                                    <CustomInput label="Main Banner (Hero Image URL)" name="mainImage" value={formData.mainImage || ''} onChange={handleGeneralChange} placeholder="https://..." />
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between px-1">
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Gallery Collection</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, images: [...(prev.images || []), ''] }))}
+                                                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                                            >
+                                                + Add Image
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {formData.images?.map((img, idx) => (
+                                                <div key={idx} className="flex gap-2">
+                                                    <input
+                                                        value={img}
+                                                        onChange={(e) => {
+                                                            const newImgs = [...(formData.images || [])];
+                                                            newImgs[idx] = e.target.value;
+                                                            setFormData(prev => ({ ...prev, images: newImgs }));
+                                                        }}
+                                                        className="flex-1 border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
+                                                        placeholder="Asset URL..."
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newImgs = (formData.images || []).filter((_, i) => i !== idx);
+                                                            setFormData(prev => ({ ...prev, images: newImgs }));
+                                                        }}
+                                                        className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-10 border-t border-gray-100">
+                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
+                                    <Barcode size={16} className="text-primary" /> Variant Specific Media
+                                </h3>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {(generatedSkus.length > 0 ? generatedSkus : productSkus).map((sku, idx) => (
+                                        <div key={idx} className="p-6 bg-gray-50 rounded-[2rem] border-2 border-gray-100 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Barcode size={14} className="text-primary opacity-50" />
+                                                    <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{sku.skuCode}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
+                                                        target[idx] = { ...target[idx], images: [...(target[idx].images || []), ''] };
+                                                        if (generatedSkus.length > 0) setGeneratedSkus(target);
+                                                        else setProductSkus(target);
+                                                    }}
+                                                    className="text-[10px] font-black text-primary uppercase tracking-tighter hover:bg-white px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
+                                                >
+                                                    + Add Media
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {sku.images?.map((img: string, imgIdx: number) => (
+                                                    <div key={imgIdx} className="flex gap-2">
+                                                        <input
+                                                            value={img}
+                                                            onChange={(e) => {
+                                                                const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
+                                                                const newImgs = [...(target[idx].images || [])];
+                                                                newImgs[imgIdx] = e.target.value;
+                                                                target[idx] = { ...target[idx], images: newImgs };
+                                                                if (generatedSkus.length > 0) setGeneratedSkus(target);
+                                                                else setProductSkus(target);
+                                                            }}
+                                                            className="flex-1 border-2 border-transparent bg-white rounded-xl py-2 px-4 focus:border-primary/20 transition-all font-bold text-gray-700 text-[10px]"
+                                                            placeholder="SKU Image URL..."
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
+                                                                const newImgs = target[idx].images.filter((_: any, i: number) => i !== imgIdx);
+                                                                target[idx] = { ...target[idx], images: newImgs };
+                                                                if (generatedSkus.length > 0) setGeneratedSkus(target);
+                                                                else setProductSkus(target);
+                                                            }}
+                                                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {(!sku.images || sku.images.length === 0) && (
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center py-2 opacity-50">No media attached to this variant</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(generatedSkus.length === 0 && productSkus.length === 0) && (
+                                        <div className="col-span-2 text-center py-12 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No SKUs detected. Generate variants to assign media.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </TabPanel>
                 </Tabs>
