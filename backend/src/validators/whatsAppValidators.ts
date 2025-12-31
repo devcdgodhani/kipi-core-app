@@ -1,13 +1,55 @@
 import { z } from 'zod';
 import { validate } from '../helpers/zodValidator';
+import { 
+  baseFilterSchema, 
+  paginationSchema, 
+  stringFilter, 
+  booleanFilter 
+} from './validatorCommon';
+
+const whatsAppSessionFilterSchema = baseFilterSchema.extend({
+  name: stringFilter,
+  status: stringFilter,
+  isAutoResume: booleanFilter,
+  isActive: booleanFilter,
+});
+
+const whatsAppSessionCreateSchema = z.object({
+  name: z.string().min(1),
+  isAutoResume: z.boolean().optional(),
+}).strict();
+
+const whatsAppSessionUpdateSchema = z.object({
+  name: z.string().optional(),
+  isAutoResume: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+}).strict();
 
 export default class WhatsAppValidator {
+  getOne = validate(
+    z.object({
+      body: whatsAppSessionFilterSchema.partial().optional(),
+      query: whatsAppSessionFilterSchema.partial().optional(),
+    })
+  );
+
+  getAll = validate(
+    z.object({
+      body: whatsAppSessionFilterSchema.partial().optional(),
+      query: whatsAppSessionFilterSchema.partial().optional(),
+    })
+  );
+
+  getWithPagination = validate(
+    z.object({
+      body: whatsAppSessionFilterSchema.partial().merge(paginationSchema).optional(),
+      query: whatsAppSessionFilterSchema.partial().merge(paginationSchema).optional(),
+    })
+  );
+
   create = validate(
     z.object({
-      body: z.object({
-        name: z.string().min(1),
-        isAutoResume: z.boolean().optional(),
-      }),
+      body: whatsAppSessionCreateSchema,
     })
   );
 
@@ -16,48 +58,13 @@ export default class WhatsAppValidator {
       params: z.object({
         id: z.string(),
       }),
-      body: z.object({
-        name: z.string().optional(),
-        isAutoResume: z.boolean().optional(),
-        isActive: z.boolean().optional(),
-      }),
-    })
-  );
-
-  getOne = validate(
-    z.object({
-      query: z.object({
-        id: z.string(),
-      }),
-    })
-  );
-
-  getAll = validate(
-    z.object({
-      body: z.object({
-        name: z.string().optional(),
-      }).optional(),
-    })
-  );
-
-  getWithPagination = validate(
-    z.object({
-      body: z.object({
-        page: z.number().optional(),
-        limit: z.number().optional(),
-        isPaginate: z.boolean().optional(),
-        filters: z.object({
-           name: z.string().optional(),
-        }).optional(),
-      }).optional(),
+      body: whatsAppSessionUpdateSchema.partial(),
     })
   );
 
   deleteByFilter = validate(
     z.object({
-      body: z.object({
-        id: z.string(),
-      }),
+      body: whatsAppSessionFilterSchema.partial(),
     })
   );
 
@@ -77,6 +84,22 @@ export default class WhatsAppValidator {
         sessionId: z.string(),
         numbers: z.array(z.string()),
         message: z.string(),
+      }),
+    })
+  );
+
+  initializeSession = validate(
+    z.object({
+      body: z.object({
+        id: z.string(),
+      }),
+    })
+  );
+
+  logoutSession = validate(
+    z.object({
+      body: z.object({
+        id: z.string(),
       }),
     })
   );

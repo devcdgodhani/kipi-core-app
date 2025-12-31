@@ -1,8 +1,8 @@
 import axiosInstance from './http';
 
 export const whatsappService = {
-  getSessions: async () => {
-    const response = await axiosInstance.post('/whatsapp/getAll', {});
+  getSessions: async (filters?: any) => {
+    const response = await axiosInstance.post('/whatsapp/getAll', filters || {});
     return response;
   },
 
@@ -12,7 +12,7 @@ export const whatsappService = {
   },
   
   getSession: async (id: string) => {
-    const response = await axiosInstance.get(`/whatsapp/getOne?id=${id}`);
+    const response = await axiosInstance.post('/whatsapp/getOne', { id });
     return response;
   },
   

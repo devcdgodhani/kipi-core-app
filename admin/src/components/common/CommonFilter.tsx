@@ -10,7 +10,7 @@ export interface FilterOption {
 export interface FilterField {
     key: string;
     label: string;
-    type: 'select' | 'text' | 'boolean';
+    type: 'select' | 'text' | 'boolean' | 'date-range';
     multiple?: boolean;
     options?: FilterOption[];
     placeholder?: string;
@@ -63,6 +63,22 @@ export const CommonFilter: React.FC<CommonFilterProps> = ({
                 // Toggle if same value, otherwise set new
                 return { ...prev, [key]: currentVal === value ? undefined : value };
             }
+        });
+    };
+
+    const handleDateChange = (key: string, part: 'from' | 'to', value: string) => {
+        setTempFilters(prev => {
+            const currentRange = prev[key] || {};
+            const newRange = { ...currentRange, [part]: value || undefined };
+
+            // If both are undefined, remove the key
+            if (!newRange.from && !newRange.to) {
+                const newState = { ...prev };
+                delete newState[key];
+                return newState;
+            }
+
+            return { ...prev, [key]: newRange };
         });
     };
 
@@ -136,12 +152,12 @@ export const CommonFilter: React.FC<CommonFilterProps> = ({
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">{activeField.label}</h3>
                                     <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">
-                                        Select {activeField.multiple ? 'one or more options' : 'an option'}
+                                        {activeField.type === 'date-range' ? 'Select date range' : `Select ${activeField.multiple ? 'one or more options' : 'an option'}`}
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-2">
-                                    {activeField.options?.map((option) => {
+                                <div className="grid grid-cols-1 gap-4">
+                                    {(activeField.type === 'select' || activeField.type === 'boolean') && activeField.options?.map((option) => {
                                         const isSelected = Array.isArray(tempFilters[activeField.key])
                                             ? tempFilters[activeField.key].includes(option.value)
                                             : tempFilters[activeField.key] === option.value;
@@ -152,19 +168,52 @@ export const CommonFilter: React.FC<CommonFilterProps> = ({
                                                 onClick={() => handleOptionClick(activeField.key, option.value, !!activeField.multiple)}
                                                 className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${isSelected
                                                     ? 'border-primary bg-primary/5 text-primary'
-                                                    : 'border-gray-100 hover:border-primary/20 bg-white text-gray-600'
+                                                    : 'border-blue-50 hover:border-primary/20 bg-white text-gray-600'
                                                     }`}
                                             >
                                                 <span className="font-bold">{option.label}</span>
                                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${isSelected
                                                     ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
-                                                    : 'border-gray-200 bg-white'
+                                                    : 'border-blue-100 bg-white'
                                                     }`}>
                                                     {isSelected && <Check size={14} strokeWidth={4} />}
                                                 </div>
                                             </button>
                                         );
                                     })}
+
+                                    {activeField.type === 'date-range' && (
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">From Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={tempFilters[activeField.key]?.from || ''}
+                                                    onChange={(e) => handleDateChange(activeField.key, 'from', e.target.value)}
+                                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white outline-none transition-all font-bold text-gray-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">To Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={tempFilters[activeField.key]?.to || ''}
+                                                    onChange={(e) => handleDateChange(activeField.key, 'to', e.target.value)}
+                                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white outline-none transition-all font-bold text-gray-700"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activeField.type === 'text' && (
+                                        <input
+                                            type="text"
+                                            value={tempFilters[activeField.key] || ''}
+                                            onChange={(e) => handleOptionClick(activeField.key, e.target.value, false)}
+                                            placeholder={activeField.placeholder}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white outline-none transition-all font-bold text-gray-700"
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )}

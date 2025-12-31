@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
-import { IWhatsAppSessionDocument, WHATSAPP_SESSION_STATUS } from '../../../interfaces';
-import { getTime } from 'date-fns';
+import { IWhatsAppSessionDocument } from '../../../interfaces';
+import { WHATSAPP_SESSION_STATUS } from '../../../constants';
 
 const whatsAppSessionSchema = new Schema<IWhatsAppSessionDocument>(
   {
@@ -33,32 +33,12 @@ const whatsAppSessionSchema = new Schema<IWhatsAppSessionDocument>(
       type: Boolean,
       default: true,
     },
-    createdAt: {
-      type: Number,
-    },
-    updatedAt: {
-      type: Number,
-    },
   },
   {
-    timestamps: false,
+    timestamps: true,
     versionKey: false,
   }
 );
-
-whatsAppSessionSchema.pre('save', function (next) {
-  const now = getTime(new Date());
-  if (!this.createdAt) {
-    this.createdAt = now;
-  }
-  this.updatedAt = now;
-  next();
-});
-
-whatsAppSessionSchema.pre('findOneAndUpdate', function (next) {
-  this.set({ updatedAt: getTime(new Date()) });
-  next();
-});
 
 export const WhatsAppSessionModel = model<IWhatsAppSessionDocument>(
   'WhatsAppSession',

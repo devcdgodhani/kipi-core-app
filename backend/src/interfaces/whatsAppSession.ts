@@ -1,14 +1,9 @@
-import { Document, Types } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
+import { WHATSAPP_SESSION_STATUS } from '../constants';
+import { IDefaultAttributes } from './common';
 
-export enum WHATSAPP_SESSION_STATUS {
-  DISCONNECTED = 'DISCONNECTED',
-  CONNECTING = 'CONNECTING',
-  CONNECTED = 'CONNECTED',
-  QR_READY = 'QR_READY',
-}
-
-export interface IWhatsAppSessionAttributes {
-  _id: Types.ObjectId;
+export interface IWhatsAppSessionAttributes extends IDefaultAttributes {
+  _id: ObjectId;
   name: string;
   externalId: string; // Used for whatsapp-web.js clientId
   status: WHATSAPP_SESSION_STATUS;
@@ -16,10 +11,6 @@ export interface IWhatsAppSessionAttributes {
   isAutoResume: boolean;
   lastActiveAt?: number;
   isActive: boolean;
-  createdAt?: number;
-  updatedAt?: number;
 }
 
-export interface IWhatsAppSessionDocument extends IWhatsAppSessionAttributes, Document {
-  _id: Types.ObjectId;
-}
+export interface IWhatsAppSessionDocument extends Omit<IWhatsAppSessionAttributes, '_id'>, Document {}

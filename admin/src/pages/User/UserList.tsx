@@ -39,6 +39,7 @@ const UserList: React.FC = () => {
         isVerified: undefined,
         isMobileVerified: undefined,
         isEmailVerified: undefined,
+        createdAt: undefined,
         page: 1,
         limit: 10,
         isPaginate: true
@@ -155,6 +156,11 @@ const UserList: React.FC = () => {
                 { label: 'Verified', value: true },
                 { label: 'Unverified', value: false }
             ]
+        },
+        {
+            key: 'createdAt',
+            label: 'Joined Date',
+            type: 'date-range'
         }
     ];
 
@@ -305,6 +311,7 @@ const UserList: React.FC = () => {
                                 isVerified: undefined,
                                 isMobileVerified: undefined,
                                 isEmailVerified: undefined,
+                                createdAt: undefined,
                                 page: 1,
                                 limit: 10,
                                 isPaginate: true

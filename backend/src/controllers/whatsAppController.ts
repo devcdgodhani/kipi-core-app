@@ -3,6 +3,15 @@ import { HTTP_STATUS_CODE, WHATSAPP_SUCCESS_MESSAGES } from '../constants';
 import { WhatsAppService } from '../services/concrete/whatsAppService';
 import { IApiResponse, IPaginationData, IWhatsAppSessionAttributes } from '../interfaces';
 import { ApiError } from '../helpers';
+import { 
+  TWhatsAppSessionCreateReq, 
+  TWhatsAppSessionUpdateReq, 
+  TWhatsAppSessionRes, 
+  TWhatsAppSessionListRes, 
+  TWhatsAppSessionListPaginationRes,
+  TWhatsAppSendMessageReq,
+  TWhatsAppSendBulkMessageReq
+} from '../types/whatsAppSession';
 
 export default class WhatsAppController {
   private whatsAppService = new WhatsAppService();
@@ -11,13 +20,17 @@ export default class WhatsAppController {
 
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.query;
-      const session = await this.whatsAppService.findOne({ _id: id });
-      const response: IApiResponse<IWhatsAppSessionAttributes | null> = {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.whatsAppService.generateFilter({
+        filters: reqData,
+      });
+
+      const session = await this.whatsAppService.findOne(filter, options);
+      const response: TWhatsAppSessionRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: WHATSAPP_SUCCESS_MESSAGES.GET_SUCCESS,
-        data: session,
+        data: session as any,
       };
       return res.status(response.status).json(response);
     } catch (err) {
@@ -27,8 +40,13 @@ export default class WhatsAppController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessions = await this.whatsAppService.findAll({});
-      const response: IApiResponse<IWhatsAppSessionAttributes[]> = {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.whatsAppService.generateFilter({
+        filters: reqData,
+      });
+
+      const sessions = await this.whatsAppService.findAll(filter, options);
+      const response: TWhatsAppSessionListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: WHATSAPP_SUCCESS_MESSAGES.GET_SUCCESS,
@@ -42,14 +60,14 @@ export default class WhatsAppController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
+      const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.whatsAppService.generateFilter({
         filters: reqData,
       });
 
       const sessionList = await this.whatsAppService.findAllWithPagination(filter, options);
 
-      const response: IApiResponse<IPaginationData<IWhatsAppSessionAttributes>> = {
+      const response: TWhatsAppSessionListPaginationRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: WHATSAPP_SUCCESS_MESSAGES.GET_SUCCESS,
@@ -64,14 +82,14 @@ export default class WhatsAppController {
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
-      reqData.externalId = `session-${Date.now()}`;
-      const session = await this.whatsAppService.create(reqData);
+      const reqData: TWhatsAppSessionCreateReq = req.body;
+      const createData: any = { ...reqData, externalId: `session-${Date.now()}` };
+      const session = await this.whatsAppService.create(createData, { userId: req.user?._id });
       
       // Auto start after creation
       await this.whatsAppService.startClient(session);
 
-      const response: IApiResponse<IWhatsAppSessionAttributes> = {
+      const response: TWhatsAppSessionRes = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: WHATSAPP_SUCCESS_MESSAGES.CREATE_SUCCESS,
@@ -86,10 +104,9 @@ export default class WhatsAppController {
   updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const updateData = req.body;
-      const userId = req.user._id;
+      const updateData: TWhatsAppSessionUpdateReq = req.body;
       
-      await this.whatsAppService.updateOne({ _id: id }, updateData, { userId });
+      await this.whatsAppService.updateOne({ _id: id }, updateData as any, { userId: req.user._id });
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
@@ -103,8 +120,19 @@ export default class WhatsAppController {
 
   deleteByFilter = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.body;
-      await this.whatsAppService.deleteSessionWithClient(id);
+      const reqData = req.body;
+      const { filter } = this.whatsAppService.generateFilter({
+        filters: reqData,
+      });
+
+      // Special handling if id is passed in body but generateFilter didn't map it correctly if it's not in schema
+      // But WhatsAppSession schema has 'id'? No, it has '_id'. generateFilter handles 'id' by mapping to '_id'.
+      
+      const session = await this.whatsAppService.findOne(filter);
+      if (session) {
+        await this.whatsAppService.deleteSessionWithClient(session._id.toString());
+      }
+
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
@@ -153,8 +181,8 @@ export default class WhatsAppController {
 
   sendMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { sessionId, to, message } = req.body;
-      const result = await this.whatsAppService.sendMessage(sessionId, to, message);
+      const reqData: TWhatsAppSendMessageReq = req.body;
+      const result = await this.whatsAppService.sendMessage(reqData.sessionId, reqData.to, reqData.message);
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
@@ -169,8 +197,8 @@ export default class WhatsAppController {
 
   sendBulkMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { sessionId, numbers, message } = req.body;
-      const results = await this.whatsAppService.sendBulkMessage(sessionId, numbers, message);
+      const reqData: TWhatsAppSendBulkMessageReq = req.body;
+      const results = await this.whatsAppService.sendBulkMessage(reqData.sessionId, reqData.numbers, reqData.message);
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,

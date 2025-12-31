@@ -3,11 +3,11 @@ import { type IUser, type IUserFilters, type IPaginationData } from '../types/us
 
 export const userService = {
   getWithPagination: async (filters: IUserFilters) => {
-    return axiosInstance.get<any, { data: IPaginationData<IUser>, message: string }>('/user/getWithPagination', { params: filters });
+    return axiosInstance.post<any, { data: IPaginationData<IUser>, message: string }>('/user/getWithPagination', filters);
   },
 
   getOne: async (id: string) => {
-    return axiosInstance.get<any, { data: IUser, message: string }>('/user/getOne', { params: { _id: id } });
+    return axiosInstance.post<any, { data: IUser, message: string }>('/user/getOne', { _id: id });
   },
 
   create: async (userData: Partial<IUser>) => {

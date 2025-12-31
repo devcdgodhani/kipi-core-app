@@ -23,3 +23,4 @@ export * from './models/authActionHistoryModel';
 export * from './models/authTokenModel';
 export * from './models/otpModel';
 export * from './models/userModel';
+export * from './models/whatsAppSessionModel';

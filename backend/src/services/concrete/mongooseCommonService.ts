@@ -62,7 +62,8 @@ export class MongooseCommonService<T, TDoc extends Document>
 
     // 🎯 Handle other filters
     for (const [field, value] of Object.entries(filters)) {
-      const schemaType = schemaPaths[field];
+      const actualField = field === 'id' ? '_id' : field;
+      const schemaType = schemaPaths[actualField];
       if (!schemaType || value === undefined || value === null || value === '') continue;
 
       const fieldType = schemaType.instance;
@@ -70,62 +71,62 @@ export class MongooseCommonService<T, TDoc extends Document>
       switch (fieldType) {
         case 'String':
           if (Array.isArray(value)) {
-            filter[field] = { $in: value };
+            filter[actualField] = { $in: value };
           } else {
-            filter[field] = { $regex: value, $options: 'i' };
+            filter[actualField] = { $regex: value, $options: 'i' };
           }
           break;
 
         case 'Number': {
           if (typeof value === 'number' || !isNaN(Number(value))) {
-            filter[field] = Number(value);
+            filter[actualField] = Number(value);
           } else if (Array.isArray(value)) {
-            filter[field] = { $in: value.map(Number) };
+            filter[actualField] = { $in: value.map(Number) };
           } else if (typeof value === 'object') {
             const range: Record<string, number> = {};
             if (value.from !== undefined) range.$gte = Number(value.from);
             if (value.to !== undefined) range.$lte = Number(value.to);
             if (value.lt !== undefined) range.$lt = Number(value.lt);
             if (value.gt !== undefined) range.$gt = Number(value.gt);
-            filter[field] = range;
+            filter[actualField] = range;
           }
           break;
         }
 
         case 'Date': {
           if (typeof value === 'string' || value instanceof Date) {
-            filter[field] = new Date(value);
+            filter[actualField] = new Date(value);
           } else if (Array.isArray(value)) {
-            filter[field] = { $in: value.map((v) => new Date(v)) };
+            filter[actualField] = { $in: value.map((v) => new Date(v)) };
           } else if (typeof value === 'object') {
             const range: Record<string, Date> = {};
             if (value.from) range.$gte = new Date(value.from);
             if (value.to) range.$lte = new Date(value.to);
             if (value.lt) range.$lt = new Date(value.lt);
             if (value.gt) range.$gt = new Date(value.gt);
-            filter[field] = range;
+            filter[actualField] = range;
           }
           break;
         }
 
         case 'Boolean':
           if (Array.isArray(value)) {
-            filter[field] = { $in: value.map((v) => v === 'true' || v === true) };
+            filter[actualField] = { $in: value.map((v) => v === 'true' || v === true) };
           } else {
-            filter[field] = value === 'true' || value === true;
+            filter[actualField] = value === 'true' || value === true;
           }
           break;
 
         case 'Array':
-          filter[field] = Array.isArray(value) ? { $in: value } : { $in: [value] };
+          filter[actualField] = Array.isArray(value) ? { $in: value } : { $in: [value] };
           break;
 
         default:
           // Handle ObjectId / Reference
           if (schemaType?.options?.ref || fieldType === 'ObjectId') {
-            filter[field] = Array.isArray(value) ? { $in: value } : value;
+            filter[actualField] = Array.isArray(value) ? { $in: value } : value;
           } else {
-            filter[field] = value;
+            filter[actualField] = value;
           }
           break;
       }

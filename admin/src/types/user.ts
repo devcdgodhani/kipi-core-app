@@ -45,6 +45,7 @@ export interface IUserFilters {
   isVerified?: boolean;
   isMobileVerified?: boolean;
   isEmailVerified?: boolean;
+  createdAt?: { from?: string; to?: string };
   page?: number;
   limit?: number;
   isPaginate?: boolean;
