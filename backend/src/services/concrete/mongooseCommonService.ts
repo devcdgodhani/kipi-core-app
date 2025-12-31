@@ -62,6 +62,7 @@ export class MongooseCommonService<T, TDoc extends Document>
 
     // 🎯 Handle other filters
     for (const [field, value] of Object.entries(filters)) {
+      if (['page', 'limit', 'isPaginate', 'search', 'order', 'sort', 'isTree'].includes(field)) continue;
       const actualField = field === 'id' ? '_id' : field;
       const schemaType = schemaPaths[actualField];
       if (!schemaType || value === undefined || value === null || value === '') continue;

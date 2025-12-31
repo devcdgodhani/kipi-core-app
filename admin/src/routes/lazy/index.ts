@@ -10,5 +10,7 @@ export const ManageUsersLazy = lazy(() => import('../../pages/User/UserList'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
 export const ChangePasswordLazy = lazy(() => import('../../pages/Auth/ChangePassword'));
 export const WhatsAppLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppList'));
+export const ManageLotsLazy = lazy(() => import('../../pages/Lot/LotList'));
+export const ManageCategoriesLazy = lazy(() => import('../../pages/Category/CategoryList'));
 export const ForgotPasswordLazy = lazy(() => import('../../pages/Auth/ForgotPassword'));
 export const ResetPasswordLazy = lazy(() => import('../../pages/Auth/ResetPassword'));

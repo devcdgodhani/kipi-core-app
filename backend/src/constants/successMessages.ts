@@ -29,3 +29,17 @@ export enum WHATSAPP_SUCCESS_MESSAGES {
   MESSAGE_SENT = 'Message sent successfully',
   BULK_MESSAGE_SENT = 'Bulk message process completed',
 }
+
+export enum LOT_SUCCESS_MESSAGES {
+  CREATE_SUCCESS = 'Lot created successfully',
+  GET_SUCCESS = 'Lot details retrieved successfully',
+  UPDATE_SUCCESS = 'Lot details updated successfully',
+  DELETE_SUCCESS = 'Lot deleted successfully',
+}
+
+export enum CATEGORY_SUCCESS_MESSAGES {
+  CREATE_SUCCESS = 'Category created successfully',
+  GET_SUCCESS = 'Category details retrieved successfully',
+  UPDATE_SUCCESS = 'Category details updated successfully',
+  DELETE_SUCCESS = 'Category deleted successfully',
+}

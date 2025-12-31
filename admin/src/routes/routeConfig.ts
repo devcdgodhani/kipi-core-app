@@ -9,6 +9,8 @@ export const ROUTES = {
         ORDERS: 'orders',
         USERS: 'users',
         WHATSAPP: 'whatsapp',
+        LOTS: 'lots',
+        CATEGORIES: 'categories',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',
