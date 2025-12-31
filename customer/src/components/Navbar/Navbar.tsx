@@ -49,8 +49,8 @@ const Navbar: React.FC = () => {
             <div className="h-full max-w-7xl mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                    <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">N</div>
-                    <span className="font-bold tracking-widest text-xs uppercase text-primary">Niken</span>
+                    <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">K</div>
+                    <span className="font-bold tracking-widest text-xs uppercase text-primary">Kipi</span>
                 </div>
 
                 {/* Desktop Navigation */}

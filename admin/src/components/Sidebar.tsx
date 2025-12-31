@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     } pt-16`}
             >
                 <div className="flex items-center justify-between p-4 md:hidden absolute top-0 left-0 right-0 h-16 border-b border-gray-100">
-                    <span className="font-bold tracking-widest text-xs uppercase text-primary">Niken Admin</span>
+                    <span className="font-bold tracking-widest text-xs uppercase text-primary">Kipi Admin</span>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 rounded-md">
                         <X size={20} />
                     </button>
