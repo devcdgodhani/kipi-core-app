@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Save, Barcode, Layers, Plus } from 'lucide-react';
+import { ChevronLeft, Save, Barcode, Layers, Plus, Image as ImageIcon } from 'lucide-react';
 import { skuService } from '../../services/sku.service';
 import { productService } from '../../services/product.service';
 import { attributeService } from '../../services/attribute.service';
@@ -34,6 +34,7 @@ const SkuForm: React.FC = () => {
     const [allProducts, setAllProducts] = useState<IProduct[]>([]);
     const [allLots, setAllLots] = useState<ILot[]>([]);
     const [variantAttributes, setVariantAttributes] = useState<IAttribute[]>([]);
+    const [siblingSkus, setSiblingSkus] = useState<ISku[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(false);
@@ -66,6 +67,7 @@ const SkuForm: React.FC = () => {
                     if (sku.productId) {
                         const pid = typeof sku.productId === 'object' ? (sku.productId as any)._id : sku.productId;
                         fetchVariantAttributes(pid);
+                        fetchSiblingSkus(pid);
                     }
                 }
             }
@@ -85,8 +87,18 @@ const SkuForm: React.FC = () => {
         if (prodId) {
             setFormData(prev => ({ ...prev, productId: prodId }));
             fetchVariantAttributes(prodId);
+            fetchSiblingSkus(prodId);
         }
     }, [searchParams]);
+
+    const fetchSiblingSkus = async (productId: string) => {
+        try {
+            const res = await skuService.getAll({ productId });
+            if (res?.data) setSiblingSkus(res.data);
+        } catch (err) {
+            console.error('Failed to fetch sibling SKUs', err);
+        }
+    };
 
     const fetchVariantAttributes = async (productId: string) => {
         try {
@@ -109,6 +121,7 @@ const SkuForm: React.FC = () => {
     const onProductChange = (productId: string) => {
         setFormData(prev => ({ ...prev, productId }));
         fetchVariantAttributes(productId);
+        fetchSiblingSkus(productId);
     };
 
     const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -181,7 +194,7 @@ const SkuForm: React.FC = () => {
                             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Parent Lifecycle Product</label>
                             <select
                                 name="productId"
-                                value={formData.productId || ''}
+                                value={typeof formData.productId === 'object' ? (formData.productId as any)._id : (formData.productId || '')}
                                 onChange={(e) => onProductChange(e.target.value)}
                                 className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
                                 required
@@ -276,6 +289,82 @@ const SkuForm: React.FC = () => {
                                 <option key={s} value={s}>{s}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6">
+                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
+                            <ImageIcon size={16} className="text-primary" /> Media Assets
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gallery Collection</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, images: [...(prev.images || []), ''] }))}
+                                    className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                                >
+                                    + Add Image
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                {(formData.images || []).map((img, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <input
+                                            value={img}
+                                            onChange={(e) => {
+                                                const newImgs = [...(formData.images || [])];
+                                                newImgs[idx] = e.target.value;
+                                                setFormData(prev => ({ ...prev, images: newImgs }));
+                                            }}
+                                            className="flex-1 border-2 border-gray-100 bg-gray-50 rounded-xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
+                                            placeholder="Image URL..."
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newImgs = (formData.images || []).filter((_, i) => i !== idx);
+                                                setFormData(prev => ({ ...prev, images: newImgs }));
+                                            }}
+                                            className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors"
+                                        >
+                                            <Plus size={16} className="rotate-45" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {(!formData.images || formData.images.length === 0) && (
+                                    <div className="py-4 text-center text-gray-400 text-[10px] font-bold uppercase border-2 border-dashed border-gray-50 rounded-xl">No media provided</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6">
+                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
+                            <Barcode size={16} className="text-primary" /> Product Variants Catalog
+                        </h3>
+                        <div className="space-y-3">
+                            {siblingSkus.map(sku => (
+                                <div
+                                    key={sku._id}
+                                    onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id!))}
+                                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${sku._id === id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-primary/20 bg-gray-50/30'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-primary">
+                                            <Barcode size={14} />
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black text-gray-900 uppercase block">{sku.skuCode}</span>
+                                            <span className="text-[9px] font-bold text-primary">₹{sku.salePrice || sku.price}</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-2 h-2 rounded-full ${sku.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-gray-300'}`} />
+                                </div>
+                            ))}
+                            {siblingSkus.length === 0 && (
+                                <p className="text-[10px] text-gray-400 font-bold uppercase text-center py-4">No other variants found</p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-4">
