@@ -22,8 +22,8 @@ import { Schema } from 'mongoose';
 export class MongooseCommonService<T, TDoc extends Document>
   implements IMongooseCommonService<T, TDoc>
 {
-  private model: MongooseModel<TDoc>;
-  private schema: Schema;
+  protected model: MongooseModel<TDoc>;
+  protected schema: Schema;
 
   constructor(model: MongooseModel<TDoc>) {
     this.model = model;

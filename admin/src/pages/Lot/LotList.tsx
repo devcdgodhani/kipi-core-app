@@ -11,24 +11,23 @@ import {
     RotateCcw,
     Calendar,
     BadgeDollarSign,
-    Package
+    Package,
+    ClipboardList
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { lotService } from '../../services/lot.service';
 import { type ILot, type ILotFilters, LOT_STATUS, LOT_TYPE } from '../../types/lot';
 import CustomButton from '../../components/common/Button';
-import CustomInput from '../../components/common/Input';
-import { Modal } from '../../components/common/Modal';
 import { Table } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
-import { userService } from '../../services/user.service';
-import { USER_TYPE } from '../../types/user';
+import { ROUTES } from '../../routes/routeConfig';
 
 const LotList: React.FC = () => {
+    const navigate = useNavigate();
     const [lots, setLots] = useState<ILot[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
+    const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [selectedLot, setSelectedLot] = useState<ILot | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -214,8 +213,8 @@ const LotList: React.FC = () => {
             header: 'Status',
             accessor: (lot: ILot) => (
                 <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${lot.status === LOT_STATUS.ACTIVE ? 'bg-green-50 text-green-600 border-green-100' :
-                        lot.status === LOT_STATUS.COMPLETED ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                            'bg-gray-50 text-gray-400 border-gray-100'
+                    lot.status === LOT_STATUS.COMPLETED ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                        'bg-gray-50 text-gray-400 border-gray-100'
                     }`}>
                     {lot.status}
                 </span>
@@ -226,7 +225,14 @@ const LotList: React.FC = () => {
             accessor: (lot: ILot) => (
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => { setSelectedLot(lot); setShowEditModal(true); }}
+                        onClick={() => { setSelectedLot(lot); setShowAdjustModal(true); }}
+                        className="p-3 text-orange-500 hover:bg-orange-50 rounded-2xl transition-all hover:scale-110 active:scale-90 border border-transparent hover:border-orange-100"
+                        title="Adjust Quantity"
+                    >
+                        <ClipboardList size={18} />
+                    </button>
+                    <button
+                        onClick={() => navigate('/' + ROUTES.DASHBOARD.LOTS_EDIT.replace(':id', lot._id))}
                         className="p-3 text-primary hover:bg-primary/5 rounded-2xl transition-all hover:scale-110 active:scale-90 border border-transparent hover:border-primary/10"
                         title="Edit Lot"
                     >
@@ -254,9 +260,9 @@ const LotList: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
                 <div>
                     <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Lot Management</h1>
-                    <p className="text-sm text-gray-500 font-medium">Manage manufacturing and supplier batches</p>
+                    <p className="text-sm text-gray-500 font-medium">Manage manufacturing and supplier lots</p>
                 </div>
-                <CustomButton onClick={() => setShowCreateModal(true)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8">
+                <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.LOTS_CREATE)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8">
                     <Plus size={20} className="mr-2" /> Add New Lot
                 </CustomButton>
             </div>
@@ -389,183 +395,18 @@ const LotList: React.FC = () => {
                 </div>
             )}
 
-            {showCreateModal && (
-                <LotFormModal
-                    isOpen={showCreateModal}
-                    onClose={() => setShowCreateModal(false)}
-                    onSuccess={() => { setShowCreateModal(false); fetchLots(); }}
-                />
-            )}
-
-            {showEditModal && selectedLot && (
-                <LotFormModal
-                    isOpen={showEditModal}
+            {showAdjustModal && selectedLot && (
+                <AdjustQuantityModal
+                    isOpen={showAdjustModal}
                     lot={selectedLot}
-                    onClose={() => { setShowEditModal(false); setSelectedLot(null); }}
-                    onSuccess={() => { setShowEditModal(false); setSelectedLot(null); fetchLots(); }}
+                    onClose={() => { setShowAdjustModal(false); setSelectedLot(null); }}
+                    onSuccess={() => { setShowAdjustModal(false); setSelectedLot(null); fetchLots(); }}
                 />
             )}
         </div>
     );
 };
 
-interface LotFormModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-    lot?: ILot;
-}
-
-const LotFormModal: React.FC<LotFormModalProps> = ({ isOpen, onClose, onSuccess, lot }) => {
-    const isEdit = !!lot;
-    const [formData, setFormData] = useState({
-        lotNumber: lot?.lotNumber || '',
-        type: lot?.type || LOT_TYPE.SELF_MANUFACTURE,
-        supplierId: typeof lot?.supplierId === 'object' ? lot?.supplierId?._id : lot?.supplierId || '',
-        basePrice: lot?.basePrice || 0,
-        quantity: lot?.quantity || 0,
-        startDate: lot?.startDate ? new Date(lot.startDate).toISOString().split('T')[0] : '',
-        endDate: lot?.endDate ? new Date(lot.endDate).toISOString().split('T')[0] : '',
-        status: lot?.status || LOT_STATUS.ACTIVE,
-        notes: lot?.notes || '',
-    });
-    const [suppliers, setSuppliers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchSuppliers = async () => {
-            try {
-                const res = await userService.getWithPagination({ type: USER_TYPE.SUPPLIER, isPaginate: false });
-                if (res?.data?.recordList) {
-                    setSuppliers(res.data.recordList);
-                }
-            } catch (err) {
-                console.error('Failed to fetch suppliers', err);
-            }
-        };
-        fetchSuppliers();
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: ['basePrice', 'quantity'].includes(name) ? Number(value) : value
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-
-        try {
-            const payload = { ...formData };
-            if (payload.type === LOT_TYPE.SELF_MANUFACTURE) {
-                delete (payload as any).supplierId;
-            }
-            if (!payload.startDate) delete (payload as any).startDate;
-            if (!payload.endDate) delete (payload as any).endDate;
-
-            if (isEdit) {
-                await lotService.update(lot!._id, payload as any);
-            } else {
-                await lotService.create(payload as any);
-            }
-            onSuccess();
-        } catch (err: any) {
-            setError(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'create'} lot`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Edit Batch Details' : 'Create New Batch'}>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                {error && (
-                    <div className="p-3 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl text-center font-bold uppercase tracking-wider">
-                        {error}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                    <CustomInput label="Lot Number" name="lotNumber" value={formData.lotNumber} onChange={handleChange} placeholder="LOT-2024-001" required />
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Origin Type</label>
-                        <select
-                            name="type"
-                            value={formData.type}
-                            onChange={handleChange}
-                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                        >
-                            <option value={LOT_TYPE.SELF_MANUFACTURE}>Self Manufacture</option>
-                            <option value={LOT_TYPE.SUPPLIER}>Supplier Provided</option>
-                        </select>
-                    </div>
-                </div>
-
-                {formData.type === LOT_TYPE.SUPPLIER && (
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1 text-indigo-500">Supplier Name</label>
-                        <select
-                            name="supplierId"
-                            value={formData.supplierId}
-                            onChange={handleChange}
-                            required
-                            className="w-full border-2 border-indigo-50 bg-indigo-50/30 rounded-2xl py-3 px-4 focus:outline-none focus:border-indigo-300 transition-all font-bold text-indigo-900"
-                        >
-                            <option value="">Select a supplier</option>
-                            {suppliers.map(s => (
-                                <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.mobile})</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                    <CustomInput label="Base Price (₹)" name="basePrice" type="number" value={formData.basePrice} onChange={handleChange} placeholder="0.00" required />
-                    <CustomInput label="Total Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleChange} placeholder="100" required disabled={isEdit} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-emerald-600">
-                    <CustomInput label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleChange} />
-                    <CustomInput label="End Date" name="endDate" type="date" value={formData.endDate} onChange={handleChange} />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Execution Status</label>
-                    <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700"
-                    >
-                        <option value={LOT_STATUS.ACTIVE}>In Progress / Active</option>
-                        <option value={LOT_STATUS.INACTIVE}>Paused / Inactive</option>
-                        <option value={LOT_STATUS.COMPLETED}>Completed</option>
-                    </select>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Batch Notes</label>
-                    <textarea
-                        name="notes"
-                        value={formData.notes}
-                        onChange={handleChange}
-                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700 min-h-[100px]"
-                        placeholder="Additional details about this batch..."
-                    />
-                </div>
-
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                    <button type="button" onClick={onClose} className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all">Cancel</button>
-                    <CustomButton type="submit" disabled={loading} className="flex-1 rounded-2xl h-14">{loading ? 'Processing...' : isEdit ? 'Update Batch' : 'Create Batch'}</CustomButton>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
 export default LotList;
+
+import { AdjustQuantityModal } from '../../components/lot/AdjustQuantityModal';

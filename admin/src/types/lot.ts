@@ -11,6 +11,24 @@ export const LOT_STATUS = {
 } as const;
 export type LOT_STATUS = (typeof LOT_STATUS)[keyof typeof LOT_STATUS];
 
+export const ADJUST_QUANTITY_TYPE = {
+  DAMAGE: 'DAMAGE',
+  LOST: 'LOST',
+  CORRECTION: 'CORRECTION',
+  USED: 'USED',
+  OTHER: 'OTHER',
+  RETURN: 'RETURN',
+} as const;
+export type ADJUST_QUANTITY_TYPE = (typeof ADJUST_QUANTITY_TYPE)[keyof typeof ADJUST_QUANTITY_TYPE];
+
+export interface IAdjustQuantity {
+  _id?: string;
+  quantity: number;
+  type: ADJUST_QUANTITY_TYPE;
+  reason: string;
+  date?: string;
+}
+
 export interface ILot {
   _id: string;
   lotNumber: string;
@@ -28,6 +46,7 @@ export interface ILot {
   startDate?: string;
   endDate?: string;
   status: LOT_STATUS;
+  adjustQuantity?: IAdjustQuantity[];
   notes?: string;
   createdAt: string;
   updatedAt: string;
