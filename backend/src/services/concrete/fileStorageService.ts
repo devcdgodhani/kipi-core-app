@@ -332,7 +332,7 @@ export class FileStorageService
     const dir = await FileDirectoryModel.create({
       name, 
       path: fullPath, 
-      parentPath: storageDirPath ? path.basename(storageDirPath) : null 
+      parentPath: storageDirPath ? storageDirPath : null 
     });
     
     // Return mapped to IFileStorageAttributes
