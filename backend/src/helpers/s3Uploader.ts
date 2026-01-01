@@ -30,10 +30,15 @@ export const copyFile = async (
   destKey: string,
   bucket: string = ENV_VARIABLE.AWS_BUCKET_NAME
 ): Promise<void> => {
+  // S3 CopySource must be bucket/key and both should be URL encoded
+  // However, the separator slash between bucket and key must NOT be encoded
+  const cleanSourceKey = sourceKey.startsWith('/') ? sourceKey.substring(1) : sourceKey;
+  const encodedSourceKey = encodeURIComponent(cleanSourceKey).replace(/%2F/g, '/');
+  
   const command = new CopyObjectCommand({
     Bucket: bucket,
-    CopySource: `${bucket}/${sourceKey}`,
-    Key: destKey,
+    CopySource: `${bucket}/${encodedSourceKey}`,
+    Key: destKey.startsWith('/') ? destKey.substring(1) : destKey,
   });
   await s3.send(command);
 };
