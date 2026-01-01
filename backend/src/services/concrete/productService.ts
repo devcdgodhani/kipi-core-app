@@ -74,5 +74,10 @@ export class ProductService
         }
       }
     }
+    // Explicitly sync product stock after bulk SKU operations
+    const SkuModelVar = SkuModel as any;
+    if (SkuModelVar.syncProductStock) {
+      await SkuModelVar.syncProductStock(product._id);
+    }
   }
 }

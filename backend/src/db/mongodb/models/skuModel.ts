@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 import { ISkuDocument } from '../../../interfaces/sku';
 import { SKU_STATUS } from '../../../constants/sku';
 import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS } from '../../../constants/media';
@@ -60,6 +60,58 @@ skuSchema.pre('save', function (next) {
     });
   }
   next();
+});
+
+// Stock Synchronization Utility
+const syncProductStock = async (productId: any) => {
+  if (!productId) return;
+  try {
+    const Product = model('Product');
+    const Sku = model('Sku');
+
+    const stats = await Sku.aggregate([
+      { $match: { productId: new mongoose.Types.ObjectId(productId.toString()) } },
+      { $group: { _id: '$productId', totalStock: { $sum: '$quantity' } } }
+    ]);
+
+    const totalStock = stats.length > 0 ? stats[0].totalStock : 0;
+    await Product.updateOne({ _id: productId }, { stock: totalStock });
+  } catch (err) {
+    console.error('Failed to sync product stock:', err);
+  }
+};
+
+skuSchema.statics.syncProductStock = syncProductStock;
+
+skuSchema.post('save', async function (doc: any) {
+  await syncProductStock(doc.productId);
+});
+
+skuSchema.post('updateOne', async function (this: any) {
+  const filter = this.getFilter();
+  const skus = await model('Sku').find(filter).select('productId').lean();
+  const productIds = [...new Set(skus.map((s: any) => s.productId?.toString()))].filter(Boolean);
+  for (const pid of productIds) {
+    await syncProductStock(pid);
+  }
+});
+
+skuSchema.post('updateMany', async function (this: any) {
+  const filter = this.getFilter();
+  const skus = await model('Sku').find(filter).select('productId').lean();
+  const productIds = [...new Set(skus.map((s: any) => s.productId?.toString()))].filter(Boolean);
+  for (const pid of productIds) {
+    await syncProductStock(pid);
+  }
+});
+
+skuSchema.post('findOneAndUpdate', async function (this: any) {
+  const filter = this.getFilter();
+  const skus = await model('Sku').find(filter).select('productId').lean();
+  const productIds = [...new Set(skus.map((s: any) => s.productId?.toString()))].filter(Boolean);
+  for (const pid of productIds) {
+    await syncProductStock(pid);
+  }
 });
 
 export const SkuModel = model<ISkuDocument>('Sku', skuSchema);
