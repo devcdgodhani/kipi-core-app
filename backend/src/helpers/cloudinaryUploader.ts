@@ -11,6 +11,7 @@ import cloudinary from '../configs/cloudinary';
 export const uploadFile = async (
   localFilePath: string,
   key: string,
+  _bucket?: string,
 ): Promise<string> => {
   try {
     // Split key into folder and publicId if possible
@@ -61,7 +62,11 @@ export const deleteFile = async (
  * @param key Cloudinary public ID
  * @returns Promise<string> Signed URL
  */
-export const getSignedUrl = async (key: string): Promise<string> => {
+export const getSignedUrl = async (
+  key: string,
+  _bucket?: string,
+  _expiresIn?: number
+): Promise<string> => {
   return cloudinary.url(key, {
     secure: true,
     sign_url: true,

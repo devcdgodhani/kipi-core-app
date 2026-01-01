@@ -4,6 +4,8 @@ export * from './lot';
 export * from './category';
 export * from './attribute';
 export * from './common';
+export * from './fileStorage';
+export * from './presignedUrl';
 export * from './authToken';
 export * from './otp';
 export * from './authActionHistory';

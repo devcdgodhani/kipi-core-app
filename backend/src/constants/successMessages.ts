@@ -50,3 +50,11 @@ export enum ATTRIBUTE_SUCCESS_MESSAGES {
   UPDATE_SUCCESS = 'Attribute details updated successfully',
   DELETE_SUCCESS = 'Attribute deleted successfully',
 }
+
+export enum FILE_STORAGE_SUCCESS_MESSAGES {
+  UPLOAD_SUCCESS = 'File uploaded successfully',
+  GET_SUCCESS = 'File details retrieved successfully',
+  UPDATE_SUCCESS = 'File details updated successfully',
+  DELETE_SUCCESS = 'File deleted successfully',
+  BULK_UPLOAD_SUCCESS = 'Files uploaded successfully',
+}

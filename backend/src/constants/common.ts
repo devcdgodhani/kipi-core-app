@@ -86,3 +86,22 @@ export enum ADJUST_QUANTITY_TYPE {
   OTHER = 'OTHER',
   RETURN = 'RETURN',
 }
+
+export enum FILE_TYPE {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  DOCUMENT = 'DOCUMENT',
+  AUDIO = 'AUDIO',
+  OTHER = 'OTHER',
+}
+
+export enum CLOUD_TYPE {
+  AWS_S3 = 'AWS_S3',
+  CLOUDINARY = 'CLOUDINARY',
+}
+
+export enum FILE_STORAGE_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  DELETED = 'DELETED',
+}

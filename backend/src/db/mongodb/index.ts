@@ -27,3 +27,5 @@ export * from './models/whatsAppSessionModel';
 export * from './models/lotModel';
 export * from './models/categoryModel';
 export * from './models/attributeModel';
+export * from './models/fileStorageModel';
+export * from './models/presignedUrlModel';

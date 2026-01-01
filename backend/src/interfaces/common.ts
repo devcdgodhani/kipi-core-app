@@ -88,6 +88,8 @@ export interface IEnvVariables {
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
+
+  CLOUD_TYPE?: string;
 }
 
 export interface IEmailOptions {
