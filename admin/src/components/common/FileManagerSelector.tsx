@@ -11,10 +11,18 @@ import { Modal } from './Modal';
 interface FileManagerSelectorProps {
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (file: IFileStorage) => void;
+    onSelect: (item: any) => void;
+    selectionMode?: 'file' | 'directory';
+    title?: string;
 }
 
-export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen, onClose, onSelect }) => {
+export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({
+    isOpen,
+    onClose,
+    onSelect,
+    selectionMode = 'file',
+    title = 'Select File from Storage'
+}) => {
     const [files, setFiles] = useState<IFileStorage[]>([]);
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -77,10 +85,19 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Select File from Storage" maxWidth="max-w-4xl">
+        <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-4xl">
             <div className="flex flex-col h-[600px] w-full -m-6">
                 {/* Toolkit Bar */}
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
+                    {selectionMode === 'directory' && (
+                        <button
+                            onClick={() => onSelect({ path: currentPath })}
+                            className="px-4 py-2 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-sm flex items-center gap-2 shrink-0"
+                        >
+                            <Folder size={18} />
+                            Select {currentPath ? 'This' : 'Root'} Folder
+                        </button>
+                    )}
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                         <input
@@ -154,11 +171,16 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
                                     key={file._id}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        file.fileType === 'DIRECTORY' ? navigateToFolder(file) : onSelect(file);
+                                        if (file.fileType === 'DIRECTORY') {
+                                            navigateToFolder(file);
+                                        } else if (selectionMode === 'file') {
+                                            onSelect(file);
+                                        }
                                     }}
-                                    className={`group cursor-pointer p-3 rounded-xl border transition-all ${viewMode === 'grid'
-                                        ? 'flex flex-col items-center gap-2 border-gray-50 hover:border-primary/20 hover:shadow-lg'
-                                        : 'flex items-center gap-3 border-transparent hover:bg-gray-50'
+                                    className={`group cursor-pointer p-3 rounded-xl border transition-all ${file.fileType !== 'DIRECTORY' && selectionMode === 'directory' ? 'opacity-40 grayscale pointer-events-none' : ''
+                                        } ${viewMode === 'grid'
+                                            ? 'flex flex-col items-center gap-2 border-gray-50 hover:border-primary/20 hover:shadow-lg'
+                                            : 'flex items-center gap-3 border-transparent hover:bg-gray-50'
                                         }`}
                                 >
                                     <div className={`${viewMode === 'grid' ? 'w-full aspect-square' : 'w-10 h-10'} rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden shrink-0`}>

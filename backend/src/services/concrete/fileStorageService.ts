@@ -210,6 +210,12 @@ export class FileStorageService
     return; 
   }
 
+  private joinPath(dir: string | null | undefined, fileName: string): string {
+    if (!dir) return fileName;
+    const cleanDir = dir.split('/').filter(p => p).join('/');
+    return cleanDir ? `${cleanDir}/${fileName}` : fileName;
+  }
+
   private async createCloudFolderHelper(fullPath: string) {
     let cloudType = CLOUD_TYPE.AWS_S3;
 
@@ -349,15 +355,20 @@ export class FileStorageService
     const file = await this.model.findById(fileId);
     if (!file) throw new Error('File not found');
 
-    if (newStorageDirPath) {
-        await this.ensureDirectoryHierarchy(newStorageDirPath);
+    const cleanNewPath = newStorageDirPath ? newStorageDirPath.split('/').filter(p => p).join('/') : '';
+
+    if (cleanNewPath) {
+        await this.ensureDirectoryHierarchy(cleanNewPath);
     }
 
     const uploader = this.getUploader(file.cloudType);
 
-    const oldKey = file.storageDirPath ? `${file.storageDirPath}/${file.storageFileName}` : file.storageFileName;
-    const newKey = newStorageDirPath ? `${newStorageDirPath}/${file.storageFileName}` : file.storageFileName;
+    const oldKey = this.joinPath(file.storageDirPath, file.storageFileName);
+    const newKey = this.joinPath(cleanNewPath, file.storageFileName);
 
+    console.log(`Moving file from [${oldKey}] to [${newKey}]`);
+
+    // Cloud move
     if (file.cloudType === CLOUD_TYPE.AWS_S3) {
       await (uploader as any).copyFile(oldKey, newKey, ENV_VARIABLE.AWS_BUCKET_NAME);
       await (uploader as any).deleteFile(oldKey, ENV_VARIABLE.AWS_BUCKET_NAME);
@@ -365,27 +376,32 @@ export class FileStorageService
       await (uploader as any).renameFile(oldKey, newKey);
     }
 
-    // Create New Record
-    const fileObj = file.toObject();
-    const { _id, createdAt, updatedAt, preSignedUrl, ...rest } = fileObj as any;
+    // Determine storageDir (base folder name)
+    const storageDir = cleanNewPath ? path.basename(cleanNewPath) : null;
 
-    const newFile = await this.create({
-      ...rest,
-      storageDirPath: newStorageDirPath,
-      storageDir: newStorageDirPath ? path.basename(newStorageDirPath) : undefined, // Update storageDir derived from new path
-    });
+    // Update DB Record while preserving ID
+    const updatedFile = await this.model.findByIdAndUpdate(
+      file._id,
+      {
+        $set: {
+          storageDirPath: cleanNewPath || null,
+          storageDir: storageDir,
+        },
+      },
+      { new: true }
+    );
 
-    // Delete Old Record
-    await this.model.deleteOne({ _id: file._id });
-
-    return newFile;
+    if (!updatedFile) throw new Error('Failed to update file record');
+    
+    await this.ensurePresignedUrl(updatedFile);
+    return updatedFile;
   }
 
   // --- Deletion Logic for Directories and Files (Override softDelete) ---
 
   private async performHardDeleteFile(file: IFileStorageDocument | any) {
     const uploader = this.getUploader(file.cloudType);
-    const key = file.storageDirPath ? `${file.storageDirPath}/${file.storageFileName}` : file.storageFileName;
+    const key = this.joinPath(file.storageDirPath, file.storageFileName);
     
     try {
         if (file.cloudType === CLOUD_TYPE.AWS_S3) {

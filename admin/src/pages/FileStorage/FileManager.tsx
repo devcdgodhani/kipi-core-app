@@ -11,6 +11,7 @@ import { CommonFilter, type FilterField } from '../../components/common/CommonFi
 import { useSearchParams } from 'react-router-dom';
 import CustomButton from '../../components/common/Button';
 import { PopupModal } from '../../components/common/PopupModal';
+import { FileManagerSelector } from '../../components/common/FileManagerSelector';
 
 const filterFields: FilterField[] = [
     {
@@ -66,6 +67,8 @@ export const FileManager = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [currentPath, setCurrentPath] = useState('');
+    const [isMoveSelectorOpen, setIsMoveSelectorOpen] = useState(false);
+    const [itemToMove, setItemToMove] = useState<IFileStorage | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -217,30 +220,44 @@ export const FileManager = () => {
     };
 
     const handleMove = async (file: IFileStorage) => {
-        setPopup({
-            isOpen: true,
-            title: 'Move Item',
-            message: `Enter destination path for '${file.originalFileName}' (leave empty for root):`,
-            type: 'prompt',
-            inputValue: file.storageDirPath || '',
-            onConfirm: async () => {
-                const newPath = popup.inputValue || '';
-                if (newPath === (file.storageDirPath || '')) {
-                    setPopup(prev => ({ ...prev, isOpen: false }));
-                    return;
-                }
+        setItemToMove(file);
+        setIsMoveSelectorOpen(true);
+    };
 
-                try {
-                    setPopup(prev => ({ ...prev, loading: true }));
-                    await fileStorageService.moveFile(file._id, newPath);
-                    fetchFiles();
-                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
-                } catch (err) {
-                    console.error('Move failed', err);
-                    setPopup(prev => ({ ...prev, loading: false }));
-                }
-            }
-        });
+    const executeMove = async (destinationPath: string) => {
+        if (!itemToMove) return;
+
+        if (destinationPath === (itemToMove.storageDirPath || '')) {
+            setIsMoveSelectorOpen(false);
+            setItemToMove(null);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await fileStorageService.moveFile(itemToMove._id, destinationPath);
+            fetchFiles();
+            setPopup({
+                isOpen: true,
+                title: 'Success',
+                message: 'Item moved successfully.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
+        } catch (err) {
+            console.error('Move failed', err);
+            setPopup({
+                isOpen: true,
+                title: 'Move Failed',
+                message: 'Failed to move item. Please check the destination path.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
+        } finally {
+            setLoading(false);
+            setIsMoveSelectorOpen(false);
+            setItemToMove(null);
+        }
     };
 
     const navigateToFolder = (folder: any) => {
@@ -416,6 +433,17 @@ export const FileManager = () => {
                 onInputChange={(val) => setPopup(prev => ({ ...prev, inputValue: val }))}
                 onConfirm={popup.onConfirm}
                 loading={popup.loading}
+            />
+
+            <FileManagerSelector
+                isOpen={isMoveSelectorOpen}
+                onClose={() => {
+                    setIsMoveSelectorOpen(false);
+                    setItemToMove(null);
+                }}
+                selectionMode="directory"
+                title={`Move "${itemToMove?.originalFileName}" to...`}
+                onSelect={(folder) => executeMove(folder.path)}
             />
         </div>
     );
