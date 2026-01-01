@@ -226,6 +226,18 @@ const SkuList: React.FC = () => {
             )
         },
         {
+            header: 'Status',
+            key: 'status',
+            render: (sku) => (
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${sku.status === SKU_STATUS.ACTIVE
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : 'bg-gray-50 text-gray-400 border-gray-100'
+                    }`}>
+                    {sku.status}
+                </div>
+            )
+        },
+        {
             header: 'Actions',
             key: 'actions',
             align: 'right' as const,
