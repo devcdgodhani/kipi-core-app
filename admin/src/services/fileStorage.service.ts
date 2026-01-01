@@ -38,5 +38,13 @@ export const fileStorageService = {
         'Content-Type': 'multipart/form-data',
       }
     });
+  },
+
+  createFolder: async (name: string, storageDirPath?: string) => {
+    return axiosInstance.post<any, { data: IFileStorage, message: string }>('/file-storage/create-folder', { name, storageDirPath });
+  },
+
+  moveFile: async (fileId: string, newStorageDirPath?: string) => {
+    return axiosInstance.post<any, { data: IFileStorage, message: string }>('/file-storage/move-file', { fileId, newStorageDirPath });
   }
 };

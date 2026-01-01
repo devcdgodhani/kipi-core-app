@@ -197,4 +197,73 @@ export class FileStorageService
     
     return uploadedDocs;
   }
+
+  async createFolder(name: string, storageDirPath?: string): Promise<IFileStorageAttributes> {
+    const fullPath = storageDirPath ? `${storageDirPath}/${name}` : name;
+    
+    let cloudType = CLOUD_TYPE.AWS_S3;
+
+    if (ENV_VARIABLE.CLOUD_TYPE) {
+      if (ENV_VARIABLE.CLOUD_TYPE === 'CLOUDINARY') {
+        cloudType = CLOUD_TYPE.CLOUDINARY;
+      } else if (ENV_VARIABLE.CLOUD_TYPE === 'AWS_S3') {
+        cloudType = CLOUD_TYPE.AWS_S3;
+      }
+    } else if (!ENV_VARIABLE.AWS_ACCESS_KEY_ID && ENV_VARIABLE.CLOUDINARY_CLOUD_NAME) {
+      cloudType = CLOUD_TYPE.CLOUDINARY;
+    } 
+
+    const uploader = this.getUploader(cloudType);
+    
+    if (cloudType === CLOUD_TYPE.AWS_S3) {
+      await (uploader as any).createFolder(fullPath, ENV_VARIABLE.AWS_BUCKET_NAME);
+    } else {
+      await (uploader as any).createFolder(fullPath);
+    }
+
+    return this.create({
+      originalFileName: name,
+      storageFileName: name,
+      storageDirPath: storageDirPath,
+      fileType: FILE_TYPE.DIRECTORY,
+      cloudType: cloudType,
+      status: FILE_STORAGE_STATUS.ACTIVE,
+      isInUsed: false,
+      fileSize: 0,
+    } as any);
+  }
+
+  async moveFile(fileId: string, newStorageDirPath: string): Promise<IFileStorageAttributes> {
+    const file = await this.model.findById(fileId);
+    if (!file) throw new Error('File not found');
+
+    const uploader = this.getUploader(file.cloudType);
+
+    const oldKey = file.storageDirPath ? `${file.storageDirPath}/${file.storageFileName}` : file.storageFileName;
+    const newKey = newStorageDirPath ? `${newStorageDirPath}/${file.storageFileName}` : file.storageFileName;
+
+    if (file.cloudType === CLOUD_TYPE.AWS_S3) {
+      await (uploader as any).copyFile(oldKey, newKey, ENV_VARIABLE.AWS_BUCKET_NAME);
+      await (uploader as any).deleteFile(oldKey, ENV_VARIABLE.AWS_BUCKET_NAME);
+    } else {
+      await (uploader as any).renameFile(oldKey, newKey);
+    }
+
+    // Create New Record
+    const fileObj = file.toObject();
+    const { _id, createdAt, updatedAt, preSignedUrl, ...rest } = fileObj as any;
+
+    const newFile = await this.create({
+      ...rest,
+      storageDirPath: newStorageDirPath,
+    });
+
+    // Delete Old Record
+    // await this.delete(file._id); 
+    // Usually standard delete via service? or model delete?
+    // Requirement says "deleted".
+    await this.model.deleteOne({ _id: file._id });
+
+    return newFile;
+  }
 }

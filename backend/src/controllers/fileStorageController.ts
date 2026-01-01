@@ -135,4 +135,38 @@ export default class FileStorageController {
       return next(err);
     }
   };
+
+  /*********** Create Folder ***********/
+  createFolder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, storageDirPath } = req.body;
+      const folder = await this.fileStorageService.createFolder(name, storageDirPath);
+      const response: IApiResponse<IFileStorageAttributes> = {
+        status: HTTP_STATUS_CODE.CREATED.STATUS,
+        code: HTTP_STATUS_CODE.CREATED.CODE,
+        message: FILE_STORAGE_SUCCESS_MESSAGES.UPLOAD_SUCCESS,
+        data: folder,
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Move File ***********/
+  moveFile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { fileId, newStorageDirPath } = req.body;
+      const newFile = await this.fileStorageService.moveFile(fileId, newStorageDirPath);
+      const response: IApiResponse<IFileStorageAttributes> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: FILE_STORAGE_SUCCESS_MESSAGES.UPDATE_SUCCESS,
+        data: newFile,
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
 }

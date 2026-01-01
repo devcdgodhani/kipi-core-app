@@ -3,8 +3,40 @@ import fs from 'fs';
 import path from 'path';
 import { s3 } from '../configs/aws';
 import { ENV_VARIABLE } from '../configs/env';
-import { GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl as getAwsSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+/**
+ * Creates a folder in S3 (0-byte object with trailing slash).
+ */
+export const createFolder = async (
+  folderPath: string,
+  bucket: string = ENV_VARIABLE.AWS_BUCKET_NAME
+): Promise<void> => {
+  const key = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: '',
+  });
+  await s3.send(command);
+};
+
+/**
+ * Copies a file in S3.
+ */
+export const copyFile = async (
+  sourceKey: string,
+  destKey: string,
+  bucket: string = ENV_VARIABLE.AWS_BUCKET_NAME
+): Promise<void> => {
+  const command = new CopyObjectCommand({
+    Bucket: bucket,
+    CopySource: `${bucket}/${sourceKey}`,
+    Key: destKey,
+  });
+  await s3.send(command);
+};
 
 /**
  * Uploads a file to S3 and returns the secure URL.

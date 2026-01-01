@@ -39,6 +39,14 @@ export const uploadFile = async (
   }
 };
 
+export const createFolder = async (folderPath: string) => {
+  await cloudinary.api.create_folder(folderPath);
+};
+
+export const renameFile = async (fromPublicId: string, toPublicId: string) => {
+  await cloudinary.uploader.rename(fromPublicId, toPublicId);
+};
+
 /**
  * Deletes a file from Cloudinary.
  * 

@@ -6,7 +6,7 @@ export interface IFileStorage {
   preSignedUrl?: string; // This is populated
   fileSize?: number;
   fileExtension?: string;
-  fileType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'AUDIO' | 'OTHER';
+  fileType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'AUDIO' | 'OTHER' | 'DIRECTORY';
   isInUsed: boolean;
   cloudType: 'AWS_S3' | 'CLOUDINARY';
   status: 'ACTIVE' | 'INACTIVE' | 'DELETED';
