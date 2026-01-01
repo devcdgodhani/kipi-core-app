@@ -102,7 +102,17 @@ export class FileStorageService
     const docs = await query.lean<IFileStorageAttributes[]>().exec();
 
     // Fetch Directories
-    const mappedDirs = await FileDirectoryModel.find({ parentPath: storageDirPath ? storageDirPath.$in.pop() : null}).lean()
+    let dirParentPath: string | null = null;
+    if (storageDirPath) {
+        if (typeof storageDirPath === 'string') {
+            dirParentPath = storageDirPath;
+        } else if (Array.isArray(storageDirPath)) {
+            dirParentPath = storageDirPath[0] || null;
+        } else if (storageDirPath.$in && Array.isArray(storageDirPath.$in)) {
+            dirParentPath = [...storageDirPath.$in].pop() || null;
+        }
+    }
+    const mappedDirs = await FileDirectoryModel.find({ parentPath: dirParentPath }).lean();
     
     await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
     
@@ -244,7 +254,7 @@ export class FileStorageService
     let currentPath = '';
 
     for (const part of parts) {
-       const parentPath = currentPath ? path.basename(currentPath) : null;
+        const parentPath = currentPath || null;
        currentPath = currentPath ? `${currentPath}/${part}` : part;
        
        const existing = await FileDirectoryModel.findOne({ path: currentPath });
@@ -450,8 +460,7 @@ export class FileStorageService
 
       // 2. Subdirectories
       const subDirs = await FileDirectoryModel.find({ 
-          parentPath: path.basename(dirPath),
-          path: { $regex: new RegExp('^' + dirPath + '/') }
+          parentPath: dirPath
       });
       for (const subDir of subDirs) {
           await this.deleteDirectoryRecursively(subDir.path);
