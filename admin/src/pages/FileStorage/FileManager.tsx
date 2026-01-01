@@ -79,7 +79,7 @@ export const FileManager = () => {
         message: string;
         type: 'alert' | 'confirm' | 'prompt';
         inputValue?: string;
-        onConfirm: () => void;
+        onConfirm: (val?: string) => void;
         loading?: boolean;
     }>({
         isOpen: false,
@@ -187,7 +187,7 @@ export const FileManager = () => {
                     setPopup(prev => ({ ...prev, loading: true }));
                     await fileStorageService.delete(id);
                     fetchFiles();
-                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false, inputValue: '' }));
                 } catch (err) {
                     console.error(err);
                     setPopup(prev => ({ ...prev, loading: false }));
@@ -203,14 +203,13 @@ export const FileManager = () => {
             message: 'Enter a name for the new folder:',
             type: 'prompt',
             inputValue: '',
-            onConfirm: async () => {
-                const name = popup.inputValue;
+            onConfirm: async (name) => {
                 if (!name) return;
                 try {
                     setPopup(prev => ({ ...prev, loading: true }));
                     await fileStorageService.createFolder(name, currentPath);
                     fetchFiles();
-                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false, inputValue: '' }));
                 } catch (err) {
                     console.error(err);
                     setPopup(prev => ({ ...prev, loading: false }));
