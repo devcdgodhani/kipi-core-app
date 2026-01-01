@@ -357,6 +357,7 @@ const SkuForm: React.FC = () => {
                             media={formData.media || []}
                             onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
                             productCode={parentProduct?.productCode}
+                            skuCode={formData.skuCode}
                         />
                     </section>
                 </div>

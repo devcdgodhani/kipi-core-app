@@ -59,7 +59,6 @@ const attributeSchema = new Schema<IAttributeDocument>(
 );
 
 // Indexes for efficient querying
-attributeSchema.index({ slug: 1 });
 attributeSchema.index({ categoryIds: 1 });
 attributeSchema.index({ status: 1 });
 attributeSchema.index({ isVariant: 1 });
