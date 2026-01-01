@@ -896,6 +896,26 @@ const ProductForm: React.FC = () => {
                                                 )
                                             },
                                             {
+                                                header: 'Media',
+                                                align: 'center',
+                                                render: (sku: ISku) => {
+                                                    const firstMedia = sku.media?.[0];
+                                                    const previewUrl = firstMedia
+                                                        ? (typeof firstMedia.fileStorageId === 'object' ? firstMedia.fileStorageId?.preSignedUrl : firstMedia.url)
+                                                        : null;
+
+                                                    return (
+                                                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center shrink-0">
+                                                            {previewUrl ? (
+                                                                <img src={previewUrl} alt="SKU" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <ImageIcon size={16} className="text-gray-200" />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                }
+                                            },
+                                            {
                                                 header: 'Inventory Units',
                                                 align: 'center',
                                                 render: (sku: ISku, idx?: number) => (

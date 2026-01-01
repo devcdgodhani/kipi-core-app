@@ -67,6 +67,11 @@ export default class SkuController {
         filters: reqData,
       });
 
+      options.populate = [
+          { path: 'productId', select: 'name productCode' },
+          { path: 'variantAttributes.attributeId', select: 'name key label type' },
+          { path: 'media.fileStorageId' }
+      ];
       const skus = await this.skuService.findAll(filter, options);
 
       const response: TSkuListRes = {
