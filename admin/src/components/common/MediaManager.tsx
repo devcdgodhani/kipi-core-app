@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Trash2, Plus, MoveUp, MoveDown, Image as ImageIcon, Video, Youtube, Upload, FolderOpen, RefreshCw } from 'lucide-react';
+import { Trash2, Plus, MoveUp, MoveDown, Image as ImageIcon, Video, Youtube, Upload, FolderOpen, RefreshCw, Layers } from 'lucide-react';
 import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS, type IMedia } from '../../types/media';
 import { fileStorageService } from '../../services/fileStorage.service';
 import { FileManagerSelector } from './FileManagerSelector';
@@ -9,10 +9,12 @@ interface MediaManagerProps {
     onChange: (media: IMedia[]) => void;
     productCode?: string;
     skuCode?: string;
+    parentMedia?: IMedia[];
 }
 
-export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode, skuCode }) => {
+export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode, skuCode, parentMedia }) => {
     const [isFileManagerOpen, setIsFileManagerOpen] = useState(false);
+    const [isProductGalleryOpen, setIsProductGalleryOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +103,14 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
         setIsFileManagerOpen(false);
     };
 
+    const handleCopyFromProduct = (item: IMedia) => {
+        const newItem: IMedia = {
+            ...item,
+            sortOrder: media.length
+        };
+        onChange([...media, newItem]);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between px-1 gap-4">
@@ -127,7 +137,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
                         </button>
 
                         {/* Dropdown Options */}
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover/upload:opacity-100 group-hover/upload:visible transition-all z-20 py-2">
+                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover/upload:opacity-100 group-hover/upload:visible transition-all z-20 py-2">
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
@@ -148,10 +158,57 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
                                 </div>
                                 <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Browse Gallery</span>
                             </button>
+                            {parentMedia && parentMedia.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProductGalleryOpen(true)}
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                                        <Layers size={14} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Product Assets</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Product Assets Modal */}
+            {isProductGalleryOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsProductGalleryOpen(false)} />
+                    <div className="relative bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Product Asset Vault</h3>
+                                <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1">Select from master product gallery</p>
+                            </div>
+                            <button onClick={() => setIsProductGalleryOpen(false)} className="px-5 py-2 hover:bg-gray-50 rounded-xl font-black text-[10px] uppercase tracking-widest text-gray-400">Close</button>
+                        </div>
+                        <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                {parentMedia?.map((item, idx) => {
+                                    const previewUrl = typeof item.fileStorageId === 'object' ? item.fileStorageId?.preSignedUrl : item.url;
+                                    return (
+                                        <div key={idx} className="group relative aspect-square rounded-[1.5rem] bg-gray-50 border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl transition-all" onClick={() => { handleCopyFromProduct(item); setIsProductGalleryOpen(false); }}>
+                                            {previewUrl ? (
+                                                <img src={previewUrl} alt="Asset" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-gray-200" /></div>
+                                            )}
+                                            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <Plus className="text-white drop-shadow-md" size={32} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <input
                 type="file"
