@@ -173,26 +173,48 @@ const ProductForm: React.FC = () => {
         const optionSets = variants.map(v => variantConfig[v._id]);
         const combinations = combinationsFlat(optionSets);
 
-        const newSkus = combinations.map((combo) => {
+        // Helper to canonicalize attributes for comparison
+        const getAttrKey = (attrs: { attributeId: any; value: any }[]) => {
+            return attrs
+                .map(a => `${typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId}:${a.value}`)
+                .sort()
+                .join('|');
+        };
+
+        const existingSkuKeys = new Set([
+            ...productSkus.map(s => getAttrKey(s.variantAttributes || [])),
+            ...generatedSkus.map(s => getAttrKey(s.variantAttributes || []))
+        ]);
+
+        const newSkus: any[] = [];
+        combinations.forEach((combo) => {
             const attrs = Array.isArray(combo) ? combo : [combo];
             const variantAttributesData = variants.map((v, idx) => ({
                 attributeId: v._id,
                 value: attrs[idx]
             }));
 
-            const skuCode = `${formData.name?.substring(0, 3).toUpperCase()}-${attrs.join('-').toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
-
-            return {
-                skuCode,
-                price: formData.salePrice || formData.basePrice || 0,
-                quantity: 0,
-                variantAttributes: variantAttributesData,
-                images: [],
-                status: 'ACTIVE'
-            };
+            const attrKey = getAttrKey(variantAttributesData);
+            if (!existingSkuKeys.has(attrKey)) {
+                const skuCode = `${formData.name?.substring(0, 3).toUpperCase()}-${attrs.join('-').toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+                newSkus.push({
+                    skuCode,
+                    price: formData.salePrice || formData.basePrice || 0,
+                    quantity: 0,
+                    variantAttributes: variantAttributesData,
+                    images: [],
+                    status: 'ACTIVE'
+                });
+                existingSkuKeys.add(attrKey); // Prevent duplicates within the same batch
+            }
         });
 
-        setGeneratedSkus(newSkus);
+        if (newSkus.length === 0) {
+            alert('All selected combinations already exist in the catalog or prepared list.');
+            return;
+        }
+
+        setGeneratedSkus(prev => [...prev, ...newSkus]);
     };
 
     function combinationsFlat(arrays: any[][]) {

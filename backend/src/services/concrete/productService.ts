@@ -19,24 +19,59 @@ export class ProductService
   async syncSkus(product: any, skus: any[], userId: any) {
     if (!skus || !Array.isArray(skus) || skus.length === 0) return;
 
-    const skusWithProductId = skus.map(sku => ({
-      ...sku,
-      productId: product._id,
-      createdBy: sku._id ? undefined : userId,
-      updatedBy: userId
-    }));
+    for (const skuData of skus) {
+      const { _id, variantAttributes, ...rest } = skuData;
+      const productId = product._id;
 
-    const newSkus = skusWithProductId.filter(s => !s._id);
-    const updateSkus = skusWithProductId.filter(s => s._id);
+      // Prepare normalization for comparison
+      const normalizedAttrs = (variantAttributes || []).map((a: any) => ({
+        attributeId: typeof a.attributeId === 'object' ? a.attributeId._id.toString() : a.attributeId.toString(),
+        value: a.value
+      })).sort((a: any, b: any) => a.attributeId.localeCompare(b.attributeId));
 
-    if (newSkus.length > 0) {
-      await SkuModel.insertMany(newSkus);
-    }
+      if (_id) {
+        // Direct update by ID
+        await SkuModel.updateOne(
+          { _id },
+          { 
+            $set: { 
+              ...rest, 
+              variantAttributes: normalizedAttrs, 
+              updatedBy: userId 
+            } 
+          }
+        );
+      } else {
+        // Attribute-aware Upsert: Find if a SKU with these attributes already exists for this product
+        const existingSku = await SkuModel.findOne({
+          productId,
+          variantAttributes: {
+            $size: normalizedAttrs.length,
+            $all: normalizedAttrs.map((attr: any) => ({ $elemMatch: attr }))
+          }
+        });
 
-    if (updateSkus.length > 0) {
-      for (const sku of updateSkus) {
-        const { _id, ...updateData } = sku;
-        await SkuModel.updateOne({ _id }, { $set: updateData });
+        if (existingSku) {
+          // Update existing
+          await SkuModel.updateOne(
+            { _id: existingSku._id },
+            { 
+              $set: { 
+                ...rest, 
+                updatedBy: userId 
+              } 
+            }
+          );
+        } else {
+          // Create new
+          await SkuModel.create({
+            ...rest,
+            productId,
+            variantAttributes: normalizedAttrs,
+            createdBy: userId,
+            updatedBy: userId
+          });
+        }
       }
     }
   }
