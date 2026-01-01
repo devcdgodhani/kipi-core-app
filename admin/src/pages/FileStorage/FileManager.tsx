@@ -100,10 +100,11 @@ export const FileManager = () => {
 
             if (!queryFilters.search) {
                 if (!currentPath) {
-                    queryFilters.storageDir = undefined;
+                    queryFilters.storageDirPath = undefined;
                 } else {
-                    const parts = currentPath.split('/');
-                    queryFilters.storageDir = [parts[parts.length - 1]];
+                    // const parts = currentPath.split('/');
+                    // parts.pop();
+                    queryFilters.storageDirPath = [currentPath]
                 }
             }
 
