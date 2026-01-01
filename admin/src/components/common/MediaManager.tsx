@@ -3,20 +3,30 @@ import { Trash2, Plus, MoveUp, MoveDown, Image as ImageIcon, Video, Youtube, Upl
 import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS, type IMedia } from '../../types/media';
 import { fileStorageService } from '../../services/fileStorage.service';
 import { FileManagerSelector } from './FileManagerSelector';
+import { PopupModal } from './PopupModal';
 
 interface MediaManagerProps {
     media: IMedia[];
     onChange: (media: IMedia[]) => void;
-    productCode?: string;
-    skuCode?: string;
+    storageDir?: string;
+    storageDirPath?: string;
     parentMedia?: IMedia[];
 }
 
-export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode, skuCode, parentMedia }) => {
+export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, storageDir, storageDirPath, parentMedia }) => {
     const [isFileManagerOpen, setIsFileManagerOpen] = useState(false);
     const [isProductGalleryOpen, setIsProductGalleryOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+    }>({
+        isOpen: false,
+        title: '',
+        message: ''
+    });
 
     const handleAdd = () => {
         const newItem: IMedia = {
@@ -55,20 +65,23 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
 
     const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return;
-        if (!productCode) {
-            alert('Please provide product code first before direct uploading assets.');
+
+        if (!storageDirPath) {
+            setPopup({
+                isOpen: true,
+                title: 'Identity Missing',
+                message: 'Catalog protocols require an established Product or SKU code to generate the storage path. Please verify registration before direct upload.'
+            });
             return;
         }
 
         try {
             setUploading(true);
-            const storageDir = skuCode || productCode;
-            const storageDirPath = skuCode ? `product/${productCode}/${skuCode}` : `product/${productCode}`;
 
             const res = await fileStorageService.upload(
                 Array.from(e.target.files),
                 storageDirPath,
-                storageDir
+                storageDir || ''
             );
 
             if (res.data && Array.isArray(res.data)) {
@@ -362,6 +375,15 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
                 isOpen={isFileManagerOpen}
                 onClose={() => setIsFileManagerOpen(false)}
                 onSelect={handleFileSelect}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                onConfirm={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                confirmLabel="Understood"
             />
         </div>
     );

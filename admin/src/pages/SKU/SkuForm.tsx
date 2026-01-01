@@ -11,6 +11,7 @@ import { type ILot } from '../../types/lot';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { MediaManager } from '../../components/common/MediaManager';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const SkuForm: React.FC = () => {
     const navigate = useNavigate();
@@ -41,6 +42,20 @@ const SkuForm: React.FC = () => {
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     const fetchInitialData = useCallback(async () => {
         setPageLoading(true);
@@ -64,6 +79,11 @@ const SkuForm: React.FC = () => {
                             attributeId: typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId
                         }))
                     });
+
+                    // Pre-populate parent product data from the already populated SKU reference
+                    if (sku.productId && typeof sku.productId === 'object') {
+                        setParentProduct(sku.productId as any);
+                    }
 
                     if (sku.productId) {
                         const pid = typeof sku.productId === 'object' ? (sku.productId as any)._id : sku.productId;
@@ -356,8 +376,8 @@ const SkuForm: React.FC = () => {
                         <MediaManager
                             media={formData.media || []}
                             onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
-                            productCode={parentProduct?.productCode}
-                            skuCode={formData.skuCode}
+                            storageDir={formData.skuCode}
+                            storageDirPath={(parentProduct?.productCode && formData.skuCode) ? `product/${parentProduct.productCode}/${formData.skuCode}` : undefined}
                             parentMedia={parentProduct?.media}
                         />
                     </section>
@@ -386,6 +406,16 @@ const SkuForm: React.FC = () => {
                     </div>
                 </div>
             </form>
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };
