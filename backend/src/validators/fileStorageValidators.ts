@@ -71,4 +71,22 @@ export default class FileStorageValidator {
       body: fileStorageFilterSchema.partial(),
     })
   );
+
+  createFolder = validate(
+    z.object({
+      body: z.object({
+        name: z.string().min(1),
+        storageDirPath: z.string().optional(),
+      }),
+    })
+  );
+
+  moveFile = validate(
+    z.object({
+      body: z.object({
+        fileId: z.string(), 
+        newStorageDirPath: z.string().optional(),
+      }),
+    })
+  );
 }

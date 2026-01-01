@@ -31,6 +31,9 @@ router.post(
   fileStorageController.upload
 );
 
+router.post('/create-folder', fileStorageValidator.createFolder, fileStorageController.createFolder);
+router.post('/move-file', fileStorageValidator.moveFile, fileStorageController.moveFile);
+
 router.delete('/deleteByFilter', fileStorageValidator.deleteByFilter, fileStorageController.deleteByFilter);
 
 /****************************************************** */

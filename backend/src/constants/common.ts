@@ -93,6 +93,7 @@ export enum FILE_TYPE {
   DOCUMENT = 'DOCUMENT',
   AUDIO = 'AUDIO',
   OTHER = 'OTHER',
+  DIRECTORY = 'DIRECTORY',
 }
 
 export enum CLOUD_TYPE {
