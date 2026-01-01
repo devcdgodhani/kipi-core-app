@@ -20,6 +20,7 @@ import CustomButton from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const SkuList: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +29,20 @@ const SkuList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     // Filters & Pagination State
     const [filters, setFilters] = useState<ISkuFilters>({
@@ -93,14 +108,28 @@ const SkuList: React.FC = () => {
     };
 
     const handleDeleteSku = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this SKU variant?')) {
-            try {
-                await skuService.delete(id);
-                fetchSkus();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete SKU');
+        setPopup({
+            isOpen: true,
+            title: 'Delete SKU',
+            message: 'Are you sure you want to delete this SKU variant?',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await skuService.delete(id);
+                    fetchSkus();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete SKU',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const filterFields: FilterField[] = [
@@ -319,6 +348,16 @@ const SkuList: React.FC = () => {
                     hasPreviousPage: pagination.currentPage > 1,
                     hasNextPage: pagination.currentPage < pagination.totalPages
                 } : undefined}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

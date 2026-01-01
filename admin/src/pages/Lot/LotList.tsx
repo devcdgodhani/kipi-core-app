@@ -19,6 +19,7 @@ import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { AdjustQuantityModal } from '../../components/lot/AdjustQuantityModal';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const LotList: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +29,20 @@ const LotList: React.FC = () => {
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [selectedLot, setSelectedLot] = useState<ILot | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     // Filters & Pagination State
     const [filters, setFilters] = useState<ILotFilters>({
@@ -82,14 +97,28 @@ const LotList: React.FC = () => {
     };
 
     const handleDeleteLot = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this lot?')) {
-            try {
-                await lotService.delete(id);
-                fetchLots();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete lot');
+        setPopup({
+            isOpen: true,
+            title: 'Delete Lot',
+            message: 'Are you sure you want to delete this lot? This action cannot be undone.',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await lotService.delete(id);
+                    fetchLots();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete lot',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const filterFields: FilterField[] = [
@@ -369,6 +398,16 @@ const LotList: React.FC = () => {
                     onSuccess={() => { setShowAdjustModal(false); setSelectedLot(null); fetchLots(); }}
                 />
             )}
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };

@@ -6,6 +6,7 @@ import { Shield } from 'lucide-react';
 import { authService } from '../../services/auth.service';
 import { useAppDispatch } from '../../features/hooks';
 import { setUser } from '../../features/auth/authSlice';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const VerifyOTP: React.FC = () => {
     const navigate = useNavigate();
@@ -17,6 +18,20 @@ const VerifyOTP: React.FC = () => {
     const [resendTimer, setResendTimer] = useState(60); // 1 minute = 60 seconds
     const [canResend, setCanResend] = useState(false);
     const [resending, setResending] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { },
+    });
 
     const email = location.state?.email || '';
     const message = location.state?.message || 'Please verify your account';
@@ -97,7 +112,13 @@ const VerifyOTP: React.FC = () => {
             setCanResend(false);
             setError('');
             // Show success message
-            alert('OTP has been resent to your email!');
+            setPopup({
+                isOpen: true,
+                title: 'Security Sync',
+                message: 'A fresh OTP has been dispatched to your registered email address.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.');
         } finally {
@@ -165,6 +186,16 @@ const VerifyOTP: React.FC = () => {
                     </div>
                 </form>
             </div>
+            {/* Popup Modal */}
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };

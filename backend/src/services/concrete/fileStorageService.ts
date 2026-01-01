@@ -1,6 +1,6 @@
 import { FilterQuery, PopulateOptions, QueryOptions, ProjectionType } from 'mongoose';
-import { FileStorageModel, PresignedUrlModel } from '../../db/mongodb';
-import { IFileStorageAttributes, IFileStorageDocument, IPresignedUrlDocument, IPaginationData } from '../../interfaces';
+import { FileStorageModel, PresignedUrlModel, FileDirectoryModel } from '../../db/mongodb';
+import { IFileStorageAttributes, IFileStorageDocument, IPresignedUrlDocument, IPaginationData, IFileDirectoryDocument, IFileDirectoryAttributes } from '../../interfaces';
 import { IFileStorageService } from '../contracts/fileStorageServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 import { CLOUD_TYPE, FILE_TYPE, FILE_STORAGE_STATUS } from '../../constants';
@@ -49,12 +49,21 @@ export class FileStorageService
     return doc;
   };
 
-  // Override findAll to populate presigned URL
   findAll = async (
     filter: FilterQuery<IFileStorageAttributes>,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<IFileStorageAttributes[]> => {
+    // Handle Root Directory Filter from file perspective
+    if (filter.storageDirPath === '') {
+        delete filter.storageDirPath;
+        filter.$or = [
+            { storageDirPath: '' },
+            { storageDirPath: null },
+            { storageDirPath: { $exists: false } }
+        ];
+    }
+    
     const query = this.model.find(filter, null, options);
     if (populate) query.populate(populate);
     const docs = await query.lean<IFileStorageAttributes[]>().exec();
@@ -62,6 +71,46 @@ export class FileStorageService
     await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
     return docs;
   };
+
+  async getFilesAndFolders(
+    filter: FilterQuery<IFileStorageAttributes>,
+    options: QueryOptions = {},
+    populate?: PopulateOptions | PopulateOptions[]
+  ): Promise<{ dirList: IFileDirectoryAttributes[], fileList: IFileStorageAttributes[] }> {
+     let storageDir: string | null | undefined = null;
+
+     const fileFilter = { ...filter };
+     
+    // Handle storageDir
+    if (fileFilter.storageDir === undefined) {
+             storageDir = null;
+             delete fileFilter.storageDir;
+             // Root filter for files: check both storageDir and storageDirPath for backward compat
+             fileFilter.$or = [
+                 { storageDir: '' },
+                 { storageDir: null },
+                 { storageDir: { $exists: false } },
+               
+             ];
+        
+    }  else {
+             storageDir = fileFilter.storageDir as string
+         }
+    // Fetch Files
+    const query = this.model.find(fileFilter, null, options);
+    if (populate) query.populate(populate);
+    const docs = await query.lean<IFileStorageAttributes[]>().exec();
+
+    // Fetch Directories
+    const mappedDirs = await FileDirectoryModel.find({ parentPath: storageDir }).lean()
+    
+    await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
+    
+    return {
+        dirList: mappedDirs,
+        fileList: docs
+    };
+  }
 
   findAllWithPagination = async (
     filter: FilterQuery<IFileStorageAttributes>,
@@ -73,6 +122,16 @@ export class FileStorageService
     } = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<IPaginationData<IFileStorageAttributes>> => {
+    // Handle Root Directory Filter
+    if (filter.storageDirPath === '') {
+        delete filter.storageDirPath;
+        filter.$or = [
+            { storageDirPath: '' },
+            { storageDirPath: null },
+            { storageDirPath: { $exists: false } }
+        ];
+    }
+
     const { order, projection, page = 1, limit = 10, ...restOptions } = options;
 
     const sort = order || { updatedAt: -1 };
@@ -133,10 +192,8 @@ export class FileStorageService
       ? `${file.storageDirPath}/${file.storageFileName}`
       : file.storageFileName;
 
-    // Call uploader.getSignedUrl (types adjusted via any cast if needed/implied by TS)
     const signedUrl = await uploader.getSignedUrl(key, undefined, expiryTime);
 
-    // Create PresignedUrl record with TTL
     const expiresAt = new Date(Date.now() + expiryTime * 1000);
 
     await PresignedUrlModel.create({
@@ -153,54 +210,7 @@ export class FileStorageService
     return; 
   }
 
-  async uploadFiles(files: any[], storageDirPath?: string): Promise<IFileStorageAttributes[]> {
-    const uploadedDocs: IFileStorageAttributes[] = [];
-    
-    let cloudType = CLOUD_TYPE.CLOUDINARY;
-
-    if (ENV_VARIABLE.CLOUD_TYPE) {
-      if (ENV_VARIABLE.CLOUD_TYPE === CLOUD_TYPE.CLOUDINARY) {
-        cloudType = CLOUD_TYPE.CLOUDINARY;
-      } else if (ENV_VARIABLE.CLOUD_TYPE === CLOUD_TYPE.AWS_S3) {
-        cloudType = CLOUD_TYPE.AWS_S3;
-      }
-    }
-
-    const uploader = this.getUploader(cloudType);
-    const bucket = ENV_VARIABLE.AWS_BUCKET_NAME;
-
-    for (const file of files) {
-      const ext = path.extname(file.originalname);
-      // const originalName = path.basename(file.originalname, ext);
-      const storageFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      const key = storageDirPath ? `${storageDirPath}/${storageFileName}` : storageFileName;
-
-      // Upload
-      // file.path matches multer's output
-      await uploader.uploadFile(file.path, key, bucket);
-
-      // Create DB Record
-      const newFile = await this.create({
-        originalFileName: file.originalname,
-        storageFileName: storageFileName,
-        storageDirPath: storageDirPath,
-        fileSize: file.size,
-        fileExtension: ext,
-        fileType: this.getFileType(ext),
-        cloudType: cloudType,
-        status: FILE_STORAGE_STATUS.ACTIVE,
-        isInUsed: false,
-      } as any);
-
-      uploadedDocs.push(newFile);
-    }
-    
-    return uploadedDocs;
-  }
-
-  async createFolder(name: string, storageDirPath?: string): Promise<IFileStorageAttributes> {
-    const fullPath = storageDirPath ? `${storageDirPath}/${name}` : name;
-    
+  private async createCloudFolderHelper(fullPath: string) {
     let cloudType = CLOUD_TYPE.AWS_S3;
 
     if (ENV_VARIABLE.CLOUD_TYPE) {
@@ -220,22 +230,126 @@ export class FileStorageService
     } else {
       await (uploader as any).createFolder(fullPath);
     }
+  }
 
-    return this.create({
-      originalFileName: name,
-      storageFileName: name,
-      storageDirPath: storageDirPath,
-      fileType: FILE_TYPE.DIRECTORY,
-      cloudType: cloudType,
-      status: FILE_STORAGE_STATUS.ACTIVE,
-      isInUsed: false,
-      fileSize: 0,
-    } as any);
+  async ensureDirectoryHierarchy(dirPath: string): Promise<void> {
+    if (!dirPath) return;
+    const parts = dirPath.split('/').filter(p => p); 
+    let currentPath = '';
+
+    for (const part of parts) {
+       const parentPath = currentPath || null;
+       currentPath = currentPath ? `${currentPath}/${part}` : part;
+       
+       const existing = await FileDirectoryModel.findOne({ path: currentPath });
+       if (!existing) {
+           await FileDirectoryModel.create({
+               name: part,
+               path: currentPath,
+               parentPath: parentPath,
+           });
+           await this.createCloudFolderHelper(currentPath);
+       }
+    }
+  }
+
+  async uploadFiles(files: any[], data: any): Promise<IFileStorageAttributes[]> {
+    const { storageDirPath, storageDir } = data;
+    const uploadedDocs: IFileStorageAttributes[] = [];
+    
+    // Ensure hierarchy exists if path provided
+    if (storageDirPath) {
+        await this.ensureDirectoryHierarchy(storageDirPath);
+    }
+
+    let cloudType = CLOUD_TYPE.CLOUDINARY;
+
+    if (ENV_VARIABLE.CLOUD_TYPE) {
+      if (ENV_VARIABLE.CLOUD_TYPE === CLOUD_TYPE.CLOUDINARY) {
+        cloudType = CLOUD_TYPE.CLOUDINARY;
+      } else if (ENV_VARIABLE.CLOUD_TYPE === CLOUD_TYPE.AWS_S3) {
+        cloudType = CLOUD_TYPE.AWS_S3;
+      }
+    } else if (!ENV_VARIABLE.AWS_ACCESS_KEY_ID && ENV_VARIABLE.CLOUDINARY_CLOUD_NAME) {
+      cloudType = CLOUD_TYPE.CLOUDINARY;
+    }
+    
+    // Default fallback
+    cloudType = cloudType || CLOUD_TYPE.AWS_S3;
+
+    const uploader = this.getUploader(cloudType);
+    const bucket = ENV_VARIABLE.AWS_BUCKET_NAME;
+
+    for (const file of files) {
+      const ext = path.extname(file.originalname);
+      // const originalName = path.basename(file.originalname, ext);
+      const storageFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      const key = storageDirPath ? `${storageDirPath}/${storageFileName}` : storageFileName;
+
+      // Upload
+      // file.path matches multer's output
+      await uploader.uploadFile(file.path, key, bucket);
+
+      // Create DB Record
+      const newFile = await this.create({
+        originalFileName: file.originalname,
+        storageFileName: storageFileName,
+        storageDirPath: storageDirPath || null, // Ensure explicit null if undefined/empty
+        storageDir: storageDir || (storageDirPath ? path.basename(storageDirPath) : null), // Use provided, or derive, or null
+        fileSize: file.size,
+        fileExtension: ext,
+        fileType: this.getFileType(ext),
+        cloudType: cloudType,
+        status: FILE_STORAGE_STATUS.ACTIVE,
+        isInUsed: false,
+      } as any);
+
+      uploadedDocs.push(newFile);
+    }
+    
+    return uploadedDocs;
+  }
+
+  async createFolder(name: string, storageDirPath?: string): Promise<IFileStorageAttributes> {
+    const fullPath = storageDirPath ? `${storageDirPath}/${name}` : name;
+    
+    // Check if exists
+    const existing = await FileDirectoryModel.findOne({ path: fullPath });
+    if(existing) throw new Error('Folder already exists');
+
+    // Cloud creation
+    await this.createCloudFolderHelper(fullPath);
+
+    // DB Creation
+    const dir = await FileDirectoryModel.create({
+      name, 
+      path: fullPath, 
+      parentPath: storageDirPath || null 
+    });
+    
+    // Return mapped to IFileStorageAttributes
+    return {
+       _id: dir._id,
+       originalFileName: dir.name,
+       storageFileName: dir.name,
+       storageDirPath: dir.parentPath || undefined,
+       storageDir: dir.parentPath || undefined,
+       fileType: FILE_TYPE.DIRECTORY,
+       cloudType: CLOUD_TYPE.AWS_S3, 
+       status: FILE_STORAGE_STATUS.ACTIVE,
+       isInUsed: false,
+       createdAt: dir.createdAt,
+       updatedAt: dir.updatedAt,
+    } as any;
   }
 
   async moveFile(fileId: string, newStorageDirPath: string): Promise<IFileStorageAttributes> {
     const file = await this.model.findById(fileId);
     if (!file) throw new Error('File not found');
+
+    if (newStorageDirPath) {
+        await this.ensureDirectoryHierarchy(newStorageDirPath);
+    }
 
     const uploader = this.getUploader(file.cloudType);
 
@@ -256,14 +370,96 @@ export class FileStorageService
     const newFile = await this.create({
       ...rest,
       storageDirPath: newStorageDirPath,
+      storageDir: newStorageDirPath ? path.basename(newStorageDirPath) : undefined, // Update storageDir derived from new path
     });
 
     // Delete Old Record
-    // await this.delete(file._id); 
-    // Usually standard delete via service? or model delete?
-    // Requirement says "deleted".
     await this.model.deleteOne({ _id: file._id });
 
     return newFile;
+  }
+
+  // --- Deletion Logic for Directories and Files (Override softDelete) ---
+
+  private async performHardDeleteFile(file: IFileStorageDocument | any) {
+    const uploader = this.getUploader(file.cloudType);
+    const key = file.storageDirPath ? `${file.storageDirPath}/${file.storageFileName}` : file.storageFileName;
+    
+    try {
+        if (file.cloudType === CLOUD_TYPE.AWS_S3) {
+           await (uploader as any).deleteFile(key, ENV_VARIABLE.AWS_BUCKET_NAME);
+        } else {
+           await (uploader as any).deleteFile(key);
+        }
+    } catch (e) {
+        console.error("Cloud delete error", e);
+    }
+
+    await PresignedUrlModel.deleteOne({ fileId: file._id });
+    await this.model.deleteOne({ _id: file._id });
+  }
+
+  private async deleteCloudFolderHelper(path: string) {
+      let cloudType = CLOUD_TYPE.AWS_S3;
+      if (ENV_VARIABLE.CLOUD_TYPE) {
+        if (ENV_VARIABLE.CLOUD_TYPE === 'CLOUDINARY') {
+          cloudType = CLOUD_TYPE.CLOUDINARY;
+        } else if (ENV_VARIABLE.CLOUD_TYPE === 'AWS_S3') {
+          cloudType = CLOUD_TYPE.AWS_S3;
+        }
+      } else if (!ENV_VARIABLE.AWS_ACCESS_KEY_ID && ENV_VARIABLE.CLOUDINARY_CLOUD_NAME) {
+        cloudType = CLOUD_TYPE.CLOUDINARY;
+      }
+
+      const uploader = this.getUploader(cloudType);
+      try {
+           if (cloudType === CLOUD_TYPE.AWS_S3) {
+             await (uploader as any).deleteFolder(path, ENV_VARIABLE.AWS_BUCKET_NAME);
+          } else {
+             await (uploader as any).deleteFolder(path);
+          }
+      } catch (e) {
+          console.error("Cloud folder delete error", e);
+      }
+  }
+
+  private async deleteDirectoryRecursively(dirPath: string) {
+      // 1. Files in this dir
+      const files = await this.model.find({ storageDirPath: dirPath });
+      for (const file of files) {
+          await this.performHardDeleteFile(file);
+      }
+
+      // 2. Subdirectories
+      const subDirs = await FileDirectoryModel.find({ parentPath: dirPath });
+      for (const subDir of subDirs) {
+          await this.deleteDirectoryRecursively(subDir.path);
+          await FileDirectoryModel.deleteOne({ _id: subDir._id });
+          await this.deleteCloudFolderHelper(subDir.path);
+      }
+  }
+
+  softDelete = async (filter: FilterQuery<IFileStorageAttributes>, options?: any): Promise<any> => {
+      // 1. Try to find File first
+      const file = await this.model.findOne(filter);
+      if (file) {
+          // Perform Hard Delete as requested for cleanup
+          await this.performHardDeleteFile(file);
+          return { acknowledged: true, modifiedCount: 1, upsertedId: null, upsertedCount: 0, matchedCount: 1 };
+      }
+      
+      // 2. Try to find Directory
+      const id = filter._id || filter.id || (filter as any)._id; // Check different forms
+      if (id) { 
+          const dir = await FileDirectoryModel.findById(id);
+          if (dir) {
+              await this.deleteDirectoryRecursively(dir.path);
+              await FileDirectoryModel.deleteOne({ _id: dir._id });
+              await this.deleteCloudFolderHelper(dir.path);
+              return { acknowledged: true, modifiedCount: 1, upsertedId: null, upsertedCount: 0, matchedCount: 1 };
+          }
+      }
+      
+      return { acknowledged: true, modifiedCount: 0, upsertedId: null, upsertedCount: 0, matchedCount: 0 };
   }
 }

@@ -17,6 +17,7 @@ import { CATEGORY_STATUS } from '../../types/category';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { Table, type Column } from '../../components/common/Table';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 // Extended interface for flattened tree
 interface ICategoryWithLevel extends ICategory {
@@ -30,6 +31,20 @@ const CategoryList: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     const isTreeView = true;
 
@@ -64,14 +79,28 @@ const CategoryList: React.FC = () => {
     };
 
     const handleDeleteCategory = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this category? This might affect sub-categories.')) {
-            try {
-                await categoryService.delete(id);
-                fetchCategories();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete category');
+        setPopup({
+            isOpen: true,
+            title: 'Delete Category',
+            message: 'Are you sure you want to delete this category? This might affect sub-categories.',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await categoryService.delete(id);
+                    fetchCategories();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete category',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const toggleExpand = (id: string) => {
@@ -279,6 +308,16 @@ const CategoryList: React.FC = () => {
                 keyExtractor={(cat) => cat._id}
                 emptyMessage="No categories found"
                 onRowClick={(cat) => toggleExpand(cat._id)}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

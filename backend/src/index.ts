@@ -23,9 +23,9 @@ export const assertDatabaseConnection = async (): Promise<void> => {
     console.log('MongoDB database connection has been established successfully.');
     
     /***** WhatsApp Initializations *****/
-    const { WhatsAppService } = await import('./services/concrete/whatsAppService');
-    const whatsAppService = new WhatsAppService();
-    await whatsAppService.initializeAllSessions();
+    // const { WhatsAppService } = await import('./services/concrete/whatsAppService');
+    // const whatsAppService = new WhatsAppService();
+    // await whatsAppService.initializeAllSessions();
 
     /***** Redis  Authentication *****/
     //await connectRedis();

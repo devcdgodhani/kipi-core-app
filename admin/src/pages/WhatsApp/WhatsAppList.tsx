@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { whatsappService } from '../../services/whatsapp.service';
 import { Plus, Trash2, RefreshCw, LogOut, AlertTriangle, X, Clock, Eye } from 'lucide-react';
 import CustomButton from '../../components/common/Button';
+import { PopupModal } from '../../components/common/PopupModal';
 
 interface Session {
     _id: string;
@@ -22,16 +23,18 @@ const WhatsAppList: React.FC = () => {
     const [showQrModal, setShowQrModal] = useState(false);
     const [qrSession, setQrSession] = useState<Session | null>(null);
     const [refreshingId, setRefreshingId] = useState<string | null>(null);
-    const [confirmModal, setConfirmModal] = useState<{
+    const [popup, setPopup] = useState<{
         isOpen: boolean;
         title: string;
         message: string;
+        type: 'alert' | 'confirm' | 'prompt';
         onConfirm: () => void;
         loading?: boolean;
     }>({
         isOpen: false,
         title: '',
         message: '',
+        type: 'alert',
         onConfirm: () => { },
     });
 
@@ -83,7 +86,13 @@ const WhatsAppList: React.FC = () => {
                 handleCloseModal();
             }
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to create session');
+            setPopup({
+                isOpen: true,
+                title: 'Provision Error',
+                message: err.response?.data?.message || 'Failed to create session architecture.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setLoading(false);
         }
@@ -136,40 +145,50 @@ const WhatsAppList: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        setConfirmModal({
+        setPopup({
             isOpen: true,
-            title: 'Delete Session',
-            message: 'Are you sure you want to delete this session? This action cannot be undone.',
+            title: 'Terminate Session',
+            message: 'Are you sure you want to terminate this operational node? This action cannot be reversed.',
+            type: 'confirm',
             onConfirm: async () => {
                 try {
-                    setConfirmModal(prev => ({ ...prev, loading: true }));
+                    setPopup(prev => ({ ...prev, loading: true }));
                     await whatsappService.deleteSession(id);
                     fetchSessions();
-                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
                 } catch (err: any) {
-                    alert(err.response?.data?.message || 'Failed to delete session');
-                } finally {
-                    setConfirmModal(prev => ({ ...prev, loading: false }));
+                    setPopup({
+                        isOpen: true,
+                        title: 'Termination Error',
+                        message: err.response?.data?.message || 'Internal failure during session disposal.',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
             }
         });
     };
 
     const handleLogout = async (id: string) => {
-        setConfirmModal({
+        setPopup({
             isOpen: true,
-            title: 'Logout Session',
-            message: 'Are you sure you want to logout this session?',
+            title: 'Session Disconnection',
+            message: 'Initiate session logout protocol?',
+            type: 'confirm',
             onConfirm: async () => {
                 try {
-                    setConfirmModal(prev => ({ ...prev, loading: true }));
+                    setPopup(prev => ({ ...prev, loading: true }));
                     await whatsappService.logoutSession(id);
                     fetchSessions();
-                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
                 } catch (err: any) {
-                    alert(err.response?.data?.message || 'Failed to logout session');
-                } finally {
-                    setConfirmModal(prev => ({ ...prev, loading: false }));
+                    setPopup({
+                        isOpen: true,
+                        title: 'Disconnection Fault',
+                        message: err.response?.data?.message || 'Failed to transmit logout signal.',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
             }
         });
@@ -180,7 +199,13 @@ const WhatsAppList: React.FC = () => {
             await whatsappService.initializeSession(id);
             fetchSessions();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to initialize session');
+            setPopup({
+                isOpen: true,
+                title: 'Initialization Failed',
+                message: err.response?.data?.message || 'Could not establish connection with WhatsApp servers.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -456,34 +481,15 @@ const WhatsAppList: React.FC = () => {
                 </div>
             )}
 
-            {/* Confirm Dialog */}
-            {confirmModal.isOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] w-full max-w-sm p-8 shadow-2xl text-center">
-                        <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-md">
-                            <AlertTriangle className="text-orange-500" size={36} />
-                        </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">{confirmModal.title}</h3>
-                        <p className="text-gray-500 text-sm font-medium mb-8 leading-relaxed">{confirmModal.message}</p>
-                        <div className="flex gap-3">
-                            <button
-                                disabled={confirmModal.loading}
-                                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                                className="flex-1 py-3.5 text-gray-500 font-bold hover:bg-gray-100 rounded-2xl transition-all border border-gray-100 disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <CustomButton
-                                className="flex-1 rounded-2xl"
-                                onClick={confirmModal.onConfirm}
-                                disabled={confirmModal.loading}
-                            >
-                                {confirmModal.loading ? '...' : 'Confirm'}
-                            </CustomButton>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };

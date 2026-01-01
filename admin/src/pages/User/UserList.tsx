@@ -18,6 +18,7 @@ import CustomButton from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const UserList: React.FC = () => {
     const navigate = useNavigate();
@@ -25,6 +26,20 @@ const UserList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     // Filters & Pagination State
     const [filters, setFilters] = useState<IUserFilters>({
@@ -81,14 +96,28 @@ const UserList: React.FC = () => {
     };
 
     const handleDeleteUser = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            try {
-                await userService.delete(id);
-                fetchUsers();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete user');
+        setPopup({
+            isOpen: true,
+            title: 'Delete User',
+            message: 'Are you sure you want to delete this user? This action cannot be undone.',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await userService.delete(id);
+                    fetchUsers();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete user',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const handleStatusToggle = async (user: IUser) => {
@@ -97,7 +126,13 @@ const UserList: React.FC = () => {
             await userService.update(user._id, { status: newStatus });
             fetchUsers();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to update status');
+            setPopup({
+                isOpen: true,
+                title: 'Error',
+                message: err.response?.data?.message || 'Failed to update status',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -376,6 +411,16 @@ const UserList: React.FC = () => {
                     hasPreviousPage: pagination.currentPage > 1,
                     hasNextPage: pagination.currentPage < pagination.totalPages
                 } : undefined}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

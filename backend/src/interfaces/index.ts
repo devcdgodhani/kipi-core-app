@@ -11,3 +11,4 @@ export * from './otp';
 export * from './authActionHistory';
 export * from './product';
 export * from './sku';
+export * from './fileDirectory';

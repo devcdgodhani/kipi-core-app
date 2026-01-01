@@ -10,6 +10,7 @@ import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
 import { AdjustQuantityModal } from '../../components/lot/AdjustQuantityModal';
 import { Plus } from 'lucide-react';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const LotForm: React.FC = () => {
     const navigate = useNavigate();
@@ -43,6 +44,20 @@ const LotForm: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [currentLot, setCurrentLot] = useState<ILot | null>(null);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
 
     const fetchInitialData = useCallback(async () => {
@@ -95,21 +110,28 @@ const LotForm: React.FC = () => {
 
     const handleRemoveAdjustment = async (adjId?: string) => {
         if (!adjId || !currentLot) return;
-        if (!window.confirm('Are you sure you want to remove this adjustment? Record will be deleted.')) return;
-
-        setLoading(true);
-        try {
-            await lotService.update(currentLot._id, {
-                $pull: {
-                    adjustQuantity: { _id: adjId }
+        setPopup({
+            isOpen: true,
+            title: 'Remove Adjustment',
+            message: 'Are you sure you want to remove this adjustment? Record will be deleted.',
+            type: 'confirm',
+            onConfirm: async () => {
+                setLoading(true);
+                try {
+                    await lotService.update(currentLot._id, {
+                        $pull: {
+                            adjustQuantity: { _id: adjId }
+                        }
+                    } as any);
+                    await fetchInitialData();
+                    setPopup(prev => ({ ...prev, isOpen: false }));
+                } catch (err: any) {
+                    setError(err.response?.data?.message || 'Failed to remove adjustment');
+                } finally {
+                    setLoading(false);
                 }
-            } as any);
-            await fetchInitialData();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to remove adjustment');
-        } finally {
-            setLoading(false);
-        }
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -338,6 +360,16 @@ const LotForm: React.FC = () => {
                     }}
                 />
             )}
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };
