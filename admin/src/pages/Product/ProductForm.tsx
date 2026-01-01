@@ -157,7 +157,13 @@ const ProductForm: React.FC = () => {
     const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return;
         if (!formData.productCode) {
-            alert('Please provide product code first before direct uploading assets.');
+            setPopup({
+                isOpen: true,
+                title: 'Operation Restricted',
+                message: 'Catalog protocols require a Product Code to be established before direct asset ingestion.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -1077,7 +1083,8 @@ const ProductForm: React.FC = () => {
                                         <MediaManager
                                             media={formData.media || []}
                                             onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
-                                            productCode={formData.productCode}
+                                            storageDir={formData.productCode}
+                                            storageDirPath={formData.productCode ? `product/${formData.productCode}` : undefined}
                                         />
                                     </div>
                                 </div>
