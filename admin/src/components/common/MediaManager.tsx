@@ -8,9 +8,10 @@ interface MediaManagerProps {
     media: IMedia[];
     onChange: (media: IMedia[]) => void;
     productCode?: string;
+    skuCode?: string;
 }
 
-export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode }) => {
+export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode, skuCode }) => {
     const [isFileManagerOpen, setIsFileManagerOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,8 +60,8 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
 
         try {
             setUploading(true);
-            const storageDir = productCode;
-            const storageDirPath = `product/${productCode}`;
+            const storageDir = skuCode || productCode;
+            const storageDirPath = skuCode ? `product/${productCode}/${skuCode}` : `product/${productCode}`;
 
             const res = await fileStorageService.upload(
                 Array.from(e.target.files),

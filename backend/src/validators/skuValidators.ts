@@ -20,7 +20,7 @@ const skuFilterSchema = baseFilterSchema.extend({
 });
 
 const skuCreateSchema = z.object({
-  productId: z.string().min(1),
+  productId: z.string().min(1).nullable().optional(),
   skuCode: z.string().min(1),
   
   variantAttributes: z.array(z.object({
@@ -37,7 +37,7 @@ const skuCreateSchema = z.object({
   media: z.array(z.any()).optional(),
   
   status: z.nativeEnum(SKU_STATUS).optional(),
-  lotId: z.string().optional()
+  lotId: z.string().nullable().optional()
 });
 
 const skuUpdateSchema = skuCreateSchema.partial();

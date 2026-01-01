@@ -13,29 +13,31 @@ export const connectMongoDb = async (config: TMongoDbConfig) => {
     } as ConnectOptions);
 
     // Data Sanitization: Fix empty string ObjectIds that cause CastErrors during population
+    // We use the native connection to bypass Mongoose schema validation/casting
     try {
-      const Product = mongoose.model('Product');
-      const Sku = mongoose.model('Sku');
-
-      await Promise.all([
-        Product.updateMany({ mainImage: '' }, { $set: { mainImage: null } }),
-        Product.updateMany({}, { $pull: { categoryIds: '' } } as any),
-        Product.updateMany(
-          { 'media.fileStorageId': '' },
-          { $set: { 'media.$[elem].fileStorageId': null } },
-          { arrayFilters: [{ 'elem.fileStorageId': '' }] } as any
-        ),
-        Sku.updateMany({ productId: '' }, { $set: { productId: null } }),
-        Sku.updateMany({ lotId: '' }, { $set: { lotId: null } }),
-        Sku.updateMany(
-          { 'media.fileStorageId': '' },
-          { $set: { 'media.$[elem].fileStorageId': null } },
-          { arrayFilters: [{ 'elem.fileStorageId': '' }] } as any
-        )
-      ]);
-      console.log('Database references sanitized successfully');
+      const db = mongoose.connection.db;
+      if (db) {
+        console.log('Synchronizing database architecture...');
+        await Promise.all([
+          db.collection('products').updateMany({ mainImage: '' }, { $set: { mainImage: null } }),
+          db.collection('products').updateMany({}, { $pull: { categoryIds: '' } } as any),
+          db.collection('products').updateMany(
+            { 'media.fileStorageId': '' },
+            { $set: { 'media.$[elem].fileStorageId': null } },
+            { arrayFilters: [{ 'elem.fileStorageId': '' }] } as any
+          ),
+          db.collection('skus').updateMany({ productId: '' }, { $set: { productId: null } }),
+          db.collection('skus').updateMany({ lotId: '' }, { $set: { lotId: null } }),
+          db.collection('skus').updateMany(
+            { 'media.fileStorageId': '' },
+            { $set: { 'media.$[elem].fileStorageId': null } },
+            { arrayFilters: [{ 'elem.fileStorageId': '' }] } as any
+          )
+        ]);
+        console.log('Database references sanitized successfully');
+      }
     } catch (dbErr) {
-      console.error('Database sanitization failed:', dbErr);
+      console.error('Database sanitization failed (non-critical):', dbErr);
     }
   } catch (err) {
     console.log('error while connect mongoDb : ' + err);
