@@ -105,6 +105,17 @@ export const deleteFile = async (
 };
 
 /**
+ * Deletes a folder marker from S3.
+ */
+export const deleteFolder = async (
+  folderPath: string,
+  bucket: string = ENV_VARIABLE.AWS_BUCKET_NAME
+): Promise<void> => {
+  const key = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
+  await deleteFile(key, bucket);
+};
+
+/**
  * Generates a signed URL for an S3 asset.
  * 
  * @param key S3 Key
