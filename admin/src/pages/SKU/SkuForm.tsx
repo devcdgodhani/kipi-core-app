@@ -72,22 +72,22 @@ const SkuForm: React.FC = () => {
                     const sku = skuRes.data;
                     setFormData({
                         ...sku,
-                        productId: typeof sku.productId === 'object' ? (sku.productId as any)._id : sku.productId,
-                        lotId: typeof sku.lotId === 'object' ? (sku.lotId as any)._id : sku.lotId,
+                        productId: (sku.productId && typeof sku.productId === 'object') ? (sku.productId as any)._id : sku.productId,
+                        lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : sku.lotId,
                         variantAttributes: (Array.isArray(sku.variantAttributes) ? sku.variantAttributes : []).map((a: any) => ({
                             ...a,
-                            attributeId: typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId
+                            attributeId: (a.attributeId && typeof a.attributeId === 'object') ? a.attributeId._id : a.attributeId
                         }))
                     });
 
                     // Pre-populate parent product data from the already populated SKU reference
-                    if (sku.productId && typeof sku.productId === 'object') {
+                    if (sku.productId && typeof sku.productId === 'object' && (sku.productId as any)._id) {
                         setParentProduct(sku.productId as any);
                     }
 
                     if (sku.productId) {
-                        const pid = typeof sku.productId === 'object' ? (sku.productId as any)._id : sku.productId;
-                        fetchVariantAttributes(pid);
+                        const pid = (sku.productId && typeof sku.productId === 'object') ? (sku.productId as any)._id : sku.productId;
+                        if (pid) fetchVariantAttributes(pid);
                     }
                 }
             }
@@ -183,11 +183,17 @@ const SkuForm: React.FC = () => {
                 fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : (m.fileStorageId || null)
             }));
 
+            const cleanVariantAttributes = (formData.variantAttributes || []).map(a => ({
+                ...a,
+                attributeId: (a.attributeId && typeof a.attributeId === 'object') ? (a.attributeId as any)._id : a.attributeId
+            }));
+
             const submitData = {
                 ...formData,
                 skuCode,
                 productId: (formData.productId && typeof formData.productId === 'object') ? (formData.productId as any)._id : (formData.productId || null),
                 lotId: (formData.lotId && typeof formData.lotId === 'object') ? (formData.lotId as any)._id : (formData.lotId || null),
+                variantAttributes: cleanVariantAttributes,
                 media: cleanMedia
             };
 
