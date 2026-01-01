@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, FILE_STORAGE_SUCCESS_MESSAGES } from '../constants';
 import { FileStorageService } from '../services/concrete/fileStorageService';
 import { IApiResponse, IPaginationData, IFileStorageAttributes, IFileDirectoryAttributes } from '../interfaces';
+import { FileStorageModel, FileDirectoryModel, PresignedUrlModel } from '../db/mongodb';
 
 export default class FileStorageController {
   fileStorageService = new FileStorageService();

@@ -52,6 +52,4 @@ const productSchema = new Schema<IProductDocument>(
 productSchema.index({ name: 1 });
 productSchema.index({ categoryIds: 1 });
 
-const ProductModel = model<IProductDocument>('Product', productSchema);
-
-export default ProductModel;
+export const ProductModel = model<IProductDocument>('Product', productSchema);

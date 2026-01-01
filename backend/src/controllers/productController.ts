@@ -10,6 +10,7 @@ import {
 } from '../types/product';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
+import { FileStorageModel, SkuModel } from '../db/mongodb';
 
 export default class ProductController {
   private productService = new ProductService();

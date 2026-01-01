@@ -9,6 +9,7 @@ import {
   TSkuListPaginationRes 
 } from '../types/sku';
 import { IApiResponse } from '../interfaces';
+import { FileStorageModel, ProductModel, SkuModel } from '../db/mongodb';
 
 export default class SkuController {
   private skuService = new SkuService();

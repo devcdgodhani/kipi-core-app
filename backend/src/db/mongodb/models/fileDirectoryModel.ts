@@ -34,4 +34,4 @@ export const FileDirectorySchema = new Schema<IFileDirectoryDocument>(
 FileDirectorySchema.index({ parentPath: 1 });
 FileDirectorySchema.index({ path: 1 }, { unique: true });
 
-export const FileDirectoryModel = model<IFileDirectoryDocument>('FileDirectories', FileDirectorySchema);
+export const FileDirectoryModel = model<IFileDirectoryDocument>('FileDirectory', FileDirectorySchema);

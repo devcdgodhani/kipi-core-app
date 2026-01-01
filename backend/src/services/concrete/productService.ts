@@ -1,5 +1,5 @@
-import ProductModel from '../../db/mongodb/models/productModel';
-import SkuModel from '../../db/mongodb/models/skuModel';
+import { ProductModel } from '../../db/mongodb/models/productModel';
+import { SkuModel } from '../../db/mongodb/models/skuModel';
 import { IProductAttributes, IProductDocument } from '../../interfaces/product';
 import { IProductService } from '../contracts/productServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';

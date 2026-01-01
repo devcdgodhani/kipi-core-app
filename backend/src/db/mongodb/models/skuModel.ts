@@ -45,6 +45,4 @@ const skuSchema = new Schema<ISkuDocument>(
 
 skuSchema.index({ productId: 1 });
 
-const SkuModel = model<ISkuDocument>('Sku', skuSchema);
-
-export default SkuModel;
+export const SkuModel = model<ISkuDocument>('Sku', skuSchema);

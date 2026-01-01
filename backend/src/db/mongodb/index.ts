@@ -30,3 +30,5 @@ export * from './models/attributeModel';
 export * from './models/fileStorageModel';
 export * from './models/presignedUrlModel';
 export * from './models/fileDirectoryModel';
+export * from './models/productModel';
+export * from './models/skuModel';
