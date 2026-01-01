@@ -18,10 +18,12 @@ import { productService } from '../../services/product.service';
 import { categoryService } from '../../services/category.service';
 import { attributeService } from '../../services/attribute.service';
 import { skuService } from '../../services/sku.service';
+import { lotService } from '../../services/lot.service';
 import { PRODUCT_STATUS, type IProduct } from '../../types/product';
 import { type ICategory } from '../../types/category';
 import { type IAttribute } from '../../types/attribute';
 import { type ISku } from '../../types/sku';
+import { type ILot } from '../../types/lot';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
@@ -39,6 +41,7 @@ const ProductForm: React.FC = () => {
         description: '',
         basePrice: 0,
         salePrice: 0,
+        offerPrice: 0,
         discount: 0,
         currency: 'INR',
         status: PRODUCT_STATUS.DRAFT,
@@ -56,6 +59,7 @@ const ProductForm: React.FC = () => {
     const [variantConfig, setVariantConfig] = useState<Record<string, string[]>>({});
     const [generatedSkus, setGeneratedSkus] = useState<any[]>([]);
     const [productSkus, setProductSkus] = useState<ISku[]>([]);
+    const [allLots, setAllLots] = useState<ILot[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(false);
@@ -81,6 +85,9 @@ const ProductForm: React.FC = () => {
                 setCategoryTree(catRes.data);
                 setAllCategories(flattenCategories(catRes.data));
             }
+
+            const lotRes = await lotService.getAll({});
+            if (lotRes?.data) setAllLots(lotRes.data);
 
             if (isEdit) {
                 const prodRes = await productService.getOne(id!);
@@ -196,10 +203,15 @@ const ProductForm: React.FC = () => {
 
             const attrKey = getAttrKey(variantAttributesData);
             if (!existingSkuKeys.has(attrKey)) {
-                const skuCode = `${formData.name?.substring(0, 3).toUpperCase()}-${attrs.join('-').toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+                const cleanPrefix = (formData.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
+                const cleanAttrs = attrs.map(a => String(a).replace(/[^a-zA-Z0-9]/g, '').toUpperCase()).join('-');
+                const skuCode = `${cleanPrefix}-${cleanAttrs}-${Math.floor(Math.random() * 1000)}`;
                 newSkus.push({
                     skuCode,
-                    price: formData.salePrice || formData.basePrice || 0,
+                    basePrice: formData.basePrice || 0,
+                    salePrice: formData.salePrice || 0,
+                    offerPrice: formData.offerPrice || 0,
+                    discount: formData.discount || 0,
                     quantity: 0,
                     variantAttributes: variantAttributesData,
                     images: [],
@@ -234,10 +246,33 @@ const ProductForm: React.FC = () => {
         return result;
     }
 
-    const handleGeneratedSkuChange = (index: number, field: string, value: any) => {
-        const updated = [...generatedSkus];
-        updated[index] = { ...updated[index], [field]: value };
-        setGeneratedSkus(updated);
+    const handleSkuChange = (isGenerated: boolean, index: number, field: string, value: any) => {
+        const target = isGenerated ? [...generatedSkus] : [...productSkus];
+        if (!target[index]) return;
+
+        const prev = target[index];
+        const next = { ...prev, [field]: value };
+
+        // Auto-calculate discount for price-related changes
+        if (['salePrice', 'offerPrice', 'basePrice'].includes(field)) {
+            const numVal = Number(value);
+            next[field] = numVal;
+            const sPrice = field === 'salePrice' ? numVal : (prev.salePrice || 0);
+            const oPrice = field === 'offerPrice' ? numVal : (prev.offerPrice || 0);
+            if (sPrice > 0) {
+                next.discount = Math.round(((sPrice - oPrice) / sPrice) * 100);
+            } else {
+                next.discount = 0;
+            }
+        }
+
+        if (isGenerated) {
+            target[index] = next;
+            setGeneratedSkus(target);
+        } else {
+            target[index] = next;
+            setProductSkus(target);
+        }
     };
 
     const handleVariantConfigToggle = (attrId: string, value: string) => {
@@ -253,11 +288,28 @@ const ProductForm: React.FC = () => {
 
     const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'basePrice' || name === 'salePrice' || name === 'discount' ? Number(value) : value
-        }));
+        const numValue = Number(value);
+
+        setFormData(prev => {
+            const next = {
+                ...prev,
+                [name]: ['basePrice', 'salePrice', 'offerPrice', 'discount'].includes(name) ? numValue : value
+            };
+
+            if (name === 'salePrice' || name === 'offerPrice') {
+                const sPrice = name === 'salePrice' ? numValue : (prev.salePrice || 0);
+                const oPrice = name === 'offerPrice' ? numValue : (prev.offerPrice || 0);
+                if (sPrice > 0) {
+                    next.discount = Math.round(((sPrice - oPrice) / sPrice) * 100);
+                } else {
+                    next.discount = 0;
+                }
+            }
+            return next;
+        });
     };
+
+
 
     const getParentIds = (cats: ICategory[], targetId: string, parents: string[] = []): string[] | null => {
         for (const cat of cats) {
@@ -340,17 +392,44 @@ const ProductForm: React.FC = () => {
         setSuccess(null);
 
         try {
+            const cleanSkus = [...productSkus, ...generatedSkus].map(sku => ({
+                ...sku,
+                skuCode: sku.skuCode?.trim(),
+                lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null)
+            }));
+
+            // Validate SKU Code uniqueness within the local list
+            const codes = cleanSkus.map(s => s.skuCode);
+            const duplicates = codes.filter((item, index) => codes.indexOf(item) !== index);
+            if (duplicates.length > 0) {
+                setError(`Duplicate SKU Identity detected: ${duplicates[0]}. Each variant must have a unique code.`);
+                setLoading(false);
+                return;
+            }
+
+            // Validate SKU Code format (starts/ends with alphanumeric)
+            const skuRegex = /^[a-zA-Z0-9](.*[a-zA-Z0-9])?$/;
+            const invalidCodes = cleanSkus.filter(s => !skuRegex.test(s.skuCode));
+            if (invalidCodes.length > 0) {
+                setError(`Architecture Violation: SKU "${invalidCodes[0].skuCode}" must start and end with a letter or number.`);
+                setLoading(false);
+                return;
+            }
+
             const submitData = {
                 ...formData,
-                skus: generatedSkus.length > 0 ? generatedSkus : productSkus
+                skus: cleanSkus
             };
 
             if (isEdit) {
                 await productService.update(id!, submitData);
                 setSuccess('Product architecture updated successfully!');
+                setGeneratedSkus([]); // Wipe local SKUs after successful update
+                await fetchInitialData(); // Reload new data
             } else {
                 const res = await productService.create(submitData);
                 setSuccess('New product established successfully!');
+                setGeneratedSkus([]); // Wipe local SKUs
                 setTimeout(() => {
                     navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', (res.data as any)._id));
                 }, 1500);
@@ -429,10 +508,16 @@ const ProductForm: React.FC = () => {
                                 <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest flex items-center gap-2">
                                     <IndianRupee size={16} className="text-primary" /> Pricing Management
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <CustomInput label="Base Price (Market)" name="basePrice" type="number" value={formData.basePrice || 0} onChange={handleGeneralChange} required />
-                                    <CustomInput label="Sale Price (Platform)" name="salePrice" type="number" value={formData.salePrice || 0} onChange={handleGeneralChange} />
-                                    <CustomInput label="Discount (%)" name="discount" type="number" value={formData.discount || 0} onChange={handleGeneralChange} />
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <CustomInput label="Base Price (MRP)" name="basePrice" type="number" value={formData.basePrice || 0} onChange={handleGeneralChange} required />
+                                    <CustomInput label="Regular Sale Price" name="salePrice" type="number" value={formData.salePrice || 0} onChange={handleGeneralChange} />
+                                    <CustomInput label="Special Offer Price" name="offerPrice" type="number" value={formData.offerPrice || 0} onChange={handleGeneralChange} />
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Discount (%)</label>
+                                        <div className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 px-4 font-black text-primary">
+                                            {formData.discount || 0}%
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
@@ -440,8 +525,8 @@ const ProductForm: React.FC = () => {
                                             <IndianRupee size={24} />
                                         </div>
                                         <div>
-                                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest block">Listing Price</span>
-                                            <span className="text-2xl font-black text-primary tracking-tighter">₹ {formData.salePrice || formData.basePrice || 0}</span>
+                                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest block">Final Listing Price</span>
+                                            <span className="text-2xl font-black text-primary tracking-tighter">₹ {formData.offerPrice || formData.salePrice || formData.basePrice || 0}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -584,7 +669,8 @@ const ProductForm: React.FC = () => {
                                                 <thead className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 uppercase tracking-wider text-gray-400 font-black">
                                                     <tr>
                                                         <th className="px-6 py-4">SKU Identity</th>
-                                                        <th className="px-6 py-4 text-center">Price Point (₹)</th>
+                                                        <th className="px-6 py-4 text-center">Base/Sale/Offer</th>
+                                                        <th className="px-6 py-4 text-center">Allocated Lot</th>
                                                         <th className="px-6 py-4 text-center">Initial Inventory</th>
                                                         <th className="px-6 py-4 text-right">Actions</th>
                                                     </tr>
@@ -596,18 +682,48 @@ const ProductForm: React.FC = () => {
                                                                 <span className="font-mono font-black text-primary bg-primary/5 px-2 py-1 rounded text-[10px]">{sku.skuCode}</span>
                                                             </td>
                                                             <td className="px-6 py-4 text-center">
-                                                                <input
-                                                                    type="number"
-                                                                    value={sku.price}
-                                                                    onChange={(e) => handleGeneratedSkuChange(idx, 'price', Number(e.target.value))}
-                                                                    className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
-                                                                />
+                                                                <div className="flex flex-col gap-1 items-center">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={sku.basePrice}
+                                                                        onChange={(e) => handleSkuChange(true, idx, 'basePrice', Number(e.target.value))}
+                                                                        className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white focus:border-primary/20 text-center font-bold text-gray-500 text-[9px] transition-all outline-none"
+                                                                        placeholder="Base"
+                                                                    />
+                                                                    <input
+                                                                        type="number"
+                                                                        value={sku.salePrice}
+                                                                        onChange={(e) => handleSkuChange(true, idx, 'salePrice', Number(e.target.value))}
+                                                                        className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white focus:border-primary/20 text-center font-bold text-gray-700 text-[10px] transition-all outline-none"
+                                                                        placeholder="Sale"
+                                                                    />
+                                                                    <input
+                                                                        type="number"
+                                                                        value={sku.offerPrice}
+                                                                        onChange={(e) => handleSkuChange(true, idx, 'offerPrice', Number(e.target.value))}
+                                                                        className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white border-primary/20 text-center font-black text-primary text-[10px] transition-all outline-none"
+                                                                        placeholder="Offer"
+                                                                    />
+                                                                    <span className="text-[8px] font-black text-primary/50">{sku.discount || 0}% OFF</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <select
+                                                                    value={sku.lotId || ''}
+                                                                    onChange={(e) => handleSkuChange(true, idx, 'lotId', e.target.value)}
+                                                                    className="w-40 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black text-gray-700 transition-all outline-none"
+                                                                >
+                                                                    <option value="">General Stock</option>
+                                                                    {allLots.map(l => (
+                                                                        <option key={l._id} value={l._id}>{l.lotNumber} ({l.remainingQuantity})</option>
+                                                                    ))}
+                                                                </select>
                                                             </td>
                                                             <td className="px-6 py-4 text-center">
                                                                 <input
                                                                     type="number"
                                                                     value={sku.quantity}
-                                                                    onChange={(e) => handleGeneratedSkuChange(idx, 'quantity', Number(e.target.value))}
+                                                                    onChange={(e) => handleSkuChange(true, idx, 'quantity', Number(e.target.value))}
                                                                     className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
                                                                 />
                                                             </td>
@@ -644,7 +760,7 @@ const ProductForm: React.FC = () => {
                                         columns={[
                                             {
                                                 header: 'SKU Identity',
-                                                render: (sku) => (
+                                                render: (sku: ISku) => (
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
                                                             <Barcode size={16} />
@@ -654,23 +770,67 @@ const ProductForm: React.FC = () => {
                                                 )
                                             },
                                             {
-                                                header: 'Price Point',
+                                                header: 'Pricing (B/S/O)',
                                                 align: 'center',
-                                                render: (sku) => <span className="font-black text-gray-700">₹{sku.salePrice || sku.price}</span>
+                                                render: (sku: ISku, idx?: number) => (
+                                                    <div className="flex flex-col gap-1 items-center py-1">
+                                                        <input
+                                                            type="number"
+                                                            value={sku.basePrice}
+                                                            onChange={(e) => handleSkuChange(false, idx!, 'basePrice', Number(e.target.value))}
+                                                            className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white focus:border-primary/20 text-center font-bold text-gray-500 text-[9px] transition-all outline-none"
+                                                            placeholder="Base"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            value={sku.salePrice}
+                                                            onChange={(e) => handleSkuChange(false, idx!, 'salePrice', Number(e.target.value))}
+                                                            className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white focus:border-primary/20 text-center font-bold text-gray-700 text-[10px] transition-all outline-none"
+                                                            placeholder="Sale"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            value={sku.offerPrice}
+                                                            onChange={(e) => handleSkuChange(false, idx!, 'offerPrice', Number(e.target.value))}
+                                                            className="w-20 bg-gray-50 border border-transparent rounded-lg px-2 py-1 focus:bg-white border-primary/20 text-center font-black text-primary text-[10px] transition-all outline-none"
+                                                            placeholder="Offer"
+                                                        />
+                                                        <span className="text-[8px] font-black text-primary/50">{sku.discount || 0}% OFF</span>
+                                                    </div>
+                                                )
                                             },
                                             {
-                                                header: 'Inventory',
+                                                header: 'Allocated Lot',
                                                 align: 'center',
-                                                render: (sku) => (
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${sku.quantity > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                                        {sku.quantity} in Stock
-                                                    </span>
+                                                render: (sku: ISku, idx?: number) => (
+                                                    <select
+                                                        value={typeof sku.lotId === 'object' ? (sku.lotId as any)._id : (sku.lotId || '')}
+                                                        onChange={(e) => handleSkuChange(false, idx!, 'lotId', e.target.value)}
+                                                        className="w-40 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black text-gray-700 transition-all outline-none"
+                                                    >
+                                                        <option value="">General Stock</option>
+                                                        {allLots.map(l => (
+                                                            <option key={l._id} value={l._id}>{l.lotNumber} ({l.remainingQuantity})</option>
+                                                        ))}
+                                                    </select>
+                                                )
+                                            },
+                                            {
+                                                header: 'Inventory Units',
+                                                align: 'center',
+                                                render: (sku: ISku, idx?: number) => (
+                                                    <input
+                                                        type="number"
+                                                        value={sku.quantity}
+                                                        onChange={(e) => handleSkuChange(false, idx!, 'quantity', Number(e.target.value))}
+                                                        className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
+                                                    />
                                                 )
                                             },
                                             {
                                                 header: 'Actions',
                                                 align: 'right',
-                                                render: (sku) => (
+                                                render: (sku: ISku) => (
                                                     <div className="flex justify-end gap-2">
                                                         <button
                                                             type="button"
@@ -754,75 +914,7 @@ const ProductForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-10 border-t border-gray-100">
-                                <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-                                    <Barcode size={16} className="text-primary" /> Variant Specific Media
-                                </h3>
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {(generatedSkus.length > 0 ? generatedSkus : productSkus).map((sku, idx) => (
-                                        <div key={idx} className="p-6 bg-gray-50 rounded-[2rem] border-2 border-gray-100 space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <Barcode size={14} className="text-primary opacity-50" />
-                                                    <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{sku.skuCode}</span>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
-                                                        target[idx] = { ...target[idx], images: [...(target[idx].images || []), ''] };
-                                                        if (generatedSkus.length > 0) setGeneratedSkus(target);
-                                                        else setProductSkus(target);
-                                                    }}
-                                                    className="text-[10px] font-black text-primary uppercase tracking-tighter hover:bg-white px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
-                                                >
-                                                    + Add Media
-                                                </button>
-                                            </div>
-                                            <div className="space-y-2">
-                                                {sku.images?.map((img: string, imgIdx: number) => (
-                                                    <div key={imgIdx} className="flex gap-2">
-                                                        <input
-                                                            value={img}
-                                                            onChange={(e) => {
-                                                                const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
-                                                                const newImgs = [...(target[idx].images || [])];
-                                                                newImgs[imgIdx] = e.target.value;
-                                                                target[idx] = { ...target[idx], images: newImgs };
-                                                                if (generatedSkus.length > 0) setGeneratedSkus(target);
-                                                                else setProductSkus(target);
-                                                            }}
-                                                            className="flex-1 border-2 border-transparent bg-white rounded-xl py-2 px-4 focus:border-primary/20 transition-all font-bold text-gray-700 text-[10px]"
-                                                            placeholder="SKU Image URL..."
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const target = generatedSkus.length > 0 ? [...generatedSkus] : [...productSkus];
-                                                                const newImgs = target[idx].images.filter((_: any, i: number) => i !== imgIdx);
-                                                                target[idx] = { ...target[idx], images: newImgs };
-                                                                if (generatedSkus.length > 0) setGeneratedSkus(target);
-                                                                else setProductSkus(target);
-                                                            }}
-                                                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                {(!sku.images || sku.images.length === 0) && (
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center py-2 opacity-50">No media attached to this variant</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(generatedSkus.length === 0 && productSkus.length === 0) && (
-                                        <div className="col-span-2 text-center py-12 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No SKUs detected. Generate variants to assign media.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+
                         </div>
                     </TabPanel>
                 </Tabs>

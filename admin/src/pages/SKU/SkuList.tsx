@@ -173,9 +173,9 @@ const SkuList: React.FC = () => {
                 <div className="flex flex-col gap-0.5 py-1">
                     <div className="flex items-center gap-1 text-xs font-black text-gray-900">
                         <IndianRupee size={12} className="text-primary/50" />
-                        <span>{sku.salePrice || sku.price || 'Inherited'}</span>
+                        <span>{sku.salePrice || sku.basePrice || 'Inherited'}</span>
                     </div>
-                    {sku.price && (
+                    {sku.basePrice && (
                         <span className="text-[10px] text-gray-400 italic font-medium">Custom Override</span>
                     )}
                 </div>
@@ -186,10 +186,10 @@ const SkuList: React.FC = () => {
             key: 'quantity',
             render: (sku) => (
                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border ${sku.quantity > 50
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : sku.quantity > 0
-                            ? 'bg-amber-50 text-amber-600 border-amber-100'
-                            : 'bg-rose-50 text-rose-500 border-rose-100'
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : sku.quantity > 0
+                        ? 'bg-amber-50 text-amber-600 border-amber-100'
+                        : 'bg-rose-50 text-rose-500 border-rose-100'
                     }`}>
                     <Box size={12} />
                     {sku.quantity} Units
@@ -223,6 +223,11 @@ const SkuList: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
+            {error && (
+                <div className="absolute top-4 right-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl z-20 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <span className="text-sm font-medium">{error}</span>
+                </div>
+            )}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
                 <div>
                     <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">SKU Variants</h1>
@@ -264,8 +269,8 @@ const SkuList: React.FC = () => {
                     <button
                         onClick={() => setIsFilterOpen(true)}
                         className={`px-6 py-4 rounded-3xl border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest ${activeFilterCount > 0
-                                ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                                : 'bg-white border-primary/5 text-primary hover:bg-primary/5'
+                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5'
                             }`}
                     >
                         <Filter size={18} /> Filters

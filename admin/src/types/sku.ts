@@ -24,8 +24,10 @@ export interface ISku {
   };
   skuCode: string;
   variantAttributes: ISkuAttributeValue[];
-  price?: number;
+  basePrice?: number;
   salePrice?: number;
+  offerPrice?: number;
+  discount?: number;
   quantity: number;
   images?: string[];
   status: SKU_STATUS;

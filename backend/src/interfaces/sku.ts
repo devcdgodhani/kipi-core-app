@@ -15,8 +15,10 @@ export interface ISkuAttributes extends IDefaultAttributes {
     variantAttributes: ISkuAttributeValue[];
     
     // Optional overrides
-    price?: number;
+    basePrice?: number;
     salePrice?: number;
+    offerPrice?: number;
+    discount?: number;
     
     quantity: number;
     images?: string[];

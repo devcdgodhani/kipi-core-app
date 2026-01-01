@@ -1,11 +1,11 @@
-import React, { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Loader2, Sliders, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface Column<T> {
     header: string;
     key?: string;
     accessorKey?: keyof T;
-    render?: (item: T) => ReactNode;
+    render?: (item: T, index?: number) => ReactNode;
     align?: 'left' | 'center' | 'right';
     className?: string; // For explicit width or other utility classes
 }
@@ -24,7 +24,7 @@ interface TableProps<T> {
     data: T[];
     columns: Column<T>[];
     isLoading?: boolean;
-    keyExtractor: (item: T) => string;
+    keyExtractor: (item: T) => string | number;
     pagination?: PaginationProps;
     emptyMessage?: string;
     onRowClick?: (item: T) => void;
@@ -67,7 +67,7 @@ export function Table<T>({
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {data.length > 0 ? (
-                            data.map((item) => (
+                            data.map((item, itemIdx) => (
                                 <tr
                                     key={keyExtractor(item)}
                                     className={`group hover:bg-gray-50/50 transition-colors ${onRowClick ? 'cursor-pointer active:bg-gray-100' : ''}`}
@@ -79,7 +79,7 @@ export function Table<T>({
                                             className={`py-4 px-6 ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}`}
                                         >
                                             {col.render
-                                                ? col.render(item)
+                                                ? col.render(item, itemIdx)
                                                 : col.accessorKey ? (item[col.accessorKey] as ReactNode) : null
                                             }
                                         </td>

@@ -25,6 +25,7 @@ export interface IProduct {
   description?: string;
   basePrice: number;
   salePrice?: number;
+  offerPrice?: number;
   discount?: number;
   currency: string;
   images: string[];
