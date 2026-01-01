@@ -5,7 +5,7 @@ export const PresignedUrlSchema = new Schema<IPresignedUrlDocument>(
   {
     fileId: {
       type: Schema.Types.ObjectId,
-      ref: 'fileStorages',
+      ref: 'FileStorage',
       required: true,
       index: true,
     },
@@ -28,6 +28,6 @@ export const PresignedUrlSchema = new Schema<IPresignedUrlDocument>(
 PresignedUrlSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const PresignedUrlModel = model<IPresignedUrlDocument>(
-  'presignedUrls',
+  'PresignedUrl',
   PresignedUrlSchema
 );

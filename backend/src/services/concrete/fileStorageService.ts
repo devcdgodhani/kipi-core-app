@@ -306,6 +306,8 @@ export class FileStorageService
 
       uploadedDocs.push(newFile);
     }
+
+    await Promise.all(uploadedDocs.map(doc => this.ensurePresignedUrl(doc)));
     
     return uploadedDocs;
   }

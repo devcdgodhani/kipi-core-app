@@ -3,7 +3,6 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Save, Layers, Image as ImageIcon, Activity, Warehouse, Tag } from 'lucide-react';
 import { skuService } from '../../services/sku.service';
 import { productService } from '../../services/product.service';
-import { attributeService } from '../../services/attribute.service';
 import { lotService } from '../../services/lot.service';
 import { type ISku, SKU_STATUS } from '../../types/sku';
 import { type IProduct } from '../../types/product';
@@ -36,6 +35,7 @@ const SkuForm: React.FC = () => {
     const [allProducts, setAllProducts] = useState<IProduct[]>([]);
     const [allLots, setAllLots] = useState<ILot[]>([]);
     const [variantAttributes, setVariantAttributes] = useState<IAttribute[]>([]);
+    const [parentProduct, setParentProduct] = useState<IProduct | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(false);
@@ -93,24 +93,17 @@ const SkuForm: React.FC = () => {
     const fetchVariantAttributes = async (productId: string) => {
         if (!productId) {
             setVariantAttributes([]);
+            setParentProduct(null);
             return;
         }
         try {
             const prodRes = await productService.getOne(productId);
             const product = prodRes?.data;
             if (product) {
-                const categoryIds = (product.categoryIds || []).map((c: any) =>
-                    typeof c === 'object' ? c._id : c
-                );
-
-                if (categoryIds.length > 0) {
-                    const attrRes = await attributeService.getAll({
-                        categoryIds: categoryIds as any
-                    });
-                    if (attrRes?.data) setVariantAttributes(attrRes.data);
-                } else {
-                    setVariantAttributes([]);
-                }
+                setParentProduct(product);
+                // Extract unique attributes from product
+                const attrs = product.attributes?.map((a: any) => a.attributeId) || [];
+                setVariantAttributes(attrs);
             }
         } catch (err) {
             console.error('Failed to fetch variant attributes', err);
@@ -165,8 +158,21 @@ const SkuForm: React.FC = () => {
                 return;
             }
 
+            const cleanMedia = (formData.media || []).map(m => ({
+                ...m,
+                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : m.fileStorageId
+            }));
+
+            const submitData = {
+                ...formData,
+                skuCode,
+                productId: (formData.productId && typeof formData.productId === 'object') ? (formData.productId as any)._id : formData.productId,
+                lotId: (formData.lotId && typeof formData.lotId === 'object') ? (formData.lotId as any)._id : (formData.lotId || null),
+                media: cleanMedia
+            };
+
             if (isEdit) {
-                await skuService.update(id!, { ...formData, skuCode });
+                await skuService.update(id!, submitData);
                 setSuccess('SKU parameters refined successfully!');
                 setTimeout(() => fetchInitialData(), 1000);
             }
@@ -350,7 +356,7 @@ const SkuForm: React.FC = () => {
                         <MediaManager
                             media={formData.media || []}
                             onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
-                            productId={typeof formData.productId === 'string' ? formData.productId : (formData.productId as any)?._id}
+                            productCode={parentProduct?.productCode}
                         />
                     </section>
                 </div>

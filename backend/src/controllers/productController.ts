@@ -24,10 +24,9 @@ export default class ProductController {
       // Populate Categories and Attributes?
       options.populate = [
           { path: 'categoryIds', select: 'name slug' },
-           // Attributes in array might need complicated population if they are refs. 
-           // But they are stored as { attributeId: Ref ... }.
-           // Mongoose populate: { path: 'attributes.attributeId', select: 'name ...' }
-          { path: 'attributes.attributeId', select: 'name key label type' }
+          { path: 'attributes.attributeId', select: 'name key label type' },
+          { path: 'media.fileStorageId' },
+          { path: 'mainImage' }
       ];
 
       const product = await this.productService.findOne(filter, options);

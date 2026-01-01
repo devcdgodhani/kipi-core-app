@@ -26,7 +26,7 @@ export type MEDIA_STATUS = (typeof MEDIA_STATUS)[keyof typeof MEDIA_STATUS];
 export interface IMedia {
   fileType: MEDIA_FILE_TYPE;
   type: MEDIA_TYPE | string;
-  fileStorageId?: string;
+  fileStorageId?: string | any;
   url: string;
   status: MEDIA_STATUS;
   sortOrder?: number;

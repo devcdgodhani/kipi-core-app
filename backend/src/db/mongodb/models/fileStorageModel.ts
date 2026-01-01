@@ -124,4 +124,4 @@ FileStorageSchema.post(['find', 'findOne'], async function (result, next) {
 });
 
 // Create model
-export const FileStorageModel = model<IFileStorageDocument>('fileStorages', FileStorageSchema);
+export const FileStorageModel = model<IFileStorageDocument>('FileStorage', FileStorageSchema);

@@ -10,6 +10,7 @@ import { PRODUCT_STATUS } from '../constants/product';
 
 const productFilterSchema = baseFilterSchema.extend({
   name: stringFilter,
+  productCode: stringFilter,
   status: stringFilter,
   categoryIds: stringFilter,
   slug: stringFilter,
@@ -21,6 +22,7 @@ const productFilterSchema = baseFilterSchema.extend({
 
 const productCreateSchema = z.object({
   name: z.string().min(1),
+  productCode: z.string().min(1),
   slug: z.string().optional(),
   description: z.string().optional(),
   
@@ -31,7 +33,7 @@ const productCreateSchema = z.object({
   currency: z.string().optional().default('INR'),
   
   media: z.array(z.any()).optional(),
-  mainImage: z.string().optional(),
+  mainImage: z.any().optional(),
   
   categoryIds: z.array(z.string()).optional(),
   
