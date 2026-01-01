@@ -23,7 +23,7 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
 
     const fetchFiles = async () => {
         try {
-            setLoading(false);
+            setLoading(true);
             const queryFilters: any = {};
             if (searchTerm) {
                 queryFilters.search = searchTerm;
@@ -41,6 +41,7 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
                 if (dirList !== undefined && fileList !== undefined) {
                     const normalizedDirs = dirList.map((d: any) => ({
                         ...d,
+                        originalFileName: d.name || d.originalFileName || 'Untitled Folder',
                         fileType: 'DIRECTORY',
                     }));
                     setFiles([...normalizedDirs, ...fileList]);
@@ -76,8 +77,8 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Select File from Storage">
-            <div className="flex flex-col h-[600px] w-[800px] max-w-full -m-6">
+        <Modal isOpen={isOpen} onClose={onClose} title="Select File from Storage" maxWidth="max-w-4xl">
+            <div className="flex flex-col h-[600px] w-full -m-6">
                 {/* Toolkit Bar */}
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
                     <div className="relative flex-1">
@@ -151,7 +152,10 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
                             {files.map(file => (
                                 <div
                                     key={file._id}
-                                    onClick={() => file.fileType === 'DIRECTORY' ? navigateToFolder(file) : onSelect(file)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        file.fileType === 'DIRECTORY' ? navigateToFolder(file) : onSelect(file);
+                                    }}
                                     className={`group cursor-pointer p-3 rounded-xl border transition-all ${viewMode === 'grid'
                                         ? 'flex flex-col items-center gap-2 border-gray-50 hover:border-primary/20 hover:shadow-lg'
                                         : 'flex items-center gap-3 border-transparent hover:bg-gray-50'
@@ -164,8 +168,8 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
                                             <FileIcon type={file.fileType} />
                                         )}
                                     </div>
-                                    <div className={viewMode === 'grid' ? 'w-full text-center' : 'flex-1 min-w-0'}>
-                                        <p className="text-[10px] font-bold text-gray-700 truncate" title={file.originalFileName}>
+                                    <div className={viewMode === 'grid' ? 'w-full text-center mt-auto' : 'flex-1 min-w-0'}>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate px-1" title={file.originalFileName}>
                                             {file.originalFileName}
                                         </p>
                                     </div>

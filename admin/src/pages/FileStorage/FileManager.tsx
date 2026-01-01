@@ -469,17 +469,17 @@ const FileItem = ({ file, viewMode, onDelete, onNavigate, onMove }: FileItemProp
                     </button>
                 </div>
             </div>
-            <div>
+            <div className="mt-auto pt-2 border-t border-gray-50/50">
                 <p
-                    className="font-bold text-gray-800 text-sm truncate cursor-pointer hover:text-primary"
+                    className="font-bold text-gray-800 text-[11px] truncate cursor-pointer hover:text-primary transition-colors leading-tight"
                     title={file.originalFileName}
                     onClick={handleClick}
                 >
                     {file.originalFileName}
                 </p>
-                <div className="flex items-center justify-between mt-1">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{file.fileExtension?.replace('.', '') || 'DIR'}</span>
-                    <span className="text-[10px] font-bold text-gray-400">{formatSize(file.fileSize)}</span>
+                <div className="flex items-center justify-between mt-1.5 opacity-60">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{file.fileExtension?.replace('.', '') || (isDir ? 'FOLDER' : 'FILE')}</span>
+                    {!isDir && <span className="text-[9px] font-bold text-gray-400">{formatSize(file.fileSize)}</span>}
                 </div>
             </div>
         </div>
