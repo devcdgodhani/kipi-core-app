@@ -15,6 +15,7 @@ const productFilterSchema = baseFilterSchema.extend({
   slug: stringFilter,
   basePrice: numberFilter,
   salePrice: numberFilter,
+  offerPrice: numberFilter,
   discount: numberFilter,
 });
 
@@ -25,6 +26,7 @@ const productCreateSchema = z.object({
   
   basePrice: z.number().min(0),
   salePrice: z.number().optional(),
+  offerPrice: z.number().optional(),
   discount: z.number().optional(),
   currency: z.string().optional().default('INR'),
   
@@ -43,7 +45,10 @@ const productCreateSchema = z.object({
   stock: z.number().optional(),
   skus: z.array(z.object({
     skuCode: z.string(),
-    price: z.number().min(0),
+    basePrice: z.number().optional(),
+    salePrice: z.number().optional(),
+    offerPrice: z.number().optional(),
+    discount: z.number().optional(),
     quantity: z.number().min(0),
     variantAttributes: z.array(z.object({
       attributeId: z.string(),

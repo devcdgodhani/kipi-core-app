@@ -16,6 +16,7 @@ export interface IProductAttributes extends IDefaultAttributes {
     
     basePrice: number;
     salePrice?: number;
+    offerPrice?: number;
     discount?: number;
     currency: string;
     

@@ -197,7 +197,7 @@ const ProductList: React.FC = () => {
                             ₹{product.basePrice}
                         </div>
                     )}
-                    {product.discount > 0 && (
+                    {(product.discount || 0) > 0 && (
                         <span className="text-[10px] font-black text-rose-500 uppercase tracking-tighter">
                             {product.discount}% OFF
                         </span>

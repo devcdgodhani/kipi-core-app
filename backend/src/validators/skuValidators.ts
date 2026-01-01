@@ -12,8 +12,10 @@ const skuFilterSchema = baseFilterSchema.extend({
   productId: stringFilter,
   skuCode: stringFilter,
   status: stringFilter,
-  price: numberFilter,
+  basePrice: numberFilter,
   salePrice: numberFilter,
+  offerPrice: numberFilter,
+  discount: numberFilter,
   quantity: numberFilter,
 });
 
@@ -26,8 +28,10 @@ const skuCreateSchema = z.object({
     value: z.any()
   })).optional(),
   
-  price: z.number().optional(),
+  basePrice: z.number().optional(),
   salePrice: z.number().optional(),
+  offerPrice: z.number().optional(),
+  discount: z.number().optional(),
   
   quantity: z.number().optional(),
   images: z.array(z.string()).optional(),

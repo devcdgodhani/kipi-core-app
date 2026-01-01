@@ -10,6 +10,7 @@ const productSchema = new Schema<IProductDocument>(
     
     basePrice: { type: Number, required: true },
     salePrice: { type: Number },
+    offerPrice: { type: Number },
     discount: { type: Number },
     currency: { type: String, default: 'INR' },
     

@@ -14,8 +14,10 @@ const skuSchema = new Schema<ISkuDocument>(
       }
     ],
     
-    price: { type: Number },
+    basePrice: { type: Number },
     salePrice: { type: Number },
+    offerPrice: { type: Number },
+    discount: { type: Number, default: 0 },
     
     quantity: { type: Number, default: 0 },
     images: [{ type: String }],
