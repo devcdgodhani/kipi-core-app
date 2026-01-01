@@ -22,8 +22,9 @@ export default class SkuController {
       });
 
       options.populate = [
-          { path: 'productId', select: 'name' },
-          { path: 'variantAttributes.attributeId', select: 'name key label type' }
+          { path: 'productId', select: 'name productCode' },
+          { path: 'variantAttributes.attributeId', select: 'name key label type' },
+          { path: 'media.fileStorageId' }
       ];
 
       const sku = await this.skuService.findOne(filter, options);

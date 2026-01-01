@@ -12,10 +12,15 @@ import {
     Info,
     CheckCircle2,
     Barcode,
-    Edit2
+    Edit2,
+    Upload,
+    RefreshCw,
+    FolderOpen
 } from 'lucide-react';
 import { MediaManager } from '../../components/common/MediaManager';
+import { FileManagerSelector } from '../../components/common/FileManagerSelector';
 import { productService } from '../../services/product.service';
+import { fileStorageService } from '../../services/fileStorage.service';
 import { categoryService } from '../../services/category.service';
 import { attributeService } from '../../services/attribute.service';
 import { skuService } from '../../services/sku.service';
@@ -40,6 +45,7 @@ const ProductForm: React.FC = () => {
 
     const [formData, setFormData] = useState<Partial<IProduct>>({
         name: '',
+        productCode: '',
         description: '',
         basePrice: 0,
         salePrice: 0,
@@ -67,6 +73,9 @@ const ProductForm: React.FC = () => {
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isMainImageSelectorOpen, setIsMainImageSelectorOpen] = useState(false);
+    const [mainImageUploading, setMainImageUploading] = useState(false);
+    const mainImageInputRef = React.useRef<HTMLInputElement>(null);
     const [popup, setPopup] = useState<{
         isOpen: boolean;
         title: string;
@@ -144,6 +153,40 @@ const ProductForm: React.FC = () => {
             setPageLoading(false);
         }
     }, [id, isEdit]);
+
+    const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.length) return;
+        if (!formData.productCode) {
+            alert('Please provide product code first before direct uploading assets.');
+            return;
+        }
+
+        try {
+            setMainImageUploading(true);
+            const storageDir = formData.productCode;
+            const storageDirPath = `product/${formData.productCode}`;
+
+            const res = await fileStorageService.upload(
+                Array.from(e.target.files),
+                storageDirPath,
+                storageDir
+            );
+
+            if (res.data && Array.isArray(res.data) && res.data[0]) {
+                const file = res.data[0];
+                setFormData(prev => ({
+                    ...prev,
+                    mainImage: file._id,
+                    mainImage_preview: file.preSignedUrl
+                }));
+            }
+        } catch (err) {
+            console.error('Failed to upload hero image', err);
+        } finally {
+            setMainImageUploading(false);
+            if (mainImageInputRef.current) mainImageInputRef.current.value = '';
+        }
+    };
 
     useEffect(() => {
         fetchInitialData();
@@ -442,10 +485,18 @@ const ProductForm: React.FC = () => {
                 return;
             }
 
+            const cleanMedia = (formData.media || []).map(m => ({
+                ...m,
+                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : m.fileStorageId
+            }));
+
             const submitData = {
                 ...formData,
+                mainImage: (formData.mainImage && typeof formData.mainImage === 'object') ? (formData.mainImage as any)._id : formData.mainImage,
+                media: cleanMedia,
                 skus: cleanSkus
             };
+            delete (submitData as any).mainImage_preview;
 
             if (isEdit) {
                 await productService.update(id!, submitData);
@@ -505,7 +556,10 @@ const ProductForm: React.FC = () => {
 
                     <TabPanel>
                         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6 animate-fade-in text-gray-700">
-                            <CustomInput label="Product Name" name="name" value={formData.name || ''} onChange={handleGeneralChange} placeholder="e.g. Premium Cotton T-Shirt" required />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <CustomInput label="Product Name" name="name" value={formData.name || ''} onChange={handleGeneralChange} placeholder="e.g. Premium Cotton T-Shirt" required />
+                                <CustomInput label="Product Code" name="productCode" value={formData.productCode || ''} onChange={handleGeneralChange} placeholder="e.g. PCT-001" required />
+                            </div>
                             <div className="flex flex-col gap-2">
                                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Narrative / Description</label>
                                 <textarea
@@ -910,21 +964,100 @@ const ProductForm: React.FC = () => {
                                     <ImageIcon size={16} className="text-primary" /> Lifecycle Media Protocol
                                 </h3>
                                 <div className="space-y-10">
-                                    <div className="bg-gray-50/50 p-8 rounded-[2.5rem] border border-gray-100 shadow-inner">
-                                        <CustomInput
-                                            label="Primary Catalog Identifier (Hero Image URL)"
-                                            name="mainImage"
-                                            value={formData.mainImage || ''}
-                                            onChange={handleGeneralChange}
-                                            placeholder="https://..."
+                                    <div className="bg-gray-50/50 p-8 rounded-[2.5rem] border border-gray-100 shadow-inner space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Primary Catalog Identifier (Hero Image)</label>
+
+                                            <div className="relative group/upload">
+                                                <button
+                                                    type="button"
+                                                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
+                                                >
+                                                    {mainImageUploading ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
+                                                    Manage Hero
+                                                </button>
+
+                                                {/* Dropdown Options */}
+                                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover/upload:opacity-100 group-hover/upload:visible transition-all z-20 py-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => mainImageInputRef.current?.click()}
+                                                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                                            <Upload size={14} />
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Direct Upload</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsMainImageSelectorOpen(true)}
+                                                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                                                            <FolderOpen size={14} />
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Browse Gallery</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-6 items-center">
+                                            <div className="w-40 h-40 rounded-[2rem] bg-white border border-gray-100 overflow-hidden flex items-center justify-center shadow-md grow-0 shrink-0">
+                                                {formData.mainImage ? (
+                                                    <img
+                                                        src={typeof formData.mainImage === 'object' ? (formData.mainImage as any).preSignedUrl : (formData.mainImage_preview || formData.mainImage)}
+                                                        alt="Hero Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-2 text-gray-200">
+                                                        <ImageIcon size={48} />
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">No Image Established</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-1">Hero Asset Preview</h4>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                                    This visual signature represents your architecture across all primary catalog listings.
+                                                    Ensure high definition for proper brand resonance.
+                                                </p>
+                                                {formData.mainImage && (
+                                                    <button
+                                                        onClick={() => setFormData(prev => ({ ...prev, mainImage: '', mainImage_preview: '' }))}
+                                                        className="mt-4 text-[9px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-1 hover:text-rose-600 transition-colors"
+                                                    >
+                                                        <Trash2 size={12} /> Remove Hero Asset
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <input
+                                            type="file"
+                                            ref={mainImageInputRef}
+                                            onChange={handleMainImageUpload}
+                                            className="hidden"
+                                            accept="image/*"
                                         />
                                     </div>
+
+                                    <FileManagerSelector
+                                        isOpen={isMainImageSelectorOpen}
+                                        onClose={() => setIsMainImageSelectorOpen(false)}
+                                        onSelect={(file) => {
+                                            setFormData(prev => ({ ...prev, mainImage: file._id, mainImage_preview: file.preSignedUrl }));
+                                            setIsMainImageSelectorOpen(false);
+                                        }}
+                                    />
 
                                     <div className="pt-6">
                                         <MediaManager
                                             media={formData.media || []}
                                             onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
-                                            productId={formData._id}
+                                            productCode={formData.productCode}
                                         />
                                     </div>
                                 </div>

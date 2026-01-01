@@ -23,6 +23,7 @@ export interface IProductAttributeValue {
 export interface IProduct {
   _id: string;
   name: string;
+  productCode: string;
   slug: string;
   description?: string;
   basePrice: number;
@@ -31,7 +32,8 @@ export interface IProduct {
   discount?: number;
   currency: string;
   media: IMedia[];
-  mainImage?: string;
+  mainImage?: string | any;
+  mainImage_preview?: string;
   categoryIds: string[] | {
     _id: string;
     name: string;

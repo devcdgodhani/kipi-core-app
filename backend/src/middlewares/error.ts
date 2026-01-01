@@ -8,7 +8,9 @@ import { IApiResponse } from '../interfaces';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   try {
-    let { status, code, message } = err;
+    let status = err.status || HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR.STATUS;
+    let code = err.code || HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR.CODE;
+    let message = err.message || 'Internal server error';
 
     if (ENV_VARIABLE.NODE_ENV !== 'test') {
       console.log('errorHandler', err);

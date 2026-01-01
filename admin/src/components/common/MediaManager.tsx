@@ -7,10 +7,10 @@ import { FileManagerSelector } from './FileManagerSelector';
 interface MediaManagerProps {
     media: IMedia[];
     onChange: (media: IMedia[]) => void;
-    productId?: string;
+    productCode?: string;
 }
 
-export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productId }) => {
+export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, productCode }) => {
     const [isFileManagerOpen, setIsFileManagerOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,15 +52,15 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
 
     const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return;
-        if (!productId) {
-            alert('Please establish product first before direct uploading assets.');
+        if (!productCode) {
+            alert('Please provide product code first before direct uploading assets.');
             return;
         }
 
         try {
             setUploading(true);
-            const storageDir = productId;
-            const storageDirPath = `product/${productId}`;
+            const storageDir = productCode;
+            const storageDirPath = `product/${productCode}`;
 
             const res = await fileStorageService.upload(
                 Array.from(e.target.files),
@@ -177,33 +177,54 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
                         <div key={idx} className="group bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all flex flex-col sm:flex-row gap-8 items-start sm:items-center animate-in fade-in slide-in-from-bottom-2">
                             {/* Preview */}
                             <div className="w-full sm:w-40 h-40 rounded-[2rem] bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-500">
-                                {item.url ? (
-                                    item.fileType === MEDIA_FILE_TYPE.IMAGE ? (
-                                        <img src={item.url} alt="Media Preview" className="w-full h-full object-cover" />
-                                    ) : (
+                                {(() => {
+                                    const displayUrl = typeof item.fileStorageId === 'object' ? item.fileStorageId?.preSignedUrl : item.url;
+                                    if (!displayUrl) {
+                                        return (
+                                            <div className="flex flex-col items-center gap-2 text-gray-200">
+                                                <ImageIcon size={36} />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">Pending Sync</span>
+                                            </div>
+                                        );
+                                    }
+                                    if (item.fileType === MEDIA_FILE_TYPE.IMAGE) {
+                                        return <img src={displayUrl} alt="Media Preview" className="w-full h-full object-cover" />;
+                                    }
+                                    return (
                                         <div className="flex flex-col items-center gap-2 text-gray-400">
                                             {item.fileType === MEDIA_FILE_TYPE.VIDEO ? <Video size={36} className="text-indigo-400" /> : <Youtube size={36} className="text-rose-400" />}
                                             <span className="text-[9px] font-black uppercase tracking-widest">{item.fileType}</span>
                                         </div>
-                                    )
-                                ) : (
-                                    <div className="flex flex-col items-center gap-2 text-gray-200">
-                                        <ImageIcon size={36} />
-                                        <span className="text-[8px] font-black uppercase tracking-widest">Pending Sync</span>
-                                    </div>
-                                )}
+                                    );
+                                })()}
                             </div>
 
                             {/* Controls */}
                             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 w-full">
                                 <div className="space-y-2 col-span-full">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asset Source URL</label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            {item.fileType === MEDIA_FILE_TYPE.YOUTUBE ? 'YouTube URL' : 'Asset Source URL'}
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Format</label>
+                                            <select
+                                                value={item.fileType}
+                                                onChange={(e) => handleChange(idx, 'fileType', e.target.value)}
+                                                className="border-none bg-transparent hover:bg-gray-100 rounded-lg p-1 focus:outline-none font-black text-primary text-[10px] uppercase tracking-widest"
+                                            >
+                                                {Object.values(MEDIA_FILE_TYPE).map(ft => (
+                                                    <option key={ft} value={ft}>{ft}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div className="flex gap-2">
                                         <input
                                             value={item.url}
                                             onChange={(e) => handleChange(idx, 'url', e.target.value)}
                                             className="flex-1 border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-5 focus:outline-none focus:border-primary/30 transition-all font-bold text-gray-700 text-xs shadow-sm"
-                                            placeholder="https://cloud.storage.com/asset.jpg"
+                                            placeholder={item.fileType === MEDIA_FILE_TYPE.YOUTUBE ? "https://youtube.com/watch?v=..." : "https://cloud.storage.com/asset.jpg"}
                                         />
                                         {item.fileStorageId && (
                                             <div className="px-4 bg-gray-50 rounded-2xl border-2 border-gray-100 flex items-center justify-center" title="Synced with File Manager">
@@ -213,46 +234,35 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ media, onChange, pro
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Angle / Perspective</label>
-                                    <select
-                                        value={item.type}
-                                        onChange={(e) => handleChange(idx, 'type', e.target.value)}
-                                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-5 focus:outline-none focus:border-primary/30 transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest"
-                                    >
-                                        {Object.values(MEDIA_TYPE).map(t => (
-                                            <option key={t} value={t}>{t}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {item.fileType !== MEDIA_FILE_TYPE.YOUTUBE && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Angle / Perspective</label>
+                                            <select
+                                                value={item.type}
+                                                onChange={(e) => handleChange(idx, 'type', e.target.value)}
+                                                className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-5 focus:outline-none focus:border-primary/30 transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest"
+                                            >
+                                                {Object.values(MEDIA_TYPE).map(t => (
+                                                    <option key={t} value={t}>{t}</option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Format</label>
-                                        <select
-                                            value={item.fileType}
-                                            onChange={(e) => handleChange(idx, 'fileType', e.target.value)}
-                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-2 focus:outline-none focus:border-primary/30 transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest"
-                                        >
-                                            {Object.values(MEDIA_FILE_TYPE).map(ft => (
-                                                <option key={ft} value={ft}>{ft}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
-                                        <select
-                                            value={item.status}
-                                            onChange={(e) => handleChange(idx, 'status', e.target.value)}
-                                            className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-2 focus:outline-none focus:border-primary/30 transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest"
-                                        >
-                                            {Object.values(MEDIA_STATUS).map(s => (
-                                                <option key={s} value={s}>{s}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                                            <select
+                                                value={item.status}
+                                                onChange={(e) => handleChange(idx, 'status', e.target.value)}
+                                                className="w-full border-2 border-gray-100 bg-gray-50 rounded-2xl py-4 px-5 focus:outline-none focus:border-primary/30 transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest"
+                                            >
+                                                {Object.values(MEDIA_STATUS).map(s => (
+                                                    <option key={s} value={s}>{s}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Actions */}

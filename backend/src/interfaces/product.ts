@@ -13,6 +13,7 @@ export interface IProductAttributeValue {
 export interface IProductAttributes extends IDefaultAttributes {
     _id: ObjectId;
     name: string;
+    productCode: string;
     slug: string;
     description?: string;
     
@@ -23,7 +24,7 @@ export interface IProductAttributes extends IDefaultAttributes {
     currency: string;
     
     media: IMedia[];
-    mainImage?: string;
+    mainImage?: ObjectId;
     
     categoryIds: ObjectId[];
     attributes: IProductAttributeValue[];

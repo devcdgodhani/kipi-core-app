@@ -7,6 +7,7 @@ import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS } from '../../../constants/me
 const productSchema = new Schema<IProductDocument>(
   {
     name: { type: String, required: true },
+    productCode: { type: String, required: true, unique: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String },
     
@@ -26,7 +27,7 @@ const productSchema = new Schema<IProductDocument>(
         sortOrder: { type: Number, default: 0 }
       }
     ],
-    mainImage: { type: String },
+    mainImage: { type: Schema.Types.ObjectId, ref: 'FileStorage' },
     
     categoryIds: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
     
