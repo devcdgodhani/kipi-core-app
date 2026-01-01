@@ -1,6 +1,8 @@
 import { ObjectId, Document } from 'mongoose';
 import { IDefaultAttributes } from './common';
 import { SKU_STATUS } from '../constants/sku';
+import { IMedia } from './media';
+
 
 export interface ISkuAttributeValue {
     attributeId: ObjectId;
@@ -21,7 +23,7 @@ export interface ISkuAttributes extends IDefaultAttributes {
     discount?: number;
     
     quantity: number;
-    images?: string[];
+    media?: IMedia[];
     
     status: SKU_STATUS;
     lotId?: ObjectId;

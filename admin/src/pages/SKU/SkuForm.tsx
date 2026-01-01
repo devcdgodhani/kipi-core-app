@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Save, Layers, Plus, Image as ImageIcon, Activity, Warehouse, Tag } from 'lucide-react';
+import { ChevronLeft, Save, Layers, Image as ImageIcon, Activity, Warehouse, Tag } from 'lucide-react';
 import { skuService } from '../../services/sku.service';
 import { productService } from '../../services/product.service';
 import { attributeService } from '../../services/attribute.service';
@@ -11,7 +11,7 @@ import { type IAttribute } from '../../types/attribute';
 import { type ILot } from '../../types/lot';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
-
+import { MediaManager } from '../../components/common/MediaManager';
 
 const SkuForm: React.FC = () => {
     const navigate = useNavigate();
@@ -28,7 +28,7 @@ const SkuForm: React.FC = () => {
         offerPrice: 0,
         discount: 0,
         quantity: 0,
-        images: [],
+        media: [],
         status: SKU_STATUS.ACTIVE,
         lotId: ''
     });
@@ -149,8 +149,6 @@ const SkuForm: React.FC = () => {
             return next;
         });
     };
-
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -342,62 +340,18 @@ const SkuForm: React.FC = () => {
 
                     {/* Section 3: Media */}
                     <section className="space-y-10 pt-16 border-t border-gray-50">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2 border-l-4 border-rose-500 pl-6">
-                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <ImageIcon size={18} className="text-rose-500" /> Media Collection
-                                </h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Variant-specific visual assets</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, images: [...(prev.images || []), ''] }))}
-                                className="px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100"
-                            >
-                                + Inject Media URL
-                            </button>
+                        <div className="space-y-2 border-l-4 border-rose-500 pl-6 mb-6">
+                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <ImageIcon size={18} className="text-rose-500" /> Media Collection
+                            </h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Variant-specific visual assets</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {(formData.images || []).map((img, idx) => (
-                                <div key={idx} className="group relative bg-gray-50 p-4 rounded-3xl border-2 border-transparent hover:border-rose-100 transition-all">
-                                    <div className="flex flex-col gap-3">
-                                        <div className="h-32 rounded-2xl bg-white border border-gray-100 overflow-hidden flex items-center justify-center">
-                                            {img ? (
-                                                <img src={img} alt="Preview" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <ImageIcon size={32} className="text-gray-200" />
-                                            )}
-                                        </div>
-                                        <input
-                                            value={img}
-                                            onChange={(e) => {
-                                                const newImgs = [...(formData.images || [])];
-                                                newImgs[idx] = e.target.value;
-                                                setFormData(prev => ({ ...prev, images: newImgs }));
-                                            }}
-                                            className="w-full bg-white border border-gray-100 rounded-xl py-2 px-3 focus:outline-none focus:border-rose-300 font-bold text-gray-600 text-[11px]"
-                                            placeholder="https://..."
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const newImgs = (formData.images || []).filter((_, i) => i !== idx);
-                                            setFormData(prev => ({ ...prev, images: newImgs }));
-                                        }}
-                                        className="absolute -top-2 -right-2 p-2 bg-rose-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-90"
-                                    >
-                                        <Plus size={14} className="rotate-45" />
-                                    </button>
-                                </div>
-                            ))}
-                            {(!formData.images || formData.images.length === 0) && (
-                                <div className="lg:col-span-3 py-16 text-center text-gray-400 font-bold uppercase text-[10px] bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-100">
-                                    No localized media assets synchronized
-                                </div>
-                            )}
-                        </div>
+                        <MediaManager
+                            media={formData.media || []}
+                            onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
+                            productId={typeof formData.productId === 'string' ? formData.productId : (formData.productId as any)?._id}
+                        />
                     </section>
                 </div>
 

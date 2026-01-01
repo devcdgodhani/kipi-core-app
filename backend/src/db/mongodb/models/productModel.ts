@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 import { IProductDocument } from '../../../interfaces/product';
 import { PRODUCT_STATUS } from '../../../constants/product';
+import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS } from '../../../constants/media';
+
 
 const productSchema = new Schema<IProductDocument>(
   {
@@ -14,7 +16,16 @@ const productSchema = new Schema<IProductDocument>(
     discount: { type: Number },
     currency: { type: String, default: 'INR' },
     
-    images: [{ type: String }],
+    media: [
+      {
+        fileType: { type: String, enum: Object.values(MEDIA_FILE_TYPE), default: MEDIA_FILE_TYPE.IMAGE },
+        type: { type: String, default: MEDIA_TYPE.FULL },
+        fileStorageId: { type: Schema.Types.ObjectId, ref: 'FileStorage' },
+        url: { type: String },
+        status: { type: String, enum: Object.values(MEDIA_STATUS), default: MEDIA_STATUS.ACTIVE },
+        sortOrder: { type: Number, default: 0 }
+      }
+    ],
     mainImage: { type: String },
     
     categoryIds: [{ type: Schema.Types.ObjectId, ref: 'Category' }],

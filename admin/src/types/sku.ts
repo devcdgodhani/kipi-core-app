@@ -1,3 +1,5 @@
+import type { IMedia } from './media';
+
 export const SKU_STATUS = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
@@ -29,7 +31,7 @@ export interface ISku {
   offerPrice?: number;
   discount?: number;
   quantity: number;
-  images?: string[];
+  media?: IMedia[];
   status: SKU_STATUS;
   lotId?: string;
   createdAt: string;

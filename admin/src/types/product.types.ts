@@ -5,7 +5,7 @@ export interface Product {
   price: number;
   stock: number;
   category: string;
-  images: string[];
+  media: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -16,5 +16,5 @@ export interface ProductCreateInput {
   price: number;
   stock: number;
   category: string;
-  images: string[];
+  media: string[];
 }

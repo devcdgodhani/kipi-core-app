@@ -30,7 +30,7 @@ const productCreateSchema = z.object({
   discount: z.number().optional(),
   currency: z.string().optional().default('INR'),
   
-  images: z.array(z.string()).optional(),
+  media: z.array(z.any()).optional(),
   mainImage: z.string().optional(),
   
   categoryIds: z.array(z.string()).optional(),
@@ -54,7 +54,7 @@ const productCreateSchema = z.object({
       attributeId: z.string(),
       value: z.any()
     })).optional(),
-    images: z.array(z.string()).optional(),
+    media: z.array(z.any()).optional(),
     status: z.string().optional()
   })).optional()
 });

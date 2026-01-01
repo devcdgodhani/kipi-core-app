@@ -1,6 +1,8 @@
 import { ObjectId, Document } from 'mongoose';
 import { IDefaultAttributes } from './common';
 import { PRODUCT_STATUS } from '../constants/product';
+import { IMedia } from './media';
+
 
 export interface IProductAttributeValue {
     attributeId: ObjectId;
@@ -20,7 +22,7 @@ export interface IProductAttributes extends IDefaultAttributes {
     discount?: number;
     currency: string;
     
-    images: string[];
+    media: IMedia[];
     mainImage?: string;
     
     categoryIds: ObjectId[];
