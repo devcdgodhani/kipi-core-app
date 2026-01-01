@@ -20,6 +20,7 @@ import CustomButton from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const ProductList: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +29,20 @@ const ProductList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     // Filters & Pagination State
     const [filters, setFilters] = useState<IProductFilters>({
@@ -95,14 +110,28 @@ const ProductList: React.FC = () => {
     };
 
     const handleDeleteProduct = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            try {
-                await productService.delete(id);
-                fetchProducts();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete product');
+        setPopup({
+            isOpen: true,
+            title: 'Delete Product',
+            message: 'Are you sure you want to delete this product? This action cannot be undone.',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await productService.delete(id);
+                    fetchProducts();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete product',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const filterFields: FilterField[] = [
@@ -364,6 +393,16 @@ const ProductList: React.FC = () => {
                     hasPreviousPage: pagination.currentPage > 1,
                     hasNextPage: pagination.currentPage < pagination.totalPages
                 } : undefined}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

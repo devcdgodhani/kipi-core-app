@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, FILE_STORAGE_SUCCESS_MESSAGES } from '../constants';
 import { FileStorageService } from '../services/concrete/fileStorageService';
-import { IApiResponse, IPaginationData, IFileStorageAttributes } from '../interfaces';
+import { IApiResponse, IPaginationData, IFileStorageAttributes, IFileDirectoryAttributes } from '../interfaces';
 
 export default class FileStorageController {
   fileStorageService = new FileStorageService();
@@ -39,13 +39,13 @@ export default class FileStorageController {
         searchFields: ['originalFileName', 'storageFileName'],
       });
 
-      const fileList = await this.fileStorageService.findAll(filter, options);
+      const { dirList, fileList } = await this.fileStorageService.getFilesAndFolders(filter, options);
 
-      const response: IApiResponse<IFileStorageAttributes[]> = {
+      const response: IApiResponse<{ dirList: IFileDirectoryAttributes[], fileList: IFileStorageAttributes[] }> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: FILE_STORAGE_SUCCESS_MESSAGES.GET_SUCCESS,
-        data: fileList,
+        data: { dirList, fileList },
       };
       return res.status(response.status).json(response);
     } catch (err) {
@@ -82,7 +82,7 @@ export default class FileStorageController {
       const files = req.files as Express.Multer.File[];
       const reqData = req.body;
       
-      const uploadedFiles = await this.fileStorageService.uploadFiles(files, reqData.storageDirPath);
+      const uploadedFiles = await this.fileStorageService.uploadFiles(files, reqData);
 
       const response: IApiResponse<IFileStorageAttributes[]> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,

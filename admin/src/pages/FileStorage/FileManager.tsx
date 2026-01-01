@@ -2,13 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     Folder, File, Image as ImageIcon, Film, Music, FileText,
     Search, Filter, Grid, List as ListIcon,
-    Trash2, Download, ExternalLink, ArrowLeft, FolderPlus, Upload, RefreshCw, Move
+    Trash2, Download, ArrowLeft, FolderPlus, Upload, RefreshCw, Move,
+    ChevronRight, Home
 } from 'lucide-react';
 import { fileStorageService } from '../../services/fileStorage.service';
 import type { IFileStorage, IFileStorageFilters } from '../../types/fileStorage';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { useSearchParams } from 'react-router-dom';
 import CustomButton from '../../components/common/Button';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const filterFields: FilterField[] = [
     {
@@ -60,12 +62,29 @@ export const FileManager = () => {
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchParams, setSearchParams] = useSearchParams();
-    const [filters, setFilters] = useState<IFileStorageFilters>({ cloudType: 'AWS_S3' });
+    const [filters, setFilters] = useState<IFileStorageFilters>({});
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [currentPath, setCurrentPath] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Popup Modal State
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        inputValue?: string;
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     const fetchFiles = async () => {
         try {
@@ -80,18 +99,31 @@ export const FileManager = () => {
             });
 
             if (!queryFilters.search) {
-                queryFilters.storageDirPath = currentPath;
+                if (!currentPath) {
+                    queryFilters.storageDir = undefined;
+                } else {
+                    const parts = currentPath.split('/');
+                    queryFilters.storageDir = [parts[parts.length - 1]];
+                }
             }
 
             const response = await fileStorageService.getAll(queryFilters);
-            if (response && Array.isArray(response.data)) {
-                // Sort folders first
-                const sorted = response.data.sort((a, b) => {
-                    if (a.fileType === 'DIRECTORY' && b.fileType !== 'DIRECTORY') return -1;
-                    if (a.fileType !== 'DIRECTORY' && b.fileType === 'DIRECTORY') return 1;
-                    return 0;
-                });
-                setFiles(sorted);
+            if (response && response.data) {
+                const { dirList, fileList } = response.data as any;
+
+                if (dirList !== undefined && fileList !== undefined) {
+                    const normalizedDirs = dirList.map((d: any) => ({
+                        ...d,
+                        originalFileName: d.originalFileName || d.name || 'Untitled Folder',
+                        fileType: d.fileType || 'DIRECTORY',
+                        storageDirPath: d.storageDirPath !== undefined ? d.storageDirPath : d.parentPath,
+                        storageFileName: d.storageFileName || d.name,
+                        fileSize: d.fileSize || 0,
+                    }));
+                    setFiles([...normalizedDirs, ...fileList]);
+                } else if (Array.isArray(response.data)) {
+                    setFiles(response.data);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -122,7 +154,15 @@ export const FileManager = () => {
 
         try {
             setUploading(true);
-            await fileStorageService.upload(Array.from(e.target.files), currentPath);
+            const storageDirPath = currentPath || '';
+            let storageDir = '';
+
+            if (storageDirPath) {
+                const parts = storageDirPath.split('/');
+                storageDir = parts[parts.length - 1];
+            }
+
+            await fileStorageService.upload(Array.from(e.target.files), storageDirPath, storageDir);
             fetchFiles();
         } catch (err) {
             console.error('Upload failed', err);
@@ -133,41 +173,77 @@ export const FileManager = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this file/folder?')) return;
-        try {
-            await fileStorageService.delete(id);
-            fetchFiles();
-        } catch (err) {
-            console.error(err);
-        }
+        setPopup({
+            isOpen: true,
+            title: 'Delete Item',
+            message: 'Are you sure you want to delete this file/folder? This action cannot be undone.',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await fileStorageService.delete(id);
+                    fetchFiles();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err) {
+                    console.error(err);
+                    setPopup(prev => ({ ...prev, loading: false }));
+                }
+            }
+        });
     };
 
     const handleCreateFolder = async () => {
-        const name = window.prompt("Enter folder name:");
-        if (!name) return;
-        try {
-            await fileStorageService.createFolder(name, currentPath);
-            fetchFiles();
-        } catch (err) {
-            console.error(err);
-        }
+        setPopup({
+            isOpen: true,
+            title: 'Create Folder',
+            message: 'Enter a name for the new folder:',
+            type: 'prompt',
+            inputValue: '',
+            onConfirm: async () => {
+                const name = popup.inputValue;
+                if (!name) return;
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await fileStorageService.createFolder(name, currentPath);
+                    fetchFiles();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err) {
+                    console.error(err);
+                    setPopup(prev => ({ ...prev, loading: false }));
+                }
+            }
+        });
     };
 
     const handleMove = async (file: IFileStorage) => {
-        const newPath = window.prompt(`Move '${file.originalFileName}' to path (leave empty for root):`, file.storageDirPath || '');
-        if (newPath === null) return; // Cancelled
-        if (newPath === (file.storageDirPath || '')) return; // No change
+        setPopup({
+            isOpen: true,
+            title: 'Move Item',
+            message: `Enter destination path for '${file.originalFileName}' (leave empty for root):`,
+            type: 'prompt',
+            inputValue: file.storageDirPath || '',
+            onConfirm: async () => {
+                const newPath = popup.inputValue || '';
+                if (newPath === (file.storageDirPath || '')) {
+                    setPopup(prev => ({ ...prev, isOpen: false }));
+                    return;
+                }
 
-        try {
-            await fileStorageService.moveFile(file._id, newPath);
-            fetchFiles();
-        } catch (err) {
-            console.error('Move failed', err);
-        }
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await fileStorageService.moveFile(file._id, newPath);
+                    fetchFiles();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err) {
+                    console.error('Move failed', err);
+                    setPopup(prev => ({ ...prev, loading: false }));
+                }
+            }
+        });
     };
 
-    const navigateToFolder = (folder: IFileStorage) => {
-        const path = folder.storageDirPath ? `${folder.storageDirPath}/${folder.storageFileName}` : folder.storageFileName;
+    const navigateToFolder = (folder: any) => {
+        const path = folder.path || (folder.storageDirPath ? `${folder.storageDirPath}/${folder.storageFileName}` : folder.storageFileName);
         setCurrentPath(path);
     };
 
@@ -179,7 +255,8 @@ export const FileManager = () => {
         }
         const parts = currentPath.split('/');
         parts.pop();
-        setCurrentPath(parts.join('/'));
+        const newPath = parts.join('/');
+        setCurrentPath(newPath);
     };
 
     return (
@@ -188,16 +265,15 @@ export const FileManager = () => {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     {currentPath && (
-                        <button onClick={navigateUp} className="p-2 hover:bg-gray-200 rounded-full transition-colors" title="Go up">
-                            <ArrowLeft size={24} />
+                        <button
+                            onClick={navigateUp}
+                            className="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-primary hover:border-primary/20 rounded-xl transition-all shadow-sm group"
+                            title="Go up"
+                        >
+                            <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
                         </button>
                     )}
-                    <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight">File Manager</h1>
-                        <p className="text-gray-500 font-medium break-all">
-                            Current Path: {currentPath ? `/${currentPath}` : '/Root'}
-                        </p>
-                    </div>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">File Manager</h1>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -265,6 +341,29 @@ export const FileManager = () => {
                 </div>
             </div>
 
+            {/* Breadcrumb Navigation Card */}
+            <div className="bg-white px-6 py-3.5 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <button
+                    onClick={() => setCurrentPath('')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all shrink-0 ${!currentPath ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}
+                >
+                    <Home size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest px-0.5">Home</span>
+                </button>
+
+                {currentPath.split('/').filter(Boolean).map((part, idx, arr) => (
+                    <React.Fragment key={idx}>
+                        <ChevronRight size={14} className="text-gray-300 shrink-0" />
+                        <button
+                            onClick={() => setCurrentPath(arr.slice(0, idx + 1).join('/'))}
+                            className={`px-4 py-2 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shrink-0 whitespace-nowrap ${idx === arr.length - 1 ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}
+                        >
+                            {part}
+                        </button>
+                    </React.Fragment>
+                ))}
+            </div>
+
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto min-h-[500px]">
                 {loading ? (
@@ -304,6 +403,18 @@ export const FileManager = () => {
                 fields={filterFields}
                 onApply={handleFilterApply}
                 currentFilters={filters}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                inputValue={popup.inputValue}
+                onInputChange={(val) => setPopup(prev => ({ ...prev, inputValue: val }))}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

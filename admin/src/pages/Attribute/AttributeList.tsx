@@ -18,6 +18,7 @@ import { ATTRIBUTE_STATUS, ATTRIBUTE_VALUE_TYPE, ATTRIBUTE_INPUT_TYPE } from '..
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { Table, type Column } from '../../components/common/Table';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const AttributeList: React.FC = () => {
     const navigate = useNavigate();
@@ -26,6 +27,20 @@ const AttributeList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     // Filters State
     const [filters, setFilters] = useState<IAttributeFilter>({
@@ -66,14 +81,28 @@ const AttributeList: React.FC = () => {
     };
 
     const handleDeleteAttribute = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this attribute?')) {
-            try {
-                await attributeService.delete(id);
-                fetchAttributes();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete attribute');
+        setPopup({
+            isOpen: true,
+            title: 'Delete Attribute',
+            message: 'Are you sure you want to delete this attribute?',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    setPopup(prev => ({ ...prev, loading: true }));
+                    await attributeService.delete(id);
+                    fetchAttributes();
+                    setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
+                } catch (err: any) {
+                    setPopup({
+                        isOpen: true,
+                        title: 'Error',
+                        message: err.response?.data?.message || 'Failed to delete attribute',
+                        type: 'alert',
+                        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        }
+        });
     };
 
     const columns: Column<IAttribute>[] = [
@@ -137,8 +166,8 @@ const AttributeList: React.FC = () => {
             align: 'center',
             render: (attr) => (
                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${attr.status === ATTRIBUTE_STATUS.ACTIVE
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        : 'bg-gray-50 text-gray-500 border border-gray-100'
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                    : 'bg-gray-50 text-gray-500 border border-gray-100'
                     }`}>
                     {attr.status}
                 </span>
@@ -308,6 +337,16 @@ const AttributeList: React.FC = () => {
                     hasPreviousPage: pagination.hasPreviousPage,
                     hasNextPage: pagination.hasNextPage
                 } : undefined}
+            />
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
             />
         </div>
     );

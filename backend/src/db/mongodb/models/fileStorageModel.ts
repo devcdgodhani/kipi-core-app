@@ -23,6 +23,13 @@ export const FileStorageSchema = new Schema<IFileStorageDocument>(
       type: String,
       required: false,
       trim: true,
+      default: '',
+    },
+    storageDir: {
+      type: String,
+      required: false,
+      trim: true,
+      default: '',
     },
     preSignedUrl: {
       type: String,

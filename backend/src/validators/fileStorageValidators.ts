@@ -16,6 +16,7 @@ const fileStorageFilterSchema = baseFilterSchema.extend({
   storageFileName: stringFilter,
   storageDirPath: stringFilter,
   fileExtension: stringFilter,
+    storageDir: stringFilter,
   isInUsed: booleanFilter,
   _id: mongoIdFilter,
 });

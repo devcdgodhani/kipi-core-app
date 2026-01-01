@@ -29,6 +29,7 @@ import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Table } from '../../components/common/Table';
+import { PopupModal } from '../../components/common/PopupModal';
 import 'react-tabs/style/react-tabs.css';
 
 const ProductForm: React.FC = () => {
@@ -65,6 +66,20 @@ const ProductForm: React.FC = () => {
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [popup, setPopup] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'alert' | 'confirm' | 'prompt';
+        onConfirm: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        onConfirm: () => { }
+    });
 
     const flattenCategories = (cats: ICategory[]): ICategory[] => {
         let flat: ICategory[] = [];
@@ -173,7 +188,13 @@ const ProductForm: React.FC = () => {
     const generateSkusLocally = () => {
         const variants = variantAttributes.filter(attr => variantConfig[attr._id]?.length > 0);
         if (variants.length === 0) {
-            alert('Please select at least one value for variant attributes');
+            setPopup({
+                isOpen: true,
+                title: 'Architecture Guard',
+                message: 'Please select at least one value for variant attributes before building SKUs.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -222,7 +243,13 @@ const ProductForm: React.FC = () => {
         });
 
         if (newSkus.length === 0) {
-            alert('All selected combinations already exist in the catalog or prepared list.');
+            setPopup({
+                isOpen: true,
+                title: 'Synchronization Report',
+                message: 'All selected combinations already exist in the master catalog or prepared queue.',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -841,16 +868,28 @@ const ProductForm: React.FC = () => {
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            onClick={async () => {
-                                                                if (window.confirm(`Are you sure you want to terminate SKU ${sku.skuCode}?`)) {
+                                                            onClick={() => setPopup({
+                                                                isOpen: true,
+                                                                title: 'Terminate SKU',
+                                                                message: `Are you sure you want to terminate SKU ${sku.skuCode}? This action will permanently remove it from the master catalog.`,
+                                                                type: 'confirm',
+                                                                onConfirm: async () => {
                                                                     try {
+                                                                        setPopup(prev => ({ ...prev, loading: true }));
                                                                         await skuService.delete(sku._id!);
                                                                         setProductSkus(prev => prev.filter(s => s._id !== sku._id));
+                                                                        setPopup(prev => ({ ...prev, isOpen: false, loading: false }));
                                                                     } catch (err) {
-                                                                        alert('Failed to delete SKU from catalog');
+                                                                        setPopup({
+                                                                            isOpen: true,
+                                                                            title: 'System Error',
+                                                                            message: 'Failed to delete SKU from catalog. Please verify synchronization.',
+                                                                            type: 'alert',
+                                                                            onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+                                                                        });
                                                                     }
                                                                 }
-                                                            }}
+                                                            })}
                                                             className="p-2 bg-white text-rose-300 rounded-xl hover:text-rose-500 hover:shadow-md transition-all shadow-sm border border-gray-100"
                                                         >
                                                             <Trash2 size={14} />
@@ -932,6 +971,16 @@ const ProductForm: React.FC = () => {
                     </CustomButton>
                 </div>
             </form>
+
+            <PopupModal
+                isOpen={popup.isOpen}
+                onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onConfirm={popup.onConfirm}
+                loading={popup.loading}
+            />
         </div>
     );
 };

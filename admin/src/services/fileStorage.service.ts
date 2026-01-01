@@ -7,7 +7,7 @@ export const fileStorageService = {
   },
 
   getAll: async (filters: IFileStorageFilters) => {
-    return axiosInstance.post<any, { data: IFileStorage[], message: string }>('/file-storage/getAll', filters);
+    return axiosInstance.post<any, { data: { dirList: IFileStorage[], fileList: IFileStorage[] }, message: string }>('/file-storage/getAll', filters);
   },
 
   getOne: async (id: string) => {
@@ -22,14 +22,14 @@ export const fileStorageService = {
     return axiosInstance.delete<any, { message: string }>('/file-storage/deleteByFilter', { data: { _id: id } });
   },
 
-  upload: async (files: File[], storageDirPath?: string) => {
+  upload: async (files: File[], storageDirPath: string, storageDir: string) => {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
     });
-    if (storageDirPath) {
-      formData.append('storageDirPath', storageDirPath);
-    }
+    // Ensure we handle empty strings correctly if that's valid for root
+    formData.append('storageDirPath', storageDirPath || '');
+    formData.append('storageDir', storageDir || '');
 
     // Since we are using FormData, we might need to let the browser set the Content-Type
     // But axios instance defaults to json. We can override headers in the call.

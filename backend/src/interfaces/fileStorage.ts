@@ -8,6 +8,7 @@ export interface IFileStorageAttributes extends IDefaultAttributes {
   originalFileName: string;
   storageFileName: string;
   storageDirPath?: string;
+  storageDir?: string;
   preSignedUrl?: string;
   fileSize?: number;
   fileExtension?: string;

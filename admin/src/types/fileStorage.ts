@@ -3,6 +3,7 @@ export interface IFileStorage {
   originalFileName: string;
   storageFileName: string;
   storageDirPath?: string;
+  storageDir?: string;
   preSignedUrl?: string; // This is populated
   fileSize?: number;
   fileExtension?: string;
@@ -18,6 +19,8 @@ export interface IFileStorageFilters {
   cloudType?: string;
   fileType?: string;
   search?: string;
+  storageDir?: string;
+  storageDirPath?: string;
   page?: number;
   limit?: number;
   sort?: any;

@@ -29,3 +29,4 @@ export * from './models/categoryModel';
 export * from './models/attributeModel';
 export * from './models/fileStorageModel';
 export * from './models/presignedUrlModel';
+export * from './models/fileDirectoryModel';
