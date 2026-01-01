@@ -26,9 +26,9 @@ import { attributeService } from '../../services/attribute.service';
 import { skuService } from '../../services/sku.service';
 import { lotService } from '../../services/lot.service';
 import { PRODUCT_STATUS, type IProduct } from '../../types/product';
+import { type ISku, SKU_STATUS } from '../../types/sku';
 import { type ICategory } from '../../types/category';
 import { type IAttribute } from '../../types/attribute';
-import { type ISku } from '../../types/sku';
 import { type ILot } from '../../types/lot';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
@@ -931,6 +931,22 @@ const ProductForm: React.FC = () => {
                                                         onChange={(e) => handleSkuChange(false, idx!, 'quantity', Number(e.target.value))}
                                                         className="w-24 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-center font-black text-gray-700 transition-all outline-none"
                                                     />
+                                                )
+                                            },
+                                            {
+                                                header: 'Status',
+                                                align: 'center',
+                                                render: (sku: ISku, idx?: number) => (
+                                                    <select
+                                                        value={sku.status}
+                                                        onChange={(e) => handleSkuChange(false, idx!, 'status', e.target.value)}
+                                                        className={`w-32 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black transition-all outline-none uppercase tracking-widest ${sku.status === SKU_STATUS.ACTIVE ? 'text-emerald-600' : 'text-gray-400'
+                                                            }`}
+                                                    >
+                                                        {Object.values(SKU_STATUS).map(s => (
+                                                            <option key={s} value={s}>{s}</option>
+                                                        ))}
+                                                    </select>
                                                 )
                                             },
                                             {
