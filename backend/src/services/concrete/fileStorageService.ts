@@ -393,8 +393,8 @@ export class FileStorageService
 
     if (!updatedFile) throw new Error('Failed to update file record');
     
-    await this.ensurePresignedUrl(updatedFile);
-    return updatedFile;
+    await this.ensurePresignedUrl(updatedFile as any);
+    return updatedFile.toObject() as any as IFileStorageAttributes;
   }
 
   // --- Deletion Logic for Directories and Files (Override softDelete) ---
