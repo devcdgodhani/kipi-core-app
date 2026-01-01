@@ -60,6 +60,8 @@ const envSchema = z
     CLOUDINARY_CLOUD_NAME: z.string(),
     CLOUDINARY_API_KEY: z.string(),
     CLOUDINARY_API_SECRET: z.string(),
+
+    CLOUD_TYPE: z.string().optional(),
   })
   .passthrough();
 
@@ -126,4 +128,6 @@ export const ENV_VARIABLE: IEnvVariables = {
   CLOUDINARY_CLOUD_NAME: value.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: value.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: value.CLOUDINARY_API_SECRET,
+
+  CLOUD_TYPE: value.CLOUD_TYPE,
 };

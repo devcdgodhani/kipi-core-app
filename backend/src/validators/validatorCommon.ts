@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const stringFilter = z.union([z.string(), z.array(z.string())]).optional();
+export const mongoIdFilter = stringFilter;
 
 export const numberFilter = z.union([
   z.coerce.number(),
