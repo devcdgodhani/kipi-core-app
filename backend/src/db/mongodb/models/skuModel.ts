@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 import { ISkuDocument } from '../../../interfaces/sku';
 import { SKU_STATUS } from '../../../constants/sku';
+import { MEDIA_FILE_TYPE, MEDIA_TYPE, MEDIA_STATUS } from '../../../constants/media';
+
 
 const skuSchema = new Schema<ISkuDocument>(
   {
@@ -20,7 +22,16 @@ const skuSchema = new Schema<ISkuDocument>(
     discount: { type: Number, default: 0 },
     
     quantity: { type: Number, default: 0 },
-    images: [{ type: String }],
+    media: [
+      {
+        fileType: { type: String, enum: Object.values(MEDIA_FILE_TYPE), default: MEDIA_FILE_TYPE.IMAGE },
+        type: { type: String, default: MEDIA_TYPE.FULL },
+        fileStorageId: { type: Schema.Types.ObjectId, ref: 'FileStorage' },
+        url: { type: String },
+        status: { type: String, enum: Object.values(MEDIA_STATUS), default: MEDIA_STATUS.ACTIVE },
+        sortOrder: { type: Number, default: 0 }
+      }
+    ],
     
     status: { type: String, enum: Object.values(SKU_STATUS), default: SKU_STATUS.ACTIVE },
     lotId: { type: Schema.Types.ObjectId, ref: 'Lot' },

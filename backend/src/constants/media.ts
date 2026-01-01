@@ -1,0 +1,21 @@
+export enum MEDIA_FILE_TYPE {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  YOUTUBE = 'YOUTUBE',
+}
+
+export enum MEDIA_TYPE {
+  FRONT = 'FRONT',
+  BACK = 'BACK',
+  SIDE = 'SIDE',
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM',
+  LIFESTYLE = 'LIFESTYLE',
+  MODEL = 'MODEL',
+  FULL = 'FULL',
+}
+
+export enum MEDIA_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}

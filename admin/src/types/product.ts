@@ -1,3 +1,5 @@
+import type { IMedia } from './media';
+
 export const PRODUCT_STATUS = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
@@ -28,7 +30,7 @@ export interface IProduct {
   offerPrice?: number;
   discount?: number;
   currency: string;
-  images: string[];
+  media: IMedia[];
   mainImage?: string;
   categoryIds: string[] | {
     _id: string;

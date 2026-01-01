@@ -34,7 +34,7 @@ const skuCreateSchema = z.object({
   discount: z.number().optional(),
   
   quantity: z.number().optional(),
-  images: z.array(z.string()).optional(),
+  media: z.array(z.any()).optional(),
   
   status: z.nativeEnum(SKU_STATUS).optional(),
   lotId: z.string().optional()

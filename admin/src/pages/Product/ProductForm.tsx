@@ -14,6 +14,7 @@ import {
     Barcode,
     Edit2
 } from 'lucide-react';
+import { MediaManager } from '../../components/common/MediaManager';
 import { productService } from '../../services/product.service';
 import { categoryService } from '../../services/category.service';
 import { attributeService } from '../../services/attribute.service';
@@ -48,7 +49,7 @@ const ProductForm: React.FC = () => {
         status: PRODUCT_STATUS.DRAFT,
         categoryIds: [],
         attributes: [],
-        images: [],
+        media: [],
         mainImage: '',
         stock: 0
     });
@@ -235,7 +236,7 @@ const ProductForm: React.FC = () => {
                     discount: formData.discount || 0,
                     quantity: 0,
                     variantAttributes: variantAttributesData,
-                    images: [],
+                    media: [],
                     status: 'ACTIVE'
                 });
                 existingSkuKeys.add(attrKey); // Prevent duplicates within the same batch
@@ -335,8 +336,6 @@ const ProductForm: React.FC = () => {
             return next;
         });
     };
-
-
 
     const getParentIds = (cats: ICategory[], targetId: string, parents: string[] = []): string[] | null => {
         for (const cat of cats) {
@@ -908,52 +907,28 @@ const ProductForm: React.FC = () => {
                         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-10 animate-fade-in text-gray-700">
                             <div>
                                 <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-                                    <ImageIcon size={16} className="text-primary" /> Product Media Assets
+                                    <ImageIcon size={16} className="text-primary" /> Lifecycle Media Protocol
                                 </h3>
-                                <div className="space-y-6">
-                                    <CustomInput label="Main Banner (Hero Image URL)" name="mainImage" value={formData.mainImage || ''} onChange={handleGeneralChange} placeholder="https://..." />
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between px-1">
-                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Gallery Collection</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData(prev => ({ ...prev, images: [...(prev.images || []), ''] }))}
-                                                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
-                                            >
-                                                + Add Image
-                                            </button>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {formData.images?.map((img, idx) => (
-                                                <div key={idx} className="flex gap-2">
-                                                    <input
-                                                        value={img}
-                                                        onChange={(e) => {
-                                                            const newImgs = [...(formData.images || [])];
-                                                            newImgs[idx] = e.target.value;
-                                                            setFormData(prev => ({ ...prev, images: newImgs }));
-                                                        }}
-                                                        className="flex-1 border-2 border-gray-100 bg-gray-50 rounded-2xl py-3 px-4 focus:outline-none focus:border-primary/30 font-bold text-gray-700 text-xs"
-                                                        placeholder="Asset URL..."
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const newImgs = (formData.images || []).filter((_, i) => i !== idx);
-                                                            setFormData(prev => ({ ...prev, images: newImgs }));
-                                                        }}
-                                                        className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-colors"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
+                                <div className="space-y-10">
+                                    <div className="bg-gray-50/50 p-8 rounded-[2.5rem] border border-gray-100 shadow-inner">
+                                        <CustomInput
+                                            label="Primary Catalog Identifier (Hero Image URL)"
+                                            name="mainImage"
+                                            value={formData.mainImage || ''}
+                                            onChange={handleGeneralChange}
+                                            placeholder="https://..."
+                                        />
+                                    </div>
+
+                                    <div className="pt-6">
+                                        <MediaManager
+                                            media={formData.media || []}
+                                            onChange={(media) => setFormData(prev => ({ ...prev, media: media }))}
+                                            productId={formData._id}
+                                        />
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
                     </TabPanel>
                 </Tabs>
