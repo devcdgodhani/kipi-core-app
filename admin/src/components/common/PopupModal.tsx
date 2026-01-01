@@ -11,7 +11,7 @@ interface PopupModalProps {
     type?: 'alert' | 'confirm' | 'prompt';
     inputValue?: string;
     onInputChange?: (val: string) => void;
-    onConfirm: () => void;
+    onConfirm: (value?: string) => void;
     confirmLabel?: string;
     cancelLabel?: string;
     loading?: boolean;
@@ -54,7 +54,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                         </button>
                     )}
                     <CustomButton
-                        onClick={onConfirm}
+                        onClick={() => onConfirm(inputValue)}
                         disabled={loading || (type === 'prompt' && !inputValue?.trim())}
                         className="min-w-[120px]"
                     >
