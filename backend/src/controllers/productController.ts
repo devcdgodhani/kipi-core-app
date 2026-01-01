@@ -10,7 +10,7 @@ import {
 } from '../types/product';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
-import { FileStorageModel, SkuModel } from '../db/mongodb';
+import { FileStorageModel, SkuModel, ProductModel } from '../db/mongodb';
 
 export default class ProductController {
   private productService = new ProductService();
@@ -22,21 +22,36 @@ export default class ProductController {
       const { filter, options } = this.productService.generateFilter({
         filters: reqData,
       });
-      // Populate Categories and Attributes?
-      options.populate = [
-          { path: 'categoryIds', select: 'name slug' },
-          { path: 'attributes.attributeId', select: 'name key label type' },
-          { path: 'media.fileStorageId' },
-          { path: 'mainImage' }
-      ];
+      const productDoc = await this.productService.findOne(filter);
+      let product = productDoc as any;
 
-      const product = await this.productService.findOne(filter, options);
+      if (product) {
+          // Sanitize fields that might cause CastError during population if they contain empty strings
+          if (product.mainImage === '') delete product.mainImage;
+          if (product.media) {
+              product.media = product.media.map((m: any) => {
+                  if (m.fileStorageId === '') {
+                      const { fileStorageId, ...rest } = m;
+                      return rest;
+                  }
+                  return m;
+              });
+          }
+
+          // Manually perform population on the sanitized object
+          product = await ProductModel.populate(product, [
+              { path: 'categoryIds', select: 'name slug' },
+              { path: 'attributes.attributeId', select: 'name key label type' },
+              { path: 'media.fileStorageId' },
+              { path: 'mainImage' }
+          ]);
+      }
 
       const response: TProductRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Product fetched successfully',
-        data: product as any,
+        data: product,
       };
 
       return res.status(response.status).json(response);

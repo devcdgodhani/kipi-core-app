@@ -22,13 +22,30 @@ export default class SkuController {
         filters: reqData,
       });
 
-      options.populate = [
-          { path: 'productId', select: 'name productCode' },
-          { path: 'variantAttributes.attributeId', select: 'name key label type' },
-          { path: 'media.fileStorageId' }
-      ];
+      const skuDoc = await this.skuService.findOne(filter);
+      let sku = skuDoc as any;
 
-      const sku = await this.skuService.findOne(filter, options);
+      if (sku) {
+          // Sanitize fields that might cause CastError during population if they contain empty strings
+          if (sku.productId === '') delete sku.productId;
+          if (sku.lotId === '') delete sku.lotId;
+          if (sku.media) {
+              sku.media = sku.media.map((m: any) => {
+                  if (m.fileStorageId === '') {
+                      const { fileStorageId, ...rest } = m;
+                      return rest;
+                  }
+                  return m;
+              });
+          }
+
+          // Manually perform population on the sanitized object
+          sku = await SkuModel.populate(sku, [
+              { path: 'productId', select: 'name productCode' },
+              { path: 'variantAttributes.attributeId', select: 'name key label type' },
+              { path: 'media.fileStorageId' }
+          ]);
+      }
 
       const response: TSkuRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

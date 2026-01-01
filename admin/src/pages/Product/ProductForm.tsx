@@ -487,12 +487,12 @@ const ProductForm: React.FC = () => {
 
             const cleanMedia = (formData.media || []).map(m => ({
                 ...m,
-                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : m.fileStorageId
+                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : (m.fileStorageId || null)
             }));
 
             const submitData = {
                 ...formData,
-                mainImage: (formData.mainImage && typeof formData.mainImage === 'object') ? (formData.mainImage as any)._id : formData.mainImage,
+                mainImage: (formData.mainImage && typeof formData.mainImage === 'object') ? (formData.mainImage as any)._id : (formData.mainImage || null),
                 media: cleanMedia,
                 skus: cleanSkus
             };
