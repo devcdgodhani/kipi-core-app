@@ -45,4 +45,21 @@ const skuSchema = new Schema<ISkuDocument>(
 
 skuSchema.index({ productId: 1 });
 
+skuSchema.pre('save', function (next) {
+  if (this.productId === ('' as any)) {
+    this.productId = null as any;
+  }
+  if (this.lotId === ('' as any)) {
+    this.lotId = null as any;
+  }
+  if (this.media) {
+    this.media.forEach(m => {
+      if (m.fileStorageId === ('' as any)) {
+        m.fileStorageId = null as any;
+      }
+    });
+  }
+  next();
+});
+
 export const SkuModel = model<ISkuDocument>('Sku', skuSchema);

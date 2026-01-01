@@ -160,13 +160,13 @@ const SkuForm: React.FC = () => {
 
             const cleanMedia = (formData.media || []).map(m => ({
                 ...m,
-                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : m.fileStorageId
+                fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : (m.fileStorageId || null)
             }));
 
             const submitData = {
                 ...formData,
                 skuCode,
-                productId: (formData.productId && typeof formData.productId === 'object') ? (formData.productId as any)._id : formData.productId,
+                productId: (formData.productId && typeof formData.productId === 'object') ? (formData.productId as any)._id : (formData.productId || null),
                 lotId: (formData.lotId && typeof formData.lotId === 'object') ? (formData.lotId as any)._id : (formData.lotId || null),
                 media: cleanMedia
             };

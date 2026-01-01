@@ -52,4 +52,21 @@ const productSchema = new Schema<IProductDocument>(
 productSchema.index({ name: 1 });
 productSchema.index({ categoryIds: 1 });
 
+productSchema.pre('save', function (next) {
+  if (this.mainImage === ('' as any)) {
+    this.mainImage = null as any;
+  }
+  if (this.categoryIds) {
+    this.categoryIds = this.categoryIds.map(id => id === ('' as any) ? null as any : id).filter(id => id !== null);
+  }
+  if (this.media) {
+    this.media.forEach(m => {
+      if (m.fileStorageId === ('' as any)) {
+        m.fileStorageId = null as any;
+      }
+    });
+  }
+  next();
+});
+
 export const ProductModel = model<IProductDocument>('Product', productSchema);
