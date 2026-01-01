@@ -29,10 +29,9 @@ export const FileManagerSelector: React.FC<FileManagerSelectorProps> = ({ isOpen
                 queryFilters.search = searchTerm;
             } else {
                 if (!currentPath) {
-                    queryFilters.storageDir = undefined;
+                    queryFilters.storageDirPath = undefined;
                 } else {
-                    const parts = currentPath.split('/');
-                    queryFilters.storageDir = [parts[parts.length - 1]];
+                    queryFilters.storageDirPath = [currentPath]
                 }
             }
 

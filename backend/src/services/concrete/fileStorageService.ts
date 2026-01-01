@@ -77,24 +77,24 @@ export class FileStorageService
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<{ dirList: IFileDirectoryAttributes[], fileList: IFileStorageAttributes[] }> {
-     let storageDir: string | null | undefined = null;
+     let storageDirPath: any | null | undefined = null;
 
      const fileFilter = { ...filter };
      
     // Handle storageDir
-    if (fileFilter.storageDir === undefined) {
-             storageDir = null;
-             delete fileFilter.storageDir;
+    if (fileFilter.storageDirPath === undefined) {
+             storageDirPath = null;
+             delete fileFilter.storageDirPath;
              // Root filter for files: check both storageDir and storageDirPath for backward compat
              fileFilter.$or = [
-                 { storageDir: '' },
-                 { storageDir: null },
-                 { storageDir: { $exists: false } },
+                 { storageDirPath: '' },
+                 { storageDirPath: null },
+                 { storageDirPath: { $exists: false } },
                
              ];
         
     }  else {
-             storageDir = fileFilter.storageDir as string
+             storageDirPath = fileFilter.storageDirPath as string;
          }
     // Fetch Files
     const query = this.model.find(fileFilter, null, options);
@@ -102,7 +102,7 @@ export class FileStorageService
     const docs = await query.lean<IFileStorageAttributes[]>().exec();
 
     // Fetch Directories
-    const mappedDirs = await FileDirectoryModel.find({ parentPath: storageDir }).lean()
+    const mappedDirs = await FileDirectoryModel.find({ parentPath: storageDirPath ? storageDirPath.$in.pop() : null}).lean()
     
     await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
     
@@ -238,7 +238,7 @@ export class FileStorageService
     let currentPath = '';
 
     for (const part of parts) {
-       const parentPath = currentPath || null;
+       const parentPath = currentPath ? path.basename(currentPath) : null;
        currentPath = currentPath ? `${currentPath}/${part}` : part;
        
        const existing = await FileDirectoryModel.findOne({ path: currentPath });
@@ -326,7 +326,7 @@ export class FileStorageService
     const dir = await FileDirectoryModel.create({
       name, 
       path: fullPath, 
-      parentPath: storageDirPath || null 
+      parentPath: storageDirPath ? path.basename(storageDirPath) : null 
     });
     
     // Return mapped to IFileStorageAttributes
@@ -433,7 +433,10 @@ export class FileStorageService
       }
 
       // 2. Subdirectories
-      const subDirs = await FileDirectoryModel.find({ parentPath: dirPath });
+      const subDirs = await FileDirectoryModel.find({ 
+          parentPath: path.basename(dirPath),
+          path: { $regex: new RegExp('^' + dirPath + '/') }
+      });
       for (const subDir of subDirs) {
           await this.deleteDirectoryRecursively(subDir.path);
           await FileDirectoryModel.deleteOne({ _id: subDir._id });
