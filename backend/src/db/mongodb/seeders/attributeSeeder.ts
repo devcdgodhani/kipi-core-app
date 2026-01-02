@@ -1,5 +1,5 @@
-import AttributeModel from '../models/attributeModel';
-import CategoryModel from '../models/categoryModel';
+import { AttributeModel } from '../models/attributeModel';
+import { CategoryModel } from '../models/categoryModel';
 import slugify from 'slugify';
 import { 
   ATTRIBUTE_STATUS, 
@@ -244,7 +244,7 @@ export const seedAttributes = async () => {
   try {
     // Get all categories
     const categories = await CategoryModel.find({});
-    const categoryMap = new Map(categories.map(cat => [cat.name, cat]));
+    const categoryMap = new Map<string, any>(categories.map((cat: any) => [cat.name, cat]));
 
     for (const attr of commonAttributes) {
       await upsertAttribute(attr, categoryMap);

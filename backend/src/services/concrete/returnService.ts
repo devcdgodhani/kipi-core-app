@@ -81,7 +81,7 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> {
             }
         }
 
-        return this.updateOne({ _id: id }, updateData);
+        return this.model.findByIdAndUpdate({ _id: id }, updateData, { new: true });
     }
 }
 

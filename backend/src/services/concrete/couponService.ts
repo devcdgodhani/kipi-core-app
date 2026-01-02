@@ -1,5 +1,6 @@
 import { CouponModel } from '../../db/mongodb/models/couponModel';
-import { ICouponAttributes, ICouponDocument, COUPON_STATUS } from '../../interfaces/coupon';
+import { ICouponAttributes, ICouponDocument } from '../../interfaces/coupon';
+import { COUPON_STATUS } from '../../constants/coupon';
 import { ICouponService } from '../contracts/couponServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ApiError } from '../../helpers/apiError';
@@ -14,7 +15,7 @@ export class CouponService
     super(CouponModel);
   }
 
-  async validateCoupon(code: string, orderAmount: number, userId?: string | string[]): Promise<ICouponDocument> {
+  async validateCoupon(code: string, orderAmount: number, userId?: string | string[]): Promise<ICouponAttributes> {
     const coupon = await this.findOne({ 
       code: code.toUpperCase(), 
       status: COUPON_STATUS.ACTIVE,
