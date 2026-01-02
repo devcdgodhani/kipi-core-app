@@ -60,3 +60,4 @@ export * from './models/presignedUrlModel';
 export * from './models/fileDirectoryModel';
 export * from './models/productModel';
 export * from './models/skuModel';
+export * from './models/orderModel';

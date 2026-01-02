@@ -1,0 +1,4 @@
+export enum WISHLIST_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}

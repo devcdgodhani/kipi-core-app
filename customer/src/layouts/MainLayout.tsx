@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import CartDrawer from '../components/Cart/CartDrawer';
 
 const MainLayout: React.FC = () => {
     return (
@@ -10,6 +11,7 @@ const MainLayout: React.FC = () => {
             <main className="pt-20 px-4 md:px-8 pb-8 max-w-7xl mx-auto">
                 <Outlet />
             </main>
+            <CartDrawer />
             <ThemeSwitcher />
         </div>
     );

@@ -10,9 +10,22 @@ import {
 } from '../types/sku';
 import { IApiResponse } from '../interfaces';
 import { FileStorageModel, ProductModel, SkuModel } from '../db/mongodb';
+import { FileStorageService } from '../services/concrete/fileStorageService';
 
 export default class SkuController {
   private skuService = new SkuService();
+  private fileStorageService = new FileStorageService();
+
+  private async enrichSkuWithPresignedUrls(sku: any) {
+    if (!sku || !sku.media || !Array.isArray(sku.media)) return;
+    
+    await Promise.all(sku.media.map(async (m: any) => {
+        if (m.fileStorageId && typeof m.fileStorageId === 'object') {
+            await this.fileStorageService.ensurePresignedUrl(m.fileStorageId);
+            m.url = m.fileStorageId.preSignedUrl;
+        }
+    }));
+  }
 
   /*********** Fetch SKUs ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -26,7 +39,7 @@ export default class SkuController {
       let sku = skuDoc as any;
 
       if (sku) {
-          // Sanitize fields that might cause CastError during population if they contain empty strings
+          // Sanitize fields
           if (sku.productId === '') delete sku.productId;
           if (sku.lotId === '') delete sku.lotId;
           if (sku.media) {
@@ -39,12 +52,14 @@ export default class SkuController {
               });
           }
 
-          // Manually perform population on the sanitized object
+          // Manually perform population
           sku = await SkuModel.populate(sku, [
               { path: 'productId', select: 'name productCode' },
               { path: 'variantAttributes.attributeId', select: 'name key label type' },
               { path: 'media.fileStorageId' }
           ]);
+
+          await this.enrichSkuWithPresignedUrls(sku);
       }
 
       const response: TSkuRes = {
@@ -74,6 +89,10 @@ export default class SkuController {
       ];
       const skus = await this.skuService.findAll(filter, options);
 
+      if (Array.isArray(skus)) {
+          await Promise.all(skus.map(s => this.enrichSkuWithPresignedUrls(s)));
+      }
+
       const response: TSkuListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
@@ -94,10 +113,15 @@ export default class SkuController {
       });
 
       options.populate = [
-          { path: 'productId', select: 'name' }
+          { path: 'productId', select: 'name' },
+          { path: 'media.fileStorageId' }
       ];
 
       const skuList = await this.skuService.findAllWithPagination(filter, options);
+
+      if (skuList.recordList && Array.isArray(skuList.recordList)) {
+          await Promise.all(skuList.recordList.map(s => this.enrichSkuWithPresignedUrls(s)));
+      }
 
       const response: TSkuListPaginationRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

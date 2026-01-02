@@ -1,190 +1,193 @@
-import { Request, Response, NextFunction } from 'express';
-import { HTTP_STATUS_CODE } from '../constants';
+import { NextFunction, Request, Response } from 'express';
 import { ProductService } from '../services/concrete/productService';
-import { 
-  TProductCreateReq, 
-  TProductUpdateReq, 
-  TProductRes, 
-  TProductListRes, 
-  TProductListPaginationRes 
-} from '../types/product';
-import { IApiResponse } from '../interfaces';
-import slugify from 'slugify';
-import { FileStorageModel, SkuModel, ProductModel } from '../db/mongodb';
+import { HTTP_STATUS_CODE } from '../constants';
+import { SkuModel } from '../db/mongodb/models/skuModel';
+import { FileStorageService } from '../services/concrete/fileStorageService';
 
 export default class ProductController {
   private productService = new ProductService();
+  private fileStorageService = new FileStorageService();
 
-  /*********** Fetch Products ***********/
-  getOne = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const reqData = { ...req.query, ...req.body };
-      const { filter, options } = this.productService.generateFilter({
-        filters: reqData,
-      });
-      const productDoc = await this.productService.findOne(filter);
-      let product = productDoc as any;
+  private async enrichProductWithPresignedUrls(product: any) {
+    if (!product) return;
 
-      if (product) {
-          // Sanitize fields that might cause CastError during population if they contain empty strings
-          if (product.mainImage === '') delete product.mainImage;
-          if (product.media) {
-              product.media = product.media.map((m: any) => {
-                  if (m.fileStorageId === '') {
-                      const { fileStorageId, ...rest } = m;
-                      return rest;
-                  }
-                  return m;
-              });
-          }
-
-          // Manually perform population on the sanitized object
-          product = await ProductModel.populate(product, [
-              { path: 'categoryIds', select: 'name slug' },
-              { path: 'attributes.attributeId', select: 'name key label type' },
-              { path: 'media.fileStorageId' },
-              { path: 'mainImage' }
-          ]);
-      }
-
-      const response: TProductRes = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
-        code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product fetched successfully',
-        data: product,
-      };
-
-      return res.status(response.status).json(response);
-    } catch (err) {
-      return next(err);
+    // Enrich Main Image
+    if (product.mainImage && typeof product.mainImage === 'object') {
+      await this.fileStorageService.ensurePresignedUrl(product.mainImage);
+      product.mainImage = product.mainImage.preSignedUrl;
     }
-  };
+
+    // Enrich Media
+    if (product.media && Array.isArray(product.media)) {
+      await Promise.all(product.media.map(async (m: any) => {
+        if (m.fileStorageId && typeof m.fileStorageId === 'object') {
+          await this.fileStorageService.ensurePresignedUrl(m.fileStorageId);
+          m.url = m.fileStorageId.preSignedUrl;
+        }
+      }));
+    }
+
+    // Enrich SKUs
+    if (product.skus && Array.isArray(product.skus)) {
+      await Promise.all(product.skus.map(async (sku: any) => {
+        if (sku.media && Array.isArray(sku.media)) {
+          await Promise.all(sku.media.map(async (m: any) => {
+            if (m.fileStorageId && typeof m.fileStorageId === 'object') {
+              await this.fileStorageService.ensurePresignedUrl(m.fileStorageId);
+              m.url = m.fileStorageId.preSignedUrl;
+            }
+          }));
+        }
+      }));
+    }
+  }
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
-      const { filter, options } = this.productService.generateFilter({
-        filters: reqData,
+      const { filter } = this.productService.generateFilter({
+        filters: { ...req.query, ...req.body },
       });
+      const response = await this.productService.findAll(filter, {}, [
+        { path: 'media.fileStorageId' }, 
+        { path: 'mainImage' }
+      ]);
+      
+      if (Array.isArray(response)) {
+        await Promise.all(response.map(p => this.enrichProductWithPresignedUrls(p)));
+      }
 
-      const products = await this.productService.findAll(filter, options);
-
-      const response: TProductListRes = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
+      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Products fetched successfully',
-        data: products as any,
-      };
-      return res.status(response.status).json(response);
+        message: 'Product listing fetched successfully',
+        data: response,
+      });
     } catch (err) {
-      return next(err);
+      next(err);
+    }
+  };
+
+  getOne = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { filter } = this.productService.generateFilter({
+        filters: req.body,
+      });
+      const response = await this.productService.findOne(filter, {}, [
+        { path: 'media.fileStorageId' }, 
+        { path: 'mainImage' }
+      ]);
+      
+      if (response && response._id) {
+          const skus = await SkuModel.find({ productId: response._id })
+            .populate('media.fileStorageId')
+            .lean();
+          (response as any).skus = skus;
+      }
+
+      await this.enrichProductWithPresignedUrls(response);
+
+      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Product fetched successfully',
+        data: response,
+      });
+    } catch (err) {
+      next(err);
     }
   };
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData: any = { ...req.query, ...req.body };
+      
+      if (reqData.sortBy) {
+          const sortOrder = reqData.sortOrder === 'asc' ? 1 : -1;
+          reqData.order = { [reqData.sortBy]: sortOrder };
+          delete reqData.sortBy;
+          delete reqData.sortOrder;
+      }
+
       const { filter, options } = this.productService.generateFilter({
         filters: reqData,
       });
-      
-       options.populate = [
-          { path: 'categoryIds', select: 'name slug' }
-      ];
+      const response = await this.productService.findAllWithPagination(
+        filter,
+        options,
+        [
+          { path: 'media.fileStorageId' }, 
+          { path: 'mainImage' }
+        ]
+      );
 
-      const productList = await this.productService.findAllWithPagination(filter, options);
+      if (response.recordList && Array.isArray(response.recordList)) {
+        await Promise.all(response.recordList.map(p => this.enrichProductWithPresignedUrls(p)));
+      }
 
-      const response: TProductListPaginationRes = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
+      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Products fetched successfully (paginated)',
-        data: productList as any,
-      };
-
-      return res.status(response.status).json(response);
+        message: 'Product listing fetched successfully',
+        data: response,
+      });
     } catch (err) {
-      return next(err);
+      next(err);
     }
   };
 
-  /*********** Create Product ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { skus, ...reqData }: TProductCreateReq = req.body;
-      const slug = slugify(reqData.name, { lower: true });
-      const createData = { ...reqData, slug };
+      const { skus, ...productData } = req.body;
+      const response = await this.productService.create(productData, { userId: req.user?._id });
       
-      const newProduct = await this.productService.create(createData as any, { userId: req.user?._id });
-
-      // Sync SKUs
-      if (skus) {
-          await this.productService.syncSkus(newProduct, skus, req.user?._id);
+      if (skus && Array.isArray(skus)) {
+          await this.productService.syncSkus(response, skus, req.user?._id);
       }
 
-      const response: TProductRes = {
-        status: HTTP_STATUS_CODE.CREATED.STATUS,
+      // Re-fetch to return full structure with URLs?
+      // Optimization: For now just return as is (usually ID). 
+      // User flow usually redirects to listing or details which fetches again.
+      // Or manually enrich if needed. Leaving as is to minimize complexity unless requested.
+
+      res.status(HTTP_STATUS_CODE.CREATED.STATUS).json({
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: 'Product created successfully',
-        data: newProduct as any,
-      };
-      return res.status(response.status).json(response);
+        data: response,
+      });
     } catch (err) {
-      return next(err);
+      next(err);
     }
   };
 
-  /*********** Update Product ***********/
   updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
-      const { skus, ...updateData }: TProductUpdateReq = req.body;
-
-      if (updateData.name) {
-        (updateData as any).slug = slugify(updateData.name, { lower: true });
+      const { skus, ...updateData } = req.body;
+      const response = await this.productService.update({ _id: req.params.id }, updateData);
+      
+      if (skus && Array.isArray(skus)) {
+          await this.productService.syncSkus({ _id: req.params.id }, skus, req.user?._id);
       }
 
-      await this.productService.updateOne({ _id: id }, updateData as any, { userId: req.user?._id });
-
-      // Sync SKUs if provided
-      if (skus) {
-          const product = await this.productService.findById(id);
-          if (product) {
-              await this.productService.syncSkus(product, skus, req.user?._id);
-          }
-      }
-
-      const response: IApiResponse = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
+      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Product updated successfully',
-      };
-      return res.status(response.status).json(response);
+        data: response,
+      });
     } catch (err) {
-      return next(err);
+      next(err);
     }
   };
 
-  /*********** Delete Product ***********/
   deleteByFilter = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = req.body;
-      // Ideally check SKUs before delete? Or cascade delete?
-      // Soft delete usually hides product. SKUs might also need hiding.
-      // For now, simple product delete.
       const { filter } = this.productService.generateFilter({
-        filters: reqData,
+        filters: req.body,
       });
-
-      await this.productService.softDelete(filter, { userId: req.user?._id });
-
-      const response: IApiResponse = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
+      const response = await this.productService.delete(filter);
+      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Product deleted successfully',
-      };
-      return res.status(response.status).json(response);
+        data: response,
+      });
     } catch (err) {
-      return next(err);
+      next(err);
     }
   };
 }

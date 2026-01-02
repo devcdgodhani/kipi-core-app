@@ -5,9 +5,11 @@ import { useAppSelector, useAppDispatch } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
 import { authService } from '../../services/auth.service';
 import { ROUTES } from '../../routes/routeConfig';
+import { useCart } from '../../context/CartContext';
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
+    const { openCart, cart } = useCart();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,8 +72,16 @@ const Navbar: React.FC = () => {
 
                 {/* Right Actions & Mobile Toggle */}
                 <div className="flex items-center gap-4">
-                    <button className="text-gray-600 hover:text-primary transition-colors">
+                    <button
+                        className="text-gray-600 hover:text-primary transition-colors relative"
+                        onClick={openCart}
+                    >
                         <ShoppingCart size={20} />
+                        {cart && cart.items.length > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                                {cart.items.length}
+                            </span>
+                        )}
                     </button>
 
                     {/* Desktop Profile Dropdown */}

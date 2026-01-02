@@ -1,0 +1,5 @@
+export enum CART_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ABANDONED = 'ABANDONED',
+}

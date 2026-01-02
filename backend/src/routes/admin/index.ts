@@ -11,6 +11,10 @@ import attributeRoutes from './attributeRoutes';
 import productRoutes from './productRoutes';
 import skuRoutes from './skuRoutes';
 import fileStorageRoutes from './fileStorageRoutes';
+import cartRoutes from './cartRoutes';
+import wishlistRoutes from './wishlistRoutes';
+import reviewRoutes from './reviewRoutes';
+import addressRoutes from './addressRoutes';
 
 import { jwtAuth } from '../../middlewares';
 
@@ -23,6 +27,10 @@ router.use('/attribute', jwtAuth(), attributeRoutes);
 router.use('/product', jwtAuth(), productRoutes);
 router.use('/sku', jwtAuth(), skuRoutes);
 router.use('/file-storage', jwtAuth(), fileStorageRoutes);
+router.use('/cart', jwtAuth(), cartRoutes);
+router.use('/wishlist', jwtAuth(), wishlistRoutes);
+router.use('/review', jwtAuth(), reviewRoutes);
+router.use('/address', jwtAuth(), addressRoutes);
 
 
 export default router;
