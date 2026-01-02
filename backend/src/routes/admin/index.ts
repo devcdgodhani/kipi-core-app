@@ -18,6 +18,7 @@ import addressRoutes from './addressRoutes';
 import couponRoutes from './couponRoutes';
 import orderRoutes from './orderRoutes';
 import returnRoutes from './returnRoutes';
+import inventoryAuditRoutes from './inventoryAuditRoutes';
 
 import { jwtAuth } from '../../middlewares';
 
@@ -36,6 +37,8 @@ router.use('/review', jwtAuth(), reviewRoutes);
 router.use('/address', jwtAuth(), addressRoutes);
 router.use('/coupon', jwtAuth(), couponRoutes);
 router.use('/order', jwtAuth(), orderRoutes);
+router.use('/return', jwtAuth(), returnRoutes);
+router.use('/inventory-audit', jwtAuth(), inventoryAuditRoutes);
 
 
 export default router;

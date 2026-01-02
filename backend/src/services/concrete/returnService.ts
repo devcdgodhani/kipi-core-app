@@ -4,6 +4,8 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { RETURN_STATUS } from '../../constants/return';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
+import { inventoryAuditService } from './inventoryAuditService';
+import { SkuModel } from '../../db/mongodb';
 
 export class ReturnService extends MongooseCommonService<IReturn, IReturn> {
     constructor() {
@@ -52,6 +54,32 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> {
         };
 
         if (adminNotes) updateData.adminNotes = adminNotes;
+
+        // --- PHASE 3: RESTOCKING LOGIC ---
+        if (status === RETURN_STATUS.COMPLETED && returnRequest.status !== RETURN_STATUS.COMPLETED) {
+            for (const item of returnRequest.items) {
+                if (item.skuId) {
+                    const sku = await SkuModel.findById(item.skuId);
+                    if (sku) {
+                        const previousQuantity = sku.quantity;
+                        sku.quantity += item.quantity;
+                        await sku.save();
+
+                        // Log Inventory Audit
+                        await inventoryAuditService.logAdjustment({
+                            skuId: item.skuId.toString(),
+                            transactionType: 'RETURN_RESTOCK',
+                            changeQuantity: item.quantity,
+                            previousQuantity,
+                            newQuantity: sku.quantity,
+                            referenceId: id as any,
+                            referenceType: 'ORDER', // We use ORDER ref for returns for now as they are linked
+                            reason: `Return #${returnRequest.returnNumber} completed`
+                        });
+                    }
+                }
+            }
+        }
 
         return this.updateOne({ _id: id }, updateData);
     }

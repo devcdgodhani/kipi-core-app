@@ -11,6 +11,7 @@ import {
 import { IApiResponse } from '../interfaces';
 import { FileStorageModel, ProductModel, SkuModel } from '../db/mongodb';
 import { FileStorageService } from '../services/concrete/fileStorageService';
+import { inventoryAuditService } from '../services/concrete/inventoryAuditService';
 
 export default class SkuController {
   private skuService = new SkuService();
@@ -160,6 +161,24 @@ export default class SkuController {
     try {
       const { id } = req.params;
       const updateData: TSkuUpdateReq = req.body;
+
+      // --- INVENTORY AUDIT: MANUAL ADJUSTMENT ---
+      if (updateData.quantity !== undefined) {
+        const existingSku = await SkuModel.findById(id);
+        if (existingSku && existingSku.quantity !== updateData.quantity) {
+          const delta = updateData.quantity - existingSku.quantity;
+          await inventoryAuditService.logAdjustment({
+            skuId: id,
+            transactionType: 'ADMIN_ADJUSTMENT',
+            changeQuantity: delta,
+            previousQuantity: existingSku.quantity,
+            newQuantity: updateData.quantity,
+            referenceId: (req as any).user?._id,
+            referenceType: 'USER',
+            reason: 'Manual stock adjustment by admin'
+          });
+        }
+      }
 
       await this.skuService.updateOne({ _id: id }, updateData as any, { userId: req.user?._id });
 
