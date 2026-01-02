@@ -19,6 +19,8 @@ export interface IUserAttributes extends IDefaultAttributes {
   status: USER_STATUS;
   loyaltyPoints: number;
   totalEarnedPoints: number;
+  dob?: Date;
+  pointsExpiryDate?: Date;
 }
 
 export interface IUserDocument extends Omit<IUserAttributes, '_id'>, Document {}

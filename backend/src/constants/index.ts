@@ -8,3 +8,5 @@ export * from './successMessages';
 export * from './product';
 export * from './sku';
 export * from './coupon';
+export * from './order';
+export * from './analytic';

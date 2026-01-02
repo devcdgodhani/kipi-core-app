@@ -32,6 +32,8 @@ export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAtt
     user.loyaltyPoints = newBalance;
     if (points > 0) {
       user.totalEarnedPoints += points;
+      // Points expire 1 year from now
+      user.pointsExpiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     }
     await user.save();
 
@@ -60,3 +62,5 @@ export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAtt
     return this.findAllWithPagination({ userId }, options);
   }
 }
+
+export const loyaltyService = new LoyaltyService();

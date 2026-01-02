@@ -20,6 +20,7 @@ import orderRoutes from './orderRoutes';
 import returnRoutes from './returnRoutes';
 import inventoryAuditRoutes from './inventoryAuditRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
+import { analyticsRoutes } from './analyticsRoutes';
 
 import { jwtAuth } from '../../middlewares';
 
@@ -41,6 +42,7 @@ router.use('/order', jwtAuth(), orderRoutes);
 router.use('/return', jwtAuth(), returnRoutes);
 router.use('/inventory-audit', jwtAuth(), inventoryAuditRoutes);
 router.use('/loyalty', jwtAuth(), loyaltyRoutes);
+router.use('/analytics', jwtAuth(), analyticsRoutes);
 
 
 export default router;

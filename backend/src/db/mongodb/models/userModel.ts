@@ -78,6 +78,14 @@ export const UserSchema = new Schema<IUserDocument>(
       type: Number,
       default: 0,
       min: 0
+    },
+    dob: {
+      type: Date,
+      required: false
+    },
+    pointsExpiryDate: {
+      type: Date,
+      required: false
     }
   },
   {

@@ -6,6 +6,7 @@ import { CouponService } from './couponService';
 import { inventoryAuditService } from './inventoryAuditService';
 import { logisticsService } from './logisticsService';
 import { LoyaltyService } from './loyaltyService';
+import { pulseService } from './pulseService';
 import { COUPON_TYPE } from '../../constants/coupon';
 import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
 import { ApiError } from '../../helpers/apiError';
@@ -15,6 +16,7 @@ import mongoose from 'mongoose';
 export class OrderService extends MongooseCommonService<IOrder, any> {
   private couponService = new CouponService();
   private loyaltyService = new LoyaltyService();
+  private pulseService = pulseService;
 
   constructor() {
     super(OrderModel);
@@ -240,6 +242,12 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
                 `Earned from Order #${order.orderNumber}`,
                 orderId
             );
+        }
+        
+        // Pulse Engagement: Feedback request & Points Notification
+        await this.pulseService.triggerFeedbackRequest(order);
+        if (points > 0) {
+            await this.pulseService.triggerLoyaltyAccretionPulse(order.userId.toString(), points, order.orderNumber);
         }
     }
 

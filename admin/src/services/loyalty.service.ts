@@ -7,7 +7,7 @@ export const loyaltyService = {
      * Get global or user-specific point ledger
      */
     getLedger: async (params?: any) => {
-        const response: any = await http.post(`${LOYALTY_BASE_URL}/admin/ledger`, params);
+        const response: any = await http.post(`${LOYALTY_BASE_URL}/ledger`, params);
         return response.data;
     }
 };

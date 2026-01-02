@@ -169,19 +169,26 @@ export class WhatsAppService extends MongooseCommonService<IWhatsAppSessionAttri
   }
 
   async sendOtpViaWhatsApp(mobile: string, otp: string) {
+      const message = `Your OTP for ${APP_DETAILS.APP_NAME} is: ${otp}. Valid for 5 minutes.`;
+      await this.sendAutomatedMessage(mobile, message);
+  }
+
+  /**
+   * Generic method to send automated messages using any active session
+   */
+  async sendAutomatedMessage(mobile: string, message: string) {
       try {
           // Find any active/connected session
           const activeSession = await this.findOne({ status: WHATSAPP_SESSION_STATUS.CONNECTED });
           if (!activeSession) {
-              console.log('No active WhatsApp session found to send OTP');
+              console.log('No active WhatsApp session found to send automated message');
               return;
           }
 
-          const message = `Your OTP for ${APP_DETAILS.APP_NAME} is: ${otp}. Valid for 5 minutes.`;
           await this.sendMessage(activeSession._id.toString(), mobile, message);
-          console.log(`OTP sent to ${mobile} via WhatsApp session: ${activeSession.name}`);
+          console.log(`Automated message sent to ${mobile} via WhatsApp session: ${activeSession.name}`);
       } catch (err) {
-          console.error('Error sending WhatsApp OTP:', err);
+          console.error('Error sending Automated WhatsApp message:', err);
       }
   }
 }

@@ -1,4 +1,4 @@
-import CategoryModel from '../models/categoryModel';
+import { CategoryModel } from '../models/categoryModel';
 import slugify from 'slugify';
 import { CATEGORY_STATUS } from '../../../constants';
 

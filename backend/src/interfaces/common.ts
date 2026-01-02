@@ -105,3 +105,15 @@ export interface IEmailOptions {
     path: string;
   }[];
 }
+
+import { Request } from 'express';
+import { IUserAttributes } from './user';
+
+export interface IRequestExtension {
+  user?: IUserAttributes;
+  files?: any;
+  file?: any;
+  // Add other custom properties if needed
+}
+
+export type IRequest = Request & IRequestExtension;

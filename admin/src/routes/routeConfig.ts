@@ -34,6 +34,7 @@ export const ROUTES = {
         FILE_MANAGER: 'file-manager',
         INVENTORY_AUDIT: 'inventory-audit',
         LOYALTY: 'loyalty',
+        ANALYTICS: 'analytics',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',

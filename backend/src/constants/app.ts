@@ -26,7 +26,8 @@ export enum EMAIL_SUBJECT_MESSAGE {
 
 export const APP_DETAILS = {
   SUPPORT_EMAIL: 'support@myapp.com',
-  APP_NAME: 'My app',
+  APP_NAME: 'Kipi.shop',
+  CUSTOMER_URL: ENV_VARIABLE.WEB_SERVER_URL,
 };
 
 export const MASTER_OTP = '55555555';
