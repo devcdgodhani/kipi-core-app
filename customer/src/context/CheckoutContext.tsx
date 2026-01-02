@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Address } from '../types/address.types';
-import type { CheckoutState, CreateOrderRequest } from '../types/checkout.types';
-import { checkoutService } from '../services/checkout.service';
+import type { CheckoutState } from '../types/checkout.types';
+import type { CreateOrderRequest } from '../types/order.types';
+import { orderService } from '../services/order.service';
 import { useCart } from './CartContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -36,7 +37,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const calculateTotal = () => {
         if (!cart || !cart.items) return 0;
         return cart.items.reduce((acc, item) => {
-            const price = (item.sku?.salePrice || item.sku?.basePrice || item.product.salePrice || item.product.basePrice) || 0;
+            const price = item.sku?.salePrice || item.sku?.basePrice || item.product?.salePrice || item.product?.basePrice || 0;
             return acc + (price * item.quantity);
         }, 0);
     };
@@ -89,21 +90,39 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             const orderData: CreateOrderRequest = {
                 items,
-                shippingAddress: state.selectedAddress,
-                billingAddress: state.selectedAddress,
+                shippingAddress: {
+                    name: state.selectedAddress.name,
+                    mobile: state.selectedAddress.mobile,
+                    street: state.selectedAddress.street,
+                    city: state.selectedAddress.city,
+                    state: state.selectedAddress.state,
+                    country: state.selectedAddress.country,
+                    pincode: state.selectedAddress.pincode,
+                    landmark: state.selectedAddress.landmark
+                },
+                billingAddress: {
+                    name: state.selectedAddress.name,
+                    mobile: state.selectedAddress.mobile,
+                    street: state.selectedAddress.street,
+                    city: state.selectedAddress.city,
+                    state: state.selectedAddress.state,
+                    country: state.selectedAddress.country,
+                    pincode: state.selectedAddress.pincode,
+                    landmark: state.selectedAddress.landmark
+                },
                 paymentMethod: state.paymentMethod,
                 subTotal: state.orderSummary.subTotal,
                 tax: state.orderSummary.tax,
                 shippingCost: state.orderSummary.shipping,
-                totalAmount: state.orderSummary.total,
-                notes: ''
+                totalAmount: state.orderSummary.total
             };
 
-            const order = await checkoutService.createOrder(orderData);
+            const order = await orderService.create(orderData);
 
             toast.success("Order placed successfully!");
             await clearCart();
-            navigate(`/orders/${order._id}?success=true`);
+            // Navigate to Success Page
+            navigate(`/order/success/${order._id}`);
 
         } catch (error) {
             console.error(error);

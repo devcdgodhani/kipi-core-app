@@ -1,7 +1,8 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy } from '../lazy';
+
 import { ROUTES } from '../routeConfig';
 
 export const privateRoutes: RouteObject = {
@@ -48,6 +49,11 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.ORDERS,
                     element: <ManageOrdersLazy />,
                 },
+                {
+                    path: ROUTES.DASHBOARD.REVIEWS,
+                    element: <ManageReviewsLazy />,
+                },
+
                 {
                     path: ROUTES.DASHBOARD.USERS,
                     element: <ManageUsersLazy />,

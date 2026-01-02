@@ -19,6 +19,8 @@ export default class CartController {
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
+      if (req.user?._id) reqData.userId = req.user._id;
+
       const { filter, options } = this.cartService.generateFilter({
         filters: reqData,
       });
@@ -93,7 +95,7 @@ export default class CartController {
   /*********** Create cart ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const cartData = req.body;
+      const cartData = { ...req.body, userId: req.user?._id };
       const newCart = await this.cartService.create(cartData, { userId: req.user?._id });
 
       const response: IApiResponse<ICartAttributes> = {

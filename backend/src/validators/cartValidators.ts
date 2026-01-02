@@ -21,7 +21,7 @@ const cartItemSchema = z.object({
 });
 
 const cartCreateSchema = z.object({
-  userId: z.string(),
+  userId: z.string().optional(),
   items: z.array(cartItemSchema),
   status: z.string().optional(),
 }).strict();

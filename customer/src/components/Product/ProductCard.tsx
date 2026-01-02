@@ -1,6 +1,10 @@
 import React from 'react';
 import type { Product } from '../../types/product.types';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import WishlistButton from '../Wishlist/WishlistButton';
+import { ShoppingCart as CartIcon, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductCardProps {
     product: Product;
@@ -8,18 +12,38 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const navigate = useNavigate();
+    const { addItem } = useCart();
+    const [adding, setAdding] = useState(false);
 
-    const displayPrice = product.offerPrice || product.salePrice || product.basePrice;
-    const hasDiscount = product.offerPrice || product.salePrice;
+    const displayPrice = product.offerPrice || product.salePrice || product.basePrice || 0;
+    const hasDiscount = !!((product.offerPrice || product.salePrice) && (product.offerPrice || product.salePrice || 0) < product.basePrice);
+
     const discountPercentage = hasDiscount
         ? Math.round(((product.basePrice - displayPrice) / product.basePrice) * 100)
         : 0;
 
-    const mainImageUrl = product.media.find(m => m.status === 'ACTIVE')?.url || '/placeholder-product.png';
+    const mainImageUrl = product.mainImage || product.media.find(m => m.status === 'ACTIVE')?.url || '/placeholder-product.png';
 
     const handleClick = () => {
         navigate(`/products/${product.slug}`);
     };
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setAdding(true);
+        try {
+            await addItem({
+                productId: product._id,
+                skuId: product._id, // Fallback to product._id if skuId is not available
+                quantity: 1,
+            } as any);
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        } finally {
+            setAdding(false);
+        }
+    };
+
 
     return (
         <div
@@ -36,10 +60,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 {/* Discount Badge */}
                 {hasDiscount && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
                         {discountPercentage}% OFF
                     </div>
                 )}
+
+                {/* Wishlist Button Overlay */}
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                        <WishlistButton productId={product._id} size={18} />
+                    </div>
+                </div>
+
 
                 {/* Out of Stock Overlay */}
                 {product.stock === 0 && (
@@ -78,17 +110,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 {/* Add to Cart Button */}
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        // Will integrate with CartContext later
-                        console.log('Add to cart:', product._id);
-                    }}
-                    disabled={product.stock === 0}
-                    className="w-full mt-3 py-2 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    onClick={handleAddToCart}
+                    disabled={product.stock === 0 || adding}
+                    className="w-full mt-3 py-2.5 px-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
                 >
-                    {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    {adding ? (
+                        <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                        <>
+                            <CartIcon size={16} />
+                            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </>
+                    )}
                 </button>
             </div>
+
         </div>
     );
 };

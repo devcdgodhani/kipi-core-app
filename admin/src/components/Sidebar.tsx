@@ -1,6 +1,5 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, Package, ShoppingCart, Users, X, Layers, Tags, Sliders, Box, HardDrive } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Package, ShoppingCart, Users, X, Layers, Tags, Sliders, Box, HardDrive, Star } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 interface SidebarProps {
@@ -21,6 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         { to: '/lots', label: 'Lots', icon: Layers },
         { to: '/file-manager', label: 'File Manager', icon: HardDrive },
         { to: '/orders', label: 'Orders', icon: ShoppingCart },
+        { to: '/reviews', label: 'Reviews', icon: Star },
         { to: '/users', label: 'Users', icon: Users },
     ];
 
