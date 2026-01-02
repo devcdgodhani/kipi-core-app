@@ -12,7 +12,7 @@ const wishlistItemSchema = new Schema(
 
 export const WishlistSchema = new Schema<IWishlistDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, unique: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, unique: true },
     products: [wishlistItemSchema],
     status: { 
       type: String, 

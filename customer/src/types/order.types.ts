@@ -34,6 +34,11 @@ export interface Order {
   tax: number;
   shippingCost: number;
   totalAmount: number;
+  timeline?: {
+    status: string;
+    timestamp: string;
+    message: string;
+  }[];
   notes?: string;
   createdAt: string;
   updatedAt: string;

@@ -12,7 +12,7 @@ const locationSchema = new Schema(
 
 export const AddressSchema = new Schema<IAddressDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
     name: { type: String, required: true, maxLength: 100 },
     mobile: { type: String, required: true, maxLength: 15 },
     alternateMobile: { type: String, maxLength: 15 },
