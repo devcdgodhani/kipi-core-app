@@ -1,7 +1,7 @@
 import { FilterQuery, UpdateQuery, ClientSession, MongooseUpdateQueryOptions } from 'mongoose';
 import { ObjectId } from 'mongoose';
 import { ILotAttributes, ILotDocument } from '../../interfaces/lot';
-import LotModel from '../../db/mongodb/models/lotModel';
+import { LotModel } from '../../db/mongodb/models/lotModel';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ILotService } from '../contracts/lotServiceInterface';
 

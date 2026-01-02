@@ -11,9 +11,12 @@ import {
 } from '../types/category';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
+import { CategoryModel } from '../db/mongodb';
+import { FileStorageService } from '../services/concrete/fileStorageService';
 
 export default class CategoryController {
   private categoryService = new CategoryService();
+  private fileStorageService = new FileStorageService();
 
   /*********** Fetch Categories ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +26,14 @@ export default class CategoryController {
         filters: reqData,
       });
 
-      const category = await this.categoryService.findOne(filter, options);
+      const categoryDoc = await this.categoryService.findOne(filter, options);
+      let category = categoryDoc as any;
+
+      if (category) {
+          if (category.image === '') delete category.image;
+          category = await CategoryModel.populate(category, { path: 'image' });
+          if (category.image) await this.fileStorageService.ensurePresignedUrl(category.image);
+      }
 
       const response: TCategoryRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -56,7 +66,12 @@ export default class CategoryController {
         return res.status(response.status).json(response);
       }
 
-      const categories = await this.categoryService.findAll(filter, options);
+      let categories = await this.categoryService.findAll(filter, options);
+      
+      categories = await CategoryModel.populate(categories, { path: 'image' });
+      await Promise.all(categories.map(async (c: any) => {
+          if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
+      }));
 
       const response: TCategoryListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -78,9 +93,18 @@ export default class CategoryController {
       });
 
       // Populate parent details
-      options.populate = [{ path: 'parentId', select: 'name slug' }];
-
+      options.populate = [
+          { path: 'parentId', select: 'name slug' },
+          { path: 'image' }
+      ];
+ 
       const categoryList = await this.categoryService.findAllWithPagination(filter, options);
+ 
+      if (categoryList && categoryList.recordList) {
+          await Promise.all(categoryList.recordList.map(async (c: any) => {
+              if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
+          }));
+      }
 
       const response: TCategoryListPaginationRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

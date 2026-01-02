@@ -8,7 +8,7 @@ const categorySchema = new Schema<ICategoryDocument>(
     slug: { type: String, required: true, unique: true },
     parentId: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
     description: { type: String },
-    image: { type: String },
+    image: { type: Schema.Types.ObjectId, ref: 'FileStorage' },
     status: { type: String, enum: Object.values(CATEGORY_STATUS), default: CATEGORY_STATUS.ACTIVE },
     order: { type: Number, default: 0 },
     attributeIds: [{ type: Schema.Types.ObjectId, ref: 'Attribute' }],
@@ -22,6 +22,4 @@ const categorySchema = new Schema<ICategoryDocument>(
 // Index for tree and search
 categorySchema.index({ parentId: 1, name: 1 });
 
-const CategoryModel = model<ICategoryDocument>('Category', categorySchema);
-
-export default CategoryModel;
+export const CategoryModel = model<ICategoryDocument>('Category', categorySchema);

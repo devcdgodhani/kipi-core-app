@@ -8,7 +8,7 @@ export interface ICategoryAttributes extends IDefaultAttributes {
   slug: string;
   parentId?: ObjectId; // Ref to Category (Self Reference)
   description?: string;
-  image?: string;
+  image?: any; // Changed to ref FileStorage
   status: CATEGORY_STATUS;
   order: number;
   attributeIds?: ObjectId[]; // Ref to Attribute

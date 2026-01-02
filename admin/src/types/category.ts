@@ -14,7 +14,7 @@ export interface ICategory {
     slug: string;
   };
   description?: string;
-  image?: string;
+  image?: any; // Changed from string to any (FileStorage object)
   status: CATEGORY_STATUS;
   order: number;
   createdAt: string;

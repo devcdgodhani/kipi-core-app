@@ -1,5 +1,5 @@
 import { ICategoryAttributes, ICategoryDocument } from '../../interfaces/category';
-import CategoryModel from '../../db/mongodb/models/categoryModel';
+import { CategoryModel } from '../../db/mongodb/models/categoryModel';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ICategoryService } from '../contracts/categoryServiceInterface';
 import { ITreeNode } from '../../types/category';

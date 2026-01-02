@@ -64,6 +64,4 @@ attributeSchema.index({ status: 1 });
 attributeSchema.index({ isVariant: 1 });
 attributeSchema.index({ isFilterable: 1 });
 
-const AttributeModel = model<IAttributeDocument>('Attribute', attributeSchema);
-
-export default AttributeModel;
+export const AttributeModel = model<IAttributeDocument>('Attribute', attributeSchema);

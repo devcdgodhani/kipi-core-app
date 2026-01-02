@@ -178,8 +178,8 @@ const CategoryList: React.FC = () => {
             align: 'center',
             render: (cat) => (
                 <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden mx-auto">
-                    {cat.image ? (
-                        <img src={cat.image} alt="" className="w-full h-full object-cover" />
+                    {cat.image?.preSignedUrl ? (
+                        <img src={cat.image.preSignedUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
                         <ImageIcon size={18} className="text-gray-300" />
                     )}
