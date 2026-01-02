@@ -39,6 +39,8 @@ export interface Order {
     timestamp: string;
     message: string;
   }[];
+  couponCode?: string;
+  discountAmount?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;

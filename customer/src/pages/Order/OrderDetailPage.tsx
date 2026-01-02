@@ -18,6 +18,7 @@ import { orderService } from '../../services/order.service';
 import { ReturnRequestModal } from '../../components/return/ReturnRequestModal';
 import type { Order } from '../../types/order.types';
 import { format } from 'date-fns';
+import { ROUTES } from '../../routes/routeConfig';
 
 const OrderDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -295,6 +296,7 @@ const OrderDetailPage: React.FC = () => {
 
                         <div className="px-4">
                             <button
+                                onClick={() => navigate(ROUTES.INVOICE.replace(':id', order._id))}
                                 className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200"
                             >
                                 <FileText size={18} />

@@ -3,7 +3,7 @@ import { publicRoutes } from './public/publicRoutes';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy } from './lazy';
 
 import { ROUTES } from './routeConfig';
 
@@ -48,6 +48,10 @@ const router = createBrowserRouter([
                     {
                         path: ROUTES.ORDER_DETAILS,
                         element: <OrderDetailsLazy />,
+                    },
+                    {
+                        path: ROUTES.INVOICE,
+                        element: <InvoiceLazy />,
                     },
                     {
                         path: ROUTES.ORDER_SUCCESS,

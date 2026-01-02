@@ -11,6 +11,7 @@ export const AddressesLazy = lazy(() => import('../../pages/Address/ManageAddres
 export const CheckoutLazy = lazy(() => import('../../pages/Checkout/CheckoutPage'));
 export const OrdersLazy = lazy(() => import('../../pages/Order/MyOrdersPage'));
 export const OrderDetailsLazy = lazy(() => import('../../pages/Order/OrderDetailPage'));
+export const InvoiceLazy = lazy(() => import('../../pages/Order/InvoicePage'));
 export const OrderSuccessLazy = lazy(() => import('../../pages/Order/OrderSuccessPage'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
 export const ChangePasswordLazy = lazy(() => import('../../pages/Auth/ChangePassword'));
