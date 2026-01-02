@@ -7,3 +7,4 @@ export * from './httpStatusAndCode';
 export * from './successMessages';
 export * from './product';
 export * from './sku';
+export * from './coupon';

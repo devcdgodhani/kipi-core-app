@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageCouponsLazy, ManageCouponFormLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -52,6 +52,18 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.REVIEWS,
                     element: <ManageReviewsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.COUPONS,
+                    element: <ManageCouponsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.COUPONS_CREATE,
+                    element: <ManageCouponFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.COUPONS_EDIT,
+                    element: <ManageCouponFormLazy />,
                 },
 
                 {

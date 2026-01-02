@@ -30,6 +30,8 @@ export interface IOrder {
   paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   orderStatus: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
   subTotal: number;
+  couponCode?: string;
+  discountAmount?: number;
   tax: number;
   shippingCost: number;
   totalAmount: number;
@@ -38,7 +40,7 @@ export interface IOrder {
   updatedAt?: Date;
 }
 
-export type TOrderCreateReq = Omit<IOrder, 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId'>;
+export type TOrderCreateReq = Omit<IOrder, 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId' | 'orderStatus' | 'paymentStatus' | 'totalAmount' | 'subTotal'>;
 
 export type TOrderUpdateReq = Partial<IOrder>;
 

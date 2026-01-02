@@ -10,6 +10,7 @@ import cartRoutes from './cartRoutes';
 import wishlistRoutes from './wishlistRoutes';
 import reviewRoutes from './reviewRoutes';
 import addressRoutes from './addressRoutes';
+import couponRoutes from './couponRoutes';
 import skuRoutes from './skuRoutes';
 import orderRoutes from './orderRoutes';
 
@@ -20,6 +21,7 @@ router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/review', reviewRoutes);
 router.use('/address', addressRoutes);
+router.use('/coupon', couponRoutes);
 router.use('/sku', skuRoutes);
 router.use('/order', orderRoutes);
 

@@ -13,6 +13,9 @@ export const ROUTES = {
         SKUS_EDIT: 'skus/edit/:id',
         ORDERS: 'orders',
         REVIEWS: 'reviews',
+        COUPONS: 'coupons',
+        COUPONS_CREATE: 'coupons/create',
+        COUPONS_EDIT: 'coupons/edit/:id',
 
         USERS: 'users',
         USERS_CREATE: 'users/create',

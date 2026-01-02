@@ -2,22 +2,35 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Table, type Column } from '../../components/common/Table';
 import { orderService } from '../../services/order.service';
 import type { Order } from '../../types/order.types';
-import { Search, Filter, RotateCcw, Package, CreditCard, Banknote, Clock, Truck, CheckCircle, XCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import {
+    Search,
+    RotateCcw,
+    CreditCard,
+    Banknote,
+    Ticket,
+    Eye,
+    ShoppingCart
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
+
+const TABS = [
+    { label: 'All Orders', value: 'ALL' },
+    { label: 'Pending', value: 'PENDING' },
+    { label: 'Confirmed', value: 'CONFIRMED' },
+    { label: 'Processing', value: 'PROCESSING' },
+    { label: 'Shipped', value: 'SHIPPED' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Cancelled', value: 'CANCELLED' },
+];
 
 const ManageOrders: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('ALL');
     const [filters, setFilters] = useState<any>({
         search: '',
-        orderStatus: undefined,
-        paymentStatus: undefined,
         page: 1,
         limit: 10,
-        isPaginate: true,
         populate: ['userId']
     });
 
@@ -30,29 +43,37 @@ const ManageOrders: React.FC = () => {
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await orderService.getAll(filters);
-            if (response && response.data) {
-                setOrders(response.data.recordList);
+            const queryParams = {
+                ...filters,
+                orderStatus: activeTab === 'ALL' ? undefined : activeTab
+            };
+            const response = await orderService.getAll(queryParams);
+            if (response) {
+                setOrders(response.recordList || []);
                 setPagination({
-                    totalRecords: response.data.totalRecords,
-                    totalPages: response.data.totalPages,
-                    currentPage: response.data.currentPage
+                    totalRecords: response.totalRecords || 0,
+                    totalPages: response.totalPages || 0,
+                    currentPage: response.currentPage || 1
                 });
             }
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to fetch orders');
+            console.error('Fetch error:', err);
+            toast.error('Failed to fetch orders');
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, activeTab]);
 
     useEffect(() => {
-        fetchOrders();
+        const timer = setTimeout(() => {
+            fetchOrders();
+        }, 300);
+        return () => clearTimeout(timer);
     }, [fetchOrders]);
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
-            await orderService.update(id, { orderStatus: newStatus as any });
+            await orderService.updateStatus(id, newStatus);
             toast.success(`Order marked as ${newStatus}`);
             fetchOrders();
         } catch (err: any) {
@@ -60,75 +81,63 @@ const ManageOrders: React.FC = () => {
         }
     };
 
-    const filterFields: FilterField[] = [
-        {
-            key: 'orderStatus',
-            label: 'Order Status',
-            type: 'select',
-            multiple: true,
-            options: [
-                { label: 'Pending', value: 'PENDING' },
-                { label: 'Confirmed', value: 'CONFIRMED' },
-                { label: 'Processing', value: 'PROCESSING' },
-                { label: 'Shipped', value: 'SHIPPED' },
-                { label: 'Delivered', value: 'DELIVERED' },
-                { label: 'Cancelled', value: 'CANCELLED' }
-            ]
-        },
-        {
-            key: 'paymentStatus',
-            label: 'Payment Status',
-            type: 'select',
-            options: [
-                { label: 'Pending', value: 'PENDING' },
-                { label: 'Completed', value: 'COMPLETED' },
-                { label: 'Failed', value: 'FAILED' }
-            ]
-        }
-    ];
-
     const columns: Column<Order>[] = [
         {
-            header: 'Order Info',
+            header: 'Order Details',
             key: 'orderNumber',
-            render: (order) => (
-                <div className="flex flex-col">
-                    <span className="font-mono font-bold text-gray-900 group-hover:text-primary transition-colors">#{order.orderNumber}</span>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">ID: {order._id.slice(-6)}</span>
-                </div>
-            )
+            render: (order) => {
+                const date = new Date(order.createdAt);
+                return (
+                    <div className="flex items-center gap-4 py-1">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/10 shadow-inner">
+                            <ShoppingCart size={20} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 leading-tight">#{order.orderNumber}</span>
+                            <span className="text-[10px] text-gray-400 uppercase font-mono mt-1">
+                                {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        </div>
+                    </div>
+                );
+            }
         },
         {
             header: 'Customer',
             key: 'user',
             render: (order) => (
-                <div className="flex flex-col">
+                <div className="flex flex-col py-1">
                     <span className="font-bold text-gray-900 leading-tight">
                         {order.userId?.firstName} {order.userId?.lastName}
                     </span>
-                    <span className="text-xs text-gray-500">{order.userId?.email}</span>
+                    <span className="text-xs font-semibold text-gray-500 mt-1">{order.userId?.email}</span>
                 </div>
             )
         },
         {
-            header: 'Order Details',
-            key: 'details',
+            header: 'Amount & Method',
+            key: 'amount',
             render: (order) => (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-primary">₹{order.totalAmount.toFixed(2)}</span>
-                        <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-black text-gray-500 uppercase">{order.items.length} Items</span>
+                <div className="flex flex-col py-1">
+                    <div className="flex items-center gap-1.5 font-black text-primary text-base">
+                        <span>₹{order.totalAmount.toFixed(2)}</span>
+                        {order.couponCode && (
+                            <span className="text-[9px] bg-rose-50 text-rose-500 px-1.5 py-0.5 rounded-md border border-rose-100 flex items-center gap-0.5" title={`Coupon: ${order.couponCode}`}>
+                                <Ticket size={10} />
+                                -₹{order.discountAmount?.toFixed(0)}
+                            </span>
+                        )}
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                        {order.paymentMethod === 'ONLINE' ? <CreditCard size={12} /> : <Banknote size={12} />}
-                        {order.paymentMethod} • {order.paymentStatus}
+                    <div className="flex items-center gap-2 mt-1 px-2 py-0.5 bg-gray-50 rounded-lg border border-gray-100 w-fit">
+                        {order.paymentMethod === 'ONLINE' ? <CreditCard size={10} className="text-primary/60" /> : <Banknote size={10} className="text-primary/60" />}
+                        <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{order.paymentMethod} • {order.paymentStatus}</span>
                     </div>
                 </div>
             )
         },
         {
-            header: 'Status',
-            key: 'status',
+            header: 'Fulfillment Status',
+            key: 'orderStatus',
             render: (order) => {
                 const colors: any = {
                     PENDING: 'bg-amber-50 text-amber-600 border-amber-100',
@@ -139,40 +148,35 @@ const ManageOrders: React.FC = () => {
                     CANCELLED: 'bg-rose-50 text-rose-500 border-rose-100'
                 };
                 return (
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${colors[order.orderStatus] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border ${colors[order.orderStatus] || 'bg-gray-50 text-gray-600 border-gray-100'}`}>
                         {order.orderStatus}
                     </span>
                 );
             }
         },
         {
-            header: 'Date',
-            key: 'createdAt',
-            render: (order) => (
-                <div className="text-xs text-gray-500 font-medium">
-                    {format(new Date(order.createdAt), 'MMM d, yyyy')}<br />
-                    {format(new Date(order.createdAt), 'hh:mm a')}
-                </div>
-            )
-        },
-        {
-            header: 'Actions',
+            header: 'Action',
             key: 'actions',
             align: 'right',
             render: (order) => (
-                <div className="flex items-center justify-end gap-2">
-                    <select
-                        className="text-[10px] font-black uppercase tracking-widest bg-white border-2 border-primary/5 rounded-xl px-2 py-1 focus:outline-none focus:border-primary/20 transition-all cursor-pointer"
-                        value={order.orderStatus}
-                        onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
-                    >
-                        <option value="PENDING">Pending</option>
-                        <option value="CONFIRMED">Confirm</option>
-                        <option value="PROCESSING">Process</option>
-                        <option value="SHIPPED">Ship</option>
-                        <option value="DELIVERED">Deliver</option>
-                        <option value="CANCELLED">Cancel</option>
-                    </select>
+                <div className="flex items-center justify-end gap-3">
+                    <div className="relative group">
+                        <select
+                            className="text-[10px] font-black uppercase tracking-widest border-2 border-primary/5 rounded-xl px-3 py-2 focus:outline-none focus:border-primary/20 bg-white cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                            value={order.orderStatus}
+                            onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                        >
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirm</option>
+                            <option value="PROCESSING">Process</option>
+                            <option value="SHIPPED">Ship</option>
+                            <option value="DELIVERED">Deliver</option>
+                            <option value="CANCELLED">Cancel</option>
+                        </select>
+                    </div>
+                    <button className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group">
+                        <Eye size={18} className="group-hover:scale-110 transition-transform" />
+                    </button>
                 </div>
             )
         }
@@ -180,64 +184,73 @@ const ManageOrders: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
+            {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
                 <div>
                     <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Order Management</h1>
-                    <p className="text-sm text-gray-500 font-medium">Monitor and manage all customer orders</p>
+                    <p className="text-sm text-gray-500 font-medium lowercase first-letter:uppercase">Process fulfillments and manage platform order lifecycles</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10 flex flex-col items-center">
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest">Total Orders</span>
+                        <span className="text-xl font-black text-primary">{pagination.totalRecords}</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search orders by number or customer..."
-                        value={filters.search}
-                        onChange={(e) => setFilters((prev: any) => ({ ...prev, search: e.target.value, page: 1 }))}
-                        className="w-full bg-white border-2 border-primary/5 rounded-3xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50"
-                    />
-                </div>
+            {/* Top Bar with Search and Tabs */}
+            <div className="space-y-4">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Modern Tabs */}
+                    <div className="bg-white p-1.5 rounded-3xl border-2 border-primary/5 shadow-xl shadow-gray-100/50 flex flex-wrap gap-1">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.value}
+                                onClick={() => {
+                                    setActiveTab(tab.value);
+                                    setFilters((p: any) => ({ ...p, page: 1 }));
+                                }}
+                                className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.value
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
 
-                <div className="flex gap-3">
+                    <div className="flex-1 relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search by order number or customer name..."
+                            value={filters.search}
+                            onChange={(e) => setFilters((prev: any) => ({ ...prev, search: e.target.value, page: 1 }))}
+                            className="w-full bg-white border-2 border-primary/5 rounded-3xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50"
+                        />
+                    </div>
+
                     <button
-                        onClick={() => setIsFilterOpen(true)}
-                        className="px-6 py-4 rounded-3xl border-2 bg-white border-primary/5 text-primary hover:bg-primary/5 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-3"
+                        onClick={() => {
+                            setFilters({ search: '', page: 1, limit: 10, populate: ['userId'] });
+                            setActiveTab('ALL');
+                        }}
+                        className="px-6 py-4 rounded-3xl bg-white border-2 border-primary/5 text-primary hover:bg-primary/5 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-gray-100/50"
+                        title="Clear Search"
                     >
-                        <Filter size={18} />
-                        Filters
-                    </button>
-                    <button
-                        onClick={() => setFilters({
-                            search: '',
-                            orderStatus: undefined,
-                            paymentStatus: undefined,
-                            page: 1,
-                            limit: 10,
-                            isPaginate: true,
-                            populate: ['userId']
-                        })}
-                        className="p-4 rounded-3xl bg-gray-50 text-gray-400 hover:bg-gray-100 transition-all border-2 border-transparent"
-                    >
-                        <RotateCcw size={20} />
+                        <RotateCcw size={18} />
+                        Reset
                     </button>
                 </div>
             </div>
-
-            <CommonFilter
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-                fields={filterFields}
-                onApply={(u) => setFilters((p: any) => ({ ...p, ...u, page: 1 }))}
-                currentFilters={filters}
-            />
 
             <Table
                 data={orders}
                 columns={columns}
                 isLoading={loading}
                 keyExtractor={(order) => order._id}
-                emptyMessage="No orders found"
+                emptyMessage="No orders discovered for this criteria"
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
