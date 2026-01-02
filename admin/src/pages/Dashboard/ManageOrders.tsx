@@ -21,15 +21,7 @@ import { toast } from 'react-hot-toast';
 import OrderDetailSidebar from '../../components/order/OrderDetailSidebar';
 import CustomButton from '../../components/common/Button';
 
-const TABS = [
-    { label: 'All Orders', value: 'ALL' },
-    { label: 'Pending', value: 'PENDING' },
-    { label: 'Confirmed', value: 'CONFIRMED' },
-    { label: 'Processing', value: 'PROCESSING' },
-    { label: 'Shipped', value: 'SHIPPED' },
-    { label: 'Delivered', value: 'DELIVERED' },
-    { label: 'Cancelled', value: 'CANCELLED' },
-];
+
 
 const ManageOrders: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -37,7 +29,7 @@ const ManageOrders: React.FC = () => {
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const activeTab = searchParams.get('status') || 'ALL';
+
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
@@ -55,8 +47,7 @@ const ManageOrders: React.FC = () => {
                 page,
                 limit,
                 search,
-                populate: ['userId'],
-                orderStatus: activeTab === 'ALL' ? undefined : activeTab
+                populate: ['userId']
             };
             const response = await orderService.getAll(queryParams);
             if (response) {
@@ -73,7 +64,7 @@ const ManageOrders: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, limit, search, activeTab]);
+    }, [page, limit, search]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -273,27 +264,6 @@ const ManageOrders: React.FC = () => {
                     />
                 </div>
 
-                <div className="flex-1 flex items-center justify-center overflow-x-auto no-scrollbar py-2">
-                    <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
-                        {TABS.map((tab) => (
-                            <button
-                                key={tab.value}
-                                onClick={() => setSearchParams(prev => {
-                                    prev.set('status', tab.value);
-                                    prev.set('page', '1');
-                                    return prev;
-                                })}
-                                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab.value
-                                    ? 'bg-white text-primary shadow-sm border border-primary/10'
-                                    : 'text-gray-400 hover:text-gray-600'
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
                 <div className="flex items-center gap-3">
                     <button
                         className="flex items-center gap-2 px-6 h-14 bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all"
@@ -301,13 +271,6 @@ const ManageOrders: React.FC = () => {
                         <Filter size={18} />
                         Strategic Filter
                     </button>
-
-                    <CustomButton
-                        onClick={() => setSearchParams({})}
-                        className="h-14 px-6 bg-gray-50 text-gray-400 hover:bg-gray-100 rounded-2xl border border-gray-200 shadow-none font-black uppercase text-[10px] tracking-widest"
-                    >
-                        Reset Hub
-                    </CustomButton>
                 </div>
             </div>
 
