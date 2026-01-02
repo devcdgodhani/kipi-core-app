@@ -40,6 +40,4 @@ lotSchema.pre('save', function (next) {
   next();
 });
 
-const LotModel = model<ILotDocument>('Lot', lotSchema);
-
-export default LotModel;
+export const LotModel = model<ILotDocument>('Lot', lotSchema);

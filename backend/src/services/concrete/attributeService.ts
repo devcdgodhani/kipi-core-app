@@ -1,5 +1,5 @@
-import AttributeModel from '../../db/mongodb/models/attributeModel';
-import CategoryModel from '../../db/mongodb/models/categoryModel';
+import { AttributeModel } from '../../db/mongodb/models/attributeModel';
+import { CategoryModel } from '../../db/mongodb/models/categoryModel';
 import { IAttributeAttributes, IAttributeDocument } from '../../interfaces';
 import { IAttributeService } from '../contracts/attributeServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
