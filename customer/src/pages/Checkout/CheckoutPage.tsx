@@ -3,7 +3,7 @@ import { useCheckout } from '../../context/CheckoutContext';
 import { useAddress } from '../../context/AddressContext';
 import { useCart } from '../../context/CartContext';
 import AddressCard from '../../components/Address/AddressCard';
-import { Loader2, CheckCircle, CreditCard, Banknote, Ticket, X, ShieldCheck } from 'lucide-react';
+import { Loader2, CheckCircle, CreditCard, Banknote, Ticket, X, ShieldCheck, Coins } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 
 const CheckoutPage: React.FC = () => {
@@ -17,7 +17,10 @@ const CheckoutPage: React.FC = () => {
         removeCoupon,
         orderSummary,
         placeOrder,
-        loading: contextLoading
+        loading: contextLoading,
+        availablePoints,
+        loyaltyPoints,
+        toggleLoyaltyPoints
     } = useCheckout();
 
     const { addresses, loading: loadingAddresses } = useAddress();
@@ -184,6 +187,49 @@ const CheckoutPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* Loyalty Points Section */}
+                            {availablePoints > 0 && (
+                                <div className="bg-amber-50/50 border border-amber-100 rounded-3xl p-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center shadow-lg shadow-amber-200">
+                                                <Coins size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Kipi Rewards</p>
+                                                <p className="text-sm font-bold text-gray-900">{availablePoints} Points Available</p>
+                                            </div>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={loyaltyPoints.usePoints}
+                                                onChange={(e) => {
+                                                    const use = e.target.checked;
+                                                    const pointsToUse = Math.min(availablePoints, orderSummary.subTotal - orderSummary.discount);
+                                                    toggleLoyaltyPoints(use, pointsToUse);
+                                                }}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                                        </label>
+                                    </div>
+
+                                    {loyaltyPoints.usePoints && (
+                                        <div className="pt-2 border-t border-amber-100/50 flex justify-between items-center text-xs font-bold text-amber-800 uppercase tracking-tight">
+                                            <span>Saving with Points</span>
+                                            <span>-₹{loyaltyPoints.pointsToUse.toFixed(2)}</span>
+                                        </div>
+                                    )}
+
+                                    {availablePoints < 50 && !loyaltyPoints.usePoints && (
+                                        <p className="text-[9px] text-amber-600 font-medium leading-tight">
+                                            * Min 50 points required to redeem. Earn more by placing orders!
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="space-y-4 border-t border-gray-50 pt-6">
                                 <div className="flex justify-between text-sm font-medium text-gray-500">
                                     <span>Subtotal ({cart?.items?.length || 0} items)</span>
@@ -199,6 +245,12 @@ const CheckoutPage: React.FC = () => {
                                     <div className="flex justify-between text-sm font-medium text-green-600">
                                         <span>Coupon Discount</span>
                                         <span className="font-bold">-₹{orderSummary.discount.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {orderSummary.pointsDiscount > 0 && (
+                                    <div className="flex justify-between text-sm font-medium text-amber-600">
+                                        <span>Points Applied</span>
+                                        <span className="font-bold">-₹{orderSummary.pointsDiscount.toFixed(2)}</span>
                                     </div>
                                 )}
                                 <div className="border-t border-gray-100 pt-4 flex justify-between font-black text-xl text-gray-900 uppercase tracking-tighter">
@@ -229,7 +281,7 @@ const CheckoutPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

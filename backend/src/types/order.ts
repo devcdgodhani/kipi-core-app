@@ -38,6 +38,8 @@ export interface IOrder {
   subTotal: number;
   couponCode?: string;
   discountAmount?: number;
+  pointsUsed?: number;
+  pointsAmount?: number;
   tax: number;
   shippingCost: number;
   shippingProvider?: string;

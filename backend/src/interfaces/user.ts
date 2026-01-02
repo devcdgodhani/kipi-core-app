@@ -17,6 +17,8 @@ export interface IUserAttributes extends IDefaultAttributes {
   signUpType?: SIGN_UP_TYPE;
   isVerified: boolean;
   status: USER_STATUS;
+  loyaltyPoints: number;
+  totalEarnedPoints: number;
 }
 
 export interface IUserDocument extends Omit<IUserAttributes, '_id'>, Document {}

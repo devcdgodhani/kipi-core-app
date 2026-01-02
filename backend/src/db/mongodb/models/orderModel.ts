@@ -48,6 +48,8 @@ const OrderSchema = new Schema<IOrderDocument>({
   subTotal: { type: Number, required: true, min: 0 },
   couponCode: { type: String },
   discountAmount: { type: Number, default: 0 },
+  pointsUsed: { type: Number, default: 0 },
+  pointsAmount: { type: Number, default: 0 },
   tax: { type: Number, default: 0 },
   shippingCost: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true, min: 0 },

@@ -5,13 +5,16 @@ import { IOrder, TOrderCreateReq } from '../../types/order';
 import { CouponService } from './couponService';
 import { inventoryAuditService } from './inventoryAuditService';
 import { logisticsService } from './logisticsService';
+import { LoyaltyService } from './loyaltyService';
 import { COUPON_TYPE } from '../../constants/coupon';
+import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 import mongoose from 'mongoose';
 
 export class OrderService extends MongooseCommonService<IOrder, any> {
   private couponService = new CouponService();
+  private loyaltyService = new LoyaltyService();
 
   constructor() {
     super(OrderModel);
@@ -55,21 +58,47 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       );
     }
 
-    // 3. Calculate Final Total
-    const tax = orderData.tax || 0;
-    const shippingCost = orderData.shippingCost || 0;
-    const totalAmount = subTotal + tax + shippingCost - discountAmount;
-
-    // 4. Generate Order Number
+    // 3. Generate Order Number
     const orderNumber = this.generateOrderNumber();
 
-    // 5. Create Order
+    // 4. Handle Loyalty Points
+    let pointsUsed = orderData.pointsUsed || 0;
+    let pointsAmount = 0;
+
+    if (pointsUsed > 0) {
+      if (pointsUsed < LOYALTY_CONFIG.MIN_REDEMPTION_POINTS) {
+         throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, `Minimum ${LOYALTY_CONFIG.MIN_REDEMPTION_POINTS} points required for redemption`);
+      }
+      pointsAmount = pointsUsed * LOYALTY_CONFIG.POINTS_PER_RUPEE;
+      
+      // Points cannot exceed subtotal (usually)
+      if (pointsAmount > (subTotal - discountAmount)) {
+          pointsAmount = subTotal - discountAmount;
+          pointsUsed = Math.ceil(pointsAmount / LOYALTY_CONFIG.POINTS_PER_RUPEE);
+      }
+
+      await this.loyaltyService.updateBalance(
+        userId.toString(), 
+        -pointsUsed, 
+        LOYALTY_TRANSACTION_TYPE.SPENT, 
+        `Applied to Order #${orderNumber}`
+      );
+    }
+
+    // 5. Calculate Final Total
+    const tax = orderData.tax || 0;
+    const shippingCost = orderData.shippingCost || 0;
+    const totalAmount = subTotal + tax + shippingCost - discountAmount - pointsAmount;
+
+    // 6. Create Order
     const newOrder = await this.create({
       ...orderData,
       userId,
       orderNumber,
       subTotal,
       discountAmount,
+      pointsUsed,
+      pointsAmount,
       totalAmount,
       orderStatus: 'PENDING',
       paymentStatus: 'PENDING',
@@ -79,6 +108,14 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
         message: 'Order placed successfully'
       }]
     } as any);
+
+    // Update the transaction with the orderId now that we have it
+    if (pointsUsed > 0) {
+        await this.loyaltyService.updateOne(
+            { userId, orderId: { $exists: false }, type: LOYALTY_TRANSACTION_TYPE.SPENT },
+            { orderId: (newOrder as any)._id }
+        );
+    }
 
     return newOrder;
   };
@@ -190,6 +227,31 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
           }
         }
       }
+    }
+
+    // 4. Loyalty Point Accretion on Delivery
+    if (status === 'DELIVERED' && currentStatus !== 'DELIVERED') {
+        const points = this.loyaltyService.calculateEarnedPoints(order.totalAmount);
+        if (points > 0) {
+            await this.loyaltyService.updateBalance(
+                order.userId.toString(),
+                points,
+                LOYALTY_TRANSACTION_TYPE.EARNED,
+                `Earned from Order #${order.orderNumber}`,
+                orderId
+            );
+        }
+    }
+
+    // 5. Loyalty Point Reversal on Cancellation
+    if (status === 'CANCELLED' && order.pointsUsed && order.pointsUsed > 0) {
+        await this.loyaltyService.updateBalance(
+            order.userId.toString(),
+            order.pointsUsed,
+            LOYALTY_TRANSACTION_TYPE.REFUNDED,
+            `Refunded from Cancelled Order #${order.orderNumber}`,
+            orderId
+        );
     }
 
     return this.updateOne(

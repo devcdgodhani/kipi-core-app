@@ -28,8 +28,14 @@ export interface CheckoutState {
       tax: number;
       shipping: number;
       discount: number;
+      pointsDiscount: number;
       total: number;
   };
+  loyaltyPoints: {
+      usePoints: boolean;
+      pointsToUse: number;
+  };
+  availablePoints: number;
 }
 
 export interface CreateOrderRequest {
@@ -42,6 +48,7 @@ export interface CreateOrderRequest {
   tax: number;
   shippingCost: number;
   totalAmount: number;
+  pointsUsed?: number;
   notes?: string;
 }
 

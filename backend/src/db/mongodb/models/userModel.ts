@@ -69,6 +69,16 @@ export const UserSchema = new Schema<IUserDocument>(
       enum: Object.values(USER_STATUS),
       default: USER_STATUS.ACTIVE,
     },
+    loyaltyPoints: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalEarnedPoints: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
   },
   {
     timestamps: true,
