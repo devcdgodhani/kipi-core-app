@@ -1,9 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { publicRoutes } from './public/publicRoutes';
 import { privateRoutes } from './private/privateRoutes';
+import ProtectedRoute from '../components/ProtectedRoute';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy } from './lazy';
 import { ROUTES } from './routeConfig';
 
 const router = createBrowserRouter([
@@ -24,9 +25,27 @@ const router = createBrowserRouter([
                 path: ROUTES.PRODUCTS.DETAILS,
                 element: <ProductDetailsLazy />,
             },
+            // Protected Routes
+            {
+                element: <ProtectedRoute />,
+                children: [
+                    {
+                        path: ROUTES.WISHLIST,
+                        element: <WishlistLazy />,
+                    },
+                    {
+                        path: ROUTES.ADDRESSES,
+                        element: <AddressesLazy />,
+                    },
+                    {
+                        path: ROUTES.CHECKOUT,
+                        element: <CheckoutLazy />,
+                    },
+                ],
+            },
             {
                 path: ROUTES.CART,
-                element: <div>Cart</div>,
+                element: <div>Cart Page</div>,
             },
             // Private routes injected here to share layout
             privateRoutes,
