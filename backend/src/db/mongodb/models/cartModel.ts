@@ -16,7 +16,7 @@ const cartItemSchema = new Schema(
 
 export const CartSchema = new Schema<ICartDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
     items: [cartItemSchema],
     totalPrice: { type: Number, default: 0 },
     totalItems: { type: Number, default: 0 },

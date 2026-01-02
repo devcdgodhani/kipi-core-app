@@ -79,7 +79,7 @@ const couponSchema = new Schema<ICouponDocument>(
 );
 
 // Indexes for performance
-couponSchema.index({ code: 1 });
+
 couponSchema.index({ status: 1 });
 couponSchema.index({ endDate: 1 });
 

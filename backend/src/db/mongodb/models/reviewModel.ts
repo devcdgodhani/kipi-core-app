@@ -4,8 +4,8 @@ import { REVIEW_STATUS } from '../../../constants/review';
 
 export const ReviewSchema = new Schema<IReviewDocument>(
   {
-    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
-    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, index: true },
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true, maxLength: 1000 },
     status: { 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validate } from '../helpers/validator';
+import { validate } from '../helpers/zodValidator';
 import { COUPON_STATUS, COUPON_TYPE } from '../constants/coupon';
 
 const couponCreateSchema = z.object({

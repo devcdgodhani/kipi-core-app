@@ -25,7 +25,7 @@ const OrderAddressSchema = new Schema({
 });
 
 const OrderSchema = new Schema<IOrderDocument>({
-  userId: { type: Schema.Types.ObjectId as any, ref: 'users', required: true, index: true },
+  userId: { type: Schema.Types.ObjectId as any, ref: 'users', required: true },
   orderNumber: { type: String, required: true, unique: true },
   items: [OrderItemSchema],
   shippingAddress: { type: OrderAddressSchema, required: true },
@@ -51,6 +51,13 @@ const OrderSchema = new Schema<IOrderDocument>({
   tax: { type: Number, default: 0 },
   shippingCost: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true, min: 0 },
+  timeline: [
+    {
+      status: { type: String, required: true },
+      timestamp: { type: Date, default: Date.now },
+      message: { type: String, required: true }
+    }
+  ],
   notes: { type: String }
 }, {
   timestamps: true,
@@ -58,7 +65,8 @@ const OrderSchema = new Schema<IOrderDocument>({
 });
 
 // Index for order lookups
-OrderSchema.index({ orderNumber: 1 });
+
+OrderSchema.index({ userId: 1 });
 OrderSchema.index({ orderStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
 

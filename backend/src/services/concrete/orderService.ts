@@ -69,7 +69,12 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       discountAmount,
       totalAmount,
       orderStatus: 'PENDING',
-      paymentStatus: 'PENDING'
+      paymentStatus: 'PENDING',
+      timeline: [{
+        status: 'PENDING',
+        timestamp: new Date(),
+        message: 'Order placed successfully'
+      }]
     } as any);
 
     return newOrder;
@@ -105,6 +110,19 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       );
     }
     
-    return this.updateOne({ _id: orderId }, { orderStatus: status }, { userId });
+    const timelineEntry = {
+      status,
+      timestamp: new Date(),
+      message: `Order status updated to ${status}`
+    };
+
+    return this.updateOne(
+      { _id: orderId }, 
+      { 
+        orderStatus: status,
+        $push: { timeline: timelineEntry }
+      }, 
+      { userId }
+    );
   };
 }

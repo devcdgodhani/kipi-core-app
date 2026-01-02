@@ -20,6 +20,12 @@ export interface IOrderAddress {
   landmark?: string;
 }
 
+export interface IOrderTimeline {
+  status: string;
+  timestamp: Date;
+  message: string;
+}
+
 export interface IOrder {
   userId: string;
   orderNumber: string;
@@ -35,6 +41,7 @@ export interface IOrder {
   tax: number;
   shippingCost: number;
   totalAmount: number;
+  timeline: IOrderTimeline[];
   notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
