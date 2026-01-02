@@ -1,22 +1,14 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 import ReviewController from '../../controllers/reviewController';
-import ReviewValidator from '../../validators/reviewValidators';
 
 const router = Router();
 const reviewController = new ReviewController();
-const reviewValidator = new ReviewValidator();
 
-router.route('/getAll')
-  .get(reviewValidator.getAll, reviewController.getAll)
-  .post(reviewValidator.getAll, reviewController.getAll);
+// Get approved reviews for a product (Public)
+router.post('/product/:productId', reviewController.getProductReviews);
 
-router.route('/')
-  .post(jwtAuth(), reviewValidator.create, reviewController.create);
-
-router.route('/:id')
-  .put(jwtAuth(), reviewValidator.updateById, reviewController.updateById);
-
-router.delete('/deleteByFilter', jwtAuth(), reviewValidator.deleteByFilter, reviewController.deleteByFilter);
+// Submit a review (Protected)
+router.post('/submit', jwtAuth(), reviewController.submitProductReview);
 
 export default router;

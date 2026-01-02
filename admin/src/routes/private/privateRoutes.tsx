@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -129,6 +129,10 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.INVENTORY_AUDIT,
                     element: <ManageInventoryAuditLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.LOYALTY,
+                    element: <ManageLoyaltyLazy />,
                 },
                 {
                     path: ROUTES.PROFILE,

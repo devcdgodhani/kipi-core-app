@@ -12,10 +12,12 @@ import {
     Loader2,
     AlertCircle,
     ArrowRight,
-    RotateCcw
+    RotateCcw,
+    Star
 } from 'lucide-react';
 import { orderService } from '../../services/order.service';
 import { ReturnRequestModal } from '../../components/return/ReturnRequestModal';
+import { ReviewSubmissionModal } from '../../components/review/ReviewSubmissionModal';
 import type { Order } from '../../types/order.types';
 import { format } from 'date-fns';
 import { ROUTES } from '../../routes/routeConfig';
@@ -26,6 +28,8 @@ const OrderDetailPage: React.FC = () => {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (id) {
@@ -45,6 +49,11 @@ const OrderDetailPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleReviewClick = (productId: string, productName: string) => {
+        setSelectedProduct({ id: productId, name: productName });
+        setIsReviewModalOpen(true);
     };
 
     if (loading) {
@@ -212,6 +221,15 @@ const OrderDetailPage: React.FC = () => {
                                             <div className="flex items-center gap-4">
                                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Qty: {item.quantity}</span>
                                                 {item.skuId && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</span>}
+                                                {order.orderStatus === 'DELIVERED' && (
+                                                    <button
+                                                        onClick={() => handleReviewClick(item.productId as any, item.name)}
+                                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                                                    >
+                                                        <Star size={10} className="fill-primary" />
+                                                        Rate Product
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -307,6 +325,15 @@ const OrderDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ReviewSubmissionModal
+                isOpen={isReviewModalOpen}
+                onClose={() => setIsReviewModalOpen(false)}
+                productId={selectedProduct?.id || ''}
+                productName={selectedProduct?.name || ''}
+                orderId={order._id}
+                onSuccess={loadOrderDetails}
+            />
 
             <ReturnRequestModal
                 isOpen={isReturnModalOpen}

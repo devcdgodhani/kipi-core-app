@@ -1,6 +1,4 @@
 import http from './http';
-import type { Review, UpdateReviewStatusRequest } from '../types/review';
-import { REVIEW_STATUS } from '../types/review';
 
 
 const REVIEW_BASE_URL = '/review';
@@ -8,19 +6,19 @@ const REVIEW_BASE_URL = '/review';
 export const reviewService = {
   // Get all reviews (with pagination and filters)
   getAll: async (params?: any) => {
-    const response: any = await http.post(`${REVIEW_BASE_URL}/getWithPagination`, params);
+    const response: any = await http.post(`${REVIEW_BASE_URL}/getAll`, params);
     return response.data;
   },
 
   // Get single review
   getById: async (id: string) => {
-    const response: any = await http.post(`${REVIEW_BASE_URL}/getOne`, { _id: id });
+    const response: any = await http.post(`${REVIEW_BASE_URL}/getOne/${id}`);
     return response.data;
   },
 
-  // Update review status (approve/reject)
-  updateStatus: async (id: string, data: UpdateReviewStatusRequest) => {
-    const response: any = await http.put(`${REVIEW_BASE_URL}/${id}`, data);
+  // Update review status (approve/reject/reply)
+  moderate: async (id: string, status: string, adminReply?: string) => {
+    const response: any = await http.put(`${REVIEW_BASE_URL}/moderate/${id}`, { status, adminReply });
     return response.data;
   },
 

@@ -3,6 +3,7 @@ import type { Address } from '../types/address.types';
 import type { CheckoutState, CreateOrderRequest, CouponInfo } from '../types/checkout.types';
 import { orderService } from '../services/order.service';
 import { couponService } from '../services/coupon.service';
+import { loyaltyService } from '../services/loyalty.service';
 import { useCart } from './CartContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -13,7 +14,9 @@ interface CheckoutContextType extends CheckoutState {
     setPaymentMethod: (method: 'COD' | 'ONLINE') => void;
     applyCoupon: (code: string) => Promise<void>;
     removeCoupon: () => void;
+    toggleLoyaltyPoints: (use: boolean, points?: number) => void;
     placeOrder: () => Promise<void>;
+    availablePoints: number;
     loading: boolean;
 }
 
@@ -34,8 +37,14 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             tax: 0,
             shipping: 0,
             discount: 0,
+            pointsDiscount: 0,
             total: 0
-        }
+        },
+        loyaltyPoints: {
+            usePoints: false,
+            pointsToUse: 0
+        },
+        availablePoints: 0
     });
 
     const calculateTotal = () => {
@@ -47,6 +56,18 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     useEffect(() => {
+        const fetchPoints = async () => {
+            try {
+                const res = await loyaltyService.getStatus({ options: { limit: 1 } });
+                setState(prev => ({ ...prev, availablePoints: res.balance }));
+            } catch (err) {
+                console.error("Failed to fetch loyalty points", err);
+            }
+        };
+        fetchPoints();
+    }, []);
+
+    useEffect(() => {
         const subTotal = calculateTotal();
         const tax = 0;
         const shipping = subTotal > 499 ? 0 : 40;
@@ -55,19 +76,23 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (state.appliedCoupon) {
             if (state.appliedCoupon.type === 'PERCENTAGE') {
                 discount = (subTotal * state.appliedCoupon.value) / 100;
-                // We should ideally have maxDiscountAmount here too, but for simplicity:
             } else {
                 discount = state.appliedCoupon.value;
             }
         }
 
-        const total = subTotal + tax + shipping - discount;
+        let pointsDiscount = 0;
+        if (state.loyaltyPoints.usePoints) {
+            pointsDiscount = state.loyaltyPoints.pointsToUse; // 1 point = 1 INR
+        }
+
+        const total = subTotal + tax + shipping - discount - pointsDiscount;
 
         setState(prev => ({
             ...prev,
-            orderSummary: { subTotal, tax, shipping, discount, total }
+            orderSummary: { subTotal, tax, shipping, discount, pointsDiscount, total }
         }));
-    }, [cart, state.appliedCoupon]);
+    }, [cart, state.appliedCoupon, state.loyaltyPoints.usePoints, state.loyaltyPoints.pointsToUse]);
 
     const setStep = (step: CheckoutState['step']) => {
         setState(prev => ({ ...prev, step }));
@@ -107,6 +132,16 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const removeCoupon = () => {
         setState(prev => ({ ...prev, appliedCoupon: null }));
         toast.success("Coupon removed");
+    };
+
+    const toggleLoyaltyPoints = (use: boolean, points: number = 0) => {
+        setState(prev => ({
+            ...prev,
+            loyaltyPoints: {
+                usePoints: use,
+                pointsToUse: points
+            }
+        }));
     };
 
     const placeOrder = async () => {
@@ -158,6 +193,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 subTotal: state.orderSummary.subTotal,
                 tax: state.orderSummary.tax,
                 shippingCost: state.orderSummary.shipping,
+                pointsUsed: state.loyaltyPoints.usePoints ? state.loyaltyPoints.pointsToUse : 0,
                 totalAmount: state.orderSummary.total
             };
 
@@ -184,7 +220,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setPaymentMethod,
             applyCoupon,
             removeCoupon,
+            toggleLoyaltyPoints,
             placeOrder,
+            availablePoints: state.availablePoints,
             loading
         }}>
             {children}

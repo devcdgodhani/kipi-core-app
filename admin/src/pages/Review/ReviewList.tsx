@@ -87,9 +87,9 @@ const ReviewList: React.FC = () => {
         setFilters((prev: any) => ({ ...prev, ...updatedFilters, page: 1 }));
     };
 
-    const handleUpdateStatus = async (id: string, status: REVIEW_STATUS, isVisible?: boolean) => {
+    const handleUpdateStatus = async (id: string, status: REVIEW_STATUS) => {
         try {
-            await reviewService.updateStatus(id, { status, isVisible });
+            await reviewService.moderate(id, status);
             toast.success('Review protocol updated');
             fetchReviews();
         } catch (err: any) {
@@ -233,7 +233,7 @@ const ReviewList: React.FC = () => {
             align: 'center',
             render: (review) => (
                 <button
-                    onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, review.status, !review.isVisible); }}
+                    onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, review.status); }}
                     className={`p-3 rounded-2xl transition-all border ${review.isVisible
                         ? 'text-emerald-500 bg-emerald-50 border-emerald-100 hover:scale-110 shadow-sm'
                         : 'text-gray-400 bg-gray-50 border-gray-100 hover:text-primary hover:bg-primary/5 hover:border-primary/10'
@@ -252,7 +252,7 @@ const ReviewList: React.FC = () => {
                 <div className="flex items-center justify-end gap-2">
                     {review.status !== REVIEW_STATUS.APPROVED && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, REVIEW_STATUS.APPROVED, true); }}
+                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, REVIEW_STATUS.APPROVED); }}
                             className="p-3 text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all border border-transparent hover:border-emerald-100 group"
                             title="Verify Sentiment"
                         >
@@ -261,7 +261,7 @@ const ReviewList: React.FC = () => {
                     )}
                     {review.status !== REVIEW_STATUS.REJECTED && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, REVIEW_STATUS.REJECTED, false); }}
+                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(review._id, REVIEW_STATUS.REJECTED); }}
                             className="p-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 group"
                             title="Redact Sentiment"
                         >

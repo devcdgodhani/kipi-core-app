@@ -29,5 +29,6 @@ export const ManageCouponsLazy = lazy(() => import('../../pages/Coupon/CouponLis
 export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/CouponForm'));
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));
 export const ManageInventoryAuditLazy = lazy(() => import('../../pages/Inventory/InventoryAuditList'));
+export const ManageLoyaltyLazy = lazy(() => import('../../pages/Loyalty/LoyaltyAuditList'));
 
 
