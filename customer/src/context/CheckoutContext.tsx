@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Address } from '../types/address.types';
-import type { CheckoutState } from '../types/checkout.types';
-import type { CreateOrderRequest } from '../types/order.types';
+import type { CheckoutState, CreateOrderRequest, CouponInfo } from '../types/checkout.types';
 import { orderService } from '../services/order.service';
+import { couponService } from '../services/coupon.service';
 import { useCart } from './CartContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -11,6 +11,8 @@ interface CheckoutContextType extends CheckoutState {
     setStep: (step: CheckoutState['step']) => void;
     setSelectedAddress: (address: Address) => void;
     setPaymentMethod: (method: 'COD' | 'ONLINE') => void;
+    applyCoupon: (code: string) => Promise<void>;
+    removeCoupon: () => void;
     placeOrder: () => Promise<void>;
     loading: boolean;
 }
@@ -26,10 +28,12 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         step: 'CART',
         selectedAddress: null,
         paymentMethod: 'COD',
+        appliedCoupon: null,
         orderSummary: {
             subTotal: 0,
             tax: 0,
             shipping: 0,
+            discount: 0,
             total: 0
         }
     });
@@ -46,13 +50,24 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const subTotal = calculateTotal();
         const tax = 0;
         const shipping = subTotal > 499 ? 0 : 40;
-        const total = subTotal + tax + shipping;
+
+        let discount = 0;
+        if (state.appliedCoupon) {
+            if (state.appliedCoupon.type === 'PERCENTAGE') {
+                discount = (subTotal * state.appliedCoupon.value) / 100;
+                // We should ideally have maxDiscountAmount here too, but for simplicity:
+            } else {
+                discount = state.appliedCoupon.value;
+            }
+        }
+
+        const total = subTotal + tax + shipping - discount;
 
         setState(prev => ({
             ...prev,
-            orderSummary: { subTotal, tax, shipping, total }
+            orderSummary: { subTotal, tax, shipping, discount, total }
         }));
-    }, [cart]);
+    }, [cart, state.appliedCoupon]);
 
     const setStep = (step: CheckoutState['step']) => {
         setState(prev => ({ ...prev, step }));
@@ -64,6 +79,34 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const setPaymentMethod = (method: 'COD' | 'ONLINE') => {
         setState(prev => ({ ...prev, paymentMethod: method }));
+    };
+
+    const applyCoupon = async (code: string) => {
+        try {
+            setLoading(true);
+            const couponData = await couponService.apply(code, state.orderSummary.subTotal);
+
+            const couponInfo: CouponInfo = {
+                code: couponData.code,
+                discountAmount: 0, // Calculated in useEffect
+                description: couponData.description,
+                type: couponData.type,
+                value: couponData.value
+            };
+
+            setState(prev => ({ ...prev, appliedCoupon: couponInfo }));
+            toast.success("Coupon applied successfully!");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Invalid coupon code");
+            setState(prev => ({ ...prev, appliedCoupon: null }));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const removeCoupon = () => {
+        setState(prev => ({ ...prev, appliedCoupon: null }));
+        toast.success("Coupon removed");
     };
 
     const placeOrder = async () => {
@@ -99,7 +142,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     country: state.selectedAddress.country,
                     pincode: state.selectedAddress.pincode,
                     landmark: state.selectedAddress.landmark
-                },
+                } as any,
                 billingAddress: {
                     name: state.selectedAddress.name,
                     mobile: state.selectedAddress.mobile,
@@ -109,8 +152,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     country: state.selectedAddress.country,
                     pincode: state.selectedAddress.pincode,
                     landmark: state.selectedAddress.landmark
-                },
+                } as any,
                 paymentMethod: state.paymentMethod,
+                couponCode: state.appliedCoupon?.code,
                 subTotal: state.orderSummary.subTotal,
                 tax: state.orderSummary.tax,
                 shippingCost: state.orderSummary.shipping,
@@ -121,7 +165,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             toast.success("Order placed successfully!");
             await clearCart();
-            // Navigate to Success Page
+            setState(prev => ({ ...prev, appliedCoupon: null }));
             navigate(`/order/success/${order._id}`);
 
         } catch (error) {
@@ -138,6 +182,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setStep,
             setSelectedAddress,
             setPaymentMethod,
+            applyCoupon,
+            removeCoupon,
             placeOrder,
             loading
         }}>

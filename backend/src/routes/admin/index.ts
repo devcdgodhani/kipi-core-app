@@ -15,6 +15,8 @@ import cartRoutes from './cartRoutes';
 import wishlistRoutes from './wishlistRoutes';
 import reviewRoutes from './reviewRoutes';
 import addressRoutes from './addressRoutes';
+import couponRoutes from './couponRoutes';
+import orderRoutes from './orderRoutes';
 
 import { jwtAuth } from '../../middlewares';
 
@@ -31,6 +33,8 @@ router.use('/cart', jwtAuth(), cartRoutes);
 router.use('/wishlist', jwtAuth(), wishlistRoutes);
 router.use('/review', jwtAuth(), reviewRoutes);
 router.use('/address', jwtAuth(), addressRoutes);
+router.use('/coupon', jwtAuth(), couponRoutes);
+router.use('/order', jwtAuth(), orderRoutes);
 
 
 export default router;

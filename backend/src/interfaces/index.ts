@@ -16,3 +16,4 @@ export * from './cart';
 export * from './wishlist';
 export * from './review';
 export * from './address';
+export * from './coupon';

@@ -25,11 +25,7 @@ const OrderAddressSchema = new Schema({
 });
 
 const OrderSchema = new Schema<IOrderDocument>({
-  userId: { type: String, ref: 'User', required: true }, // Using string ID as User ID is string in some places or ObjectId? Usually ObjectId. But types say string.
-  // Wait, in controller it was req.user._id. In User model it's usually ObjectId.
-  // Let's us Schema.Types.ObjectId if referencing.
-  // But define as String in type. Mongoose handles cast.
-  // Let's look at CartModel or generic.
+  userId: { type: Schema.Types.ObjectId as any, ref: 'users', required: true, index: true },
   orderNumber: { type: String, required: true, unique: true },
   items: [OrderItemSchema],
   shippingAddress: { type: OrderAddressSchema, required: true },
@@ -50,6 +46,8 @@ const OrderSchema = new Schema<IOrderDocument>({
     default: 'PENDING' 
   },
   subTotal: { type: Number, required: true, min: 0 },
+  couponCode: { type: String },
+  discountAmount: { type: Number, default: 0 },
   tax: { type: Number, default: 0 },
   shippingCost: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true, min: 0 },
@@ -58,6 +56,11 @@ const OrderSchema = new Schema<IOrderDocument>({
   timestamps: true,
   versionKey: false
 });
+
+// Index for order lookups
+OrderSchema.index({ orderNumber: 1 });
+OrderSchema.index({ orderStatus: 1 });
+OrderSchema.index({ createdAt: -1 });
 
 // Create model
 export const OrderModel = model<IOrderDocument>('Order', OrderSchema);

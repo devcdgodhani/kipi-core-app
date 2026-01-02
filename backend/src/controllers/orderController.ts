@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { OrderService } from '../services/concrete/orderService';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
-import { IApiResponse } from '../interfaces';
+import { IApiResponse, IPaginationData } from '../interfaces';
 
 export default class OrderController {
   private orderService = new OrderService();
@@ -27,7 +27,7 @@ export default class OrderController {
     }
   };
 
-  /*********** Get My Orders ***********/
+  /*********** Get My Orders (Customer) ***********/
   getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?._id;
@@ -52,28 +52,73 @@ export default class OrderController {
     }
   };
 
+  /*********** Get All Orders (Admin) ***********/
+  getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.orderService.generateFilter({
+        filters: reqData,
+      });
+
+      const orderList = await this.orderService.findAllWithPagination(filter, options);
+
+      const response: IApiResponse<IPaginationData<any>> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'All orders fetched successfully',
+        data: orderList,
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Update Specific Order Status (Admin) ***********/
+  updateStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { orderStatus } = req.body;
+      const userId = req.user?._id;
+
+      await this.orderService.updateOrderStatus(id, orderStatus, userId);
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Order status updated successfully',
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
   /*********** Get One Order ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
-      try {
-          const { id } = req.params;
-          const order = await this.orderService.findById(id);
-          
-          if (!order) {
-              throw new Error("Order not found"); // Use proper error class if available
-          }
-
-          // Check if belongs to user?
-          // if (order.userId !== req.user?._id) ...
-
-          const response: TOrderRes = {
-              status: HTTP_STATUS_CODE.OK.STATUS,
-              code: HTTP_STATUS_CODE.OK.CODE,
-              message: 'Order fetched successfully',
-              data: order
-          };
-          return res.status(response.status).json(response);
-      } catch (err) {
-          return next(err);
+    try {
+      const { id } = req.params;
+      const order = await this.orderService.findById(id);
+      
+      if (!order) {
+        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+          status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
+          code: HTTP_STATUS_CODE.NOTFOUND.CODE,
+          message: 'Order not found'
+        });
       }
+
+      const response: TOrderRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Order fetched successfully',
+        data: order
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
   }
 }

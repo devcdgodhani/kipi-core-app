@@ -31,6 +31,8 @@ export interface Order {
   paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   orderStatus: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
   subTotal: number;
+  couponCode?: string;
+  discountAmount?: number;
   tax: number;
   shippingCost: number;
   totalAmount: number;
