@@ -12,5 +12,6 @@ router.post('/getOne/:id', orderController.getOne);
 
 // Update order status
 router.put('/updateStatus/:id', orderController.updateStatus);
+router.post('/simulate-logistics/:id', orderController.simulateLogistics);
 
 export default router;

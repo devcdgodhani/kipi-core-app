@@ -198,4 +198,41 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       { userId }
     );
   };
+
+  simulateLogisticsUpdate = async (orderId: string) => {
+    const order = await this.findById(orderId);
+    if (!order) {
+      throw new ApiError(HTTP_STATUS_CODE.NOTFOUND.CODE, HTTP_STATUS_CODE.NOTFOUND.STATUS, 'Order not found');
+    }
+
+    if (order.orderStatus !== 'SHIPPED') {
+      throw new ApiError(
+        HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
+        HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
+        'Simulation only available for SHIPPED orders'
+      );
+    }
+
+    const updates = [
+      'Arrived at Sort Facility',
+      'Processed through Gateway',
+      'Departure from Hub India',
+      'In transit to delivery center',
+      'Reached destination city',
+      'Assigned to delivery agent'
+    ];
+
+    const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+
+    const timelineEntry = {
+      status: 'SHIPPED',
+      timestamp: new Date(),
+      message: `[Logistics Hub] ${randomUpdate}`
+    };
+
+    return this.updateOne(
+      { _id: orderId },
+      { $push: { timeline: timelineEntry } }
+    );
+  };
 }

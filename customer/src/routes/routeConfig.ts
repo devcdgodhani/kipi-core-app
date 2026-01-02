@@ -10,6 +10,7 @@ export const ROUTES = {
     CART: '/cart',
     ORDERS: '/orders',
     ORDER_DETAILS: '/orders/:id',
+    INVOICE: '/invoice/:id',
     ORDER_SUCCESS: '/order/success/:orderId',
     PROFILE: '/profile',
     ADDRESSES: '/addresses',

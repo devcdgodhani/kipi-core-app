@@ -120,5 +120,22 @@ export default class OrderController {
     } catch (err) {
       return next(err);
     }
-  }
+  };
+
+  simulateLogistics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      await this.orderService.simulateLogisticsUpdate(id);
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Logistics update simulated successfully',
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
 }

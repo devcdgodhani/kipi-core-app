@@ -92,8 +92,8 @@ const OrderDetailSidebar: React.FC<OrderDetailSidebarProps> = ({ orderId, onClos
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</span>
                                         <span className="w-1 h-1 bg-gray-300 rounded-full" />
                                         <span className={`text-[10px] font-black uppercase tracking-widest ${order.orderStatus === 'PENDING' ? 'text-amber-500' :
-                                                order.orderStatus === 'DELIVERED' ? 'text-green-500' :
-                                                    'text-primary'
+                                            order.orderStatus === 'DELIVERED' ? 'text-green-500' :
+                                                'text-primary'
                                             }`}>{order.orderStatus}</span>
                                     </div>
                                 </div>
@@ -254,14 +254,37 @@ const OrderDetailSidebar: React.FC<OrderDetailSidebarProps> = ({ orderId, onClos
                                                     </Button>
                                                 )}
                                                 {order.orderStatus === 'SHIPPED' && (
-                                                    <Button
-                                                        onClick={() => handleStatusTransition('DELIVERED')}
-                                                        disabled={processing}
-                                                        className="w-full h-14 rounded-2xl shadow-lg bg-emerald-600 hover:bg-emerald-700"
-                                                    >
-                                                        <ShoppingBag size={20} className="mr-2" />
-                                                        Confirm Delivery
-                                                    </Button>
+                                                    <div className="space-y-3">
+                                                        <Button
+                                                            onClick={() => handleStatusTransition('DELIVERED')}
+                                                            disabled={processing}
+                                                            className="w-full h-14 rounded-2xl shadow-lg bg-emerald-600 hover:bg-emerald-700"
+                                                        >
+                                                            <ShoppingBag size={20} className="mr-2" />
+                                                            Confirm Delivery
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    setProcessing(true);
+                                                                    await orderService.simulateLogistics(order._id);
+                                                                    toast.success('Logistics update simulated');
+                                                                    await fetchOrderDetails();
+                                                                    onUpdate();
+                                                                } catch (err: any) {
+                                                                    toast.error(err.response?.data?.message || 'Simulation failed');
+                                                                } finally {
+                                                                    setProcessing(false);
+                                                                }
+                                                            }}
+                                                            disabled={processing}
+                                                            className="w-full h-14 rounded-2xl border-indigo-100 text-indigo-600 hover:bg-indigo-50"
+                                                        >
+                                                            <Truck size={20} className="mr-2" />
+                                                            Simulate Carrier Update
+                                                        </Button>
+                                                    </div>
                                                 )}
 
                                                 {['PENDING', 'CONFIRMED', 'PROCESSING'].includes(order.orderStatus) && (

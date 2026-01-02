@@ -26,5 +26,11 @@ export const orderService = {
   delete: async (id: string) => {
     const response: any = await http.delete(`${ORDER_BASE_URL}/${id}`);
     return response.data;
+  },
+  
+  // Simulate Logistics Update
+  simulateLogistics: async (id: string) => {
+    const response: any = await http.post(`${ORDER_BASE_URL}/simulate-logistics/${id}`);
+    return response.data;
   }
 };
