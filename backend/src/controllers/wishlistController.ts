@@ -18,6 +18,7 @@ export default class WishlistController {
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
+      if (req.user?._id) reqData.userId = req.user._id;
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
       // Add default population
       if (!options.populate) {
@@ -78,7 +79,7 @@ export default class WishlistController {
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const wishlistData = req.body;
+      const wishlistData = { ...req.body, userId: req.user?._id };
       const newWishlist = await this.wishlistService.create(wishlistData, { userId: req.user?._id });
 
       const response: IApiResponse<IWishlistAttributes> = {

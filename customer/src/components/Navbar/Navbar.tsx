@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, Lock, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Lock, LogOut, ChevronDown, Heart } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
 import { authService } from '../../services/auth.service';
@@ -19,8 +19,10 @@ const Navbar: React.FC = () => {
     const links = [
         { to: ROUTES.ROOT, label: 'Home' },
         { to: ROUTES.PRODUCTS.ROOT, label: 'Products' },
+        { to: ROUTES.WISHLIST, label: 'Wishlist' },
         { to: ROUTES.ORDERS, label: 'Orders' },
     ];
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -120,6 +122,13 @@ const Navbar: React.FC = () => {
 
                                 <button
                                     className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
+                                    onClick={() => { setIsProfileOpen(false); navigate(ROUTES.WISHLIST); }}
+                                >
+                                    <Heart size={16} /> My Wishlist
+                                </button>
+
+                                <button
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
                                     onClick={() => { setIsProfileOpen(false); navigate(ROUTES.CHANGE_PASSWORD); }}
                                 >
                                     <Lock size={16} /> Change Password
@@ -185,6 +194,12 @@ const Navbar: React.FC = () => {
                         onClick={() => { setIsMenuOpen(false); navigate(ROUTES.ORDERS); }}
                     >
                         <ShoppingCart size={18} /> My Orders
+                    </button>
+                    <button
+                        className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                        onClick={() => { setIsMenuOpen(false); navigate(ROUTES.WISHLIST); }}
+                    >
+                        <Heart size={18} /> My Wishlist
                     </button>
                     <button
                         className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"

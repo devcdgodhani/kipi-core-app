@@ -13,7 +13,7 @@ const wishlistItemSchema = z.object({
 });
 
 const wishlistCreateSchema = z.object({
-  userId: z.string(),
+  userId: z.string().optional(),
   products: z.array(wishlistItemSchema),
   status: z.string().optional(),
 }).strict();
