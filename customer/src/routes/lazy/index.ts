@@ -10,6 +10,7 @@ export const WishlistLazy = lazy(() => import('../../pages/Wishlist/WishlistPage
 export const AddressesLazy = lazy(() => import('../../pages/Address/ManageAddresses'));
 export const CheckoutLazy = lazy(() => import('../../pages/Checkout/CheckoutPage'));
 export const OrdersLazy = lazy(() => import('../../pages/Order/MyOrdersPage'));
+export const OrderDetailsLazy = lazy(() => import('../../pages/Order/OrderDetailPage'));
 export const OrderSuccessLazy = lazy(() => import('../../pages/Order/OrderSuccessPage'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
 export const ChangePasswordLazy = lazy(() => import('../../pages/Auth/ChangePassword'));

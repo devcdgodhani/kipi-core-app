@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { orderService } from '../../services/order.service';
 import type { Order } from '../../types/order.types';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -104,12 +104,19 @@ const MyOrdersPage: React.FC = () => {
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.orderStatus === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                                            order.orderStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                                                'bg-blue-100 text-blue-700'
+                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${order.orderStatus === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                        order.orderStatus === 'CANCELLED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                            'bg-primary/5 text-primary border-primary/10'
                                         }`}>
                                         {order.orderStatus}
                                     </span>
+                                    <button
+                                        onClick={() => navigate(`/orders/${order._id}`)}
+                                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-primary transition-all group"
+                                    >
+                                        Track Protocol
+                                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
                         ))}

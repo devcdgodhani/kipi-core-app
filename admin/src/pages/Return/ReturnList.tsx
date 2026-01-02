@@ -13,6 +13,7 @@ import { Table } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import CustomButton from '../../components/common/Button';
 import { toast } from 'react-hot-toast';
+import { ReturnDetailSidebar } from '../../components/return/ReturnDetailSidebar';
 
 const filterFields: FilterField[] = [
     {
@@ -49,6 +50,7 @@ export const ReturnList = () => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [selectedReturnId, setSelectedReturnId] = useState<string | null>(null);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const page = parseInt(searchParams.get('page') || '1');
@@ -187,9 +189,10 @@ export const ReturnList = () => {
         {
             header: 'Admin Hub',
             key: 'actions',
-            render: () => (
+            render: (ret: IReturn) => (
                 <div className="flex items-center gap-2">
                     <button
+                        onClick={() => setSelectedReturnId(ret._id)}
                         className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-white hover:shadow-md rounded-xl transition-all border border-transparent hover:border-primary/10 group"
                         title="Neural View"
                     >
@@ -248,8 +251,8 @@ export const ReturnList = () => {
                     <button
                         onClick={() => setIsFilterOpen(true)}
                         className={`flex items-center gap-2 px-6 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${searchParams.get('status') || searchParams.get('refundStatus')
-                            ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-lg shadow-primary/5'
-                            : 'bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50'
+                                ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-lg shadow-primary/5'
+                                : 'bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50'
                             }`}
                     >
                         <Filter size={18} />
@@ -290,6 +293,13 @@ export const ReturnList = () => {
                 fields={filterFields}
                 onApply={handleFilterApply}
                 currentFilters={Object.fromEntries(searchParams)}
+            />
+
+            <ReturnDetailSidebar
+                isOpen={!!selectedReturnId}
+                onClose={() => setSelectedReturnId(null)}
+                returnId={selectedReturnId}
+                onStatusUpdate={fetchReturns}
             />
         </div>
     );

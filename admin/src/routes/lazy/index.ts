@@ -24,6 +24,7 @@ export const ResetPasswordLazy = lazy(() => import('../../pages/Auth/ResetPasswo
 export const ManageAttributesLazy = lazy(() => import('../../pages/Attribute/AttributeList'));
 export const ManageAttributeFormLazy = lazy(() => import('../../pages/Attribute/AttributeForm'));
 export const ManageReviewsLazy = lazy(() => import('../../pages/Review/ReviewList'));
+export const ManageReturnsLazy = lazy(() => import('../../pages/Return/ReturnList').then(module => ({ default: module.ReturnList })));
 export const ManageCouponsLazy = lazy(() => import('../../pages/Coupon/CouponList'));
 export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/CouponForm'));
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));
