@@ -9,7 +9,8 @@ import {
     Barcode,
     Layers,
     IndianRupee,
-    Box
+    Box,
+    Cpu
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { skuService } from '../../services/sku.service';
@@ -160,17 +161,17 @@ const SkuList: React.FC = () => {
 
     const columns: Column<ISku>[] = [
         {
-            header: 'SKU Identifier',
+            header: 'Variant SKU',
             key: 'skuCode',
             render: (sku) => (
                 <div className="flex items-center gap-4 py-1">
-                    <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-primary group-hover:scale-105 transition-all">
-                        <Barcode size={24} />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        <Barcode size={26} />
                     </div>
                     <div className="flex flex-col">
                         <span className="font-black text-gray-900 leading-tight uppercase tracking-tight">{sku.skuCode}</span>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-bold text-primary flex items-center gap-1">
+                            <span className="text-[10px] font-black text-primary/40 flex items-center gap-1 uppercase tracking-widest leading-none">
                                 <Layers size={10} />
                                 {typeof sku.productId === 'object' ? (sku.productId as any).name : 'Linked Product'}
                             </span>
@@ -180,45 +181,45 @@ const SkuList: React.FC = () => {
             )
         },
         {
-            header: 'Variant Config',
+            header: 'Specifications',
             key: 'attributes',
             render: (sku) => (
-                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                <div className="flex flex-wrap gap-1.5 max-w-[200px]">
                     {sku.variantAttributes?.map((attr: any, idx) => (
-                        <span key={idx} className="px-2 py-1 rounded-lg bg-primary/5 text-[10px] font-bold text-primary border border-primary/10">
+                        <span key={idx} className="px-2.5 py-1 rounded-xl bg-primary/5 text-[9px] font-black text-primary uppercase tracking-widest border border-primary/10 shadow-xs">
                             {attr.value}
                         </span>
                     ))}
                     {(!sku.variantAttributes || sku.variantAttributes.length === 0) && (
-                        <span className="text-xs text-gray-400 italic">No Variants</span>
+                        <span className="text-[10px] text-gray-300 font-black uppercase tracking-widest italic opacity-50">No Attributes</span>
                     )}
                 </div>
             )
         },
         {
-            header: 'Price Hub',
+            header: 'Market Valuation',
             key: 'price',
             render: (sku) => (
-                <div className="flex flex-col gap-0.5 py-1">
-                    <div className="flex items-center gap-1 text-xs font-black text-gray-900">
-                        <IndianRupee size={12} className="text-primary/50" />
-                        <span>{sku.salePrice || sku.basePrice || 'Inherited'}</span>
+                <div className="flex flex-col py-1">
+                    <div className="flex items-center gap-1.5 text-base font-black text-gray-900 tracking-tight leading-none">
+                        <IndianRupee size={14} className="text-primary" />
+                        <span>{(sku.salePrice || sku.basePrice || 0).toLocaleString()}</span>
                     </div>
-                    {sku.basePrice && (
-                        <span className="text-[10px] text-gray-400 italic font-medium">Custom Override</span>
+                    {sku.basePrice && !sku.salePrice && (
+                        <span className="text-[9px] text-primary/40 font-black uppercase tracking-widest mt-1 italic">Override Config</span>
                     )}
                 </div>
             )
         },
         {
-            header: 'Inventory',
+            header: 'Quantum Reserve',
             key: 'quantity',
             render: (sku) => (
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border ${sku.quantity > 50
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest w-fit border shadow-sm ${sku.quantity > 50
                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                     : sku.quantity > 0
                         ? 'bg-amber-50 text-amber-600 border-amber-100'
-                        : 'bg-rose-50 text-rose-500 border-rose-100'
+                        : 'bg-rose-50 text-rose-500 border-rose-100 uppercase'
                     }`}>
                     <Box size={12} />
                     {sku.quantity} Units
@@ -226,16 +227,20 @@ const SkuList: React.FC = () => {
             )
         },
         {
-            header: 'Status',
+            header: 'Strategic State',
             key: 'status',
-            render: (sku) => (
-                <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${sku.status === SKU_STATUS.ACTIVE
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : 'bg-gray-50 text-gray-400 border-gray-100'
-                    }`}>
-                    {sku.status}
-                </div>
-            )
+            render: (sku) => {
+                const colors: any = {
+                    ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                    OUT_OF_STOCK: 'bg-rose-50 text-rose-500 border-rose-100',
+                    INACTIVE: 'bg-gray-50 text-gray-400 border-gray-100'
+                };
+                return (
+                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border ${colors[sku.status] || 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        {sku.status.replace('_', ' ')}
+                    </span>
+                );
+            }
         },
         {
             header: 'Actions',
@@ -245,17 +250,17 @@ const SkuList: React.FC = () => {
                 <div className="flex items-center justify-end gap-2">
                     <button
                         onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))}
-                        className="p-2.5 text-primary hover:bg-primary/5 rounded-xl transition-all"
-                        title="Edit SKU"
+                        className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
+                        title="Modulate Variant"
                     >
-                        <Edit2 size={18} />
+                        <Edit2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={() => handleDeleteSku(sku._id)}
-                        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                        title="Delete SKU"
+                        className="p-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 group"
+                        title="Decommission SKU"
                     >
-                        <Trash2 size={18} />
+                        <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                 </div>
             )
@@ -265,33 +270,65 @@ const SkuList: React.FC = () => {
     return (
         <div className="p-6 space-y-6">
             {error && (
-                <div className="absolute top-4 right-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl z-20 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <span className="text-sm font-medium">{error}</span>
+                <div className="fixed top-6 right-6 bg-rose-50 border border-rose-100 text-rose-600 px-6 py-4 rounded-2xl z-50 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-rose-200/50 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    <span className="text-sm font-black uppercase tracking-widest">{error}</span>
                 </div>
             )}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
-                <div>
-                    <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">SKU Variants</h1>
-                    <p className="text-sm text-gray-500 font-medium">Manage individual product instances and specific stock units</p>
+
+            {/* Premium Hero Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+                <div className="relative z-10 flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-amber-500 flex items-center justify-center text-white shadow-xl shadow-amber-500/20">
+                        <Cpu size={32} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">SKU Variants</h1>
+                        <p className="text-sm text-gray-500 font-medium">Fine-grained instance management for inventory control</p>
+                    </div>
                 </div>
-                <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8">
-                    <Plus size={20} className="mr-2" /> Establish SKU
-                </CustomButton>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10 flex flex-col items-center">
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Variant Units</span>
+                        <span className="text-2xl font-black text-primary">{pagination.totalRecords}</span>
+                    </div>
+                    <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE)} className="rounded-[1.5rem] shadow-xl shadow-primary/20 h-16 px-8 text-sm uppercase tracking-widest font-black">
+                        <Plus size={20} className="mr-2" /> Establish SKU
+                    </CustomButton>
+                </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={20} />
+            {/* Advanced Search & Filtering Ecosystem */}
+            <div className="flex flex-col xl:flex-row gap-4">
+                <div className="flex-1 relative group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Search by SKU code..."
+                        placeholder="Scan catalog by SKU Identity or Reference..."
                         value={filters.search}
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
-                        className="w-full bg-white border-2 border-primary/5 rounded-3xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50"
+                        className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 placeholder:text-gray-300"
                     />
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={() => setIsFilterOpen(true)}
+                        className={`px-8 py-4 rounded-[2rem] border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest h-16 ${activeFilterCount > 0
+                            ? 'bg-primary border-primary text-white shadow-xl shadow-primary/30'
+                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5'
+                            }`}
+                    >
+                        <Filter size={18} />
+                        Intelligence filter
+                        {activeFilterCount > 0 && (
+                            <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-inner">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
                     {activeFilterCount > 0 && (
                         <button
                             onClick={() => setFilters({
@@ -302,32 +339,18 @@ const SkuList: React.FC = () => {
                                 limit: 10,
                                 isPaginate: true
                             })}
-                            className="px-4 py-4 rounded-3xl bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2"
+                            className="px-6 py-4 rounded-[2rem] bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-rose-100/50 h-16"
                         >
-                            <RotateCcw size={14} /> Clear
+                            <RotateCcw size={16} /> Reset
                         </button>
                     )}
-                    <button
-                        onClick={() => setIsFilterOpen(true)}
-                        className={`px-6 py-4 rounded-3xl border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest ${activeFilterCount > 0
-                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5'
-                            }`}
-                    >
-                        <Filter size={18} /> Filters
-                        {activeFilterCount > 0 && (
-                            <span className="w-5 h-5 bg-white text-primary rounded-full flex items-center justify-center text-[10px]">
-                                {activeFilterCount}
-                            </span>
-                        )}
-                    </button>
 
-                    <div className="flex items-center gap-1 bg-white border-2 border-primary/5 rounded-3xl px-4 py-2 shadow-lg shadow-gray-100/50">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">View</span>
+                    <div className="flex items-center gap-3 bg-white border-2 border-primary/5 rounded-[2rem] px-6 py-2 shadow-xl shadow-gray-100/30 h-16">
+                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Viewport</span>
                         <select
                             value={filters.limit}
                             onChange={(e) => handleLimitChange(Number(e.target.value))}
-                            className="bg-transparent focus:outline-none font-bold text-primary pl-1 cursor-pointer"
+                            className="bg-transparent focus:outline-none font-black text-primary cursor-pointer text-sm outline-none border-none"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
@@ -350,7 +373,8 @@ const SkuList: React.FC = () => {
                 columns={columns}
                 isLoading={loading}
                 keyExtractor={(sku) => sku._id}
-                emptyMessage="No SKU variants found"
+                emptyMessage="No strategic SKU units discovered in this sector"
+                onRowClick={(sku) => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))}
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,

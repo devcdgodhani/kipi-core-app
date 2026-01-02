@@ -17,6 +17,7 @@ import reviewRoutes from './reviewRoutes';
 import addressRoutes from './addressRoutes';
 import couponRoutes from './couponRoutes';
 import orderRoutes from './orderRoutes';
+import returnRoutes from './returnRoutes';
 
 import { jwtAuth } from '../../middlewares';
 

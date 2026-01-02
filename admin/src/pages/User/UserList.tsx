@@ -311,30 +311,38 @@ const UserList: React.FC = () => {
                     <span className="text-sm font-medium">{error}</span>
                 </div>
             )}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
-                <div>
-                    <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">User Management</h1>
-                    <p className="text-sm text-gray-500 font-medium">Create, manage and monitor platform users</p>
+
+            {/* Premium Hero Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+                <div className="relative z-10 flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                        <UserPlus size={32} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">User Management</h1>
+                        <p className="text-sm text-gray-500 font-medium">Create, manage and monitor platform users</p>
+                    </div>
                 </div>
-                <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.USERS_CREATE)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8">
+                <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.USERS_CREATE)} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8 relative z-10">
                     <UserPlus size={20} className="mr-2" /> Add New User
                 </CustomButton>
             </div>
 
             {/* Top Bar with Search and Filter Trigger */}
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={20} />
+            <div className="flex flex-col xl:flex-row gap-4 items-center">
+                <div className="flex-1 relative group w-full xl:w-auto">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Search users by name, email or phone..."
+                        placeholder="Scan directory by name, email or phone..."
                         value={filters.search}
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
-                        className="w-full bg-white border-2 border-primary/5 rounded-3xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50"
+                        className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 h-16"
                     />
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 w-full xl:w-auto h-full items-center">
                     {activeFilterCount > 0 && (
                         <button
                             onClick={() => setFilters({
@@ -349,34 +357,34 @@ const UserList: React.FC = () => {
                                 limit: 10,
                                 isPaginate: true
                             })}
-                            className="px-4 py-4 rounded-3xl bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2"
+                            className="px-6 h-16 rounded-[2rem] bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-rose-100/50"
                         >
-                            <RotateCcw size={14} />
-                            Clear
+                            <RotateCcw size={16} />
+                            Reset Hub
                         </button>
                     )}
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className={`px-6 py-4 rounded-3xl border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest ${activeFilterCount > 0
-                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5'
+                        className={`px-8 h-16 rounded-[2rem] border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest shadow-xl ${activeFilterCount > 0
+                            ? 'bg-primary border-primary text-white shadow-primary/20'
+                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5 shadow-gray-100/50'
                             }`}
                     >
-                        <Filter size={18} />
-                        Advanced Filters
+                        <Filter size={20} />
+                        Neural Assessment
                         {activeFilterCount > 0 && (
-                            <span className="w-5 h-5 bg-white text-primary rounded-full flex items-center justify-center text-[10px]">
+                            <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black">
                                 {activeFilterCount}
                             </span>
                         )}
                     </button>
 
-                    <div className="flex items-center gap-1 bg-white border-2 border-primary/5 rounded-3xl px-4 py-2 shadow-lg shadow-gray-100/50">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">View</span>
+                    <div className="flex items-center gap-2 bg-white border-2 border-primary/5 rounded-[2rem] px-6 h-16 shadow-xl shadow-gray-100/50">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Scale</span>
                         <select
                             value={filters.limit}
                             onChange={(e) => handleLimitChange(Number(e.target.value))}
-                            className="bg-transparent focus:outline-none font-bold text-primary pl-1 cursor-pointer"
+                            className="bg-transparent focus:outline-none font-black text-primary pl-2 cursor-pointer text-sm"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>

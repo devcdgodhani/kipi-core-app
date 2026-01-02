@@ -51,6 +51,10 @@ const OrderSchema = new Schema<IOrderDocument>({
   tax: { type: Number, default: 0 },
   shippingCost: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true, min: 0 },
+  shippingProvider: { type: String },
+  trackingId: { type: String },
+  estimatedDelivery: { type: Date },
+  shippingLabelUrl: { type: String },
   timeline: [
     {
       status: { type: String, required: true },

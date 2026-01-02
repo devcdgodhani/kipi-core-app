@@ -40,6 +40,10 @@ export interface IOrder {
   discountAmount?: number;
   tax: number;
   shippingCost: number;
+  shippingProvider?: string;
+  trackingId?: string;
+  estimatedDelivery?: Date;
+  shippingLabelUrl?: string;
   totalAmount: number;
   timeline: IOrderTimeline[];
   notes?: string;

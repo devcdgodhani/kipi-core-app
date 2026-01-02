@@ -277,38 +277,46 @@ export const FileManager = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50/50 p-6 space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    {currentPath && (
-                        <button
-                            onClick={navigateUp}
-                            className="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-primary hover:border-primary/20 rounded-xl transition-all shadow-sm group"
-                            title="Go up"
-                        >
-                            <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
-                        </button>
-                    )}
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">File Manager</h1>
+        <div className="p-6 space-y-6 flex flex-col h-full bg-gray-50/50 animate-in fade-in duration-500 overflow-hidden">
+            {/* Premium Hero Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+                <div className="relative z-10 flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-amber-500 flex items-center justify-center text-white shadow-xl shadow-amber-500/20">
+                        <Folder size={32} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-3">
+                            {currentPath && (
+                                <button
+                                    onClick={navigateUp}
+                                    className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all border border-transparent hover:border-primary/10 group/back"
+                                    title="Go up"
+                                >
+                                    <ArrowLeft size={16} className="group-hover/back:-translate-x-0.5 transition-transform" />
+                                </button>
+                            )}
+                            <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono truncate">Digital Assets</h1>
+                        </div>
+                        <p className="text-sm text-gray-500 font-medium truncate">Universal storage and media repository management</p>
+                    </div>
                 </div>
-
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 relative z-10">
                     <button
                         onClick={handleCreateFolder}
-                        className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 font-bold rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-6 h-14 bg-white text-gray-700 font-bold rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all shadow-sm hover:shadow-md active:scale-95"
                     >
-                        <FolderPlus className="text-yellow-500" size={20} />
+                        <FolderPlus className="text-amber-500" size={20} />
                         New Folder
                     </button>
 
                     <CustomButton
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="shadow-xl shadow-primary/20"
+                        className="shadow-xl shadow-primary/20 h-14 px-8 rounded-2xl"
                     >
                         {uploading ? <RefreshCw className="animate-spin mr-2" /> : <Upload className="mr-2" size={20} />}
-                        Upload
+                        Upload Logic
                     </CustomButton>
                     <input
                         type="file"
@@ -321,39 +329,43 @@ export const FileManager = () => {
             </div>
 
             {/* Toolkit Bar */}
-            <div className="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <div className="bg-white p-4 rounded-[2rem] shadow-sm border border-primary/5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="relative w-full md:w-96 group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Search files..."
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl outline-none transition-all font-bold text-gray-700"
+                        placeholder="Scan repository for assets..."
+                        className="w-full pl-14 pr-6 py-4 bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-[1.5rem] outline-none transition-all font-bold text-gray-700 h-14"
                         onChange={handleSearch}
                         defaultValue={searchParams.get('search') || ''}
                     />
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-gray-400 hover:bg-gray-100'}`}
-                    >
-                        <Grid size={20} />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-3 rounded-xl transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-gray-400 hover:bg-gray-100'}`}
-                    >
-                        <ListIcon size={20} />
-                    </button>
-                    <div className="w-px h-8 bg-gray-200 mx-2" />
+                    <div className="p-1 bg-gray-50 rounded-2xl flex gap-1">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <Grid size={20} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-3 rounded-xl transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <ListIcon size={20} />
+                        </button>
+                    </div>
+                    <div className="w-px h-10 bg-gray-100 mx-2" />
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all ${Object.keys(filters).length > 0 ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-6 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${Object.keys(filters).length > 0
+                            ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-lg shadow-primary/5'
+                            : 'bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50'
                             }`}
                     >
                         <Filter size={18} />
-                        <span className="text-sm">Filter</span>
+                        Protocol Filters
                     </button>
                 </div>
             </div>
