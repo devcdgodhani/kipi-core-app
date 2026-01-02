@@ -13,6 +13,7 @@ export const ROUTES = {
         SKUS_EDIT: 'skus/edit/:id',
         ORDERS: 'orders',
         REVIEWS: 'reviews',
+        RETURNS: 'returns',
         COUPONS: 'coupons',
         COUPONS_CREATE: 'coupons/create',
         COUPONS_EDIT: 'coupons/edit/:id',
