@@ -32,6 +32,7 @@ export const ROUTES = {
         ATTRIBUTES_CREATE: 'attributes/create',
         ATTRIBUTES_EDIT: 'attributes/edit/:id',
         FILE_MANAGER: 'file-manager',
+        INVENTORY_AUDIT: 'inventory-audit',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',
