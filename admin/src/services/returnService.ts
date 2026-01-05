@@ -1,5 +1,5 @@
 import axiosInstance from './http';
-import type { IReturn, IReturnFilters } from '../types/return.types';
+import type { IReturnFilters } from '../types/return.types';
 
 export const returnService = {
     getAll: (params: IReturnFilters) => 

@@ -9,8 +9,7 @@ import {
 import {
     Users,
     AlertTriangle,
-    Download,
-    TrendingUp
+    Download
 } from 'lucide-react';
 import { analyticsService } from '../../services/analyticsService';
 import type { ICustomerAnalytics } from '../../services/analyticsService';
@@ -163,7 +162,7 @@ const CustomerInsights: React.FC = () => {
                                         <Cell fill="#10b981" />
                                     </Pie>
                                     <Tooltip
-                                        formatter={(value: number) => `₹${value.toLocaleString()}`}
+                                        formatter={(value: any) => value ? `₹${value.toLocaleString()}` : ''}
                                         contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                                     />
                                 </PieChart>

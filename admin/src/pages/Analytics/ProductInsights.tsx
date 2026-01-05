@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
     Package,
     AlertTriangle,
-    Download,
-    TrendingUp
+    Download
 } from 'lucide-react';
 import { analyticsService } from '../../services/analyticsService';
 import type { IProductAnalytics } from '../../services/analyticsService';

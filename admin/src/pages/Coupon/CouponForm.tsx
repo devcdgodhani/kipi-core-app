@@ -4,7 +4,6 @@ import {
     ArrowLeft,
     Save,
     Ticket,
-    Info,
     Calendar,
     Percent,
     Infinity as InfinityIcon,

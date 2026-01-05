@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
     Receipt,
-    Download,
     TrendingUp,
     FileText
 } from 'lucide-react';

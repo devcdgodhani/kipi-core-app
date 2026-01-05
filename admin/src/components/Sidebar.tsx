@@ -18,7 +18,6 @@ import {
     Coins,
     BarChart3,
     DollarSign,
-    TrendingUp,
     Receipt,
     ChevronDown,
     ChevronRight
