@@ -42,10 +42,21 @@ const CouponForm: React.FC = () => {
                 try {
                     const data = await couponService.getById(id);
                     if (data) {
+                        // Helper function to safely format dates
+                        const formatDate = (dateValue: any): string => {
+                            if (!dateValue) return new Date().toISOString().split('T')[0];
+                            const date = new Date(dateValue);
+                            if (isNaN(date.getTime())) {
+                                // Invalid date, return current date
+                                return new Date().toISOString().split('T')[0];
+                            }
+                            return date.toISOString().split('T')[0];
+                        };
+
                         setFormData({
                             ...data,
-                            startDate: new Date(data.startDate).toISOString().split('T')[0],
-                            endDate: new Date(data.endDate).toISOString().split('T')[0],
+                            startDate: formatDate(data.startDate),
+                            endDate: formatDate(data.endDate),
                         });
                     }
                 } catch (error) {
