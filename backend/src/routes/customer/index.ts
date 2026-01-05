@@ -14,6 +14,7 @@ import couponRoutes from './couponRoutes';
 import skuRoutes from './skuRoutes';
 import orderRoutes from './orderRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
+import returnRoutes from './returnRoutes';
 
 router.use('/auth', authRoute);
 router.use('/product', productRoutes);
@@ -26,6 +27,7 @@ router.use('/coupon', couponRoutes);
 router.use('/sku', skuRoutes);
 router.use('/order', orderRoutes);
 router.use('/loyalty', loyaltyRoutes);
+router.use('/return', returnRoutes);
 
 
 export default router;

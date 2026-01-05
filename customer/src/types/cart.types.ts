@@ -12,6 +12,7 @@ export interface CartItem {
         _id: string;
         price?: number;
         salePrice?: number;
+        offerPrice?: number;
         basePrice?: number;
         skuCode?: string;
         media?: { url: string }[];

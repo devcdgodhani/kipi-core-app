@@ -30,13 +30,18 @@ export const authService = {
     register: async (data: RegisterData): Promise<any> => {
         const response = await axiosInstance.post('/auth/register', data);
         
-        // Store tokens in localStorage
-        if (response?.data && Array.isArray(response?.data?.tokens)) {
-            response.data.tokens.forEach((tokenObj: TokenObject) => {
-                if (tokenObj.type && tokenObj.token) {
-                    localStorage.setItem(tokenObj.type, tokenObj.token);
-                }
-            });
+        // Store tokens and user in localStorage
+        if (response?.data?.data) {
+             const { tokens, ...user } = response.data.data;
+             localStorage.setItem('user', JSON.stringify(user));
+
+             if (tokens && Array.isArray(tokens)) {
+                tokens.forEach((tokenObj: TokenObject) => {
+                    if (tokenObj.type && tokenObj.token) {
+                        localStorage.setItem(tokenObj.type, tokenObj.token);
+                    }
+                });
+             }
         }
         
         return response;
@@ -60,16 +65,23 @@ export const authService = {
 
     login: async (credentials: { email: string; password: string }) => {
         const response = await axiosInstance.post('/auth/login', { ...credentials, type: 'CUSTOMER' });
-        if (response?.data?.data) {
-             const { tokens, ...user } = response.data.data;
-             localStorage.setItem('user', JSON.stringify(user));
+        if (response?.data) {
+             const { tokens, ...user } = response.data; // Response data structure might be direct or nested 'data' property depending on backend.
+             // Usually backend returns { data: { tokens, ...user }, message, code }
+             // Let's assume standard response wrapper structure: response.data is the payload if interceptor unwraps it.
+             // But wait, interceptor returns response.data. So `response` variable here IS the body.
+             // If body is { data: { ... } }, then we access response.data.
              
-             if (tokens && Array.isArray(tokens)) {
-                 tokens.forEach((tokenObj: any) => {
-                     if (tokenObj.type && tokenObj.token) {
-                         localStorage.setItem(tokenObj.type, tokenObj.token);
-                     }
+             // Safely check structure
+             const payload = response.data || response;
+             if (payload && payload.tokens) {
+                 localStorage.setItem('user', JSON.stringify(payload));
+                 payload.tokens.forEach((tokenObj: any) => {
+                     localStorage.setItem(tokenObj.type, tokenObj.token);
                  });
+             } else if (payload) {
+                 // Fallback if structure differs
+                 localStorage.setItem('user', JSON.stringify(payload));
              }
         }
         return response;

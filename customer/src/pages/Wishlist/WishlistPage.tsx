@@ -2,14 +2,23 @@ import React from 'react';
 import { useWishlist } from '../../context/WishlistContext';
 import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 const WishlistPage: React.FC = () => {
     const { wishlist, loading, removeFromWishlist } = useWishlist();
     const navigate = useNavigate();
 
+    const { addItem } = useCart();
+
     const moveToCart = async (product: any) => {
         try {
-            navigate(`/products/${product.slug || product._id}`);
+            await addItem({
+                productId: product._id,
+                skuId: product._id, // Ideally this should be a specific SKU if variants exist
+                quantity: 1,
+                product: product
+            } as any);
+            removeFromWishlist(product._id);
         } catch (error) {
             console.error('Failed to move to cart', error);
         }

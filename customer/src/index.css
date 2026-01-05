@@ -1,10 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf5ff;
-  --primary: #2e1065;
-  --secondary: #6b21a8;
-  --accent: #ea580c;
+  --background: #ffffff;
+  --primary: #0f172a;
+  /* Slate 900 */
+  --secondary: #64748b;
+  /* Slate 500 */
+  --accent: #0ea5e9;
+  /* Sky 500 - matches reference teal/blue hint */
 }
 
 @theme {
@@ -29,6 +32,6 @@
   }
 
   button {
-    @apply transition-all duration-200;
+    @apply transition-all duration-300 active:scale-95;
   }
 }

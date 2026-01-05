@@ -9,7 +9,7 @@ const wishlistFilterSchema = baseFilterSchema.extend({
 
 const wishlistItemSchema = z.object({
   productId: z.string(),
-  addedAt: z.date().optional(),
+  addedAt: z.union([z.string(), z.date()]).optional(), // Allow string (ISO) or Date object
 });
 
 const wishlistCreateSchema = z.object({

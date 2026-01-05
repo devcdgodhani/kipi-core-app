@@ -6,17 +6,21 @@ import { ThemeProvider } from './context/ThemeContext.tsx'
 import { CartProvider } from './context/CartContext.tsx'
 import { WishlistProvider } from './context/WishlistContext.tsx'
 import { AddressProvider } from './context/AddressContext.tsx'
+import { Provider } from 'react-redux';
+import { store } from './features/store';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <AddressProvider>
-            <App />
-          </AddressProvider>
-        </WishlistProvider>
-      </CartProvider>
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <AddressProvider>
+              <App />
+            </AddressProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </ThemeProvider>
+    </Provider>
   </StrictMode>,
 )
