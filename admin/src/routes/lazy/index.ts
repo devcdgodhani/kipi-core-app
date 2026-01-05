@@ -8,7 +8,7 @@ export const ManageProductsLazy = lazy(() => import('../../pages/Product/Product
 export const ManageProductFormLazy = lazy(() => import('../../pages/Product/ProductForm'));
 export const ManageSkusLazy = lazy(() => import('../../pages/SKU/SkuList'));
 export const ManageSkuFormLazy = lazy(() => import('../../pages/SKU/SkuForm'));
-export const ManageOrdersLazy = lazy(() => import('../../pages/Dashboard/ManageOrders'));
+export const ManageOrdersLazy = lazy(() => import('../../pages/Orders/OrderList'));
 
 export const ManageUsersLazy = lazy(() => import('../../pages/User/UserList'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
