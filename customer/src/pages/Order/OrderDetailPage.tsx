@@ -48,7 +48,13 @@ const OrderDetailPage: React.FC = () => {
             ]);
 
             if (orderRes) setOrder(orderRes);
-            if (returnsRes?.recordList) setReturns(returnsRes.recordList);
+            if (returnsRes?.recordList) {
+                // Filter returns for THIS order only and sort by date descending
+                const filteredReturns = returnsRes.recordList
+                    .filter((r: any) => String(r.orderId?._id || r.orderId) === String(id))
+                    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                setReturns(filteredReturns);
+            }
         } catch (error) {
             console.error('Failed to load order details:', error);
         } finally {
@@ -125,7 +131,7 @@ const OrderDetailPage: React.FC = () => {
                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(order.orderStatus)}`}>
                             {order.orderStatus}
                         </div>
-                        {order.orderStatus === 'DELIVERED' && !returns.some(r => r.status === 'COMPLETED' || r.status === 'PENDING') && (
+                        {order.orderStatus?.toUpperCase() === 'DELIVERED' && !returns.filter(r => String(r.orderId?._id || r.orderId) === String(id)).some(r => r.status !== 'CANCELLED') && (
                             <button
                                 onClick={() => setIsReturnModalOpen(true)}
                                 className="flex items-center gap-2 px-4 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all font-bold"

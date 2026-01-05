@@ -9,7 +9,8 @@ import {
     ChevronRight,
     LayoutDashboard,
     Undo2,
-    Coins
+    Coins,
+    ShoppingBag
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
@@ -27,14 +28,25 @@ const ProfileLayout: React.FC = () => {
         navigate(ROUTES.ROOT);
     };
 
-    const navItems = [
-        { label: 'Overview', icon: LayoutDashboard, path: ROUTES.PROFILE },
-        { label: 'My Orders', icon: Package, path: ROUTES.ORDERS },
-        { label: 'Wishlist', icon: Heart, path: ROUTES.WISHLIST },
-        { label: 'My Addresses', icon: MapPin, path: ROUTES.ADDRESSES },
-        { label: 'My Returns', icon: Undo2, path: ROUTES.RETURNS },
-        { label: 'Loyalty Points', icon: Coins, path: ROUTES.LOYALTY },
-        { label: 'Account Settings', icon: Settings, path: ROUTES.CHANGE_PASSWORD },
+    const navSections = [
+        {
+            title: 'Account Settings',
+            items: [
+                { label: 'Overview', icon: LayoutDashboard, path: ROUTES.PROFILE },
+                { label: 'My Addresses', icon: MapPin, path: ROUTES.ADDRESSES },
+                { label: 'Change Password', icon: Settings, path: ROUTES.CHANGE_PASSWORD },
+            ]
+        },
+        {
+            title: 'Shopping',
+            items: [
+                { label: 'My Cart', icon: ShoppingBag, path: ROUTES.CART },
+                { label: 'My Orders', icon: Package, path: ROUTES.ORDERS },
+                { label: 'My Returns', icon: Undo2, path: ROUTES.RETURNS },
+                { label: 'Wishlist', icon: Heart, path: ROUTES.WISHLIST },
+                { label: 'Loyalty Points', icon: Coins, path: ROUTES.LOYALTY },
+            ]
+        }
     ];
 
     if (!user) return null;
@@ -59,29 +71,36 @@ const ProfileLayout: React.FC = () => {
                             </div>
 
                             {/* Nav Links */}
-                            <nav className="p-4">
-                                <ul className="space-y-2">
-                                    {navItems.map((item) => (
-                                        <li key={item.path}>
-                                            <NavLink
-                                                to={item.path}
-                                                end={item.path === ROUTES.PROFILE}
-                                                className={({ isActive }) => `
-                                                    flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group
-                                                    ${isActive
-                                                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}
-                                                `}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <item.icon size={20} className="transition-colors duration-300" />
-                                                    <span className="text-sm font-black uppercase tracking-widest">{item.label}</span>
-                                                </div>
-                                                <ChevronRight size={14} className={`transition-transform duration-300 ${item.path === ROUTES.PROFILE ? 'group-hover:translate-x-1' : ''}`} />
-                                            </NavLink>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <nav className="p-4 space-y-8">
+                                {navSections.map((section) => (
+                                    <div key={section.title}>
+                                        <h3 className="px-6 mb-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">{section.title}</h3>
+                                        <ul className="space-y-1">
+                                            {section.items.map((item) => (
+                                                <li key={item.path}>
+                                                    <NavLink
+                                                        to={item.path}
+                                                        end={item.path === ROUTES.PROFILE}
+                                                        className={({ isActive }) => `
+                                                            flex items-center justify-between px-6 py-3 rounded-2xl transition-all duration-300 group
+                                                            ${isActive
+                                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}
+                                                        `}
+                                                    >
+                                                        <div className="flex items-center gap-4">
+                                                            <item.icon size={18} className="transition-colors duration-300" />
+                                                            <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                                                        </div>
+                                                        {item.path === ROUTES.PROFILE && (
+                                                            <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                                        )}
+                                                    </NavLink>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
 
                                 <div className="mt-8 pt-8 border-t border-gray-100 px-4">
                                     <button
