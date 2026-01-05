@@ -80,12 +80,12 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
 
     return (
         <div className="flex flex-col md:flex-row h-full">
-            {/* Sidebar Tabs */}
-            <div className="w-full md:w-[280px] bg-white border-r border-gray-100 flex flex-col py-6 overflow-y-auto">
-                <div className="px-6 mb-4">
+            {/* Sidebar Tabs (Horizontal on mobile, Vertical on desktop) */}
+            <div className="w-full md:w-[280px] bg-white border-b md:border-b-0 md:border-r border-gray-100 flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto py-2 md:py-6 gap-2 md:gap-0 px-4 md:px-0 shrink-0 scrollbar-hide">
+                <div className="hidden md:block px-6 mb-4">
                     <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Filter By</h3>
                 </div>
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex flex-row md:flex-col md:flex-1 md:overflow-y-auto gap-2 md:gap-0">
                     {[
                         { id: 'category', label: 'Categories', count: filters.categoryIds?.length || 0 },
                         ...attributes.map(attr => ({
@@ -100,23 +100,23 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`w-full text-left px-5 py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-between mt-1 group ${activeTab === tab.id
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-100'
-                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                            className={`min-w-fit md:w-full text-left px-4 md:px-5 py-3 md:py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-between md:mt-1 group border md:border-0 ${activeTab === tab.id
+                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-100 border-primary'
+                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 border-gray-100'
                                 }`}
                         >
                             <span className="flex items-center gap-2">
                                 {tab.label}
                                 {tab.count > 0 && (
                                     <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[9px] ${activeTab === tab.id
-                                            ? 'bg-white text-primary'
-                                            : 'bg-primary text-white'
+                                        ? 'bg-white text-primary'
+                                        : 'bg-primary text-white'
                                         }`}>
                                         {tab.count}
                                     </span>
                                 )}
                             </span>
-                            {activeTab === tab.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            {activeTab === tab.id && <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white" />}
                         </button>
                     ))}
                 </div>

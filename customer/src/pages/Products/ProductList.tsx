@@ -3,7 +3,7 @@ import type { Product, ProductFilters as IProductFilters } from '../../types/pro
 import { productService } from '../../services/product.service';
 import ProductCard from '../../components/Product/ProductCard';
 import ProductFilters from '../../components/Product/ProductFilters';
-import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Drawer } from '../../components/common/Drawer';
 
@@ -12,7 +12,7 @@ const ProductList: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const [totalRecords, setTotalRecords] = useState(0);
+
 
     // Initialize filters from URL or defaults
     const [filters, setFilters] = useState<IProductFilters>({
@@ -30,17 +30,21 @@ const ProductList: React.FC = () => {
     // Sync state with URL changes (e.g. from Navbar)
     useEffect(() => {
         const categoryParam = searchParams.get('category');
-        const currentCategoryId = filters.categoryIds?.[0] || null;
-        const urlCategoryId = categoryParam || null;
+        const searchParam = searchParams.get('search');
 
-        if (urlCategoryId !== currentCategoryId) {
+        const currentCategoryId = filters.categoryIds?.[0] || undefined;
+        // Check if URL params differ from state (external navigation)
+        const hasCategoryChanged = categoryParam !== (currentCategoryId ?? null) && (categoryParam !== null || currentCategoryId !== undefined);
+        const hasSearchChanged = (searchParam || '') !== (filters.search || '');
+
+        if (hasCategoryChanged || hasSearchChanged) {
             setFilters(prev => ({
                 ...prev,
-                categoryIds: categoryParam ? [categoryParam] : undefined,
+                categoryIds: categoryParam ? [categoryParam] : (hasCategoryChanged ? undefined : prev.categoryIds),
+                search: hasSearchChanged ? (searchParam || '') : prev.search,
                 page: 1
             }));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     useEffect(() => {
@@ -63,7 +67,7 @@ const ProductList: React.FC = () => {
             const response = await productService.getWithPagination(filters);
             setProducts(response.data);
             setTotalPages(response.pagination.totalPages);
-            setTotalRecords(response.pagination.total);
+
         } catch (error) {
             console.error('Failed to load products:', error);
         } finally {
@@ -164,23 +168,12 @@ const ProductList: React.FC = () => {
                             <SlidersHorizontal size={16} />
                             Filters
                         </button>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest border-l border-gray-200 pl-6">
-                            {loading ? 'Loading...' : `${totalRecords} Items`}
-                        </p>
+
                     </div>
 
                     {/* Right: Search & Sort */}
                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                        <div className="relative group w-full sm:w-auto">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={16} />
-                            <input
-                                type="text"
-                                placeholder="SEARCH"
-                                className="pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-xs font-bold focus:ring-1 focus:ring-primary w-full sm:w-56 transition-all uppercase placeholder-gray-400"
-                                value={filters.search}
-                                onChange={(e) => handleSearch(e.target.value)}
-                            />
-                        </div>
+
 
                         <div className="flex items-center gap-3 w-full sm:w-auto">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Sort By</span>
