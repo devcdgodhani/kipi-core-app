@@ -11,7 +11,7 @@ import type { Category } from '../../types/product.types';
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
-    const { openCart, cart } = useCart();
+    const { cart } = useCart();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -178,7 +178,7 @@ const Navbar: React.FC = () => {
 
                     {/* Cart */}
                     <button
-                        onClick={openCart}
+                        onClick={() => navigate(ROUTES.CART)}
                         className="p-2 text-gray-600 hover:text-primary transition-colors relative"
                     >
                         <ShoppingBag size={20} />
