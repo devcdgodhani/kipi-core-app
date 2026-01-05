@@ -96,7 +96,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { to: '/intelligence/sales', label: 'Sales Analytics', icon: DollarSign },
                 { to: '/intelligence/products', label: 'Product Insights', icon: Package },
                 { to: '/intelligence/customers', label: 'Customer Insights', icon: Users },
-                { to: '/intelligence/financial', label: 'Financial Reports', icon: Receipt }
+                { to: '/intelligence/financial', label: 'Financial Reports', icon: Receipt },
+                { to: '/intelligence/lots', label: 'Lot Intelligence', icon: Activity }
             ]
         },
         {

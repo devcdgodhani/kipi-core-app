@@ -49,6 +49,25 @@ export interface ICustomerAnalytics {
   };
 }
 
+export interface ILotAnalytics {
+  stockOverview: {
+    totalValue: number;
+    totalStock: number;
+    lowStockItems: number;
+    outOfStockItems: number;
+  };
+  expiryRisks: {
+    expired: number;
+    expiringNext30Days: number;
+    expiringNext90Days: number;
+  };
+  lotMovements: {
+    date: string;
+    received: number;
+    sold: number;
+  }[];
+}
+
 export const analyticsService = {
   getSalesAnalytics: async (startDate?: Date, endDate?: Date): Promise<IRevenueAnalytics> => {
     const query = qs.stringify({
@@ -72,6 +91,14 @@ export const analyticsService = {
       endDate: endDate?.toISOString(),
     }, { addQueryPrefix: true });
     const response = await axiosInstance.get<any, { data: ICustomerAnalytics }>(`/analytics/customers${query}`);
+    return response.data;
+  },
+  getLotAnalytics: async (startDate?: Date, endDate?: Date): Promise<ILotAnalytics> => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    }, { addQueryPrefix: true });
+    const response = await axiosInstance.get<any, { data: ILotAnalytics }>(`/analytics/lots${query}`);
     return response.data;
   },
 };

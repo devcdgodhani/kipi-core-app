@@ -15,6 +15,7 @@ import type { Coupon } from '../../types/coupon.types';
 import toast from 'react-hot-toast';
 import Button from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
+import { ROUTES } from '../../routes/routeConfig';
 
 const CouponList: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -228,7 +229,7 @@ const CouponList: React.FC = () => {
                     </div>
                 </div>
                 <Button
-                    onClick={() => navigate('/coupons/new')}
+                    onClick={() => navigate(`/${ROUTES.DASHBOARD.COUPONS_CREATE}`)}
                     className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8 relative z-10"
                 >
                     <Plus size={20} className="mr-2" />

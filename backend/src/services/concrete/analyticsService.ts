@@ -1,3 +1,4 @@
+import { LotModel } from '../../db/mongodb/models/lotModel';
 import { OrderModel } from '../../db/mongodb/models/orderModel';
 import { ORDER_STATUS } from '../../constants';
 
@@ -54,37 +55,28 @@ export class AnalyticsService {
    * Get revenue analytics for a specific date range
    */
   async getRevenueAnalytics(startDate: Date, endDate: Date): Promise<IRevenueAnalytics> {
-    
-    // Determine grouping format based on duration
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // If range > 60 days, group by month, else group by day
     const groupByFormat = diffDays > 60 ? '%Y-%m' : '%Y-%m-%d';
 
     const pipeline = [
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] } // Only count confirmed/processed/delivered
+          orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] }
         }
       },
       {
         $group: {
-          _id: {
-            $dateToString: { format: groupByFormat, date: '$createdAt' }
-          },
+          _id: { $dateToString: { format: groupByFormat, date: '$createdAt' } },
           revenue: { $sum: '$totalAmount' },
           orders: { $sum: 1 }
         }
       },
-      {
-        $sort: { _id: 1 }
-      }
+      { $sort: { _id: 1 } }
     ];
 
     const result = await OrderModel.aggregate(pipeline as any);
-
     let totalRevenue = 0;
     let totalOrders = 0;
 
@@ -107,11 +99,9 @@ export class AnalyticsService {
   }
 
   /**
-   * Get product performance analytics (Best Sellers & Returns)
+   * Get product performance analytics
    */
   async getProductPerformance(startDate: Date, endDate: Date): Promise<IProductAnalytics> {
-    
-    // 1. Top Selling Products Pipeline
     const salesPipeline = [
       {
         $match: {
@@ -133,7 +123,6 @@ export class AnalyticsService {
       { $limit: 10 }
     ];
 
-    // 2. Top Returned Products Pipeline
     const returnsPipeline = [
       {
         $match: {
@@ -159,22 +148,13 @@ export class AnalyticsService {
       OrderModel.aggregate(returnsPipeline as any)
     ]);
 
-    return {
-      topProducts,
-      topReturns
-    };
-    return {
-      topProducts,
-      topReturns
-    };
+    return { topProducts, topReturns };
   }
 
   /**
-   * Get customer analytics (Platinum Users, Churn Risk, Acquisition)
+   * Get customer analytics
    */
   async getCustomerAnalytics(startDate: Date, endDate: Date): Promise<ICustomerAnalytics> {
-    
-    // 1. Top Spenders
     const spendersPipeline = [
       {
         $match: {
@@ -192,12 +172,7 @@ export class AnalyticsService {
       { $sort: { totalSpend: -1 } },
       { $limit: 10 },
       {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user'
-        }
+        $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' }
       },
       { $unwind: '$user' },
       {
@@ -210,17 +185,11 @@ export class AnalyticsService {
       }
     ];
 
-    // 2. Churn Risk (High value users who haven't ordered in last 60 days)
-    // Heuristic: Find users with high LTV (from all time) whose last order was > 60 days ago
     const sixtyDaysAgo = new Date();
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
     const churnPipeline = [
-      {
-        $match: {
-           orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] }
-        }
-      },
+      { $match: { orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] } } },
       {
         $group: {
           _id: '$userId',
@@ -229,20 +198,12 @@ export class AnalyticsService {
         }
       },
       {
-        $match: {
-          lastOrderDate: { $lt: sixtyDaysAgo },
-          totalSpend: { $gt: 0 } // Only care about actual spenders
-        }
+        $match: { lastOrderDate: { $lt: sixtyDaysAgo }, totalSpend: { $gt: 0 } }
       },
       { $sort: { totalSpend: -1 } },
       { $limit: 10 },
       {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user'
-        }
+        $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' }
       },
       { $unwind: '$user' },
       {
@@ -255,8 +216,6 @@ export class AnalyticsService {
       }
     ];
 
-    // 3. New vs Returning (Based on User Created Date)
-    // We analyze orders in the period, and check if the user was created IN this period (New) or BEFORE (Returning)
     const acquisitionPipeline = [
       {
         $match: {
@@ -265,12 +224,7 @@ export class AnalyticsService {
         }
       },
       {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'user'
-        }
+        $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' }
       },
       { $unwind: '$user' },
       {
@@ -307,10 +261,90 @@ export class AnalyticsService {
       }
     });
 
+    return { topSpenders, churnRisk, acquisition };
+  }
+
+  /**
+   * Get lot intelligence (Stock health, Expiry risks, Movements)
+   */
+  async getLotAnalytics(startDate: Date, endDate: Date) {
+    const stockOverview = await LotModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalValue: { $sum: { $multiply: ['$basePrice', '$remainingQuantity'] } },
+          totalStock: { $sum: '$remainingQuantity' },
+          lowStockItems: { $sum: { $cond: [{ $and: [{ $gt: ['$remainingQuantity', 0] }, { $lt: ['$remainingQuantity', 10] }] }, 1, 0] } },
+          outOfStockItems: { $sum: { $cond: [{ $eq: ['$remainingQuantity', 0] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const now = new Date();
+    const thirtyDays = new Date();
+    thirtyDays.setDate(now.getDate() + 30);
+    const ninetyDays = new Date();
+    ninetyDays.setDate(now.getDate() + 90);
+
+    const expiryRisks = await LotModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          expired: { $sum: { $cond: [{ $lt: ['$endDate', now] }, 1, 0] } },
+          expiringNext30Days: { $sum: { $cond: [{ $and: [{ $gte: ['$endDate', now] }, { $lt: ['$endDate', thirtyDays] }] }, 1, 0] } },
+          expiringNext90Days: { $sum: { $cond: [{ $and: [{ $gte: ['$endDate', now] }, { $lt: ['$endDate', ninetyDays] }] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const movementsPipeline = [
+      { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          received: { $sum: '$quantity' }
+        }
+      }
+    ];
+
+    const salesPipeline = [
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+          orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] }
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          sold: { $sum: '$items.quantity' }
+        }
+      }
+    ];
+
+    const [receivedData, soldData] = await Promise.all([
+      LotModel.aggregate(movementsPipeline as any),
+      OrderModel.aggregate(salesPipeline as any)
+    ]);
+
+    const movementMap = new Map();
+    receivedData.forEach(item => movementMap.set(item._id, { date: item._id, received: item.received, sold: 0 }));
+    soldData.forEach(item => {
+      const existing = movementMap.get(item._id);
+      if (existing) {
+        existing.sold = item.sold;
+      } else {
+        movementMap.set(item._id, { date: item._id, received: 0, sold: item.sold });
+      }
+    });
+
+    const lotMovements = Array.from(movementMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+
     return {
-      topSpenders,
-      churnRisk,
-      acquisition
+      stockOverview: stockOverview[0] || { totalValue: 0, totalStock: 0, lowStockItems: 0, outOfStockItems: 0 },
+      expiryRisks: expiryRisks[0] || { expired: 0, expiringNext30Days: 0, expiringNext90Days: 0 },
+      lotMovements
     };
   }
 }
