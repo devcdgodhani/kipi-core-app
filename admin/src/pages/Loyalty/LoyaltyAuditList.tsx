@@ -33,7 +33,8 @@ const LoyaltyAuditList: React.FC = () => {
 
     useEffect(() => {
         fetchLedger();
-    }, [params]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const getStatusBadge = (type: string) => {
         switch (type) {
