@@ -30,6 +30,10 @@ export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/Coupon
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));
 export const ManageInventoryAuditLazy = lazy(() => import('../../pages/Inventory/InventoryAuditList'));
 export const ManageLoyaltyLazy = lazy(() => import('../../pages/Loyalty/LoyaltyAuditList'));
-export const ManageAnalyticsLazy = lazy(() => import('../../pages/Analytics/AnalyticsDashboard'));
 
+// Intelligence Section - Split Analytics Pages
+export const SalesAnalyticsLazy = lazy(() => import('../../pages/Analytics/SalesAnalytics'));
+export const ProductInsightsLazy = lazy(() => import('../../pages/Analytics/ProductInsights'));
+export const CustomerInsightsLazy = lazy(() => import('../../pages/Analytics/CustomerInsights'));
+export const FinancialReportsLazy = lazy(() => import('../../pages/Analytics/FinancialReports'));
 
