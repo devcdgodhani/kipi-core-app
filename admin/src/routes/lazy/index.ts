@@ -9,6 +9,7 @@ export const ManageProductFormLazy = lazy(() => import('../../pages/Product/Prod
 export const ManageSkusLazy = lazy(() => import('../../pages/SKU/SkuList'));
 export const ManageSkuFormLazy = lazy(() => import('../../pages/SKU/SkuForm'));
 export const ManageOrdersLazy = lazy(() => import('../../pages/Orders/OrderList'));
+export const ManageOrderDetailsLazy = lazy(() => import('../../pages/Orders/OrderDetails'));
 
 export const ManageUsersLazy = lazy(() => import('../../pages/User/UserList'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
@@ -25,6 +26,7 @@ export const ManageAttributesLazy = lazy(() => import('../../pages/Attribute/Att
 export const ManageAttributeFormLazy = lazy(() => import('../../pages/Attribute/AttributeForm'));
 export const ManageReviewsLazy = lazy(() => import('../../pages/Review/ReviewList'));
 export const ManageReturnsLazy = lazy(() => import('../../pages/Return/ReturnList').then(module => ({ default: module.ReturnList })));
+export const ManageReturnDetailsLazy = lazy(() => import('../../pages/Return/ReturnDetails'));
 export const ManageCouponsLazy = lazy(() => import('../../pages/Coupon/CouponList'));
 export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/CouponForm'));
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));

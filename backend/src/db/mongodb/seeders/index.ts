@@ -7,6 +7,10 @@ import { seedCoupons } from './couponSeeder';
 import { seedOrders } from './orderSeeder';
 import { seedReviews } from './reviewSeeder';
 import { seedReturns } from './returnSeeder';
+import { seedWishlist } from './wishlistSeeder';
+import { seedCart } from './cartSeeder';
+import { seedLoyalty } from './loyaltySeeder';
+import { seedInventoryAudit } from './inventoryAuditSeeder';
 
 export const runSeeders = async () => {
   try {
@@ -28,6 +32,12 @@ export const runSeeders = async () => {
     await seedOrders();
     await seedReviews();
     await seedReturns();
+
+    // Level 5: User Engagement & Audit
+    await seedWishlist();
+    await seedCart();
+    await seedLoyalty();
+    await seedInventoryAudit();
     
     console.log('✅ All seeders executed successfully.');
   } catch (error) {
