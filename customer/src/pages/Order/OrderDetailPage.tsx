@@ -252,25 +252,72 @@ const OrderDetailPage: React.FC = () => {
                                     <span>Subtotal</span>
                                     <span>₹{order.subTotal.toLocaleString()}</span>
                                 </div>
+
+                                {/* Coupon Discount */}
+                                {order.couponCode && order.discountAmount && order.discountAmount > 0 && (
+                                    <div className="flex justify-between text-sm text-emerald-600 font-medium bg-emerald-50 -mx-2 px-2 py-2 rounded-lg">
+                                        <span className="flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            Coupon ({order.couponCode})
+                                        </span>
+                                        <span className="font-bold">-₹{order.discountAmount.toLocaleString()}</span>
+                                    </div>
+                                )}
+
+                                {/* Loyalty Points Redeemed */}
+                                {(order as any).pointsRedeemed && (order as any).pointsRedeemed > 0 && (
+                                    <div className="flex justify-between text-sm text-amber-600 font-medium bg-amber-50 -mx-2 px-2 py-2 rounded-lg">
+                                        <span className="flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Loyalty Points ({(order as any).pointsUsed || 0} pts)
+                                        </span>
+                                        <span className="font-bold">-₹{(order as any).pointsRedeemed.toLocaleString()}</span>
+                                    </div>
+                                )}
+
+                                {/* Delivery Charges */}
                                 <div className="flex justify-between text-sm text-gray-500 font-medium">
-                                    <span>Shipping</span>
+                                    <span className="flex items-center gap-2">
+                                        <Truck size={14} />
+                                        Delivery Charges
+                                    </span>
                                     <span className={order.shippingCost === 0 ? 'text-emerald-500 font-bold' : ''}>
-                                        {order.shippingCost === 0 ? 'FREE' : `₹${order.shippingCost}`}
+                                        {order.shippingCost === 0 ? 'FREE' : `₹${order.shippingCost.toLocaleString()}`}
                                     </span>
                                 </div>
+
+                                {/* Tax */}
                                 {order.tax > 0 && (
                                     <div className="flex justify-between text-sm text-gray-500 font-medium">
-                                        <span>Estimated GST</span>
+                                        <span>Tax (GST)</span>
                                         <span>₹{order.tax.toLocaleString()}</span>
                                     </div>
                                 )}
+
+                                {/* Total */}
                                 <div className="flex justify-between pt-4 border-t border-gray-100">
-                                    <span className="text-base font-black text-gray-900 uppercase tracking-widest">Total</span>
+                                    <span className="text-base font-black text-gray-900 uppercase tracking-widest">Total Amount</span>
                                     <div className="flex flex-col items-end">
                                         <span className="text-xl font-black text-primary">₹{order.totalAmount.toLocaleString()}</span>
                                         <span className="text-[10px] font-bold text-gray-400 mt-1 italic">via {order.paymentMethod}</span>
                                     </div>
                                 </div>
+
+                                {/* Savings Summary */}
+                                {((order.discountAmount && order.discountAmount > 0) || ((order as any).pointsRedeemed && (order as any).pointsRedeemed > 0)) && (
+                                    <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Total Savings</span>
+                                            <span className="text-lg font-black text-emerald-600">
+                                                ₹{((order.discountAmount || 0) + ((order as any).pointsRedeemed || 0)).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>

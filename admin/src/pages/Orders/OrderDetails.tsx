@@ -199,22 +199,71 @@ export const OrderDetails: React.FC = () => {
                         <div className="pt-6 border-t border-gray-50 space-y-3">
                             <div className="flex justify-between text-xs font-medium text-gray-500 uppercase tracking-widest">
                                 <span>Subtotal</span>
-                                <span className="text-gray-900 font-bold">₹{order.subTotal}</span>
+                                <span className="text-gray-900 font-bold">₹{order.subTotal.toLocaleString()}</span>
                             </div>
+
+                            {/* Coupon Discount */}
                             {order.discountAmount! > 0 && (
-                                <div className="flex justify-between text-xs font-medium text-rose-500 uppercase tracking-widest">
-                                    <span>Discount ({order.couponCode})</span>
-                                    <span className="font-bold">-₹{order.discountAmount}</span>
+                                <div className="flex justify-between text-xs font-medium uppercase tracking-widest bg-emerald-50 -mx-2 px-2 py-2 rounded-lg border border-emerald-100">
+                                    <span className="text-emerald-700 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                        Coupon ({order.couponCode})
+                                    </span>
+                                    <span className="text-emerald-600 font-bold">-₹{order.discountAmount.toLocaleString()}</span>
                                 </div>
                             )}
+
+                            {/* Loyalty Points */}
+                            {(order as any).pointsRedeemed && (order as any).pointsRedeemed > 0 && (
+                                <div className="flex justify-between text-xs font-medium uppercase tracking-widest bg-amber-50 -mx-2 px-2 py-2 rounded-lg border border-amber-100">
+                                    <span className="text-amber-700 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Points ({(order as any).pointsUsed || 0} pts)
+                                    </span>
+                                    <span className="text-amber-600 font-bold">-₹{(order as any).pointsRedeemed.toLocaleString()}</span>
+                                </div>
+                            )}
+
+                            {/* Delivery Charges */}
                             <div className="flex justify-between text-xs font-medium text-gray-500 uppercase tracking-widest">
-                                <span>Shipping & Tax</span>
-                                <span className="text-gray-900 font-bold">₹{order.shippingCost + order.tax}</span>
+                                <span className="flex items-center gap-2">
+                                    <Truck size={14} />
+                                    Delivery Charges
+                                </span>
+                                <span className={`font-bold ${order.shippingCost === 0 ? 'text-emerald-500' : 'text-gray-900'}`}>
+                                    {order.shippingCost === 0 ? 'FREE' : `₹${order.shippingCost.toLocaleString()}`}
+                                </span>
                             </div>
+
+                            {/* Tax */}
+                            {order.tax > 0 && (
+                                <div className="flex justify-between text-xs font-medium text-gray-500 uppercase tracking-widest">
+                                    <span>Tax (GST)</span>
+                                    <span className="text-gray-900 font-bold">₹{order.tax.toLocaleString()}</span>
+                                </div>
+                            )}
+
+                            {/* Total */}
                             <div className="flex justify-between pt-4 border-t border-gray-100/50 text-base font-black text-primary uppercase tracking-tight">
                                 <span>Total Payable</span>
-                                <span className="text-xl">₹{order.totalAmount}</span>
+                                <span className="text-xl">₹{order.totalAmount.toLocaleString()}</span>
                             </div>
+
+                            {/* Savings Highlight */}
+                            {((order.discountAmount && order.discountAmount > 0) || ((order as any).pointsRedeemed && (order as any).pointsRedeemed > 0)) && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Customer Savings</span>
+                                        <span className="text-lg font-black text-emerald-600">
+                                            ₹{((order.discountAmount || 0) + ((order as any).pointsRedeemed || 0)).toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
