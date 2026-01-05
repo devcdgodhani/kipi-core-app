@@ -230,6 +230,33 @@ const CheckoutPage: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* Order Items List */}
+                            <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                {cart?.items.map((item, idx) => {
+                                    const productRef = (item.productId as any)?.name ? (item.productId as any) : item.product;
+                                    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : item.sku;
+                                    const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                                        productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+
+                                    return (
+                                        <div key={idx} className="flex gap-4">
+                                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0">
+                                                <img
+                                                    src={skuRef?.media?.[0]?.url || productRef.mainImage || '/placeholder-product.png'}
+                                                    alt={productRef.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-xs font-bold text-gray-900 truncate">{productRef.name}</h4>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Qty: {item.quantity}</p>
+                                                <p className="text-xs font-black text-primary mt-1">₹{price.toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
                             <div className="space-y-4 border-t border-gray-50 pt-6">
                                 <div className="flex justify-between text-sm font-medium text-gray-500">
                                     <span>Subtotal ({cart?.items?.length || 0} items)</span>

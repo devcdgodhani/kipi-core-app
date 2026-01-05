@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Address } from '../types/address.types';
-import type { CheckoutState, CreateOrderRequest, CouponInfo } from '../types/checkout.types';
+import type { CheckoutState, CouponInfo } from '../types/checkout.types';
+import type { CreateOrderRequest } from '../types/order.types';
 import { orderService } from '../services/order.service';
 import { couponService } from '../services/coupon.service';
 import { loyaltyService } from '../services/loyalty.service';
@@ -50,7 +51,11 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const calculateTotal = () => {
         if (!cart || !cart.items) return 0;
         return cart.items.reduce((acc, item) => {
-            const price = item.sku?.salePrice || item.sku?.basePrice || item.product?.salePrice || item.product?.basePrice || 0;
+            const productRef = (item.productId as any)?.name ? (item.productId as any) : item.product;
+            const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : item.sku;
+
+            const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
             return acc + (price * item.quantity);
         }, 0);
     };
@@ -156,18 +161,28 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         setLoading(true);
         try {
-            const items = cart.items.map(item => ({
-                productId: item.productId,
-                skuId: item.skuId,
-                name: item.product.name,
-                quantity: item.quantity,
-                price: item.sku?.salePrice || item.sku?.basePrice || item.product.salePrice || item.product.basePrice || 0,
-                total: ((item.sku?.salePrice || item.sku?.basePrice || item.product.salePrice || item.product.basePrice) || 0) * item.quantity,
-                image: item.sku?.media?.[0]?.url || item.product.mainImage || item.product.media?.[0]?.url
-            }));
+            const items = cart.items.map(item => {
+                const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+                const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
+                const pId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
+                const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
+
+                const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                    productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+
+                return {
+                    productId: pId || '',
+                    skuId: sId || pId || '',
+                    name: productRef.name || 'Unknown Product',
+                    quantity: item.quantity || 1,
+                    price: price,
+                    total: price * (item.quantity || 1),
+                    image: skuRef?.media?.[0]?.url || productRef.mainImage || productRef.media?.[0]?.url || ''
+                };
+            });
 
             const orderData: CreateOrderRequest = {
-                items,
+                items: items as any, // Cast for compatibility with OrderItem
                 shippingAddress: {
                     name: state.selectedAddress.name,
                     mobile: state.selectedAddress.mobile,
@@ -177,7 +192,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     country: state.selectedAddress.country,
                     pincode: state.selectedAddress.pincode,
                     landmark: state.selectedAddress.landmark
-                } as any,
+                },
                 billingAddress: {
                     name: state.selectedAddress.name,
                     mobile: state.selectedAddress.mobile,
@@ -187,7 +202,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     country: state.selectedAddress.country,
                     pincode: state.selectedAddress.pincode,
                     landmark: state.selectedAddress.landmark
-                } as any,
+                },
                 paymentMethod: state.paymentMethod,
                 couponCode: state.appliedCoupon?.code,
                 subTotal: state.orderSummary.subTotal,

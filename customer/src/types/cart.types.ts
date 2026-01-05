@@ -5,6 +5,9 @@ export interface CartItem {
     productId: string;
     skuId?: string;
     quantity: number;
+    price: number;
+    salePrice?: number;
+    offerPrice?: number;
     
     // Populated fields
     product: Product;

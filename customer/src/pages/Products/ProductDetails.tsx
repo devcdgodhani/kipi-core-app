@@ -72,14 +72,16 @@ const ProductDetails: React.FC = () => {
     const handleAddToCart = async () => {
         if (!product || !selectedSku) return;
 
+        console.log('ProductDetails: handleAddToCart', { product, selectedSku });
         setAddingToCart(true);
         try {
             await addItem({
                 productId: product._id,
                 skuId: selectedSku._id,
                 quantity,
-                product: product // Required by CartItem type
-            } as any);
+                product: product,
+                sku: selectedSku
+            });
             // Success handled by CartContext toast
         } catch (error) {
             console.error('Failed to add to cart:', error);

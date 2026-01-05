@@ -3,7 +3,7 @@ import { publicRoutes } from './public/publicRoutes';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy, ProfileLayoutLazy, ReturnHistoryLazy, LoyaltyPointsLazy } from './lazy';
 
 import { ROUTES } from './routeConfig';
 
@@ -30,41 +30,55 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute />,
                 children: [
                     {
-                        path: ROUTES.WISHLIST,
-                        element: <WishlistLazy />,
-                    },
-                    {
-                        path: ROUTES.ADDRESSES,
-                        element: <AddressesLazy />,
-                    },
-                    {
                         path: ROUTES.CHECKOUT,
                         element: <CheckoutLazy />,
-                    },
-                    {
-                        path: ROUTES.ORDERS,
-                        element: <OrdersLazy />,
-                    },
-                    {
-                        path: ROUTES.ORDER_DETAILS,
-                        element: <OrderDetailsLazy />,
-                    },
-                    {
-                        path: ROUTES.INVOICE,
-                        element: <InvoiceLazy />,
                     },
                     {
                         path: ROUTES.ORDER_SUCCESS,
                         element: <OrderSuccessLazy />,
                     },
                     {
-                        path: ROUTES.PROFILE,
-                        element: <ProfileLazy />,
+                        path: ROUTES.INVOICE,
+                        element: <InvoiceLazy />,
                     },
+                    // User Dashboard Section
                     {
-                        path: ROUTES.CHANGE_PASSWORD,
-                        element: <ChangePasswordLazy />,
-                    },
+                        element: <ProfileLayoutLazy />,
+                        children: [
+                            {
+                                path: ROUTES.PROFILE,
+                                element: <ProfileLazy />,
+                            },
+                            {
+                                path: ROUTES.ORDERS,
+                                element: <OrdersLazy />,
+                            },
+                            {
+                                path: ROUTES.ORDER_DETAILS,
+                                element: <OrderDetailsLazy />,
+                            },
+                            {
+                                path: ROUTES.WISHLIST,
+                                element: <WishlistLazy />,
+                            },
+                            {
+                                path: ROUTES.ADDRESSES,
+                                element: <AddressesLazy />,
+                            },
+                            {
+                                path: ROUTES.CHANGE_PASSWORD,
+                                element: <ChangePasswordLazy />,
+                            },
+                            {
+                                path: ROUTES.RETURNS,
+                                element: <ReturnHistoryLazy />,
+                            },
+                            {
+                                path: ROUTES.LOYALTY,
+                                element: <LoyaltyPointsLazy />,
+                            },
+                        ]
+                    }
                 ],
             },
             {

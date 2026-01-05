@@ -32,6 +32,8 @@ const createOrderSchema = z.object({
   tax: z.number().default(0),
   shippingCost: z.number().default(0),
   totalAmount: z.number().min(0),
+  couponCode: z.string().optional(),
+  pointsUsed: z.number().min(0).optional(),
   notes: z.string().optional()
 });
 

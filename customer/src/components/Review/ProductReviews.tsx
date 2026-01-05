@@ -20,8 +20,14 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
     const loadReviews = async () => {
         try {
-            const data = await reviewService.getByProduct(productId);
-            setReviews(data);
+            const response: any = await reviewService.getByProduct(productId);
+            if (response && response.recordList) {
+                setReviews(response.recordList);
+            } else if (Array.isArray(response)) {
+                setReviews(response);
+            } else {
+                setReviews([]);
+            }
         } catch (error) {
             console.error('Failed to load reviews:', error);
         } finally {
@@ -33,7 +39,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h3 className="text-2xl font-bold text-gray-900">
-                    Reviews ({reviews.length})
+                    Reviews ({Array.isArray(reviews) ? reviews.length : 0})
                 </h3>
                 <button
                     onClick={() => setShowModal(true)}

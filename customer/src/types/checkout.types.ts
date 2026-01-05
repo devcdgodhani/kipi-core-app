@@ -38,19 +38,7 @@ export interface CheckoutState {
   availablePoints: number;
 }
 
-export interface CreateOrderRequest {
-  items: CheckoutItem[];
-  shippingAddress: Address;
-  billingAddress: Address;
-  paymentMethod: 'COD' | 'ONLINE';
-  couponCode?: string;
-  subTotal: number;
-  tax: number;
-  shippingCost: number;
-  totalAmount: number;
-  pointsUsed?: number;
-  notes?: string;
-}
+
 
 export interface OrderResponse {
     _id: string;
