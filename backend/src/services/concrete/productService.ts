@@ -12,6 +12,45 @@ export class ProductService
     super(ProductModel);
   }
 
+  generateFilter(options: {
+    filters?: Record<string, any>;
+    searchFields?: (keyof IProductAttributes)[];
+  }) {
+    const { filters = {} } = options;
+    const { attributes, ...restFilters } = filters;
+
+    // Use super for standard fields
+    const result = super.generateFilter({ ...options, filters: restFilters });
+
+    // Handle nested attribute filters
+    if (attributes && typeof attributes === 'object') {
+      const attrConditions: any[] = [];
+      
+      for (const [attrId, values] of Object.entries(attributes)) {
+        if (Array.isArray(values) && values.length > 0) {
+          attrConditions.push({
+            attributes: {
+              $elemMatch: {
+                attributeId: attrId,
+                value: { $in: values }
+              }
+            }
+          });
+        }
+      }
+
+      if (attrConditions.length > 0) {
+        if (!result.filter.$and) {
+          result.filter.$and = [];
+        }
+        // Use Type Assertion or spread carefully if TS complains
+        (result.filter.$and as any[]).push(...attrConditions);
+      }
+    }
+
+    return result;
+  };
+
   /**
    * Syncs SKUs for a given product. 
    * Handles creation and potentially updates if IDs are provided.
