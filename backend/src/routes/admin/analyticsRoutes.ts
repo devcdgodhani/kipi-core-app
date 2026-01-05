@@ -48,4 +48,10 @@ router.get(
   analyticsController.getTaxSummary.bind(analyticsController)
 );
 
+router.get(
+  '/lots',
+  jwtAuth(),
+  analyticsController.getLotAnalytics.bind(analyticsController)
+);
+
 export const analyticsRoutes = router;

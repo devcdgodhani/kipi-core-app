@@ -159,4 +159,23 @@ export class AnalyticsController {
       next(error);
     }
   };
+
+  getLotAnalytics = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const end = endDate ? new Date(endDate as string) : new Date();
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setDate(end.getDate() - 30));
+
+      const data = await analyticsService.getLotAnalytics(start, end);
+
+      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Lot analytics fetched successfully',
+        data
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

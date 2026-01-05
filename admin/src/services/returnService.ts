@@ -3,14 +3,14 @@ import type { IReturnFilters } from '../types/return.types';
 
 export const returnService = {
     getAll: (params: IReturnFilters) => 
-        axiosInstance.get('/admin/return', { params }),
+        axiosInstance.get('/return', { params }),
     
     getWithPagination: (params: IReturnFilters & { page?: number; limit?: number }) => 
-        axiosInstance.get('/admin/return', { params }),
+        axiosInstance.get('/return', { params }),
     
     getOne: (id: string) => 
-        axiosInstance.get(`/admin/return/${id}`),
+        axiosInstance.get(`/return/${id}`),
     
     updateStatus: (id: string, data: { status: string; adminNotes?: string }) => 
-        axiosInstance.patch(`/admin/return/${id}/status`, data),
+        axiosInstance.patch(`/return/${id}/status`, data),
 };

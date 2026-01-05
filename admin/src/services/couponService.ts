@@ -1,7 +1,7 @@
 import http from './http';
 import type { Coupon, CouponFilters } from '../types/coupon.types';
 
-const COUPON_BASE_URL = '/admin/coupon';
+const COUPON_BASE_URL = '/coupon';
 
 export const couponService = {
   getAll: async (params?: CouponFilters) => {
