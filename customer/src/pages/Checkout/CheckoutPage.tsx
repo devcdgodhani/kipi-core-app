@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import AddressCard from '../../components/Address/AddressCard';
 import { Loader2, CheckCircle, CreditCard, Banknote, Ticket, X, ShieldCheck, Coins } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
+import { couponService } from '../../services/coupon.service';
 
 const CheckoutPage: React.FC = () => {
     const {
@@ -28,6 +29,20 @@ const CheckoutPage: React.FC = () => {
 
     const [couponCode, setCouponCode] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
+    const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            try {
+                // Pass subTotal to filter eligible coupons based on minOrderAmount
+                const res = await couponService.getAll({ orderAmount: orderSummary.subTotal });
+                setAvailableCoupons(res);
+            } catch (err) {
+                console.error("Failed to fetch coupons", err);
+            }
+        };
+        fetchCoupons();
+    }, [orderSummary.subTotal]);
 
     useEffect(() => {
         // Auto-select default address
@@ -37,11 +52,12 @@ const CheckoutPage: React.FC = () => {
         }
     }, [addresses, selectedAddress, setSelectedAddress]);
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) return;
+    const handleApplyCoupon = async (code: string) => {
+        const targetCode = code || couponCode;
+        if (!targetCode.trim()) return;
         setApplyingCoupon(true);
         try {
-            await applyCoupon(couponCode);
+            await applyCoupon(targetCode);
             setCouponCode('');
         } finally {
             setApplyingCoupon(false);
@@ -148,24 +164,44 @@ const CheckoutPage: React.FC = () => {
                             </h2>
 
                             {/* Coupon Input */}
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-4 pt-2">
                                 {!appliedCoupon ? (
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Enter Coupon Code"
-                                            value={couponCode}
-                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-gray-300 transition-all uppercase"
-                                        />
-                                        <button
-                                            onClick={handleApplyCoupon}
-                                            disabled={applyingCoupon || !couponCode}
-                                            className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black disabled:bg-gray-200 transition-all flex items-center justify-center shrink-0"
-                                        >
-                                            {applyingCoupon ? <Loader2 size={16} className="animate-spin" /> : 'Apply'}
-                                        </button>
-                                    </div>
+                                    <>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter Coupon"
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-gray-300 transition-all"
+                                            />
+                                            <button
+                                                onClick={() => handleApplyCoupon(couponCode)}
+                                                disabled={applyingCoupon || !couponCode}
+                                                className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black disabled:bg-gray-200 transition-all flex items-center justify-center shrink-0"
+                                            >
+                                                {applyingCoupon ? <Loader2 size={16} className="animate-spin" /> : 'Apply'}
+                                            </button>
+                                        </div>
+                                        {/* Available Coupons Horizontal Scroll */}
+                                        {availableCoupons.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Available Offers</p>
+                                                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                                                    {availableCoupons.map(coupon => (
+                                                        <button
+                                                            key={coupon._id}
+                                                            onClick={() => handleApplyCoupon(coupon.code)}
+                                                            className="flex-shrink-0 bg-primary/5 border border-dashed border-primary/20 rounded-xl px-4 py-2 text-left hover:bg-primary/10 transition-all active:scale-95"
+                                                        >
+                                                            <p className="text-[10px] font-black text-primary uppercase">{coupon.code}</p>
+                                                            <p className="text-[8px] text-gray-500 font-bold uppercase truncate w-24">{coupon.description || 'Save on your order'}</p>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <div className="bg-green-50 border border-green-100 rounded-xl p-3 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -233,22 +269,23 @@ const CheckoutPage: React.FC = () => {
                             {/* Order Items List */}
                             <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 {cart?.items.map((item, idx) => {
-                                    const productRef = (item.productId as any)?.name ? (item.productId as any) : item.product;
-                                    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : item.sku;
+                                    const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+                                    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
                                     const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
-                                        productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+                                        productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+                                        item.salePrice || item.price || 0;
 
                                     return (
                                         <div key={idx} className="flex gap-4">
                                             <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0">
                                                 <img
                                                     src={skuRef?.media?.[0]?.url || productRef.mainImage || '/placeholder-product.png'}
-                                                    alt={productRef.name}
+                                                    alt={productRef.name || 'Product'}
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-xs font-bold text-gray-900 truncate">{productRef.name}</h4>
+                                                <h4 className="text-xs font-bold text-gray-900 truncate">{productRef.name || 'Unknown Product'}</h4>
                                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Qty: {item.quantity}</p>
                                                 <p className="text-xs font-black text-primary mt-1">₹{price.toLocaleString()}</p>
                                             </div>

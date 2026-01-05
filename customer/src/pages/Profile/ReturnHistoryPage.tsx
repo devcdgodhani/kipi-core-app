@@ -3,6 +3,7 @@ import { returnService } from '../../services/returnService';
 import { Loader2, RotateCcw, ChevronRight, AlertCircle, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { toast } from 'react-hot-toast';
 
 const ReturnHistoryPage: React.FC = () => {
     const [returns, setReturns] = useState<any[]>([]);
@@ -92,22 +93,42 @@ const ReturnHistoryPage: React.FC = () => {
                                     <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(item.status)}`}>
                                         {item.status}
                                     </div>
-                                    <button
-                                        onClick={() => navigate(`/orders/${item.orderId?._id || item.orderId}`)}
-                                        className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
-                                    >
-                                        View Detail
-                                        <ChevronRight size={14} />
-                                    </button>
+                                    <div className="flex items-center gap-4">
+                                        {item.status === 'PENDING' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (window.confirm('Are you sure you want to cancel this return request?')) {
+                                                        try {
+                                                            await returnService.cancel(item._id);
+                                                            toast.success('Return request cancelled');
+                                                            loadReturns();
+                                                        } catch (err) {
+                                                            toast.error('Failed to cancel return request');
+                                                        }
+                                                    }
+                                                }}
+                                                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                                            >
+                                                Cancel Request
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => navigate(`/orders/${item.orderId?._id || item.orderId}`)}
+                                            className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                                        >
+                                            View Detail
+                                            <ChevronRight size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {item.adminMessage && (
+                            {item.adminNotes && (
                                 <div className="mt-6 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
                                     <AlertCircle className="text-amber-500 flex-shrink-0" size={18} />
                                     <p className="text-xs text-amber-800 font-medium leading-relaxed">
                                         <span className="font-black uppercase tracking-widest mr-2">Admin Note:</span>
-                                        {item.adminMessage}
+                                        {item.adminNotes}
                                     </p>
                                 </div>
                             )}

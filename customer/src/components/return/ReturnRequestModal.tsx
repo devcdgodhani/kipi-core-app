@@ -33,49 +33,63 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
 
     if (!isOpen) return null;
 
+    const getIdentifier = (item: any) => {
+        const id = item.skuId?._id || item.skuId || item.productId?._id || item.productId;
+        return id?.toString() || '';
+    };
+
     const toggleItem = (item: any) => {
+        const itemKey = getIdentifier(item);
         setSelectedItems(prev => {
-            const exists = prev.find(i => i.skuId === item.skuId);
-            if (exists) return prev.filter(i => i.skuId !== item.skuId);
+            const exists = prev.find(i => getIdentifier(i) === itemKey);
+            if (exists) return prev.filter(i => getIdentifier(i) !== itemKey);
             return [...prev, {
-                skuId: item.skuId,
-                quantity: item.quantity,
+                productId: item.productId?._id || item.productId,
+                skuId: item.skuId?._id || item.skuId,
+                quantity: 1,
                 price: item.price,
                 name: item.name,
                 image: item.image,
-                reason: '' // Can be overridden per item if needed, but we'll use a global one for simplicity now
+                reason: ''
             }];
         });
     };
 
-    const updateItemQty = (skuId: string, qty: number) => {
-        setSelectedItems(prev => prev.map(i => i.skuId === skuId ? { ...i, quantity: qty } : i));
+    const updateItemQty = (id: string, qty: number) => {
+        setSelectedItems(prev => prev.map(i => getIdentifier(i) === id ? { ...i, quantity: qty } : i));
     };
 
     const handleSubmit = async () => {
+        console.log('RMA Execution Attempt', { items: selectedItems.length, reason });
+
         if (selectedItems.length === 0) {
-            toast.error('Please select at least one item to return');
+            toast.error('Protocol Error: Identify at least one asset for return');
             return;
         }
         if (!reason) {
-            toast.error('Please select a reason for the return');
+            toast.error('Protocol Error: Specify a classification reason');
             return;
         }
 
         try {
             setLoading(true);
-            const totalRefundAmount = selectedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+            const totalRefundAmount = selectedItems.reduce((acc, curr) => {
+                const price = Number(curr.price) || 0;
+                const qty = Number(curr.quantity) || 0;
+                return acc + (price * qty);
+            }, 0);
 
             const payload = {
                 orderId: order._id,
                 items: selectedItems.map(item => ({
-                    skuId: item.skuId,
+                    skuId: getIdentifier(item),
                     quantity: item.quantity,
                     price: item.price,
                     reason: reason,
                     description: description
                 })),
-                totalRefundAmount
+                totalRefundAmount,
+                pickupAddress: order.shippingAddress
             };
 
             await returnService.requestReturn(payload);
@@ -83,7 +97,7 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
             onSuccess();
             onClose();
         } catch (err: any) {
-            console.error('RMA Failed', err);
+            console.error('RMA System Failure', err);
             toast.error(err.response?.data?.message || 'Failed to initialize return protocol');
         } finally {
             setLoading(false);
@@ -91,26 +105,67 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 transition-opacity bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                onClick={onClose}
+            />
 
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            {/* Modal Content container with scroll if needed */}
+            <div className="relative z-[110] w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-300">
+                <div className="flex h-full flex-col md:flex-row">
+                    {/* Sidebar Order Info */}
+                    <div className="w-full md:w-72 bg-gray-50/50 border-r border-gray-100 p-8">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <RotateCcw size={20} />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-black text-gray-900 uppercase font-mono tracking-tight leading-none">RMA Initiation</h2>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Source Order</p>
+                            </div>
+                        </div>
 
-                <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-[2.5rem] shadow-2xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
-                    <div className="bg-white p-8">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
-                                    <RotateCcw size={24} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-gray-900 uppercase font-mono tracking-tight">RMA Initiation</h2>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Order Ref: #{order.orderNumber}</p>
+                        <div className="space-y-6">
+                            <div>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Original Reference</span>
+                                <p className="text-xs font-black text-gray-900">#{order.orderNumber}</p>
+                            </div>
+
+                            <div>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Financial Payload</span>
+                                <p className="text-sm font-black text-primary">₹{order.totalAmount.toLocaleString()}</p>
+                            </div>
+
+                            <div>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Checkout Timestamp</span>
+                                <p className="text-[10px] font-bold text-gray-600 uppercase">
+                                    {new Date(order.createdAt).toLocaleDateString(undefined, {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    })}
+                                </p>
+                            </div>
+
+                            <div className="pt-6 border-t border-gray-200/50">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Pickup Protocol Address</span>
+                                <div className="p-3 bg-white rounded-xl border border-gray-200">
+                                    <p className="text-[10px] font-black text-gray-900 mb-1">{order.shippingAddress.name}</p>
+                                    <p className="text-[9px] font-bold text-gray-500 leading-relaxed uppercase">
+                                        {order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.pincode}
+                                    </p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="p-3 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-2xl transition-all">
-                                <X size={24} />
+                        </div>
+                    </div>
+
+                    <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase">Construct Request</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-xl transition-all">
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -118,17 +173,18 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                             {/* Item Selection */}
                             <section>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                         <Package size={14} className="text-rose-500" />
-                                        Asset Selection
-                                    </h3>
-                                    <span className="text-[10px] font-black text-rose-500">
-                                        {selectedItems.length} Identified
+                                        Asset Identification
+                                    </h4>
+                                    <span className="text-[10px] font-black text-rose-500 bg-rose-50 px-2 py-0.5 rounded">
+                                        {selectedItems.length} Selected
                                     </span>
                                 </div>
                                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                     {order.items.map((item, idx) => {
-                                        const isSelected = selectedItems.find(i => i.skuId === item.skuId);
+                                        const itemKey = getIdentifier(item);
+                                        const isSelected = selectedItems.find(i => getIdentifier(i) === itemKey);
                                         return (
                                             <div
                                                 key={idx}
@@ -150,12 +206,12 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                                                 {isSelected && (
                                                     <div className="flex items-center gap-3 bg-white p-1 rounded-xl shadow-sm border border-rose-100" onClick={(e) => e.stopPropagation()}>
                                                         <button
-                                                            onClick={() => updateItemQty(item.skuId!, Math.max(1, isSelected.quantity - 1))}
+                                                            onClick={() => updateItemQty(itemKey, Math.max(1, isSelected.quantity - 1))}
                                                             className="w-8 h-8 rounded-lg hover:bg-gray-50 flex items-center justify-center text-gray-400"
                                                         >-</button>
                                                         <span className="text-sm font-black text-rose-500 w-4 text-center">{isSelected.quantity}</span>
                                                         <button
-                                                            onClick={() => updateItemQty(item.skuId!, Math.min(item.quantity, isSelected.quantity + 1))}
+                                                            onClick={() => updateItemQty(itemKey, Math.min(item.quantity, isSelected.quantity + 1))}
                                                             className="w-8 h-8 rounded-lg hover:bg-gray-50 flex items-center justify-center text-gray-400"
                                                         >+</button>
                                                     </div>
@@ -224,8 +280,7 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                                     </button>
                                     <button
                                         onClick={handleSubmit}
-                                        disabled={loading || selectedItems.length === 0 || !reason}
-                                        className="h-14 bg-rose-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-rose-500/20 hover:bg-rose-600 transition-all disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
+                                        className="h-14 bg-rose-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center justify-center gap-2"
                                     >
                                         {loading ? (
                                             <RotateCcw size={18} className="animate-spin" />

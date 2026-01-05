@@ -29,7 +29,7 @@ export default class CartController {
       // Add default population for cart items
       if (!options.populate) {
         options.populate = [
-          { path: 'items.productId', select: 'name mainImage slug' },
+          { path: 'items.productId', select: 'name mainImage slug basePrice salePrice offerPrice' },
           { path: 'items.skuId', select: 'skuCode basePrice salePrice offerPrice media' }
         ];
       }

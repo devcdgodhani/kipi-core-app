@@ -38,6 +38,41 @@ export default class CouponController {
         filters: reqData,
       });
 
+      // If NOT an admin, enforce strict eligibility logic
+      if (req.user?.type !== 'ADMIN' && req.user?.type !== 'MASTER_ADMIN') {
+        const userId = req.user?._id ? String(req.user._id) : null;
+        const orderAmount = Number(reqData.orderAmount) || 0;
+
+        filter.status = 'ACTIVE';
+        filter.$or = [
+          { deletedAt: { $exists: false } },
+          { deletedAt: null }
+        ];
+
+        // Eligibility Check 1: User restriction
+        // Filter: (userIds is empty) OR (userIds contains current user)
+        filter.$and = filter.$and || [];
+        filter.$and.push({
+          $or: [
+            { userIds: { $size: 0 } },
+            { userIds: { $exists: false } },
+            { userIds: null },
+            { userIds: userId }
+          ]
+        });
+
+        // Eligibility Check 2: Minimum order amount (optional, if amount provided)
+        if (orderAmount > 0) {
+          filter.$and.push({
+            $or: [
+              { minOrderAmount: { $exists: false } },
+              { minOrderAmount: null },
+              { minOrderAmount: { $lte: orderAmount } }
+            ]
+          });
+        }
+      }
+
       const couponList = await this.couponService.findAll(filter, options);
 
       const response: IApiResponse<ICouponAttributes[]> = {

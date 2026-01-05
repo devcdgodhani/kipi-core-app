@@ -10,5 +10,6 @@ const returnValidator = new ReturnValidator();
 router.post('/request', jwtAuth(), returnValidator.create, returnController.create);
 router.post('/getMyReturns', jwtAuth(), returnValidator.getWithPagination, returnController.getWithPagination);
 router.get('/getOne/:id', jwtAuth(), returnValidator.getOne, returnController.getOne);
+router.post('/cancel/:id', jwtAuth(), returnController.cancel);
 
 export default router;

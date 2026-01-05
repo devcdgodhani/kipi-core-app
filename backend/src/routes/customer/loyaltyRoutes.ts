@@ -6,7 +6,7 @@ const router = Router();
 const controller = new LoyaltyController();
 
 // All loyalty routes are protected
-router.use(jwtAuth);
+router.use(jwtAuth());
 
 /**
  * @route   POST /api/loyalty/status
