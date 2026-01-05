@@ -16,11 +16,19 @@ export class ProductService
     filters?: Record<string, any>;
     searchFields?: (keyof IProductAttributes)[];
   }) {
-    const { filters = {} } = options;
+    const { filters = {}, searchFields } = options;
     const { attributes, ...restFilters } = filters;
 
-    // Use super for standard fields
-    const result = super.generateFilter({ ...options, filters: restFilters });
+    // Default search fields for products if not specified
+    const defaultSearchFields: (keyof IProductAttributes)[] = ['name', 'description', 'slug'];
+    const effectiveSearchFields = searchFields || defaultSearchFields;
+
+    // Use super for standard fields with search capability
+    const result = super.generateFilter({ 
+      ...options, 
+      filters: restFilters,
+      searchFields: effectiveSearchFields 
+    });
 
     // Handle nested attribute filters
     if (attributes && typeof attributes === 'object') {

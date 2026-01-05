@@ -13,6 +13,7 @@ export interface ISkuAttributes extends IDefaultAttributes {
     _id: ObjectId;
     productId: ObjectId;
     skuCode: string;
+    slug: string;
     
     variantAttributes: ISkuAttributeValue[];
     

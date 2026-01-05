@@ -115,14 +115,20 @@ const ProductList: React.FC = () => {
         setTempFilters({
             page: 1,
             limit: 12,
-            sortBy: 'createdAt',
-            sortOrder: 'desc',
-            search: '',
-            categoryIds: undefined,
-            minPrice: undefined,
-            maxPrice: undefined,
+            sortBy: filters.sortBy,
+            sortOrder: filters.sortOrder,
+            search: filters.search
         });
     };
+
+    const activeFilterCount = (
+        (tempFilters.categoryIds?.length || 0) +
+        (tempFilters.minPrice ? 1 : 0) +
+        (tempFilters.maxPrice ? 1 : 0) +
+        (tempFilters.inStock ? 1 : 0) +
+        Object.values(tempFilters.attributes || {}).reduce((acc, curr) => acc + curr.length, 0)
+    );
+
 
     const handleClearFilters = () => {
         setFilters({
@@ -274,7 +280,7 @@ const ProductList: React.FC = () => {
                                 onClick={handleApplyFilters}
                                 className="px-8 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                             >
-                                Apply Filters
+                                Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
                             </button>
                         </div>
                     }
