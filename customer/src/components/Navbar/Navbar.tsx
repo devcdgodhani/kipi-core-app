@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
     const [subcategories, setSubcategories] = useState<{ [key: string]: Category[] }>({});
+    const [searchQuery, setSearchQuery] = useState('');
     const profileRef = useRef<HTMLDivElement>(null);
     const categoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -164,9 +165,24 @@ const Navbar: React.FC = () => {
                     </button>
 
                     {/* Search */}
-                    <button className="hidden md:flex items-center gap-2 text-gray-400 hover:text-primary transition-colors p-2">
-                        <Search size={20} />
-                    </button>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (searchQuery.trim()) {
+                            navigate(`${ROUTES.PRODUCTS.ROOT}?search=${encodeURIComponent(searchQuery)}`);
+                            setSearchQuery('');
+                        }
+                    }} className="hidden md:flex items-center relative group">
+                        <input
+                            type="text"
+                            placeholder="SEARCH"
+                            className="pl-2 pr-8 py-1.5 text-xs font-bold border-b-2 border-transparent hover:border-gray-200 focus:border-primary focus:outline-none transition-all w-0 group-hover:w-48 focus:w-48 uppercase tracking-wide bg-transparent text-gray-800 placeholder-gray-400 cursor-pointer focus:cursor-text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className="text-gray-400 hover:text-primary transition-colors p-2 absolute right-0">
+                            <Search size={20} />
+                        </button>
+                    </form>
 
                     {/* Wishlist */}
                     <button
