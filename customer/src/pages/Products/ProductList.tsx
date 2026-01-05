@@ -26,6 +26,22 @@ const ProductList: React.FC = () => {
     });
     const [totalPages, setTotalPages] = useState(1);
 
+    // Sync state with URL changes (e.g. from Navbar)
+    useEffect(() => {
+        const categoryParam = searchParams.get('category');
+        const currentCategoryId = filters.categoryIds?.[0] || null;
+        const urlCategoryId = categoryParam || null;
+
+        if (urlCategoryId !== currentCategoryId) {
+            setFilters(prev => ({
+                ...prev,
+                categoryIds: categoryParam ? [categoryParam] : undefined,
+                page: 1
+            }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     useEffect(() => {
         loadProducts();
         // Update URL params
@@ -225,8 +241,8 @@ const ProductList: React.FC = () => {
                                                 key={page}
                                                 onClick={() => handlePageChange(page)}
                                                 className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${filters.page === page
-                                                        ? 'bg-primary text-white'
-                                                        : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
                                                     }`}
                                             >
                                                 {page}
