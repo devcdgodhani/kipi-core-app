@@ -8,6 +8,7 @@ const skuSchema = new Schema<ISkuDocument>(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     skuCode: { type: String, required: true, unique: true },
+    slug: { type: String, required: true, unique: true },
     
     variantAttributes: [
       {
