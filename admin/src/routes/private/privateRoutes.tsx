@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -150,6 +150,10 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.ANALYTICS_FINANCIAL,
                     element: <FinancialReportsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.ANALYTICS_LOTS,
+                    element: <LotAnalyticsLazy />,
                 },
                 {
                     path: ROUTES.PROFILE,

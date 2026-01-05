@@ -36,4 +36,5 @@ export const SalesAnalyticsLazy = lazy(() => import('../../pages/Analytics/Sales
 export const ProductInsightsLazy = lazy(() => import('../../pages/Analytics/ProductInsights'));
 export const CustomerInsightsLazy = lazy(() => import('../../pages/Analytics/CustomerInsights'));
 export const FinancialReportsLazy = lazy(() => import('../../pages/Analytics/FinancialReports'));
+export const LotAnalyticsLazy = lazy(() => import('../../pages/Analytics/LotAnalytics'));
 

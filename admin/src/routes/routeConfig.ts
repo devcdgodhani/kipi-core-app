@@ -40,6 +40,7 @@ export const ROUTES = {
         ANALYTICS_PRODUCTS: 'intelligence/products',
         ANALYTICS_CUSTOMERS: 'intelligence/customers',
         ANALYTICS_FINANCIAL: 'intelligence/financial',
+        ANALYTICS_LOTS: 'intelligence/lots',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',

@@ -11,28 +11,31 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { analyticsService } from '../../services/analyticsService';
+import { DateRangeFilter, type DateRange } from '../../components/common/DateRangeFilter';
+import { subDays, startOfDay, endOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [dashboardData, setDashboardData] = useState<any>(null);
+    const [dateRange, setDateRange] = useState<DateRange>({
+        startDate: startOfDay(subDays(new Date(), 30)),
+        endDate: endOfDay(new Date()),
+        key: '30d'
+    });
 
     useEffect(() => {
         fetchDashboardData();
-    }, []);
+    }, [dateRange]);
 
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(endDate.getDate() - 30);
-
             // Fetch all analytics data
             const [salesData, productData, customerData] = await Promise.all([
-                analyticsService.getSalesAnalytics(startDate, endDate),
-                analyticsService.getProductAnalytics(startDate, endDate),
-                analyticsService.getCustomerAnalytics(startDate, endDate)
+                analyticsService.getSalesAnalytics(dateRange.startDate, dateRange.endDate),
+                analyticsService.getProductAnalytics(dateRange.startDate, dateRange.endDate),
+                analyticsService.getCustomerAnalytics(dateRange.startDate, dateRange.endDate)
             ]);
 
             setDashboardData({
@@ -85,11 +88,18 @@ const Dashboard: React.FC = () => {
     return (
         <div className="p-6 space-y-8">
             {/* Hero Header */}
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 rounded-[2.5rem] border border-primary/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 rounded-[2.5rem] border border-primary/10 relative flex flex-col md:flex-row md:items-center justify-between gap-6 z-40">
+                {/* Decorative Background Elements */}
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+                </div>
+
                 <div className="relative z-10">
                     <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Dashboard Overview</h1>
-                    <p className="text-gray-600 font-medium">Welcome back! Here's what's happening with your business today.</p>
+                    <p className="text-gray-600 font-medium">Welcome back! Here's what's happening with your business.</p>
+                </div>
+                <div className="relative z-10">
+                    <DateRangeFilter onChange={setDateRange} initialRangeKey={dateRange.key} />
                 </div>
             </div>
 

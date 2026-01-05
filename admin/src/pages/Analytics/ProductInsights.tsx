@@ -4,26 +4,24 @@ import {
     AlertTriangle,
     Download
 } from 'lucide-react';
-import { analyticsService } from '../../services/analyticsService';
-import type { IProductAnalytics } from '../../services/analyticsService';
+import { analyticsService, type IProductAnalytics } from '../../services/analyticsService';
+import { DateRangeFilter, type DateRange } from '../../components/common/DateRangeFilter';
+import { subDays, startOfDay, endOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const ProductInsights: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [productData, setProductData] = useState<IProductAnalytics | null>(null);
-    const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+    const [dateRange, setDateRange] = useState<DateRange>({
+        startDate: startOfDay(subDays(new Date(), 30)),
+        endDate: endOfDay(new Date()),
+        key: '30d'
+    });
 
     const fetchAnalytics = useCallback(async () => {
         try {
             setLoading(true);
-            const endDate = new Date();
-            const startDate = new Date();
-
-            if (timeRange === '7d') startDate.setDate(endDate.getDate() - 7);
-            if (timeRange === '30d') startDate.setDate(endDate.getDate() - 30);
-            if (timeRange === '90d') startDate.setDate(endDate.getDate() - 90);
-
-            const pData = await analyticsService.getProductAnalytics(startDate, endDate);
+            const pData = await analyticsService.getProductAnalytics(dateRange.startDate, dateRange.endDate);
             setProductData(pData);
         } catch (error) {
             console.error(error);
@@ -31,21 +29,16 @@ const ProductInsights: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [timeRange]);
+    }, [dateRange]);
 
     useEffect(() => {
         fetchAnalytics();
     }, [fetchAnalytics]);
 
     const handleExport = (format: 'xlsx' | 'csv' = 'xlsx') => {
-        const endDate = new Date();
-        const startDate = new Date();
-        if (timeRange === '7d') startDate.setDate(endDate.getDate() - 7);
-        if (timeRange === '30d') startDate.setDate(endDate.getDate() - 30);
-        if (timeRange === '90d') startDate.setDate(endDate.getDate() - 90);
-
-        const url = `/api/v1/admin/analytics/export/products?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&format=${format}`;
+        const url = `/api/v1/admin/analytics/export/products?startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}&format=${format}`;
         const token = localStorage.getItem('token');
+        // ... (rest of handleExport stays same)
 
         fetch(url, {
             headers: { Authorization: `Bearer ${token}` }
@@ -75,8 +68,12 @@ const ProductInsights: React.FC = () => {
     return (
         <div className="p-6 space-y-8">
             {/* Premium Hero Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative group z-40">
+                {/* Decorative Background Elements */}
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+                </div>
+
                 <div className="relative z-10 flex items-center gap-6">
                     <div className="w-16 h-16 rounded-[1.5rem] bg-amber-500 flex items-center justify-center text-white shadow-xl shadow-amber-500/20">
                         <Package size={32} />
@@ -87,21 +84,8 @@ const ProductInsights: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 relative z-10">
-                    <div className="flex bg-gray-50 p-1.5 rounded-[1.5rem] border border-gray-100">
-                        {(['7d', '30d', '90d'] as const).map((range) => (
-                            <button
-                                key={range}
-                                onClick={() => setTimeRange(range)}
-                                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${timeRange === range
-                                    ? 'bg-white text-primary shadow-lg shadow-gray-100 scale-100'
-                                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                                    }`}
-                            >
-                                Last {range.replace('d', ' Days')}
-                            </button>
-                        ))}
-                    </div>
+                <div className="relative z-10">
+                    <DateRangeFilter onChange={setDateRange} initialRangeKey={dateRange.key} />
                 </div>
             </div>
 
