@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, Lock, LogOut, ChevronDown, Heart } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, Search, Heart, LogOut, ChevronDown } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
 import { authService } from '../../services/auth.service';
@@ -18,11 +18,10 @@ const Navbar: React.FC = () => {
 
     const links = [
         { to: ROUTES.ROOT, label: 'Home' },
-        { to: ROUTES.PRODUCTS.ROOT, label: 'Products' },
+        { to: ROUTES.PRODUCTS.ROOT, label: 'Shop' },
         { to: ROUTES.WISHLIST, label: 'Wishlist' },
         { to: ROUTES.ORDERS, label: 'Orders' },
     ];
-
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -45,174 +44,142 @@ const Navbar: React.FC = () => {
         }
     };
 
-    const userInitial = user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U';
-    const userName = user?.firstName || 'User';
-
     return (
-        <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50 px-4 md:px-8">
-            <div className="h-full max-w-7xl mx-auto flex items-center justify-between">
-                {/* Logo */}
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                    <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">K</div>
-                    <span className="font-bold tracking-widest text-xs uppercase text-primary">Kipi</span>
-                </div>
-
-                {/* Desktop Navigation */}
-                <div className="hidden md:flex gap-8 items-center">
-                    {links.map(link => (
-                        <NavLink
-                            key={link.to}
-                            to={link.to}
-                            className={({ isActive }) =>
-                                `text-sm font-semibold transition-colors duration-200 ${isActive ? 'text-primary' : 'text-gray-500 hover:text-primary'}`
-                            }
-                        >
-                            {link.label}
-                        </NavLink>
-                    ))}
-                </div>
-
-                {/* Right Actions & Mobile Toggle */}
-                <div className="flex items-center gap-4">
+        <nav className="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-sm z-50 transition-all duration-300">
+            <div className="h-full max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
+                {/* Left: Mobile Menu & Search */}
+                <div className="flex items-center gap-4 flex-1">
                     <button
-                        className="text-gray-600 hover:text-primary transition-colors relative"
-                        onClick={openCart}
+                        className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
-                        <ShoppingCart size={20} />
+                        <Menu size={20} />
+                    </button>
+                    <button className="hidden md:flex items-center gap-2 text-gray-400 hover:text-primary transition-colors">
+                        <Search size={20} />
+                        <span className="text-sm font-medium">Search</span>
+                    </button>
+                </div>
+
+                {/* Center: Logo */}
+                <div className="flex-1 flex justify-center">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+                        <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">KIPI</h1>
+                    </div>
+                </div>
+
+                {/* Right: Actions */}
+                <div className="flex items-center justify-end gap-2 md:gap-6 flex-1">
+                    {/* Desktop Links (Hidden on mobile generally, but here checking if we want them visible or just icons) */}
+                    {/* Enterprise usually keeps header clean, links might be in a second row or mega menu. We'll use icons for primary actions */}
+
+                    <button
+                        onClick={() => navigate(ROUTES.WISHLIST)}
+                        className="hidden md:block p-2 text-gray-600 hover:text-primary transition-colors"
+                    >
+                        <Heart size={20} />
+                    </button>
+
+                    <div className="relative" ref={profileRef}>
+                        <button
+                            onClick={() => setIsProfileOpen(!isProfileOpen)}
+                            className="flex items-center gap-2 p-2 text-gray-600 hover:text-primary transition-colors"
+                        >
+                            <User size={20} />
+                            {user && <span className="hidden lg:block text-xs font-bold uppercase tracking-widest">{user.firstName}</span>}
+                        </button>
+
+                        {/* Profile Dropdown */}
+                        {isProfileOpen && (
+                            <div className="absolute right-0 mt-4 w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-3 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="px-5 py-3 border-b border-gray-50 mb-2">
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Signed in as</p>
+                                    <p className="text-sm font-bold text-primary truncate">{user?.email}</p>
+                                </div>
+                                {links.map(link => (
+                                    <button
+                                        key={link.to}
+                                        className="w-full text-left px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors"
+                                        onClick={() => { setIsProfileOpen(false); navigate(link.to); }}
+                                    >
+                                        {link.label}
+                                    </button>
+                                ))}
+                                <div className="h-px bg-gray-100 my-2"></div>
+                                <button
+                                    className="w-full text-left px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                    onClick={() => { setIsProfileOpen(false); handleLogout(); }}
+                                >
+                                    <LogOut size={14} /> Sign Out
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={openCart}
+                        className="p-2 text-gray-600 hover:text-primary transition-colors relative"
+                    >
+                        <ShoppingBag size={20} />
                         {cart && cart.items.length > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                            <span className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                                 {cart.items.length}
                             </span>
                         )}
                     </button>
-
-                    {/* Desktop Profile Dropdown */}
-                    <div className="hidden md:block relative" ref={profileRef}>
-                        <button
-                            className="flex items-center gap-2 focus:outline-none"
-                            onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        >
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                                <span className="text-xs font-bold">{userInitial}</span>
-                            </div>
-                            <ChevronDown size={14} className={`text-gray-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {isProfileOpen && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
-                                <div className="px-4 py-2 border-b border-gray-50 bg-gray-50/50">
-                                    <p className="text-xs font-medium text-gray-500">Signed in as</p>
-                                    <p className="text-sm font-bold text-gray-800 truncate">{user?.email || userName}</p>
-                                </div>
-
-                                <button
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
-                                    onClick={() => { setIsProfileOpen(false); navigate(ROUTES.PROFILE); }}
-                                >
-                                    <User size={16} /> Profile
-                                </button>
-
-                                <button
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
-                                    onClick={() => { setIsProfileOpen(false); navigate(ROUTES.ORDERS); }}
-                                >
-                                    <ShoppingCart size={16} /> My Orders
-                                </button>
-
-                                <button
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
-                                    onClick={() => { setIsProfileOpen(false); navigate(ROUTES.WISHLIST); }}
-                                >
-                                    <Heart size={16} /> My Wishlist
-                                </button>
-
-                                <button
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary flex items-center gap-2 transition-colors"
-                                    onClick={() => { setIsProfileOpen(false); navigate(ROUTES.CHANGE_PASSWORD); }}
-                                >
-                                    <Lock size={16} /> Change Password
-                                </button>
-
-                                <div className="h-px bg-gray-100 my-1"></div>
-
-                                <button
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                                    onClick={() => { setIsProfileOpen(false); handleLogout(); }}
-                                >
-                                    <LogOut size={16} /> Logout
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <button
-                        className="md:hidden text-gray-600 hover:text-primary"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Menu */}
-            {isMenuOpen && (
-                <div className="absolute top-16 left-0 right-0 bg-white border-b border-gray-200 p-4 md:hidden flex flex-col gap-2 shadow-lg animate-in slide-in-from-top-2">
-                    <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg mb-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                            <span className="text-xs font-bold">{userInitial}</span>
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-gray-800">{userName}</p>
-                            <p className="text-xs text-gray-500 truncate max-w-[200px]">{user?.email}</p>
-                        </div>
-                    </div>
-
+            {/* Sub-navigation (Desktop Only) - For Categories */}
+            <div className="hidden md:flex justify-center border-t border-gray-100 py-4 bg-white/50 backdrop-blur-sm">
+                <div className="flex gap-8">
                     {links.map(link => (
                         <NavLink
                             key={link.to}
                             to={link.to}
-                            onClick={() => setIsMenuOpen(false)}
                             className={({ isActive }) =>
-                                `text-sm font-semibold p-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-primary/5 text-primary' : 'text-gray-500 hover:bg-gray-50'}`
+                                `text-xs font-bold uppercase tracking-[0.1em] transition-all duration-300 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-primary after:transition-all hover:after:w-full ${isActive ? 'text-primary after:w-full' : 'text-gray-500 hover:text-primary'}`
                             }
                         >
                             {link.label}
                         </NavLink>
                     ))}
+                </div>
+            </div>
 
-                    <div className="h-px bg-gray-100 my-2"></div>
-
-                    <button
-                        className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                        onClick={() => { setIsMenuOpen(false); navigate(ROUTES.PROFILE); }}
-                    >
-                        <User size={18} /> Profile
-                    </button>
-                    <button
-                        className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                        onClick={() => { setIsMenuOpen(false); navigate(ROUTES.ORDERS); }}
-                    >
-                        <ShoppingCart size={18} /> My Orders
-                    </button>
-                    <button
-                        className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                        onClick={() => { setIsMenuOpen(false); navigate(ROUTES.WISHLIST); }}
-                    >
-                        <Heart size={18} /> My Wishlist
-                    </button>
-                    <button
-                        className="text-left w-full p-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                        onClick={() => { setIsMenuOpen(false); navigate(ROUTES.CHANGE_PASSWORD); }}
-                    >
-                        <Lock size={18} /> Change Password
-                    </button>
-                    <button
-                        className="text-left w-full p-2 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-lg flex items-center gap-3"
-                        onClick={() => { setIsMenuOpen(false); handleLogout(); }}
-                    >
-                        <LogOut size={18} /> Logout
-                    </button>
+            {/* Mobile Menu Overlay */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-left duration-300 md:hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                        <span className="text-lg font-black uppercase tracking-widest">Menu</span>
+                        <button onClick={() => setIsMenuOpen(false)} className="p-2">
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div className="space-y-4">
+                            {links.map(link => (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className={({ isActive }) =>
+                                        `block text-2xl font-bold ${isActive ? 'text-primary' : 'text-gray-400'}`
+                                    }
+                                >
+                                    {link.label}
+                                </NavLink>
+                            ))}
+                        </div>
+                        <div className="border-t border-gray-100 pt-6">
+                            <button
+                                onClick={() => { setIsMenuOpen(false); handleLogout(); }}
+                                className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-sm"
+                            >
+                                <LogOut size={16} /> Sign Out
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </nav>

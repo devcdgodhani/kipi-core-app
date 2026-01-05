@@ -31,11 +31,20 @@ const ProductDetails: React.FC = () => {
         setLoading(true);
         try {
             // Try fetching by slug first since that's what we navigate with
-            let productData = await productService.getBySlug(slugOrId);
+            let productData;
+            try {
+                productData = await productService.getBySlug(slugOrId);
+            } catch (error) {
+                console.log('Fetch by slug failed, trying ID fallback...');
+            }
 
-            // Fallback: If fetch by slug fails or returns nothing (might be ID), try getById
-            // Note: In a real app, backend usually handles this or we have separate logic.
-            // For now, assuming slug because of ProductCard navigation
+            if (!productData) {
+                try {
+                    productData = await productService.getById(slugOrId);
+                } catch (error) {
+                    console.error('Fetch by ID failed as well');
+                }
+            }
 
             if (productData) {
                 setProduct(productData);
@@ -69,15 +78,12 @@ const ProductDetails: React.FC = () => {
                 productId: product._id,
                 skuId: selectedSku._id,
                 quantity,
-                price: selectedSku.basePrice || product.basePrice,
-                salePrice: selectedSku.salePrice || product.salePrice,
-                offerPrice: selectedSku.offerPrice || product.offerPrice
-            });
-            // Allow visual feedback or toast
-            alert('Added to cart!');
+                product: product // Required by CartItem type
+            } as any);
+            // Success handled by CartContext toast
         } catch (error) {
             console.error('Failed to add to cart:', error);
-            alert('Failed to add to cart');
+            // Error handled by CartContext toast
         } finally {
             setAddingToCart(false);
         }
