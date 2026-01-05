@@ -32,7 +32,8 @@ const LoyaltyPointsPage: React.FC = () => {
         );
     }
 
-    const { balance = 0, ledger = [], expiryDate } = data || {};
+    const { balance = 0, ledger: ledgerData, expiryDate } = data || {};
+    const ledger = ledgerData?.recordList || [];
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -91,7 +92,7 @@ const LoyaltyPointsPage: React.FC = () => {
                                     <div>
                                         <h4 className="font-bold text-gray-900">{tx.description}</h4>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
-                                            {format(new Date(tx.date), 'MMM d, yyyy • HH:mm')}
+                                            {format(new Date(tx.createdAt || tx.date), 'MMM d, yyyy • HH:mm')}
                                         </p>
                                     </div>
                                 </div>

@@ -23,7 +23,7 @@ export default class LoyaltyController {
                 });
             }
 
-            const options = req.body.options || {};
+            const options = req.body?.options || {};
             const ledger = await this.loyaltyService.getUserLedger(userId.toString(), options);
 
             const response: IApiResponse<any> = {
