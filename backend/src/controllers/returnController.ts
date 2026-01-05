@@ -72,6 +72,23 @@ export class ReturnController {
             next(err);
         }
     };
+
+    cancel = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            const userId = (req as any).user?._id;
+            const result = await returnService.cancelReturn(id, userId);
+            const response: IApiResponse<any> = {
+                status: HTTP_STATUS_CODE.OK.STATUS,
+                code: HTTP_STATUS_CODE.OK.CODE,
+                message: 'Return request cancelled',
+                data: result
+            };
+            return res.status(response.status).json(response);
+        } catch (err) {
+            next(err);
+        }
+    };
 }
 
 export const returnController = new ReturnController();

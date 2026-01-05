@@ -19,5 +19,11 @@ export const returnService = {
   getOne: async (id: string) => {
     const response: any = await http.get(`${RETURN_BASE_URL}/getOne/${id}`);
     return response.data;
+  },
+
+  // Cancel return request
+  cancel: async (id: string) => {
+    const response: any = await http.post(`${RETURN_BASE_URL}/cancel/${id}`);
+    return response.data;
   }
 };

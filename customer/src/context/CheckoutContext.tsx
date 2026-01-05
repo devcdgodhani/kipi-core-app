@@ -51,11 +51,12 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const calculateTotal = () => {
         if (!cart || !cart.items) return 0;
         return cart.items.reduce((acc, item) => {
-            const productRef = (item.productId as any)?.name ? (item.productId as any) : item.product;
-            const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : item.sku;
+            const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+            const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
 
             const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
-                productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+                productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+                item.salePrice || item.price || 0;
             return acc + (price * item.quantity);
         }, 0);
     };
@@ -168,7 +169,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
 
                 const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
-                    productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+                    productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+                    item.salePrice || item.price || 0;
 
                 return {
                     productId: pId || '',

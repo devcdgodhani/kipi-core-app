@@ -16,8 +16,9 @@ import {
     Star
 } from 'lucide-react';
 import { orderService } from '../../services/order.service';
-import { ReturnRequestModal } from '../../components/return/ReturnRequestModal';
 import { ReviewSubmissionModal } from '../../components/review/ReviewSubmissionModal';
+import { ReturnRequestModal } from '../../components/return/ReturnRequestModal';
+import { returnService } from '../../services/returnService';
 import type { Order } from '../../types/order.types';
 import { format } from 'date-fns';
 import { ROUTES } from '../../routes/routeConfig';
@@ -26,6 +27,7 @@ const OrderDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [order, setOrder] = useState<Order | null>(null);
+    const [returns, setReturns] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -40,10 +42,13 @@ const OrderDetailPage: React.FC = () => {
     const loadOrderDetails = async () => {
         try {
             setLoading(true);
-            const response = await orderService.getById(id!);
-            if (response) {
-                setOrder(response);
-            }
+            const [orderRes, returnsRes] = await Promise.all([
+                orderService.getById(id!),
+                returnService.getMyReturns({ orderId: id })
+            ]);
+
+            if (orderRes) setOrder(orderRes);
+            if (returnsRes?.recordList) setReturns(returnsRes.recordList);
         } catch (error) {
             console.error('Failed to load order details:', error);
         } finally {
@@ -120,7 +125,7 @@ const OrderDetailPage: React.FC = () => {
                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(order.orderStatus)}`}>
                             {order.orderStatus}
                         </div>
-                        {order.orderStatus === 'DELIVERED' && (
+                        {order.orderStatus === 'DELIVERED' && !returns.some(r => r.status === 'COMPLETED' || r.status === 'PENDING') && (
                             <button
                                 onClick={() => setIsReturnModalOpen(true)}
                                 className="flex items-center gap-2 px-4 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all font-bold"
@@ -306,9 +311,17 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">State</span>
                                     <span className={`text-xs font-black ${order.paymentStatus === 'COMPLETED' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                        {order.paymentStatus}
+                                        {order.orderStatus === 'RETURNED' ? 'REFUNDED' : order.paymentStatus}
                                     </span>
                                 </div>
+                                {returns.length > 0 && (
+                                    <div className="flex items-center justify-between p-3 bg-rose-50 rounded-2xl border border-rose-100">
+                                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Return</span>
+                                        <span className="text-xs font-black text-rose-600">
+                                            {returns[0].status}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </section>
 

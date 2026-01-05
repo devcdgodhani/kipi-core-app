@@ -12,4 +12,8 @@ export const couponService = {
     const response: any = await http.post(`${COUPON_BASE_URL}/apply`, { code, orderAmount });
     return response.data;
   },
+  getAll: async (params?: any) => {
+    const response: any = await http.get(`${COUPON_BASE_URL}/`, { params });
+    return response.data;
+  },
 };

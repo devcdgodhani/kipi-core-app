@@ -17,9 +17,12 @@ export class CouponService
 
   async validateCoupon(code: string, orderAmount: number, userId?: string | string[]): Promise<ICouponAttributes> {
     const coupon = await this.findOne({ 
-      code: code.toUpperCase(), 
+      code: code.trim().toUpperCase(), 
       status: COUPON_STATUS.ACTIVE,
-      deletedAt: { $exists: false } 
+      $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ]
     });
 
     if (!coupon) {

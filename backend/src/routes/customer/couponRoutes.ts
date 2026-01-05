@@ -7,6 +7,8 @@ const router = Router();
 const controller = new CouponController();
 const validator = new CouponValidator();
 
+router.get('/', jwtAuth(), controller.getAll);
+
 // Apply coupon requires authentication
 router.post(
   '/apply',

@@ -53,7 +53,7 @@ export interface IOrder {
   updatedAt?: Date;
 }
 
-export type TOrderCreateReq = Omit<IOrder, 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId' | 'orderStatus' | 'paymentStatus' | 'totalAmount' | 'subTotal'>;
+export type TOrderCreateReq = Omit<IOrder, 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId' | 'orderStatus' | 'paymentStatus'>;
 
 export type TOrderUpdateReq = Partial<IOrder>;
 

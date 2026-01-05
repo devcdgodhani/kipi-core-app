@@ -22,7 +22,11 @@ const CartPage: React.FC = () => {
 
     const calculateTotal = () => {
         return items.reduce((sum, item) => {
-            const price = item.sku?.salePrice || item.sku?.basePrice || item.sku?.price || 0;
+            const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+            const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
+            const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+                item.salePrice || item.price || 0;
             return sum + (price * item.quantity);
         }, 0);
     };

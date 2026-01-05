@@ -14,10 +14,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
     const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
 
-    // Fallbacks in case population fails or data missing
     const name = productRef?.name || 'Unknown Product';
     const imageUrl = skuRef?.media?.[0]?.url || productRef?.mainImage || '/placeholder-product.png';
-    const price = skuRef?.offerPrice || skuRef?.salePrice || item.salePrice || item.price || 0;
+    const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+        productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+        item.salePrice || item.price || 0;
 
     // Format price
     const formattedPrice = new Intl.NumberFormat('en-IN', {

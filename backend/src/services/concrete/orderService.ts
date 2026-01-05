@@ -1,6 +1,6 @@
 import { FilterQuery, Model } from 'mongoose';
 import { MongooseCommonService } from './mongooseCommonService';
-import { OrderModel, SkuModel } from '../../db/mongodb';
+import { OrderModel, SkuModel, ProductModel } from '../../db/mongodb';
 import { IOrder, TOrderCreateReq } from '../../types/order';
 import { CouponService } from './couponService';
 import { inventoryAuditService } from './inventoryAuditService';
@@ -31,11 +31,52 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
   };
 
   createOrder = async (orderData: TOrderCreateReq, userId: any): Promise<IOrder> => {
-    // 1. Calculate Subtotal
+    // 1. Calculate and Validate Subtotal from DB prices (Anti-Tamper)
     let subTotal = 0;
-    orderData.items.forEach(item => {
-      subTotal += item.price * item.quantity;
-    });
+    if (!orderData.items || orderData.items.length === 0) {
+      throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 'Order items are missing');
+    }
+
+    for (const item of orderData.items) {
+      let actualPrice = 0;
+      let found = false;
+
+      // 1. Try SKU first
+      if (item.skuId) {
+        const sku = await SkuModel.findById(item.skuId).lean();
+        if (sku) {
+          actualPrice = Number(sku.offerPrice || sku.salePrice || sku.basePrice || 0);
+          if (actualPrice > 0) found = true;
+        }
+      }
+
+      // 2. Try Product if SKU failed or has no price
+      if (!found && item.productId) {
+        const product = await ProductModel.findById(item.productId).lean();
+        if (product) {
+          actualPrice = Number(product.offerPrice || product.salePrice || product.basePrice || 0);
+          if (actualPrice > 0) found = true;
+        }
+      }
+
+      if (!found || actualPrice <= 0) {
+        throw new ApiError(
+          HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
+          HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
+          `Pricing Resolution Failure: ${item.name} (SKU:${item.skuId} / PRD:${item.productId}) has no valid market price.`
+        );
+      }
+
+      const quantity = Number(item.quantity) || 0;
+      if (quantity <= 0) {
+         throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, `Invalid quantity for ${item.name}`);
+      }
+
+      item.price = actualPrice;
+      item.total = actualPrice * quantity;
+      subTotal += item.total;
+    }
+    console.log(`Backend Subtotal Resolved: ${subTotal}`);
 
     let discountAmount = 0;
     let couponCode = orderData.couponCode;
@@ -88,9 +129,18 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
     }
 
     // 5. Calculate Final Total
-    const tax = orderData.tax || 0;
-    const shippingCost = orderData.shippingCost || 0;
-    const totalAmount = subTotal + tax + shippingCost - discountAmount - pointsAmount;
+    const tax = 0; // Tax logic should be here
+    const shippingCost = subTotal > 499 ? 0 : 40;
+    const finalCalculatedTotal = subTotal + tax + shippingCost - discountAmount - pointsAmount;
+
+    // SECURITY CHECK: Verify if frontend's perceived total matches backend's calculated total
+    if (Math.abs(finalCalculatedTotal - orderData.totalAmount) > 0.01) {
+      throw new ApiError(
+        HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
+        HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
+        `Payment Integrity Error: State[ST:${subTotal}, TX:${tax}, SH:${shippingCost}, DA:${discountAmount}, PA:${pointsAmount}, FT:${finalCalculatedTotal}, FE:${orderData.totalAmount}, IC:${orderData.items?.length}]`
+      );
+    }
 
     // 6. Create Order
     const newOrder = await this.create({
@@ -101,7 +151,7 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       discountAmount,
       pointsUsed,
       pointsAmount,
-      totalAmount,
+      totalAmount: finalCalculatedTotal, // Use recalculated total for absolute accuracy
       orderStatus: 'PENDING',
       paymentStatus: 'PENDING',
       timeline: [{
@@ -184,8 +234,26 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
               newQuantity: sku.quantity,
               referenceId: orderId,
               referenceType: 'ORDER',
-              reason: `Order #${order.orderNumber} confirmed`
+              reason: `Order #${order.orderNumber} confirmed (SKU)`
             });
+          } else if (item.productId) {
+            const product = await ProductModel.findById(item.productId);
+            if (product) {
+              const previousQuantity = product.stock || 0;
+              product.stock = (product.stock || 0) - item.quantity;
+              await product.save();
+
+              await inventoryAuditService.logAdjustment({
+                productId: item.productId.toString(),
+                transactionType: 'ORDER_FULFILLMENT',
+                changeQuantity: -item.quantity,
+                previousQuantity,
+                newQuantity: product.stock,
+                referenceId: orderId,
+                referenceType: 'ORDER',
+                reason: `Order #${order.orderNumber} confirmed (Product)`
+              } as any);
+            }
           }
         }
       }
@@ -224,8 +292,26 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
               newQuantity: sku.quantity,
               referenceId: orderId,
               referenceType: 'ORDER',
-              reason: `Order #${order.orderNumber} cancelled`
+              reason: `Order #${order.orderNumber} cancelled (SKU)`
             });
+          } else if (item.productId) {
+            const product = await ProductModel.findById(item.productId);
+            if (product) {
+              const previousQuantity = product.stock || 0;
+              product.stock = (product.stock || 0) + item.quantity;
+              await product.save();
+
+              await inventoryAuditService.logAdjustment({
+                productId: item.productId.toString(),
+                transactionType: 'ORDER_CANCEL',
+                changeQuantity: item.quantity,
+                previousQuantity,
+                newQuantity: product.stock,
+                referenceId: orderId,
+                referenceType: 'ORDER',
+                reason: `Order #${order.orderNumber} cancelled (Product)`
+              } as any);
+            }
           }
         }
       }
