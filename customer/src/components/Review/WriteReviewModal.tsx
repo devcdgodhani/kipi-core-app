@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { reviewService } from '../../services/review.service';
+import { useAppSelector } from '../../features/hooks';
 import RatingStars from './RatingStars';
 
 interface WriteReviewModalProps {
     productId: string;
+    orderId?: string;
     onClose: () => void;
     onSuccess: () => void;
 }
 
 const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     productId,
+    orderId,
     onClose,
     onSuccess,
 }) => {
@@ -18,8 +21,23 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { user } = useAppSelector(state => state.auth);
 
-    const userId = localStorage.getItem('USER_ID');
+    // Unify userId retrieval
+    const getUserId = () => {
+        if (user?._id) return user._id;
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsed = JSON.parse(storedUser);
+                return parsed._id || parsed.user?._id;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    };
+    const userId = getUserId();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,9 +54,14 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         setError('');
 
         try {
-            await reviewService.create({
+            if (!orderId) {
+                setError('Verified purchase required. Please submit reviews from your "Order History" page for delivered items.');
+                setLoading(false);
+                return;
+            }
+            await reviewService.submit({
                 productId,
-                userId,
+                orderId: orderId!,
                 rating,
                 comment,
             });

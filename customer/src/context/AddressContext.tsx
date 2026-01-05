@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Address, CreateAddressRequest, UpdateAddressRequest } from '../types/address.types';
 import { addressService } from '../services/address.service';
+import { useAppSelector } from '../features/hooks';
 
 interface AddressContextType {
     addresses: Address[];
@@ -17,7 +18,23 @@ const AddressContext = createContext<AddressContextType | undefined>(undefined);
 export const AddressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(false);
-    const userId = localStorage.getItem('USER_ID') || '';
+    const { user } = useAppSelector(state => state.auth);
+
+    // Unify userId retrieval
+    const getUserId = () => {
+        if (user?._id) return user._id;
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsed = JSON.parse(storedUser);
+                return parsed._id || parsed.user?._id;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    };
+    const userId = getUserId();
 
     const refreshAddresses = async () => {
         if (!userId) return;

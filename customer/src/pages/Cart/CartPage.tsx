@@ -58,32 +58,38 @@ const CartPage: React.FC = () => {
                         {/* Cart Items */}
                         <div className="lg:col-span-2 space-y-6">
                             {items.map((item) => {
-                                const product = item.product;
-                                const sku = item.sku;
-                                const price = sku?.salePrice || sku?.basePrice || sku?.price || 0;
-                                const image = sku?.media?.[0]?.url || product?.mainImage || '/placeholder-product.png';
+                                // Handles both cases: sometimes backend populates into product/sku, 
+                                // other times it stays in productId/skuId as objects
+                                const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+                                const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
+
+                                const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                                    productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice || 0;
+
+                                const image = skuRef?.media?.[0]?.url || productRef?.mainImage || '/placeholder-product.png';
+                                const itemId = item.skuId || item.productId;
 
                                 return (
                                     <div key={item.skuId || item.productId} className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex gap-6 group hover:border-primary/20 transition-all">
                                         <div className="w-32 h-32 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-50 group-hover:scale-95 transition-transform duration-500">
                                             <img
                                                 src={image}
-                                                alt={product?.name || 'Product'}
+                                                alt={productRef?.name || 'Product'}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div className="flex justify-between gap-4">
                                                 <div>
-                                                    <h3 className="font-bold text-gray-900 text-xl leading-tight group-hover:text-primary transition-colors">{product?.name || 'Unknown Product'}</h3>
+                                                    <h3 className="font-bold text-gray-900 text-xl leading-tight group-hover:text-primary transition-colors">{productRef?.name || 'Unknown Product'}</h3>
                                                     <div className="flex items-center gap-2 mt-2">
                                                         <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full font-black text-gray-400 uppercase tracking-widest border border-gray-100">
-                                                            {sku?.skuCode || 'NO-SKU'}
+                                                            {skuRef?.skuCode || 'NO-SKU'}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <button
-                                                    onClick={() => removeItem(item.skuId || '')}
+                                                    onClick={() => removeItem(itemId)}
                                                     className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full hover:bg-red-50 hover:text-red-500 transition-all border border-gray-100"
                                                 >
                                                     <Trash2 size={20} />
@@ -92,14 +98,14 @@ const CartPage: React.FC = () => {
                                             <div className="flex justify-between items-end">
                                                 <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-1.5 border border-gray-100">
                                                     <button
-                                                        onClick={() => updateQuantity(item.skuId || '', Math.max(1, item.quantity - 1))}
+                                                        onClick={() => updateQuantity(itemId, Math.max(1, item.quantity - 1))}
                                                         className="w-8 h-8 flex items-center justify-center bg-white text-gray-500 rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm border border-gray-100"
                                                     >
                                                         <Minus size={16} />
                                                     </button>
                                                     <span className="text-base font-black w-6 text-center font-mono">{item.quantity}</span>
                                                     <button
-                                                        onClick={() => updateQuantity(item.skuId || '', item.quantity + 1)}
+                                                        onClick={() => updateQuantity(itemId, item.quantity + 1)}
                                                         className="w-8 h-8 flex items-center justify-center bg-white text-gray-500 rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm border border-gray-100"
                                                     >
                                                         <Plus size={16} />

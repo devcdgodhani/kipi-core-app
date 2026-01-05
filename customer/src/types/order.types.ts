@@ -55,6 +55,9 @@ export interface CreateOrderRequest {
   tax: number;
   shippingCost: number;
   totalAmount: number;
+  couponCode?: string;
+  pointsUsed?: number;
+  notes?: string;
 }
 
 export interface OrderListResponse {

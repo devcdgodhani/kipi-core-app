@@ -20,14 +20,12 @@ export default class WishlistController {
       const reqData = { ...req.query, ...req.body };
       if (req.user?._id) reqData.userId = req.user._id;
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
-      // Add default population
-      if (!options.populate) {
-        options.populate = [
-          { path: 'products.productId', select: 'name mainImage slug basePrice salePrice offerPrice status' }
-        ];
-      }
       
-      const wishlist = await this.wishlistService.findOne(filter, options);
+      const populate = [
+        { path: 'products.productId', select: 'name mainImage slug basePrice salePrice offerPrice status' }
+      ];
+      
+      const wishlist = await this.wishlistService.findOne(filter, options, populate);
 
       const response: IApiResponse<IWishlistAttributes | null> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -45,7 +43,12 @@ export default class WishlistController {
     try {
       const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
-      const wishlistList = await this.wishlistService.findAll(filter, options);
+      
+       const populate = [
+        { path: 'products.productId', select: 'name mainImage slug basePrice salePrice offerPrice status' }
+      ];
+
+      const wishlistList = await this.wishlistService.findAll(filter, options, populate);
 
       const response: IApiResponse<IWishlistAttributes[]> = {
         status: HTTP_STATUS_CODE.OK.STATUS,

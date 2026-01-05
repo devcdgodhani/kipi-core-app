@@ -41,8 +41,7 @@ const Profile: React.FC = () => {
     const initials = firstName ? firstName.charAt(0).toUpperCase() : 'U';
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-8 border-b border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row items-center sm:items-start gap-6">

@@ -19,4 +19,7 @@ export const ForgotPasswordLazy = lazy(() => import('../../pages/Auth/ForgotPass
 export const ResetPasswordLazy = lazy(() => import('../../pages/Auth/ResetPassword'));
 export const CartLazy = lazy(() => import('../../pages/Cart/CartPage'));
 export const NotFoundLazy = lazy(() => import('../../pages/NotFound'));
+export const ProfileLayoutLazy = lazy(() => import('../../pages/Profile/ProfileLayout'));
+export const ReturnHistoryLazy = lazy(() => import('../../pages/Profile/ReturnHistoryPage'));
+export const LoyaltyPointsLazy = lazy(() => import('../../pages/Profile/LoyaltyPointsPage'));
 
