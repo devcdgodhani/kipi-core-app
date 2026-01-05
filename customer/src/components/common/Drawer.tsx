@@ -21,11 +21,11 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, title, subtitle
         <>
             {/* Backdrop */}
             <div
-                className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 top-20 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={onClose}
             />
             {/* Drawer */}
-            <div className={`fixed top-0 left-0 h-full w-full sm:max-w-xl md:max-w-2xl bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
+            <div className={`fixed top-20 left-0 h-[calc(100vh-5rem)] w-full sm:max-w-xl md:max-w-2xl bg-white z-40 shadow-2xl transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
                 {/* Header */}
                 <div className="bg-primary text-white px-8 py-6 flex flex-col justify-center relative shadow-lg z-10">
                     <div className="flex items-center gap-4 mb-1">
