@@ -73,8 +73,8 @@ const InventoryAuditList = () => {
             };
 
             const response = await inventoryAuditService.getWithPagination(filters);
-            if (response) {
-                const { recordList, totalRecords, totalPages } = response;
+            if (response && response.data) {
+                const { recordList, totalRecords, totalPages } = response.data;
                 setLogs(recordList);
                 setTotalRecords(totalRecords);
                 setTotalPages(totalPages);

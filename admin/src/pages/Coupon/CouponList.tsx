@@ -40,11 +40,11 @@ const CouponList: React.FC = () => {
                 search: search || undefined,
                 status: status || undefined,
             };
-            const data = await couponService.getWithPagination(params);
-            if (data) {
-                setCoupons(data.recordList || []);
-                setTotalRecords(data.totalRecords || 0);
-                setTotalPages(data.totalPages || 0);
+            const response = await couponService.getWithPagination(params);
+            if (response && response.data) {
+                setCoupons(response.data.recordList || []);
+                setTotalRecords(response.data.totalRecords || 0);
+                setTotalPages(response.data.totalPages || 0);
             }
         } catch (error) {
             console.error('Error fetching coupons:', error);

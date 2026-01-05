@@ -18,15 +18,16 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import OrderDetailSidebar from '../../components/order/OrderDetailSidebar';
 import CustomButton from '../../components/common/Button';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const ManageOrders: React.FC = () => {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+    // const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 
 
@@ -206,7 +207,7 @@ const ManageOrders: React.FC = () => {
                         <div className="h-6 w-px bg-gray-100 mx-1" />
 
                         <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedOrderId(order._id); }}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order._id}`); }}
                             className="p-3 text-gray-400 hover:text-primary hover:bg-white hover:border-primary/10 hover:shadow-md rounded-2xl transition-all border border-transparent group active:scale-90 bg-gray-50/50"
                             title="Intelligence View"
                         >
@@ -282,7 +283,7 @@ const ManageOrders: React.FC = () => {
                     isLoading={loading}
                     keyExtractor={(order) => order._id}
                     emptyMessage="No strategic orders found for this criteria"
-                    onRowClick={(order) => setSelectedOrderId(order._id)}
+                    onRowClick={(order) => navigate(`/orders/${order._id}`)}
                     pagination={pagination.totalRecords > 0 ? {
                         currentPage: pagination.currentPage,
                         totalPages: pagination.totalPages,
@@ -294,12 +295,6 @@ const ManageOrders: React.FC = () => {
                     } : undefined}
                 />
             </div>
-
-            <OrderDetailSidebar
-                orderId={selectedOrderId}
-                onClose={() => setSelectedOrderId(null)}
-                onUpdate={fetchOrders}
-            />
         </div>
     );
 };

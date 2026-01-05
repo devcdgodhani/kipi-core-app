@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
     Search, Filter, RefreshCw,
-    Eye, CheckCircle2,
+    Eye,
     CornerUpLeft, Clock,
     IndianRupee, User, ShoppingBag
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { returnService } from '../../services/returnService';
 import type { IReturn } from '../../types/return.types';
 import { RETURN_STATUS } from '../../types/return.types';
@@ -13,7 +13,6 @@ import { Table } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import CustomButton from '../../components/common/Button';
 import { toast } from 'react-hot-toast';
-import { ReturnDetailSidebar } from '../../components/return/ReturnDetailSidebar';
 
 const filterFields: FilterField[] = [
     {
@@ -45,12 +44,13 @@ const statusStyles: Record<string, string> = {
 };
 
 export const ReturnList = () => {
+    const navigate = useNavigate();
     const [returns, setReturns] = useState<IReturn[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    // const [selectedReturnId, setSelectedReturnId] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [selectedReturnId, setSelectedReturnId] = useState<string | null>(null);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const page = parseInt(searchParams.get('page') || '1');
@@ -69,8 +69,8 @@ export const ReturnList = () => {
             };
 
             const response = await returnService.getWithPagination(filters);
-            if (response.data?.data) {
-                const { recordList, totalRecords, totalPages } = response.data.data;
+            if (response && response.data) {
+                const { recordList, totalRecords, totalPages } = response.data;
                 setReturns(recordList);
                 setTotalRecords(totalRecords);
                 setTotalPages(totalPages);
@@ -107,6 +107,10 @@ export const ReturnList = () => {
             return prev;
         });
         setIsFilterOpen(false);
+    };
+
+    const handleViewReturn = (id: string) => {
+        navigate(`/returns/${id}`);
     };
 
     const columns = [
@@ -169,8 +173,8 @@ export const ReturnList = () => {
                         {ret.totalRefundAmount.toLocaleString()}
                     </div>
                     <div className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border w-fit ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                            ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                'bg-amber-50 text-amber-600 border-amber-100'
+                        ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                            'bg-amber-50 text-amber-600 border-amber-100'
                         }`}>
                         {ret.refundStatus}
                     </div>
@@ -192,14 +196,11 @@ export const ReturnList = () => {
             render: (ret: IReturn) => (
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setSelectedReturnId(ret._id)}
+                        onClick={() => handleViewReturn(ret._id)}
                         className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-white hover:shadow-md rounded-xl transition-all border border-transparent hover:border-primary/10 group"
                         title="Neural View"
                     >
                         <Eye size={18} className="group-hover:scale-110 transition-transform" />
-                    </button>
-                    <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-emerald-500 hover:bg-white hover:shadow-md rounded-xl transition-all border border-transparent hover:border-emerald-100 group">
-                        <CheckCircle2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                 </div>
             )
@@ -251,8 +252,8 @@ export const ReturnList = () => {
                     <button
                         onClick={() => setIsFilterOpen(true)}
                         className={`flex items-center gap-2 px-6 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${searchParams.get('status') || searchParams.get('refundStatus')
-                                ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-lg shadow-primary/5'
-                                : 'bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50'
+                            ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-lg shadow-primary/5'
+                            : 'bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50'
                             }`}
                     >
                         <Filter size={18} />
@@ -293,13 +294,6 @@ export const ReturnList = () => {
                 fields={filterFields}
                 onApply={handleFilterApply}
                 currentFilters={Object.fromEntries(searchParams)}
-            />
-
-            <ReturnDetailSidebar
-                isOpen={!!selectedReturnId}
-                onClose={() => setSelectedReturnId(null)}
-                returnId={selectedReturnId}
-                onStatusUpdate={fetchReturns}
             />
         </div>
     );
