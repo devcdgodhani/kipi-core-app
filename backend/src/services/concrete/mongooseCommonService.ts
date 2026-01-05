@@ -41,10 +41,10 @@ export class MongooseCommonService<T, TDoc extends Document>
   //   },
   // })
 
-  generateFilter = (options: {
+  generateFilter(options: {
     filters?: Record<string, any>;
     searchFields?: (keyof T)[];
-  }): FilterQuery<T> => {
+  }): { filter: FilterQuery<T>; options: QueryOptions } {
     const { filters = {}, searchFields = [] } = options;
 
     const filter: Record<string, any> = {};

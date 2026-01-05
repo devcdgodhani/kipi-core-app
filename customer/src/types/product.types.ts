@@ -71,6 +71,7 @@ export interface ProductFilters {
   limit?: number;
   sortBy?: 'name' | 'price' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
+  attributes?: Record<string, string[]>;
 }
 
 export interface PaginatedProducts {

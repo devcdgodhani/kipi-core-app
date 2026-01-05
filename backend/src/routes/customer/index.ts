@@ -15,6 +15,7 @@ import skuRoutes from './skuRoutes';
 import orderRoutes from './orderRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
 import returnRoutes from './returnRoutes';
+import attributeRoutes from './attributeRoutes';
 
 router.use('/auth', authRoute);
 router.use('/product', productRoutes);
@@ -28,6 +29,7 @@ router.use('/sku', skuRoutes);
 router.use('/order', orderRoutes);
 router.use('/loyalty', loyaltyRoutes);
 router.use('/return', returnRoutes);
+router.use('/attribute', attributeRoutes);
 
 
 export default router;
