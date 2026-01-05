@@ -10,3 +10,8 @@ export * from './sku';
 export * from './coupon';
 export * from './order';
 export * from './analytic';
+export * from './address';
+// export * from './lot'; // Not found
+// export * from './user'; // Not found
+export * from './review';
+export * from './return';
