@@ -11,13 +11,13 @@ class LogisticsQueues {
   private static instance: LogisticsQueues;
   
   public webhookQueue: Queue;
-  // public trackingQueue: Queue; 
-  // public notificationQueue: Queue;
+  public trackingQueue: Queue; 
+  public notificationQueue: Queue;
 
   private constructor() {
     this.webhookQueue = QueueFactory.createQueue(QUEUE_NAMES.WEBHOOK);
-    // this.trackingQueue = QueueFactory.createQueue(QUEUE_NAMES.TRACKING);
-    // this.notificationQueue = QueueFactory.createQueue(QUEUE_NAMES.NOTIFICATION);
+    this.trackingQueue = QueueFactory.createQueue(QUEUE_NAMES.TRACKING);
+    this.notificationQueue = QueueFactory.createQueue(QUEUE_NAMES.NOTIFICATION);
   }
 
   public static getInstance(): LogisticsQueues {

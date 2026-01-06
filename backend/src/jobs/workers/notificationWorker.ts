@@ -4,32 +4,28 @@ import { QUEUE_NAMES } from '../../jobs/queues/logisticsQueues';
 import { INotificationJobPayload } from '../../jobs/types';
 import { sendEmail } from '../../helpers/sendEmail';
 
-// Placeholder for WhatsApp service - assuming it exists or will be implemented
-// import { whatsAppService } from '../../services/concrete/whatsAppService'; 
+import { WhatsAppService } from '../../services/concrete/whatsAppService'; 
 
 const notificationProcessor = async (job: Job<INotificationJobPayload>) => {
   const { type, recipient, template, data } = job.data;
+  const whatsAppService = new WhatsAppService();
   console.log(`Processing notification job ${job.id} [${type}] for ${recipient}`);
 
   try {
     if (type === 'EMAIL') {
-      // Assuming sendEmail takes (to, subject, text, html?)
-      // We need to map 'template' to actual content. 
-      // For now, we will just send a generic message or assume 'data' contains valid email params.
-      // This is a placeholder implementation to be refined with actual transactional email templates.
-      
       const subject = data.subject || 'Logistics Update';
       const body = data.body || `Update for your order: ${template}`;
+      const html = data.html || `<p>${body}</p>`;
       
       await sendEmail({
-        to: [recipient],
+        to: Array.isArray(recipient) ? recipient : [recipient],
         subject: subject,
         text: body,
-        html: `<p>${body}</p>`
+        html: html
       });
     } else if (type === 'WHATSAPP') {
-       // await whatsAppService.sendMessage(recipient, template, data);
-       console.log('WhatsApp notification logic pending integration');
+       const message = data.body || data.message || `Update for your order: ${template}`;
+       await whatsAppService.sendAutomatedMessage(recipient, message);
     }
 
     return Promise.resolve();
