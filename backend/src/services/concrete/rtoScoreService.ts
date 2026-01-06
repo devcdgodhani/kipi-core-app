@@ -3,12 +3,16 @@ import { IRtoScoreAttributes, IRtoScoreDocument } from '../../interfaces/rto';
 import { IRtoScoreService } from '../contracts/rtoServiceInterface';
 import { RTO_RISK_LEVEL } from '../../constants/rto';
 import { Types } from 'mongoose';
+import { MongooseCommonService } from './mongooseCommonService';
 
-export class RtoScoreService implements IRtoScoreService {
+export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, IRtoScoreDocument> implements IRtoScoreService {
+  constructor() {
+    super(RtoScoreModel as any);
+  }
   
   /**
-   * Calculates the RTO Risk Score for an order BEFORE it is placed (or during confirmation)
-   */
+    * Calculates the RTO Risk Score for an order BEFORE it is placed (or during confirmation)
+    */
   async calculateRiskScore(
     userId: string, 
     pincode: string, 
@@ -83,8 +87,8 @@ export class RtoScoreService implements IRtoScoreService {
   }
 
   /**
-   * Persists the risk score in the database
-   */
+    * Persists the risk score in the database
+    */
   async saveRiskScore(scoreData: IRtoScoreAttributes): Promise<IRtoScoreDocument> {
     return await RtoScoreModel.create(scoreData);
   }
@@ -115,4 +119,3 @@ export class RtoScoreService implements IRtoScoreService {
 }
 
 export const rtoScoreService = new RtoScoreService();
-

@@ -1,15 +1,24 @@
 import http from './http';
-import type { IRtoScore, IRtoStats } from '../types/rto.types';
 
 class RtoService {
-  async calculateScore(orderId: string): Promise<IRtoScore> {
-    const response = await http.post<IRtoScore>('/rto/score', { orderId });
+  async calculateScore(data: { userId: string, pincode: string, orderAmount: number, paymentMethod: string }) {
+    const response = await http.post('/rto/calculate', data);
     return response.data;
   }
 
-  async getStats(): Promise<IRtoStats> {
-    const response = await http.get<IRtoStats>('/rto/dashboard/stats');
+  async getWithPagination(filters: any) {
+    const response = await http.post('/rto/getWithPagination', filters);
     return response.data;
+  }
+
+  async getOne(id: string) {
+    const response = await http.get(`/rto/getOne/${id}`);
+    return response.data;
+  }
+  
+  async deleteByFilter(filter: any) {
+      const response = await http.delete('/rto/deleteByFilter', { data: filter });
+      return response.data;
   }
 }
 

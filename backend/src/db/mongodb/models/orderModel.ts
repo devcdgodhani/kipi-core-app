@@ -46,6 +46,7 @@ const OrderSchema = new Schema<IOrderDocument>({
     default: 'PENDING' 
   },
   subTotal: { type: Number, required: true, min: 0 },
+  couponId: { type: Schema.Types.ObjectId as any, ref: 'Coupon' },
   couponCode: { type: String },
   discountAmount: { type: Number, default: 0 },
   pointsUsed: { type: Number, default: 0 },

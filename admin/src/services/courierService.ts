@@ -3,7 +3,22 @@ import type { ICourier, ICourierFilters } from '../types/courier.types';
 
 class CourierService {
   async getAll(filters?: ICourierFilters): Promise<ICourier[]> {
-    const response = await http.post<ICourier[]>('/courier/list', filters);
+    const response = await http.post<any>('/courier/getAll', filters);
+    return response.data;
+  }
+
+  async getById(id: string): Promise<ICourier> {
+    const response = await http.post<any>(`/courier/getOne`, { _id: id });
+    return response.data;
+  }
+
+  async create(data: Partial<ICourier>): Promise<ICourier> {
+    const response = await http.post<any>('/courier', data);
+    return response.data;
+  }
+
+  async update(id: string, data: Partial<ICourier>): Promise<ICourier> {
+    const response = await http.put<any>(`/courier/${id}`, data);
     return response.data;
   }
 

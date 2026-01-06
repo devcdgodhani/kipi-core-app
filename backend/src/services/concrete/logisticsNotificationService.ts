@@ -57,7 +57,7 @@ export class LogisticsNotificationService implements ILogisticsNotificationServi
     }
   }
 
-  async notifyOutForDelivery(order: any, shipment: any): Promise<void> {
+  async notifyOutForDelivery(order: any, _shipment: any): Promise<void> {
     const customer = await this.getCustomerDetails(order.userId);
     if (!customer) return;
 
@@ -66,7 +66,7 @@ export class LogisticsNotificationService implements ILogisticsNotificationServi
     await this.whatsAppService.sendAutomatedMessage(customer.mobile, message);
   }
 
-  async notifyOrderDelivered(order: any, shipment: any): Promise<void> {
+  async notifyOrderDelivered(order: any, _shipment: any): Promise<void> {
     const customer = await this.getCustomerDetails(order.userId);
     if (!customer) return;
 
@@ -84,7 +84,7 @@ export class LogisticsNotificationService implements ILogisticsNotificationServi
     await this.whatsAppService.sendAutomatedMessage(customer.mobile, message);
   }
 
-  async notifyRtoInitiated(order: any, shipment: any): Promise<void> {
+  async notifyRtoInitiated(order: any, _shipment: any): Promise<void> {
     const customer = await this.getCustomerDetails(order.userId);
     if (!customer) return;
 

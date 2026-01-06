@@ -1,12 +1,11 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { ENV_VARIABLE } from './env';
 
 export const REDIS_CONFIG = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: parseInt(process.env.REDIS_DB || '0', 10),
-  keyPrefix: process.env.REDIS_KEY_PREFIX || 'kipi:',
+  host: ENV_VARIABLE.REDIS_HOST || 'localhost',
+  port: ENV_VARIABLE.REDIS_PORT || 6379,
+  password: ENV_VARIABLE.REDIS_PASSWORD || undefined,
+  db: ENV_VARIABLE.REDIS_DB || 0,
+  keyPrefix: ENV_VARIABLE.REDIS_KEY_PREFIX || 'kipi:',
 };
 
 export const QUEUE_CONFIG = {

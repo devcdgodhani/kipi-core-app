@@ -54,4 +54,14 @@ export class CouponService
 
     return coupon;
   }
+
+  async revertUsage(code: string): Promise<void> {
+    if (!code) return;
+    await this.model.updateOne(
+      { code: code.trim().toUpperCase() },
+      { $inc: { usageCount: -1 } }
+    );
+  }
 }
+
+export const couponService = new CouponService();

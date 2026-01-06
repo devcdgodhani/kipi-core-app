@@ -30,7 +30,7 @@ export const ManageReturnDetailsLazy = lazy(() => import('../../pages/Return/Ret
 export const ManageCouponsLazy = lazy(() => import('../../pages/Coupon/CouponList'));
 export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/CouponForm'));
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));
-export const ManageInventoryAuditLazy = lazy(() => import('../../pages/Inventory/InventoryAuditList'));
+export const ManageStockLedgerLazy = lazy(() => import('../../pages/Inventory/StockLedgerList'));
 export const ManageLoyaltyLazy = lazy(() => import('../../pages/Loyalty/LoyaltyAuditList'));
 
 // Intelligence Section - Split Analytics Pages
@@ -45,8 +45,9 @@ export const CourierAnalyticsLazy = lazy(() => import('../../pages/Analytics/Cou
 // Logistics
 export const ShipmentListLazy = lazy(() => import('../../pages/Shipment/ShipmentList').then(module => ({ default: module.ShipmentList })));
 export const ShipmentDetailsLazy = lazy(() => import('../../pages/Shipment/ShipmentDetails').then(module => ({ default: module.ShipmentDetails })));
-export const RtoDashboardLazy = lazy(() => import('../../pages/RTO/RtoDashboard').then(module => ({ default: module.RtoDashboard })));
+export const RtoDashboardLazy = lazy(() => import('../../pages/RTO/RtoDashboard'));
 export const CourierConfigLazy = lazy(() => import('../../pages/Courier/CourierConfig').then(module => ({ default: module.CourierConfig })));
 export const WarehouseListLazy = lazy(() => import('../../pages/Warehouse/WarehouseList').then(module => ({ default: module.WarehouseList })));
 export const WarehouseFormLazy = lazy(() => import('../../pages/Warehouse/WarehouseForm').then(module => ({ default: module.WarehouseForm })));
 export const NdrDashboardLazy = lazy(() => import('../../pages/NDR/NdrDashboard').then(module => ({ default: module.NdrDashboard })));
+export const CronJobHubLazy = lazy(() => import('../../pages/CronJob/CronJobHub').then(module => ({ default: module.CronJobHub })));

@@ -4,9 +4,9 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { RETURN_STATUS } from '../../constants/return';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
-import { inventoryAuditService } from './inventoryAuditService';
 import { SkuModel, OrderModel, ProductModel } from '../../db/mongodb';
 
+import { inventoryService } from './inventoryService';
 import { IReturnService } from '../contracts/returnServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
 
@@ -106,47 +106,13 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
         // --- PHASE 3: RESTOCKING LOGIC ---
         if (status === RETURN_STATUS.COMPLETED && returnRequest.status !== RETURN_STATUS.COMPLETED) {
             for (const item of returnRequest.items) {
-                if (item.skuId) {
-                    // Try SKU first
-                    const sku = await SkuModel.findById(item.skuId);
-                    if (sku) {
-                        const previousQuantity = sku.quantity;
-                        sku.quantity += item.quantity;
-                        await sku.save();
-
-                        // Log Inventory Audit
-                        await inventoryAuditService.logAdjustment({
-                            skuId: item.skuId.toString(),
-                            transactionType: 'RETURN_RESTOCK',
-                            changeQuantity: item.quantity,
-                            previousQuantity,
-                            newQuantity: sku.quantity,
-                            referenceId: id as any,
-                            referenceType: 'ORDER',
-                            reason: `Return #${returnRequest.returnNumber} completed (SKU Restock)`
-                        });
-                    } else {
-                        // If not a SKU, try Product (Simple Product fallback)
-                        const product = await ProductModel.findById(item.skuId);
-                        if (product) {
-                            const previousQuantity = product.stock || 0;
-                            product.stock = (product.stock || 0) + item.quantity;
-                            await product.save();
-
-                             // Log Inventory Audit (Product level)
-                             await inventoryAuditService.logAdjustment({
-                                productId: item.skuId.toString(),
-                                transactionType: 'RETURN_RESTOCK',
-                                changeQuantity: item.quantity,
-                                previousQuantity,
-                                newQuantity: product.stock,
-                                referenceId: id as any,
-                                referenceType: 'ORDER',
-                                reason: `Return #${returnRequest.returnNumber} completed (Product Restock)`
-                            } as any);
-                        }
-                    }
-                }
+                await inventoryService.restock({
+                    skuId: item.skuId?.toString(),
+                    quantity: item.quantity,
+                    referenceId: id as any,
+                    referenceType: 'RETURN',
+                    reason: `Return #${returnRequest.returnNumber} completed`
+                });
             }
         }
 

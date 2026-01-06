@@ -7,8 +7,8 @@ import {
     Database, Hash
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { inventoryAuditService } from '../../services/inventoryAudit.service';
-import type { IInventoryAudit } from '../../types/inventoryAudit';
+import { stockLedgerService } from '../../services/stockLedger.service';
+import type { IStockLedger } from '../../types/stockLedger';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import CustomButton from '../../components/common/Button';
@@ -24,7 +24,9 @@ const filterFields: FilterField[] = [
             { label: 'Order Cancel', value: 'ORDER_CANCEL' },
             { label: 'Lot Inward', value: 'LOT_INWARD' },
             { label: 'Admin Adjustment', value: 'ADMIN_ADJUSTMENT' },
-            { label: 'Return Restock', value: 'RETURN_RESTOCK' }
+            { label: 'Return Restock', value: 'RETURN_RESTOCK' },
+            { label: 'RTO Restock', value: 'RTO_RESTOCK' },
+            { label: 'Stock Adjustment', value: 'STOCK_ADJUSTMENT' }
         ]
     },
     {
@@ -34,7 +36,8 @@ const filterFields: FilterField[] = [
         options: [
             { label: 'Order', value: 'ORDER' },
             { label: 'Lot', value: 'LOT' },
-            { label: 'User', value: 'USER' }
+            { label: 'User', value: 'USER' },
+            { label: 'Return', value: 'RETURN' }
         ]
     }
 ];
@@ -44,11 +47,13 @@ const transactionIcons: Record<string, any> = {
     ORDER_CANCEL: { icon: RotateCcw, color: 'text-rose-500', bg: 'bg-rose-50' },
     LOT_INWARD: { icon: PlusCircle, color: 'text-emerald-500', bg: 'bg-emerald-50' },
     ADMIN_ADJUSTMENT: { icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-    RETURN_RESTOCK: { icon: RotateCcw, color: 'text-purple-500', bg: 'bg-purple-50' }
+    RETURN_RESTOCK: { icon: RotateCcw, color: 'text-purple-500', bg: 'bg-purple-50' },
+    RTO_RESTOCK: { icon: RotateCcw, color: 'text-cyan-500', bg: 'bg-cyan-50' },
+    STOCK_ADJUSTMENT: { icon: Activity, color: 'text-gray-500', bg: 'bg-gray-50' }
 };
 
-const InventoryAuditList = () => {
-    const [logs, setLogs] = useState<IInventoryAudit[]>([]);
+const StockLedgerList = () => {
+    const [logs, setLogs] = useState<IStockLedger[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -69,10 +74,10 @@ const InventoryAuditList = () => {
                 transactionType: searchParams.get('transactionType'),
                 referenceType: searchParams.get('referenceType'),
                 skuId: searchParams.get('skuId'),
-                populate: ['skuId', 'referenceId']
+                productId: searchParams.get('productId')
             };
 
-            const response = await inventoryAuditService.getWithPagination(filters);
+            const response = await stockLedgerService.getWithPagination(filters);
             if (response && response.data) {
                 const { recordList, totalRecords, totalPages } = response.data;
                 setLogs(recordList);
@@ -113,7 +118,7 @@ const InventoryAuditList = () => {
         setIsFilterOpen(false);
     };
 
-    const columns: Column<IInventoryAudit>[] = [
+    const columns: Column<IStockLedger>[] = [
         {
             header: 'Timestamp & Type',
             key: 'createdAt',
@@ -140,16 +145,16 @@ const InventoryAuditList = () => {
             }
         },
         {
-            header: 'SKU Intelligence',
+            header: 'Resource Intelligence',
             key: 'skuId',
             render: (log) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-gray-900 text-xs truncate max-w-[200px]">
-                        {log.skuId?.skuName || 'De-indexed SKU'}
+                        {log.skuId?.skuName || log.productId?.name || 'De-indexed Resource'}
                     </span>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest font-mono bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
-                            {log.skuId?.skuCode || 'N/A'}
+                            {log.skuId?.skuCode || 'GENERIC'}
                         </span>
                     </div>
                 </div>
@@ -289,4 +294,4 @@ const InventoryAuditList = () => {
     );
 };
 
-export default InventoryAuditList;
+export default StockLedgerList;

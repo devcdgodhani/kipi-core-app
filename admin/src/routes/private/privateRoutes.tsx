@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -135,8 +135,8 @@ export const privateRoutes: RouteObject = {
                     element: <FileManagerLazy />,
                 },
                 {
-                    path: ROUTES.DASHBOARD.INVENTORY_AUDIT,
-                    element: <ManageInventoryAuditLazy />,
+                    path: ROUTES.DASHBOARD.STOCK_LEDGER,
+                    element: <ManageStockLedgerLazy />,
                 },
                 {
                     path: ROUTES.DASHBOARD.LOYALTY,
@@ -162,6 +162,10 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.NDR_DASHBOARD,
                     element: <NdrDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.CRON_HUB,
+                    element: <CronJobHubLazy />,
                 },
                 {
                     path: ROUTES.DASHBOARD.WAREHOUSES,

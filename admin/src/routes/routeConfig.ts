@@ -34,7 +34,7 @@ export const ROUTES = {
         ATTRIBUTES_CREATE: 'attributes/create',
         ATTRIBUTES_EDIT: 'attributes/edit/:id',
         FILE_MANAGER: 'file-manager',
-        INVENTORY_AUDIT: 'inventory-audit',
+        STOCK_LEDGER: 'stock-ledger',
         LOYALTY: 'loyalty',
         
         // Logistics
@@ -47,6 +47,7 @@ export const ROUTES = {
         WAREHOUSES_EDIT: 'warehouses/:id',
         NDR_DASHBOARD: 'ndr-dashboard',
         ETA_TEST: 'eta-test',
+        CRON_HUB: 'cron-hub',
 
         // Intelligence Section
         ANALYTICS_SALES: 'intelligence/sales',

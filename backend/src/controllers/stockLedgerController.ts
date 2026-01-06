@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { inventoryAuditService } from '../services/concrete/inventoryAuditService';
+import { stockLedgerService } from '../services/concrete/stockLedgerService';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse } from '../interfaces';
 
-export class InventoryAuditController {
+export class StockLedgerController {
     getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const reqData = { ...req.query, ...req.body };
-            const { filter, options } = inventoryAuditService.generateFilter({
+            const { filter, options } = stockLedgerService.generateFilter({
                 filters: reqData,
             });
             
@@ -16,12 +16,16 @@ export class InventoryAuditController {
                 options.sort = { createdAt: -1 };
             }
 
-            const { populate, ...restOptions } = options;
-            const result = await inventoryAuditService.findAllWithPagination(filter, restOptions, populate as any);
+            options.populate = [
+                { path: 'skuId', select: 'skuName skuCode' },
+                { path: 'productId', select: 'name' }
+            ];
+
+            const result = await stockLedgerService.findAllWithPagination(filter, options);
             const response: IApiResponse<any> = {
                 status: HTTP_STATUS_CODE.OK.STATUS,
                 code: HTTP_STATUS_CODE.OK.CODE,
-                message: 'Inventory audit logs fetched',
+                message: 'Stock ledger logs fetched',
                 data: result
             };
             return res.status(response.status).json(response);
@@ -32,11 +36,11 @@ export class InventoryAuditController {
 
     getOne = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const result = await inventoryAuditService.findOne({ _id: req.params.id }, { populate: ['skuId', 'referenceId'] });
+            const result = await stockLedgerService.findOne({ _id: req.params.id }, { populate: ['skuId', 'productId', 'referenceId'] });
             const response: IApiResponse<any> = {
                 status: HTTP_STATUS_CODE.OK.STATUS,
                 code: HTTP_STATUS_CODE.OK.CODE,
-                message: 'Inventory audit detail fetched',
+                message: 'Stock ledger detail fetched',
                 data: result
             };
             return res.status(response.status).json(response);
@@ -46,4 +50,4 @@ export class InventoryAuditController {
     };
 }
 
-export const inventoryAuditController = new InventoryAuditController();
+export const stockLedgerController = new StockLedgerController();

@@ -1,17 +1,32 @@
 import { Router } from 'express';
 import OrderController from '../../controllers/orderController';
+import { jwtAuth } from '../../middlewares';
 
 const router = Router();
 const orderController = new OrderController();
 
-// Paginated list of all orders for Admin
-router.post('/getAll', orderController.getAllOrders);
+router.use(jwtAuth);
 
-// Get details of a specific order
-router.post('/getOne/:id', orderController.getOne);
+/***************** base crud structure*******************/
+router.route('/getOne')
+  .get(orderController.getOne)
+  .post(orderController.getOne);
 
-// Update order status
+router.route('/getAll')
+  .get(orderController.getAll)
+  .post(orderController.getAll);
+
+router.route('/getWithPagination')
+  .get(orderController.getWithPagination)
+  .post(orderController.getWithPagination);
+
+router.put('/:id', orderController.updateById);
+router.post('/', orderController.create);
+router.delete('/deleteByFilter', orderController.deleteByFilter);
+
+/***************** specialized routes *******************/
 router.put('/updateStatus/:id', orderController.updateStatus);
 router.post('/simulate-logistics/:id', orderController.simulateLogistics);
+router.get('/:id', orderController.getOne); // Alias for convenience
 
 export default router;
