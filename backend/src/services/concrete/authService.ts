@@ -183,14 +183,31 @@ export class AuthService implements IAuthService {
         supportEmail: APP_DETAILS.SUPPORT_EMAIL,
         expiresIn: `${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes`,
       });
-      await sendEmail({
-        to: user.email,
-        subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
-        html,
+      // Offload to queue
+      await import('../../jobs/queues/logisticsQueues').then(({ logisticsQueues }) => {
+        return logisticsQueues.notificationQueue.add('send-notification', {
+          type: 'EMAIL',
+          recipient: user.email!,
+          template: 'OTP_VERIFICATION',
+          data: {
+            subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
+            html,
+          },
+        });
       });
     }
     if (user.mobile) {
-      await this.whatsAppService.sendOtpViaWhatsApp(user.countryCode + user.mobile, newOtp);
+      // Offload to queue
+      await import('../../jobs/queues/logisticsQueues').then(({ logisticsQueues }) => {
+        return logisticsQueues.notificationQueue.add('send-notification', {
+          type: 'WHATSAPP',
+          recipient: (user.countryCode || '+91') + user.mobile!,
+          template: 'OTP_VERIFICATION',
+          data: {
+            message: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}. It expires in ${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes.`,
+          },
+        });
+      });
     } 
     return token;
   };
