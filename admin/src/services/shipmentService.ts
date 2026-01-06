@@ -3,12 +3,11 @@ import type { IShipment, IShipmentFilters } from '../types/shipment.types';
 import type { IApiResponse, IPaginationData } from '../types/common'; // Assuming common types exist, will check or strictly type
 
 class ShipmentService {
-  async getAll(filters: IShipmentFilters, page = 1, limit = 10): Promise<IPaginationData<IShipment>> {
-    const response = await http.post<IPaginationData<IShipment>>('/shipment/list', {
+  async getWithPagination(filters: IShipmentFilters, page = 1, limit = 10): Promise<IPaginationData<IShipment>> {
+    const response = await http.post<IPaginationData<IShipment>>('/shipment/getWithPagination', {
       ...filters,
       page,
-      limit,
-      isPaginate: true
+      limit
     });
     return response.data;
   }

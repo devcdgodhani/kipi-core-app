@@ -60,7 +60,7 @@ const ReviewList: React.FC = () => {
     const fetchReviews = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await reviewService.getAll(filters);
+            const response = await reviewService.getWithPagination(filters);
             if (response && response.data) {
                 setReviews(response.data.recordList);
                 setPagination({

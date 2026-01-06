@@ -50,7 +50,7 @@ const ManageOrders: React.FC = () => {
                 search,
                 populate: ['userId']
             };
-            const response = await orderService.getAll(queryParams);
+            const response = await orderService.getWithPagination(queryParams);
             if (response) {
                 setOrders(response.recordList || []);
                 setPagination({

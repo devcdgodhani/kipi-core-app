@@ -4,7 +4,13 @@ import http from './http';
 const ORDER_BASE_URL = '/order';
 
 export const orderService = {
-  // Get all orders (Admin) - Paginated
+  // Get paginated orders (Admin)
+  getWithPagination: async (params?: any) => {
+    const response: any = await http.post(`${ORDER_BASE_URL}/getWithPagination`, params);
+    return response.data;
+  },
+
+  // Get all orders (Admin) - For dropdowns
   getAll: async (params?: any) => {
     const response: any = await http.post(`${ORDER_BASE_URL}/getAll`, params);
     return response.data;

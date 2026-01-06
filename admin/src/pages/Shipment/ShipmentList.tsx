@@ -69,7 +69,7 @@ export const ShipmentList: React.FC = () => {
                 }
             });
 
-            const data = await shipmentService.getAll({ ...filters, search }, page, limit);
+            const data = await shipmentService.getWithPagination({ ...filters, search }, page, limit);
             if (data) {
                 setShipments(data.recordList || []);
                 setPagination({
