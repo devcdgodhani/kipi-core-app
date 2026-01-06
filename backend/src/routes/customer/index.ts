@@ -16,6 +16,7 @@ import orderRoutes from './orderRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
 import returnRoutes from './returnRoutes';
 import attributeRoutes from './attributeRoutes';
+import etaRoutes from './etaRoutes';
 
 router.use('/auth', authRoute);
 router.use('/product', productRoutes);
@@ -30,6 +31,7 @@ router.use('/order', orderRoutes);
 router.use('/loyalty', loyaltyRoutes);
 router.use('/return', returnRoutes);
 router.use('/attribute', attributeRoutes);
+router.use('/eta', etaRoutes);
 
 
 export default router;

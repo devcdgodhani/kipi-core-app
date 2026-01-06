@@ -4,7 +4,9 @@ import { UserModel } from '../../db/mongodb/models/userModel';
 import { APP_DETAILS } from '../../constants';
 import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
 
-export class PulseService {
+import { IPulseService } from '../contracts/pulseServiceInterface';
+
+export class PulseService implements IPulseService {
     private whatsAppService: WhatsAppService;
 
     constructor() {

@@ -21,6 +21,13 @@ export interface IUserAttributes extends IDefaultAttributes {
   totalEarnedPoints: number;
   dob?: Date;
   pointsExpiryDate?: Date;
+  metrics?: {
+    totalOrders: number;
+    rtoCount: number;
+    returnCount: number;
+    deliveredCount: number;
+    cancelledCount: number;
+  };
 }
 
 export interface IUserDocument extends Omit<IUserAttributes, '_id'>, Document {}

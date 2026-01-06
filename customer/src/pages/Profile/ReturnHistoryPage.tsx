@@ -86,6 +86,17 @@ const ReturnHistoryPage: React.FC = () => {
                                         </div>
                                         <h3 className="font-bold text-gray-900 line-clamp-1">{item.productId?.name || 'Product'}</h3>
                                         <p className="text-xs text-gray-500 font-medium mt-1">Reason: {item.reason}</p>
+                                        {item.awb && (
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Pickup Tracking: {item.awb}</span>
+                                                <button
+                                                    onClick={() => window.open(`https://shiprocket.co/tracking/${item.awb}`, '_blank')}
+                                                    className="text-[10px] font-bold text-indigo-600 hover:underline"
+                                                >
+                                                    Track Pickup →
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

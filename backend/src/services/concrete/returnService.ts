@@ -7,7 +7,10 @@ import { HTTP_STATUS_CODE } from '../../constants';
 import { inventoryAuditService } from './inventoryAuditService';
 import { SkuModel, OrderModel, ProductModel } from '../../db/mongodb';
 
-export class ReturnService extends MongooseCommonService<IReturn, IReturn> {
+import { IReturnService } from '../contracts/returnServiceInterface';
+import { logisticsNotificationService } from './logisticsNotificationService';
+
+export class ReturnService extends MongooseCommonService<IReturn, IReturn> implements IReturnService {
     constructor() {
         super(ReturnModel);
     }
@@ -147,7 +150,21 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> {
             }
         }
 
-        return this.model.findByIdAndUpdate({ _id: id }, updateData, { new: true });
+        const updatedReturn = await this.model.findByIdAndUpdate({ _id: id }, updateData, { new: true });
+
+        // Trigger Notifications
+        if (updatedReturn) {
+            const order = await OrderModel.findById(updatedReturn.orderId);
+            if (order) {
+                if (status === RETURN_STATUS.APPROVED) {
+                    await logisticsNotificationService.notifyReturnApproved(order, updatedReturn);
+                } else if (status === RETURN_STATUS.COMPLETED) {
+                    await logisticsNotificationService.notifyRefundProcessed(order, updatedReturn);
+                }
+            }
+        }
+
+        return updatedReturn;
     }
 
     async cancelReturn(id: string, userId: string): Promise<IReturn | null> {

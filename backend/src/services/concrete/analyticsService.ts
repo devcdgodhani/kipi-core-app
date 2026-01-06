@@ -1,56 +1,14 @@
 import { LotModel } from '../../db/mongodb/models/lotModel';
 import { OrderModel } from '../../db/mongodb/models/orderModel';
+import { ShipmentModel } from '../../db/mongodb/models/shipmentModel';
+import { RTOModel } from '../../db/mongodb/models/rtoModel';
+import { NDRModel } from '../../db/mongodb/models/ndrModel';
 import { ORDER_STATUS } from '../../constants';
 
-interface IRevenueAnalytics {
-  revenue: number;
-  orders: number;
-  aov: number;
-  timeline: {
-    date: string;
-    revenue: number;
-    orders: number;
-  }[];
-}
+import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance } from '../contracts/analyticsServiceInterface';
 
-export interface IProductAnalytics {
-  topProducts: {
-    _id: string; // product id
-    name: string;
-    skuCode: string;
-    totalSold: number;
-    totalRevenue: number;
-  }[];
-  topReturns: {
-    _id: string; // product id
-    name: string;
-    skuCode: string;
-    returnCount: number;
-  }[];
-}
+export class AnalyticsService implements IAnalyticsService {
 
-export interface ICustomerAnalytics {
-  topSpenders: {
-    _id: string; // userId
-    name: string;
-    email: string;
-    totalSpend: number;
-    orderCount: number;
-  }[];
-  churnRisk: {
-    _id: string; // userId
-    name: string;
-    email: string;
-    lastOrderDate: Date;
-    totalSpend: number;
-  }[];
-  acquisition: {
-    newCustomers: { revenue: number; count: number };
-    returningCustomers: { revenue: number; count: number };
-  };
-}
-
-export class AnalyticsService {
   /**
    * Get revenue analytics for a specific date range
    */
@@ -346,6 +304,139 @@ export class AnalyticsService {
       expiryRisks: expiryRisks[0] || { expired: 0, expiringNext30Days: 0, expiringNext90Days: 0 },
       lotMovements
     };
+  }
+
+  /**
+   * Get logistics analytics (RTO & NDR metrics)
+   */
+  async getLogisticsAnalytics(startDate: Date, endDate: Date): Promise<ILogisticsAnalytics> {
+    const shipmentStats = await ShipmentModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalShipments: { $sum: 1 },
+          rtoCount: { $sum: { $cond: ['$isRTO', 1, 0] } },
+          ndrCount: { $sum: { $cond: ['$hasNDR', 1, 0] } }
+        }
+      }
+    ]);
+
+    const stats = shipmentStats[0] || { totalShipments: 0, rtoCount: 0, ndrCount: 0 };
+
+    // NDR Conversion: NDRs followed by successful delivery
+    const ndrConversion = await ShipmentModel.aggregate([
+      {
+        $match: {
+          hasNDR: true,
+          status: 'DELIVERED',
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      { $count: 'converted' }
+    ]);
+
+    // RTO Reasons
+    const rtoReasons = await RTOModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: '$rtoReason',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $project: { reason: '$_id', count: 1, _id: 0 } }
+    ]);
+
+    // Avg RTO Age
+    const rtoAge = await RTOModel.aggregate([
+      {
+        $match: {
+          status: 'DELIVERED',
+          rtoDeliveredDate: { $exists: true },
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          avgAge: { $avg: { $divide: [{ $subtract: ['$rtoDeliveredDate', '$rtoInitiatedDate'] }, 1000 * 60 * 60 * 24] } }
+        }
+      }
+    ]);
+
+    return {
+      rtoRate: stats.totalShipments > 0 ? (stats.rtoCount / stats.totalShipments) * 100 : 0,
+      totalShipments: stats.totalShipments,
+      rtoCount: stats.rtoCount,
+      ndrCount: stats.ndrCount,
+      ndrConversionRate: stats.ndrCount > 0 ? ((ndrConversion[0]?.converted || 0) / stats.ndrCount) * 100 : 0,
+      avgRtoAge: rtoAge[0]?.avgAge || 0,
+      rtoReasons
+    };
+  }
+
+  /**
+   * Get courier performance analytics
+   */
+  async getCourierPerformance(startDate: Date, endDate: Date): Promise<ICourierPerformance[]> {
+    const pipeline = [
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: '$courierId',
+          courierName: { $first: '$courierName' },
+          totalShipments: { $sum: 1 },
+          rtoCount: { $sum: { $cond: ['$isRTO', 1, 0] } },
+          ndrCount: { $sum: { $cond: ['$hasNDR', 1, 0] } },
+          deliveredCount: { $sum: { $cond: [{ $eq: ['$status', 'DELIVERED'] }, 1, 0] } },
+          totalDeliveryTime: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $exists: ['$actualDeliveryDate'] }, { $exists: ['$pickupCompletedDate'] }] },
+                { $divide: [{ $subtract: ['$actualDeliveryDate', '$pickupCompletedDate'] }, 1000 * 60 * 60 * 24] },
+                0
+              ]
+            }
+          },
+          onTimeDeliveries: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $exists: ['$actualDeliveryDate'] }, { $exists: ['$estimatedDeliveryDate'] }, { $lte: ['$actualDeliveryDate', '$estimatedDeliveryDate'] }] },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          courierId: '$_id',
+          courierName: 1,
+          totalShipments: 1,
+          rtoRate: { $multiply: [{ $divide: ['$rtoCount', '$totalShipments'] }, 100] },
+          ndrRate: { $multiply: [{ $divide: ['$ndrCount', '$totalShipments'] }, 100] },
+          avgDeliveryTime: { $cond: ['$deliveredCount', { $divide: ['$totalDeliveryTime', '$deliveredCount'] }, 0] },
+          slaAdherence: { $cond: ['$deliveredCount', { $multiply: [{ $divide: ['$onTimeDeliveries', '$deliveredCount'] }, 100] }, 0] }
+        }
+      }
+    ];
+
+    return await ShipmentModel.aggregate(pipeline as any);
   }
 }
 

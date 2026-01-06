@@ -2,12 +2,15 @@ import { createServer } from 'http';
 import app from './server';
 import { ENV_VARIABLE } from './configs';
 import { connectMongoDb } from './db/mongodb';
+import { initWorkers } from './jobs';
 
 const server = createServer(app);
 
 const startServer = (): void => {
   server.listen(ENV_VARIABLE.PORT, async () => {
     await assertDatabaseConnection();
+    // Initialize Background Workers
+    initWorkers();
     console.log(`Server running on port ${ENV_VARIABLE.PORT}...`);
   });
 };

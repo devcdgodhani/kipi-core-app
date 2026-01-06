@@ -15,12 +15,18 @@ import cartRoutes from './cartRoutes';
 import wishlistRoutes from './wishlistRoutes';
 import reviewRoutes from './reviewRoutes';
 import addressRoutes from './addressRoutes';
-import couponRoutes from './couponRoutes';
+import shipmentRoutes from './shipmentRoutes';
+import rtoScoreRoutes from './rtoScoreRoutes';
+import etaRoutes from './etaRoutes';
 import orderRoutes from './orderRoutes';
 import returnRoutes from './returnRoutes';
 import inventoryAuditRoutes from './inventoryAuditRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
 import { analyticsRoutes } from './analyticsRoutes';
+import couponRoutes from './couponRoutes';
+import courierRoutes from './courierRoutes'; // NEW: Courier Routes
+import warehouseRoutes from './warehouseRoutes';
+import ndrRoutes from './ndrRoutes';
 
 import { jwtAuth } from '../../middlewares';
 
@@ -42,6 +48,12 @@ router.use('/order', jwtAuth(), orderRoutes);
 router.use('/return', jwtAuth(), returnRoutes);
 router.use('/inventory-audit', jwtAuth(), inventoryAuditRoutes);
 router.use('/loyalty', jwtAuth(), loyaltyRoutes);
+router.use('/shipment', jwtAuth(), shipmentRoutes); // Mount Shipment Routes
+router.use('/rto', rtoScoreRoutes); // NEW: RTO Routes
+router.use('/eta', etaRoutes); // NEW: ETA Routes
+router.use('/courier', jwtAuth(), courierRoutes); // NEW: Courier Routes
+router.use('/warehouse', jwtAuth(), warehouseRoutes);
+router.use('/ndr', jwtAuth(), ndrRoutes);
 router.use('/analytics', jwtAuth(), analyticsRoutes);
 
 

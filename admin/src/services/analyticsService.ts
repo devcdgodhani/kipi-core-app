@@ -68,6 +68,26 @@ export interface ILotAnalytics {
   }[];
 }
 
+export interface ILogisticsAnalytics {
+  rtoRate: number;
+  totalShipments: number;
+  rtoCount: number;
+  ndrCount: number;
+  ndrConversionRate: number;
+  avgRtoAge: number;
+  rtoReasons: { reason: string; count: number }[];
+}
+
+export interface ICourierPerformance {
+  courierId: string;
+  courierName: string;
+  avgDeliveryTime: number;
+  rtoRate: number;
+  ndrRate: number;
+  slaAdherence: number;
+  totalShipments: number;
+}
+
 export const analyticsService = {
   getSalesAnalytics: async (startDate?: Date, endDate?: Date): Promise<IRevenueAnalytics> => {
     const query = qs.stringify({
@@ -101,4 +121,31 @@ export const analyticsService = {
     const response = await axiosInstance.get<any, { data: ILotAnalytics }>(`/analytics/lots${query}`);
     return response.data;
   },
+  getLogisticsAnalytics: async (startDate?: Date, endDate?: Date): Promise<ILogisticsAnalytics> => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    }, { addQueryPrefix: true });
+    const response = await axiosInstance.get<any, { data: ILogisticsAnalytics }>(`/analytics/logistics${query}`);
+    return response.data;
+  },
+  getCourierPerformance: async (startDate?: Date, endDate?: Date): Promise<ICourierPerformance[]> => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    }, { addQueryPrefix: true });
+    const response = await axiosInstance.get<any, { data: ICourierPerformance[] }>(`/analytics/couriers${query}`);
+    return response.data;
+  },
+  
+  // Export functions (return blob or handle download)
+  exportData: async (type: 'sales' | 'products' | 'customers' | 'logistics' | 'couriers', startDate?: Date, endDate?: Date, format: 'xlsx' | 'csv' = 'xlsx') => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+      format
+    }, { addQueryPrefix: true });
+    
+    window.location.href = `${axiosInstance.defaults.baseURL}/analytics/export/${type}${query}`;
+  }
 };

@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageInventoryAuditLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -142,6 +142,40 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.LOYALTY,
                     element: <ManageLoyaltyLazy />,
                 },
+                // Logistics
+                {
+                    path: ROUTES.DASHBOARD.SHIPMENTS,
+                    element: <ShipmentListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.SHIPMENT_DETAILS,
+                    element: <ShipmentDetailsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.RTO_DASHBOARD,
+                    element: <RtoDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.COURIER_CONFIG,
+                    element: <CourierConfigLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.NDR_DASHBOARD,
+                    element: <NdrDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WAREHOUSES,
+                    element: <WarehouseListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WAREHOUSES_CREATE,
+                    element: <WarehouseFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WAREHOUSES_EDIT,
+                    element: <WarehouseFormLazy />,
+                },
+
                 // Intelligence Section
                 {
                     path: ROUTES.DASHBOARD.ANALYTICS_SALES,
@@ -162,6 +196,14 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.ANALYTICS_LOTS,
                     element: <LotAnalyticsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.ANALYTICS_LOGISTICS,
+                    element: <LogisticsAnalyticsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.ANALYTICS_COURIERS,
+                    element: <CourierAnalyticsLazy />,
                 },
                 {
                     path: ROUTES.PROFILE,

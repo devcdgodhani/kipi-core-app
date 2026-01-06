@@ -1,6 +1,6 @@
 import { FilterQuery, Model } from 'mongoose';
 import { MongooseCommonService } from './mongooseCommonService';
-import { OrderModel, SkuModel, ProductModel } from '../../db/mongodb';
+import { OrderModel, SkuModel, ProductModel, UserModel } from '../../db/mongodb';
 import { IOrder, TOrderCreateReq } from '../../types/order';
 import { CouponService } from './couponService';
 import { inventoryAuditService } from './inventoryAuditService';
@@ -9,11 +9,17 @@ import { LoyaltyService } from './loyaltyService';
 import { pulseService } from './pulseService';
 import { COUPON_TYPE } from '../../constants/coupon';
 import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
+import { rtoScoreService } from './rtoScoreService';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 import mongoose from 'mongoose';
 
-export class OrderService extends MongooseCommonService<IOrder, any> {
+import { IOrderService } from '../contracts/orderServiceInterface';
+
+import { IOrderDocument } from '../../db/mongodb/models/orderModel';
+import { logisticsNotificationService } from './logisticsNotificationService';
+
+export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> implements IOrderService {
   private couponService = new CouponService();
   private loyaltyService = new LoyaltyService();
   private pulseService = pulseService;
@@ -142,6 +148,22 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       );
     }
 
+    // 5.5 RTO Risk Assessment
+    const rtoScore = await rtoScoreService.calculateRiskScore(
+      userId.toString(),
+      orderData.shippingAddress.pincode,
+      finalCalculatedTotal,
+      orderData.paymentMethod
+    );
+
+    if (rtoScore.suggestedAction === 'BLOCK_COD') {
+      throw new ApiError(
+        HTTP_STATUS_CODE.BAD_REQUEST.CODE,
+        HTTP_STATUS_CODE.BAD_REQUEST.STATUS,
+        'COD not available for this transaction risk. Please use Online Payment.'
+      );
+    }
+
     // 6. Create Order
     const newOrder = await this.create({
       ...orderData,
@@ -151,15 +173,24 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       discountAmount,
       pointsUsed,
       pointsAmount,
-      totalAmount: finalCalculatedTotal, // Use recalculated total for absolute accuracy
-      orderStatus: 'PENDING',
+      totalAmount: finalCalculatedTotal,
+      orderStatus: (orderData.paymentMethod === 'COD' && rtoScore.suggestedAction === 'FLAG') ? 'PENDING' : 'CONFIRMED',
       paymentStatus: 'PENDING',
       timeline: [{
         status: 'PENDING',
         timestamp: new Date(),
-        message: 'Order placed successfully'
+        message: rtoScore.suggestedAction === 'FLAG' ? 'Order flagged for RTO risk review' : 'Order placed successfully'
       }]
     } as any);
+
+    // 7. Save RTO Score linked to order
+    rtoScore.orderId = (newOrder as any)._id;
+    await rtoScoreService.saveRiskScore(rtoScore);
+
+    // 8. Update User Metrics
+    await UserModel.findByIdAndUpdate(userId, {
+      $inc: { 'metrics.totalOrders': 1 }
+    });
 
     // Update the transaction with the orderId now that we have it
     if (pointsUsed > 0) {
@@ -259,14 +290,22 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
       }
     }
 
+    // 1.5 Notification on Confirmation
+    if (status === 'CONFIRMED' && currentStatus === 'PENDING') {
+      await logisticsNotificationService.notifyOrderConfirmed(order);
+    }
+
     // 2. Logistics Integration on Shipping
     if (status === 'SHIPPED' && currentStatus === 'PROCESSING') {
       try {
-        const shipment = await logisticsService.createShipment(order);
+        const shipment = await logisticsService.createShipment((order as any)._id.toString());
         updateData.shippingProvider = shipment.carrier;
         updateData.trackingId = shipment.trackingId;
         updateData.estimatedDelivery = shipment.estimatedDelivery;
         updateData.shippingLabelUrl = shipment.labelUrl;
+
+        // Notification on Shipping
+        await logisticsNotificationService.notifyOrderShipped(order, shipment);
       } catch (err) {
         console.error('Logistics service failure:', err);
         // We continue with status update but log the error
@@ -315,6 +354,13 @@ export class OrderService extends MongooseCommonService<IOrder, any> {
           }
         }
       }
+    }
+
+    // 3.5 User Metrics Update
+    if (status === 'DELIVERED' && currentStatus !== 'DELIVERED') {
+      await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.deliveredCount': 1 } });
+    } else if (status === 'CANCELLED' && currentStatus !== 'CANCELLED') {
+      await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.cancelledCount': 1 } });
     }
 
     // 4. Loyalty Point Accretion on Delivery

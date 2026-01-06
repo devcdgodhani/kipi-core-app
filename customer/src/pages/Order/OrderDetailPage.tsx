@@ -183,6 +183,42 @@ const OrderDetailPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* ETA and Tracking if available */}
+                    {(order.estimatedDelivery || order.awb) && (
+                        <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {order.estimatedDelivery && (
+                                <div className="bg-emerald-50 rounded-2xl p-4 flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
+                                        <Clock size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Estimated Arrival</p>
+                                        <p className="text-sm font-black text-emerald-900">{format(new Date(order.estimatedDelivery), 'EEEE, MMM do')}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.awb && (
+                                <div className="bg-indigo-50 rounded-2xl p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white">
+                                            <Package size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-indigo-800 uppercase tracking-widest">Tracking Number</p>
+                                            <p className="text-sm font-black text-indigo-900 font-mono underline">{order.awb}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="bg-white text-indigo-600 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                        onClick={() => window.open(`https://shiprocket.co/tracking/${order.awb}`, '_blank')}
+                                    >
+                                        Track
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {order.timeline && order.timeline.length > 0 && (
                         <div className="mt-12 pt-8 border-t border-gray-50 space-y-4">
                             {order.timeline.slice().reverse().map((event, idx) => (

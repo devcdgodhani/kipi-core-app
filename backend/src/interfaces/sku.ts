@@ -24,6 +24,8 @@ export interface ISkuAttributes extends IDefaultAttributes {
     discount?: number;
     
     quantity: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
     media?: IMedia[];
     
     status: SKU_STATUS;

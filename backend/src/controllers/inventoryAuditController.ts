@@ -17,7 +17,7 @@ export class InventoryAuditController {
             }
 
             const { populate, ...restOptions } = options;
-            const result = await inventoryAuditService.findAllWithPagination(filter, restOptions, populate);
+            const result = await inventoryAuditService.findAllWithPagination(filter, restOptions, populate as any);
             const response: IApiResponse<any> = {
                 status: HTTP_STATUS_CODE.OK.STATUS,
                 code: HTTP_STATUS_CODE.OK.CODE,

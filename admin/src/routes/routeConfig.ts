@@ -37,12 +37,25 @@ export const ROUTES = {
         INVENTORY_AUDIT: 'inventory-audit',
         LOYALTY: 'loyalty',
         
+        // Logistics
+        SHIPMENTS: 'shipments',
+        SHIPMENT_DETAILS: 'shipments/:id',
+        RTO_DASHBOARD: 'rto-dashboard',
+        COURIER_CONFIG: 'courier-config',
+        WAREHOUSES: 'warehouses',
+        WAREHOUSES_CREATE: 'warehouses/new',
+        WAREHOUSES_EDIT: 'warehouses/:id',
+        NDR_DASHBOARD: 'ndr-dashboard',
+        ETA_TEST: 'eta-test',
+
         // Intelligence Section
         ANALYTICS_SALES: 'intelligence/sales',
         ANALYTICS_PRODUCTS: 'intelligence/products',
         ANALYTICS_CUSTOMERS: 'intelligence/customers',
         ANALYTICS_FINANCIAL: 'intelligence/financial',
         ANALYTICS_LOTS: 'intelligence/lots',
+        ANALYTICS_LOGISTICS: 'intelligence/logistics',
+        ANALYTICS_COURIERS: 'intelligence/couriers',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',
