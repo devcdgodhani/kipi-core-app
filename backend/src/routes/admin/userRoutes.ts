@@ -28,4 +28,6 @@ router.delete('/deleteByFilter', userValidator.deleteByFilter, userController.de
 
 /****************************************************** */
 
+router.get('/:id', userValidator.getOne, userController.getOne);
+
 export default router;

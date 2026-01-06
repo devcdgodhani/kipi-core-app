@@ -7,12 +7,15 @@ import {
     Activity,
     Clock,
     AlertCircle,
-    CheckCircle2
+    CheckCircle2,
+    Settings
 } from 'lucide-react';
 import http from '../../services/http';
 import { Table, type Column } from '../../components/common/Table';
 import { Modal } from '../../components/common/Modal';
 import CustomButton from '../../components/common/Button';
+import CustomInput from '../../components/common/Input';
+import { toast } from 'react-hot-toast';
 
 interface ICronJob {
     _id: string;
@@ -40,7 +43,15 @@ export const CronJobHub: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState<ICronJobHistory[]>([]);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<ICronJob | null>(null);
+    const [formData, setFormData] = useState<Partial<ICronJob>>({
+        name: '',
+        identifier: '',
+        expression: '0 0 * * *',
+        status: 'ACTIVE',
+        level: 'USER'
+    });
 
     const fetchJobs = useCallback(async () => {
         try {
@@ -61,10 +72,10 @@ export const CronJobHub: React.FC = () => {
     const handleRunJob = async (identifier: string) => {
         try {
             await http.post('/cron-job/run', { identifier });
-            alert(`Job ${identifier} execution triggered`);
+            toast.success(`Job ${identifier} execution triggered`);
             fetchJobs();
         } catch (err) {
-            alert('Failed to trigger job');
+            toast.error('Failed to trigger job');
         }
     };
 
@@ -72,10 +83,61 @@ export const CronJobHub: React.FC = () => {
         try {
             setSelectedJob(job);
             const response = await http.get<any>(`/cron-job/history/${job._id}`);
-            setHistory(response.data || []);
+            setHistory(response.data?.data || []);
             setIsHistoryModalOpen(true);
         } catch (err) {
-            alert('Failed to fetch history');
+            toast.error('Failed to fetch history');
+        }
+    };
+
+    const handleOpenEdit = (job?: ICronJob) => {
+        if (job) {
+            setSelectedJob(job);
+            setFormData({
+                name: job.name,
+                identifier: job.identifier,
+                expression: job.expression,
+                status: job.status,
+                level: job.level
+            });
+        } else {
+            setSelectedJob(null);
+            setFormData({
+                name: '',
+                identifier: '',
+                expression: '0 0 * * *',
+                status: 'ACTIVE',
+                level: 'USER'
+            });
+        }
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveJob = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (selectedJob) {
+                await http.put(`/cron-job/${selectedJob._id}`, formData);
+                toast.success('Job updated successfully');
+            } else {
+                await http.post('/cron-job', formData);
+                toast.success('Job created successfully');
+            }
+            setIsEditModalOpen(false);
+            fetchJobs();
+        } catch (err) {
+            toast.error('Failed to save job');
+        }
+    };
+
+    const handleDeleteJob = async (id: string) => {
+        if (!window.confirm('Are you sure you want to terminate this job?')) return;
+        try {
+            await http.delete(`/cron-job/deleteByFilter`, { data: { _id: id } });
+            toast.success('Job terminated');
+            fetchJobs();
+        } catch (err) {
+            toast.error('Failed to delete job');
         }
     };
 
@@ -145,6 +207,13 @@ export const CronJobHub: React.FC = () => {
                         <Play size={20} />
                     </button>
                     <button
+                        onClick={() => handleOpenEdit(job)}
+                        className="p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-transparent hover:border-indigo-100"
+                        title="Edit Config"
+                    >
+                        <Settings size={20} />
+                    </button>
+                    <button
                         onClick={() => fetchHistory(job)}
                         className="p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-transparent hover:border-indigo-100"
                         title="View History"
@@ -157,7 +226,7 @@ export const CronJobHub: React.FC = () => {
     ];
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 flex flex-col h-full bg-gray-50/50">
             {/* Hero Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-indigo-500/10 transition-colors duration-1000" />
@@ -170,18 +239,25 @@ export const CronJobHub: React.FC = () => {
                         <p className="text-sm text-gray-500 font-medium">Monitor and manage platform background tasks</p>
                     </div>
                 </div>
-                <CustomButton onClick={fetchJobs} variant="secondary" className="rounded-2xl h-14 px-8 relative z-10">
-                    <RefreshCcw size={20} className="mr-2" /> Sync Records
-                </CustomButton>
+                <div className="flex items-center gap-3 relative z-10">
+                    <CustomButton onClick={() => handleOpenEdit()} className="bg-indigo-600 text-white hover:bg-indigo-700 rounded-2xl h-14 px-8 shadow-lg shadow-indigo-600/20">
+                        Register New Node
+                    </CustomButton>
+                    <CustomButton onClick={fetchJobs} variant="secondary" className="rounded-2xl h-14 px-8 bg-white border-2 border-slate-100">
+                        <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
+                    </CustomButton>
+                </div>
             </div>
 
-            <Table
-                data={jobs}
-                columns={columns}
-                isLoading={loading}
-                emptyMessage="No background tasks registered"
-                keyExtractor={(j) => j._id}
-            />
+            <div className="bg-white rounded-[2.5rem] border border-primary/5 shadow-sm overflow-hidden">
+                <Table
+                    data={jobs}
+                    columns={columns}
+                    isLoading={loading}
+                    emptyMessage="No background tasks registered"
+                    keyExtractor={(j) => j._id}
+                />
+            </div>
 
             {/* History Modal */}
             <Modal
@@ -195,24 +271,24 @@ export const CronJobHub: React.FC = () => {
                         {history.length === 0 ? (
                             <div className="py-12 text-center text-gray-500 font-medium">No history records found for this task</div>
                         ) : (
-                            <table className="w-full text-left">
+                            <table className="w-full text-left border-collapse">
                                 <thead className="sticky top-0 bg-white border-b border-gray-100">
                                     <tr>
-                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Run Time</th>
-                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Duration</th>
-                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Status</th>
+                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest px-4">Run Time</th>
+                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center px-4">Duration</th>
+                                        <th className="pb-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right px-4">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {history.map((h) => (
                                         <tr key={h._id} className="group hover:bg-gray-50/50 transition-colors">
-                                            <td className="py-4 text-xs font-bold text-gray-700">
+                                            <td className="py-4 text-xs font-bold text-gray-700 px-4">
                                                 {new Date(h.runAt).toLocaleString()}
                                             </td>
-                                            <td className="py-4 text-xs font-semibold text-gray-500 text-center">
+                                            <td className="py-4 text-xs font-semibold text-gray-500 text-center px-4">
                                                 {h.durationMs}ms
                                             </td>
-                                            <td className="py-4 text-right">
+                                            <td className="py-4 text-right px-4">
                                                 <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${h.status === 'SUCCESS' ? 'text-green-500' : 'text-rose-500'
                                                     }`}>
                                                     {h.status}
@@ -231,6 +307,85 @@ export const CronJobHub: React.FC = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* Edit/Create Modal */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title={selectedJob ? 'Configure Infrastructure Node' : 'Register New Task Node'}
+                maxWidth="max-w-md"
+            >
+                <form onSubmit={handleSaveJob} className="space-y-6">
+                    <div className="space-y-4">
+                        <CustomInput
+                            label="Task Name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="e.g. Daily Inventory Harmonization"
+                            required
+                        />
+                        <CustomInput
+                            label="Technical Identifier"
+                            value={formData.identifier}
+                            onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                            placeholder="e.g. inventory_sync"
+                            disabled={!!selectedJob}
+                            required
+                        />
+                        <CustomInput
+                            label="Cron Pattern"
+                            value={formData.expression}
+                            onChange={(e) => setFormData({ ...formData, expression: e.target.value })}
+                            placeholder="0 0 * * *"
+                            required
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">State</label>
+                                <select
+                                    className="w-full h-11 px-3 rounded-xl border border-primary/20 bg-primary/5 focus:bg-white focus:border-primary outline-none text-sm font-semibold"
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                                >
+                                    <option value="ACTIVE">ACTIVE</option>
+                                    <option value="INACTIVE">INACTIVE</option>
+                                    <option value="PAUSED">PAUSED</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Priority Level</label>
+                                <select
+                                    className="w-full h-11 px-3 rounded-xl border border-primary/20 bg-primary/5 focus:bg-white focus:border-primary outline-none text-sm font-semibold"
+                                    value={formData.level}
+                                    onChange={(e) => setFormData({ ...formData, level: e.target.value as any })}
+                                >
+                                    <option value="SYSTEM">SYSTEM</option>
+                                    <option value="USER">USER</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                        {selectedJob && (
+                            <CustomButton
+                                type="button"
+                                onClick={() => handleDeleteJob(selectedJob._id)}
+                                className="bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600 border-none shadow-none"
+                            >
+                                Terminate
+                            </CustomButton>
+                        )}
+                        <CustomButton variant="secondary" type="button" onClick={() => setIsEditModalOpen(false)}>
+                            Abort
+                        </CustomButton>
+                        <CustomButton type="submit">
+                            {selectedJob ? 'Commit Changes' : 'Register Task'}
+                        </CustomButton>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };
+
+export default CronJobHub;

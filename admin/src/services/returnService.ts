@@ -9,7 +9,7 @@ export const returnService = {
         axiosInstance.post('/return/getWithPagination', params),
     
     getOne: (id: string) => 
-        axiosInstance.post(`/return/getOne/${id}`),
+        axiosInstance.get(`/return/${id}`),
     
     updateStatus: (id: string, data: { status: string; adminNotes?: string }) => 
         axiosInstance.patch(`/return/${id}/status`, data),

@@ -7,7 +7,7 @@ import {
     Search, Filter, Activity, ShieldCheck, Zap,
     MapPin, User, DollarSign, Clock
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import CustomButton from '../../components/common/Button';
@@ -45,6 +45,7 @@ const riskStyles: Record<string, { icon: any, color: string, bg: string, border:
 };
 
 const RtoDashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState<IRtoStats | null>(null);
     const [scores, setScores] = useState<IRtoScore[]>([]);
     const [loading, setLoading] = useState(true);
@@ -189,7 +190,10 @@ const RtoDashboard = () => {
             header: 'Reference Order',
             key: 'orderId',
             render: (score) => (
-                <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-wider bg-primary/5 px-2 py-1 rounded-lg border border-primary/10 w-fit">
+                <div
+                    onClick={(e) => { e.stopPropagation(); score.orderId && navigate(`/orders/${score.orderId._id}`); }}
+                    className={`flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-wider bg-primary/5 px-2 py-1 rounded-lg border border-primary/10 w-fit ${score.orderId ? 'cursor-pointer hover:bg-primary/10' : ''}`}
+                >
                     <Zap size={12} className="text-primary/60" />
                     {score.orderId?.orderNumber || 'PRE-CHECK'}
                 </div>

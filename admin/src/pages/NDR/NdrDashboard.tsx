@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ndrService, { type INDR } from '../../services/ndrService';
 import {
     RefreshCw,
@@ -31,6 +31,7 @@ const filterFields: FilterField[] = [
 ];
 
 export const NdrDashboard: React.FC = () => {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [ndrs, setNdrs] = useState<INDR[]>([]);
     const [loading, setLoading] = useState(false);
@@ -122,7 +123,11 @@ export const NdrDashboard: React.FC = () => {
 
         setResolving(true);
         try {
-            await ndrService.resolve(selectedNdr._id, resolutionData);
+            const submitData = {
+                ...resolutionData,
+                rescheduledDate: resolutionData.rescheduledDate || undefined
+            };
+            await ndrService.resolve(selectedNdr._id, submitData);
             setIsModalOpen(false);
             fetchNdrs();
         } catch (error) {
@@ -152,8 +157,11 @@ export const NdrDashboard: React.FC = () => {
                     </div>
                     <div className="flex flex-col">
                         <span className="font-black text-gray-900 leading-tight uppercase tracking-tight">{ndr.awb}</span>
-                        <div className="flex items-center gap-1 mt-0.5 text-[10px] font-black text-blue-600 uppercase tracking-widest cursor-pointer hover:underline">
-                            ID: {ndr.shipmentId.slice(-8)} <ExternalLink size={10} />
+                        <div
+                            onClick={(e) => { e.stopPropagation(); navigate(`/orders/${ndr.orderId}`); }}
+                            className="flex items-center gap-1 mt-0.5 text-[10px] font-black text-blue-600 uppercase tracking-widest cursor-pointer hover:underline"
+                        >
+                            Order Ref: {ndr.awb.split('-')[0]} <ExternalLink size={10} />
                         </div>
                     </div>
                 </div>

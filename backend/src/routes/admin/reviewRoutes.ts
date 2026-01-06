@@ -26,5 +26,6 @@ router.put('/moderate/:id', reviewController.moderateReview);
 
 // Delete review
 router.delete('/:id', reviewController.deleteById);
+router.get('/:id', reviewController.getOne); // Alias for convenience
 
 export default router;

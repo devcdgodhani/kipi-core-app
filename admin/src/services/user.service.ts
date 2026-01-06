@@ -7,7 +7,7 @@ export const userService = {
   },
 
   getOne: async (id: string) => {
-    return axiosInstance.post<any, { data: IUser, message: string }>('/user/getOne', { _id: id });
+    return axiosInstance.get<any, { data: IUser, message: string }>(`/user/${id}`);
   },
 
   create: async (userData: Partial<IUser>) => {

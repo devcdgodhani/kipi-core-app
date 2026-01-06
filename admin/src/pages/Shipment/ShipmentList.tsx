@@ -148,7 +148,10 @@ export const ShipmentList: React.FC = () => {
             key: 'orderNumber',
             render: (shipment) => (
                 <div className="flex flex-col gap-1 py-1">
-                    <span className="text-sm font-bold text-blue-600 hover:underline cursor-pointer">
+                    <span
+                        onClick={(e) => { e.stopPropagation(); navigate(`/orders/${shipment.orderId}`); }}
+                        className="text-sm font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
                         #{shipment.orderNumber}
                     </span>
                     <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -184,7 +187,7 @@ export const ShipmentList: React.FC = () => {
             render: (shipment) => (
                 <div className="flex items-center justify-end gap-2">
                     <button
-                        onClick={() => navigate(`/shipments/${shipment._id}`)}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/shipments/${shipment._id}`); }}
                         className="p-3 text-primary hover:bg-primary/5 rounded-2xl transition-all hover:scale-110 active:scale-90 border border-transparent hover:border-primary/10"
                         title="View Details"
                     >
