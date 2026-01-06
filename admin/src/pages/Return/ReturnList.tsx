@@ -138,7 +138,10 @@ export const ReturnList = () => {
             key: 'order',
             render: (ret: IReturn) => (
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-gray-900 font-black text-xs uppercase tracking-tight">
+                    <div
+                        onClick={(e) => { e.stopPropagation(); navigate(`/orders/${ret.orderId?._id}`); }}
+                        className="flex items-center gap-2 text-gray-900 font-black text-xs uppercase tracking-tight cursor-pointer hover:text-primary transition-colors"
+                    >
                         <ShoppingBag size={14} className="text-primary/60" />
                         {ret.orderId?.orderNumber || 'Unknown Order'}
                     </div>

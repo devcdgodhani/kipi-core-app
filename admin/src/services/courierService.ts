@@ -13,7 +13,7 @@ class CourierService {
   }
 
   async getById(id: string): Promise<ICourier> {
-    const response = await http.post<any>(`/courier/getOne`, { _id: id });
+    const response = await http.get<any>(`/courier/${id}`);
     return response.data;
   }
 

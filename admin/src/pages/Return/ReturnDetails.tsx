@@ -9,7 +9,6 @@ import {
     Package,
     Truck,
     ShoppingBag,
-    AlertCircle,
     ArrowLeftRight,
     FileText,
     History as HistoryIcon,
@@ -122,9 +121,9 @@ export const ReturnDetails: React.FC = () => {
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{new Date(ret.createdAt).toLocaleDateString()}</span>
                             <span className="w-1 h-1 bg-gray-300 rounded-full" />
                             <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${ret.status === 'PENDING' ? 'text-amber-500 border-amber-200 bg-amber-50' :
-                                    ret.status === 'COMPLETED' ? 'text-emerald-500 border-emerald-200 bg-emerald-50' :
-                                        ret.status === 'REJECTED' ? 'text-rose-500 border-rose-200 bg-rose-50' :
-                                            'text-primary border-primary/20 bg-primary/5'
+                                ret.status === 'COMPLETED' ? 'text-emerald-500 border-emerald-200 bg-emerald-50' :
+                                    ret.status === 'REJECTED' ? 'text-rose-500 border-rose-200 bg-rose-50' :
+                                        'text-primary border-primary/20 bg-primary/5'
                                 }`}>{ret.status.replace(/_/g, ' ')}</span>
                         </div>
                     </div>
@@ -359,8 +358,8 @@ export const ReturnDetails: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Status</p>
                             <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                    ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
-                                        'bg-amber-50 text-amber-500 border-amber-100'
+                                ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                    'bg-amber-50 text-amber-500 border-amber-100'
                                 }`}>{ret.refundStatus}</span>
                         </div>
                     </div>

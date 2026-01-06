@@ -18,7 +18,7 @@ export const reviewService = {
 
   // Get single review
   getById: async (id: string) => {
-    const response: any = await http.post(`${REVIEW_BASE_URL}/getOne/${id}`);
+    const response: any = await http.get(`${REVIEW_BASE_URL}/${id}`);
     return response;
   },
 
