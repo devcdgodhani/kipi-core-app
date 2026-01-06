@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { returnController } from '../../controllers/returnController';
+import ReturnController from '../../controllers/returnController';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 import ReturnValidator from '../../validators/returnValidators';
 
 const router = Router();
 const returnValidator = new ReturnValidator();
+const returnController = new ReturnController();
 
 // Protected routes
 router.post('/request', jwtAuth(), returnValidator.create, returnController.create);

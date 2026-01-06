@@ -2,6 +2,11 @@ import http from './http';
 import type { ICourier, ICourierFilters } from '../types/courier.types';
 
 class CourierService {
+  async getWithPagination(filters: ICourierFilters & { page?: number; limit?: number } = {}): Promise<{ data: ICourier[]; totalRecords: number; totalPages: number; currentPage: number; limit: number }> {
+    const response = await http.post<any>('/courier/getWithPagination', filters);
+    return response.data;
+  }
+
   async getAll(filters?: ICourierFilters): Promise<ICourier[]> {
     const response = await http.post<any>('/courier/getAll', filters);
     return response.data;

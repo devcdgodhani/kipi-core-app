@@ -57,6 +57,7 @@ router.use('/eta', etaRoutes); // NEW: ETA Routes
 router.use('/courier', jwtAuth(), courierRoutes); // NEW: Courier Routes
 router.use('/warehouse', jwtAuth(), warehouseRoutes);
 router.use('/ndr', jwtAuth(), ndrRoutes);
+router.use('/cron-job', jwtAuth(), cronJobRoutes); // Cron Job Management
 router.use('/analytics', jwtAuth(), analyticsRoutes);
 
 

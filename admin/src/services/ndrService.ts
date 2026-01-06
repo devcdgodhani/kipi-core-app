@@ -18,7 +18,7 @@ export interface INDR {
 }
 
 const ndrService = {
-  getAll: async (filters: any = {}, page: number = 1, limit: number = 10): Promise<IApiResponse<IPaginationData<INDR>>> => {
+  getWithPagination: async (filters: any = {}, page: number = 1, limit: number = 10): Promise<IApiResponse<IPaginationData<INDR>>> => {
     const response = await http.post<IApiResponse<IPaginationData<INDR>>>('/ndr/getWithPagination', { 
       page, 
       limit, 

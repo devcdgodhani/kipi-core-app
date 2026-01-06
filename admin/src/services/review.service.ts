@@ -4,7 +4,13 @@ import http from './http';
 const REVIEW_BASE_URL = '/review';
 
 export const reviewService = {
-  // Get all reviews (with pagination and filters)
+  // Get paginated reviews (with pagination and filters)
+  getWithPagination: async (params?: any) => {
+    const response: any = await http.post(`${REVIEW_BASE_URL}/getWithPagination`, params);
+    return response;
+  },
+
+  // Get all reviews - For dropdowns
   getAll: async (params?: any) => {
     const response: any = await http.post(`${REVIEW_BASE_URL}/getAll`, params);
     return response;

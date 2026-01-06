@@ -5,9 +5,19 @@ import ReviewController from '../../controllers/reviewController';
 const router = Router();
 const reviewController = new ReviewController();
 
-// Paginated reviews for Admin
+/***************** base crud structure*******************/
+router.route('/getOne')
+  .get(reviewController.getOne)
+  .post(reviewController.getOne);
+
+router.route('/getWithPagination')
+  .get(reviewController.getAdminReviews)
+  .post(reviewController.getAdminReviews);
+
+// Legacy route for backward compatibility
 router.post('/getAll', reviewController.getAdminReviews);
 
+/***************** specialized routes *******************/
 // Get details of a specific review
 router.post('/getOne/:id', reviewController.getOne);
 
