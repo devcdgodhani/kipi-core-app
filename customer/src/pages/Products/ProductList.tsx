@@ -75,14 +75,6 @@ const ProductList: React.FC = () => {
         }
     };
 
-    const handleSearch = (query: string) => {
-        setFilters({ ...filters, search: query, page: 1 });
-    };
-
-    // const handleFilterChange = (newFilters: IProductFilters) => {
-    //    setFilters({ ...filters, ...newFilters, page: 1 });
-    // };
-
     const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const [sortBy, sortOrder] = e.target.value.split('-');
         setFilters({
@@ -129,6 +121,15 @@ const ProductList: React.FC = () => {
         Object.values(tempFilters.attributes || {}).reduce((acc, curr) => acc + curr.length, 0)
     );
 
+    // Calculate active filter count for the main filter button (applied filters)
+    const appliedFilterCount = (
+        (filters.categoryIds?.length || 0) +
+        (filters.minPrice ? 1 : 0) +
+        (filters.maxPrice ? 1 : 0) +
+        (filters.inStock ? 1 : 0) +
+        Object.values(filters.attributes || {}).reduce((acc, curr) => acc + curr.length, 0)
+    );
+
 
     const handleClearFilters = () => {
         setFilters({
@@ -166,15 +167,31 @@ const ProductList: React.FC = () => {
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-gray-100 gap-4">
                     {/* Left: Filter & Count */}
-                    <div className="flex items-center gap-6 w-full sm:w-auto">
+                    <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
                         <button
                             onClick={() => setIsFilterModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-gray-200"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 relative"
                         >
                             <SlidersHorizontal size={16} />
                             Filters
+                            {appliedFilterCount > 0 && (
+                                <span className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white text-primary text-[10px] font-black">
+                                    {appliedFilterCount}
+                                </span>
+                            )}
                         </button>
 
+                        {appliedFilterCount > 0 && (
+                            <button
+                                onClick={handleClearFilters}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-rose-100 transition-all"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                                Clear Filters
+                            </button>
+                        )}
                     </div>
 
                     {/* Right: Search & Sort */}
