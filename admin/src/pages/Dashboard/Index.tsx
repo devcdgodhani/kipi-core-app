@@ -7,7 +7,9 @@ import {
     TrendingUp,
     AlertTriangle,
     ArrowRight,
-    BarChart3
+    BarChart3,
+    Truck,
+    RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { analyticsService } from '../../services/analyticsService';
@@ -32,16 +34,18 @@ const Dashboard: React.FC = () => {
         try {
             setLoading(true);
             // Fetch all analytics data
-            const [salesData, productData, customerData] = await Promise.all([
+            const [salesData, productData, customerData, logisticsData] = await Promise.all([
                 analyticsService.getSalesAnalytics(dateRange.startDate, dateRange.endDate),
                 analyticsService.getProductAnalytics(dateRange.startDate, dateRange.endDate),
-                analyticsService.getCustomerAnalytics(dateRange.startDate, dateRange.endDate)
+                analyticsService.getCustomerAnalytics(dateRange.startDate, dateRange.endDate),
+                analyticsService.getLogisticsAnalytics(dateRange.startDate, dateRange.endDate)
             ]);
 
             setDashboardData({
                 sales: salesData,
                 products: productData,
-                customers: customerData
+                customers: customerData,
+                logistics: logisticsData
             });
         } catch (error) {
             console.error(error);
@@ -144,6 +148,26 @@ const Dashboard: React.FC = () => {
                     bgClass="bg-purple-50"
                     borderClass="border-purple-100"
                     link="/intelligence/customers"
+                />
+                <KPICard
+                    title="RTO Rate"
+                    value={`${dashboardData?.logistics?.rtoRate?.toFixed(1) || 0}%`}
+                    subtitle={`${dashboardData?.logistics?.rtoCount || 0} Returns`}
+                    icon={Truck}
+                    colorClass="text-red-600"
+                    bgClass="bg-red-50"
+                    borderClass="border-red-100"
+                    link="/intelligence/logistics"
+                />
+                <KPICard
+                    title="NDR Recovery"
+                    value={`${dashboardData?.logistics?.ndrConversionRate?.toFixed(1) || 0}%`}
+                    subtitle="Closed successfully"
+                    icon={RefreshCw}
+                    colorClass="text-indigo-600"
+                    bgClass="bg-indigo-50"
+                    borderClass="border-indigo-100"
+                    link="/intelligence/logistics"
                 />
             </div>
 

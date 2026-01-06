@@ -5,7 +5,9 @@ import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalt
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 
-export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAttributes, ILoyaltyTransactionDocument> {
+import { ILoyaltyService } from '../contracts/loyaltyServiceInterface';
+
+export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAttributes, ILoyaltyTransactionDocument> implements ILoyaltyService {
   constructor() {
     super(LoyaltyTransactionModel);
   }

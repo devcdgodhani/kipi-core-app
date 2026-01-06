@@ -6,7 +6,9 @@ import { HTTP_STATUS_CODE } from '../../constants';
 import { REVIEW_STATUS } from '../../constants/review';
 import { FileStorageService } from './fileStorageService';
 
-export class ReviewService extends MongooseCommonService<IReviewAttributes, IReviewDocument> {
+import { IReviewService } from '../contracts/reviewServiceInterface';
+
+export class ReviewService extends MongooseCommonService<IReviewAttributes, IReviewDocument> implements IReviewService {
   private fileStorageService = new FileStorageService();
 
   constructor() {

@@ -49,6 +49,17 @@ export interface IOrder {
   totalAmount: number;
   timeline: IOrderTimeline[];
   notes?: string;
+  
+  // Logistics fields
+  shipmentId?: string;
+  awb?: string;
+  idempotencyKey?: string;
+  isRTO?: boolean;
+  rtoId?: string;
+  hasNDR?: boolean;
+  ndrCount?: number;
+  warehouseId?: string;
+  
   createdAt?: Date;
   updatedAt?: Date;
 }

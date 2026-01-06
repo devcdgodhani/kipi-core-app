@@ -15,3 +15,5 @@ export * from './address';
 // export * from './user'; // Not found
 export * from './review';
 export * from './return';
+export * from './shipment';
+export * from './logistics';

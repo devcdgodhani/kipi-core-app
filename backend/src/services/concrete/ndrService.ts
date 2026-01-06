@@ -1,0 +1,30 @@
+import { NDRModel, INDR } from '../../db/mongodb';
+import { INdrService } from '../contracts/ndrServiceInterface';
+import { MongooseCommonService } from './mongooseCommonService';
+import { Types } from 'mongoose';
+
+export class NdrService 
+  extends MongooseCommonService<any, INDR> 
+  implements INdrService 
+{
+  constructor() {
+    super(NDRModel);
+  }
+
+  async resolveNDR(ndrId: string, resolutionData: any): Promise<INDR> {
+    const ndr = await this.findById(ndrId);
+    if (!ndr) throw new Error('NDR record not found');
+
+    const updateData: any = {
+      resolution: resolutionData.resolution,
+      customerAction: resolutionData.customerAction,
+      rescheduledDate: resolutionData.rescheduledDate,
+      updatedAddress: resolutionData.updatedAddress,
+      resolvedDate: new Date(),
+      resolvedBy: new Types.ObjectId(resolutionData.resolvedBy),
+      status: 'RESOLVED'
+    };
+
+    return (await this.upsert({ _id: new Types.ObjectId(ndrId) } as any, updateData)) as INDR;
+  }
+}

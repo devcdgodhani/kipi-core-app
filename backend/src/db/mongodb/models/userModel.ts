@@ -86,6 +86,13 @@ export const UserSchema = new Schema<IUserDocument>(
     pointsExpiryDate: {
       type: Date,
       required: false
+    },
+    metrics: {
+      totalOrders: { type: Number, default: 0 },
+      rtoCount: { type: Number, default: 0 },
+      returnCount: { type: Number, default: 0 },
+      deliveredCount: { type: Number, default: 0 },
+      cancelledCount: { type: Number, default: 0 }
     }
   },
   {

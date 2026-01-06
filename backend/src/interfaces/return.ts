@@ -20,6 +20,9 @@ export interface IReturn extends Document {
     refundStatus: 'PENDING' | 'PROCESSED' | 'FAILED';
     refundTransactionId?: string;
     pickupAddress?: any;
+    awb?: string;
+    pickupId?: string;
+    courierName?: string;
     timeline: {
         status: RETURN_STATUS;
         timestamp: Date;

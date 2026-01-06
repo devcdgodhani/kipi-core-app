@@ -1,7 +1,9 @@
 import ExcelJS from 'exceljs';
 import { analyticsService } from './analyticsService';
 
-export class ExportService {
+import { IExportService } from '../contracts/exportServiceInterface';
+
+export class ExportService implements IExportService {
   /**
    * Export Sales Analytics to Excel or CSV
    */
@@ -167,6 +169,95 @@ export class ExportService {
     churnSheet.getRow(4).font = { bold: true };
     acquisitionSheet.getRow(1).font = { bold: true, size: 14 };
     acquisitionSheet.getRow(4).font = { bold: true };
+
+    return await workbook.xlsx.writeBuffer();
+  }
+
+  /**
+   * Export Logistics Data (RTO & NDR) to Excel or CSV
+   */
+  async exportLogisticsData(startDate: Date, endDate: Date, format: 'xlsx' | 'csv' = 'xlsx'): Promise<any> {
+    const data = await analyticsService.getLogisticsAnalytics(startDate, endDate);
+
+    if (format === 'csv') {
+      let csv = 'Logistics Performance Report\n\n';
+      csv += 'Summary Metrics:\n';
+      csv += `Total Shipments,${data.totalShipments}\n`;
+      csv += `RTO Rate,${data.rtoRate.toFixed(2)}%\n`;
+      csv += `NDR Conversion,${data.ndrConversionRate.toFixed(2)}%\n`;
+      csv += `Avg RTO Age,${data.avgRtoAge.toFixed(1)} days\n\n`;
+      
+      csv += 'RTO Reasons:\n';
+      csv += 'Reason,Count\n';
+      data.rtoReasons.forEach(r => {
+        csv += `${r.reason},${r.count}\n`;
+      });
+      return csv;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Logistics Analytics');
+    
+    sheet.addRow(['Logistics Performance Report']);
+    sheet.addRow(['Period', `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`]);
+    sheet.addRow([]);
+    
+    sheet.addRow(['Metric', 'Value']);
+    sheet.addRow(['Total Shipments', data.totalShipments]);
+    sheet.addRow(['RTO Rate (%)', data.rtoRate]);
+    sheet.addRow(['NDR Conversion (%)', data.ndrConversionRate]);
+    sheet.addRow(['Avg RTO Age (Days)', data.avgRtoAge]);
+    sheet.addRow([]);
+    
+    sheet.addRow(['RTO Reasons Distribution']);
+    sheet.addRow(['Reason', 'Count']);
+    data.rtoReasons.forEach(r => {
+      sheet.addRow([r.reason, r.count]);
+    });
+
+    sheet.getRow(1).font = { bold: true, size: 14 };
+    sheet.getRow(4).font = { bold: true };
+    sheet.getRow(11).font = { bold: true };
+
+    return await workbook.xlsx.writeBuffer();
+  }
+
+  /**
+   * Export Courier Performance to Excel or CSV
+   */
+  async exportCourierPerformance(startDate: Date, endDate: Date, format: 'xlsx' | 'csv' = 'xlsx'): Promise<any> {
+    const data = await analyticsService.getCourierPerformance(startDate, endDate);
+
+    if (format === 'csv') {
+      let csv = 'Courier Performance Benchmarking\n\n';
+      csv += 'Courier Name,Total Shipments,RTO Rate (%),NDR Rate (%),Avg Delivery (Days),SLA Adherence (%)\n';
+      data.forEach(c => {
+        csv += `${c.courierName},${c.totalShipments},${c.rtoRate.toFixed(2)},${c.ndrRate.toFixed(2)},${c.avgDeliveryTime.toFixed(1)},${c.slaAdherence.toFixed(1)}\n`;
+      });
+      return csv;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Courier Performance');
+    
+    sheet.addRow(['Courier Performance benchmarking']);
+    sheet.addRow(['Period', `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`]);
+    sheet.addRow([]);
+    
+    sheet.addRow(['Courier Name', 'Total Shipments', 'RTO Rate (%)', 'NDR Rate (%)', 'Avg Delivery Time (Days)', 'SLA Adherence (%)']);
+    data.forEach(c => {
+      sheet.addRow([
+        c.courierName, 
+        c.totalShipments, 
+        c.rtoRate, 
+        c.ndrRate, 
+        c.avgDeliveryTime, 
+        c.slaAdherence
+      ]);
+    });
+
+    sheet.getRow(1).font = { bold: true, size: 14 };
+    sheet.getRow(4).font = { bold: true };
 
     return await workbook.xlsx.writeBuffer();
   }

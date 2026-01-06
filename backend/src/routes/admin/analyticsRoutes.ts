@@ -54,4 +54,28 @@ router.get(
   analyticsController.getLotAnalytics.bind(analyticsController)
 );
 
+router.get(
+  '/logistics',
+  jwtAuth(),
+  analyticsController.getLogisticsAnalytics.bind(analyticsController)
+);
+
+router.get(
+  '/couriers',
+  jwtAuth(),
+  analyticsController.getCourierPerformance.bind(analyticsController)
+);
+
+router.get(
+  '/export/logistics',
+  jwtAuth(),
+  analyticsController.exportLogistics.bind(analyticsController)
+);
+
+router.get(
+  '/export/couriers',
+  jwtAuth(),
+  analyticsController.exportCouriers.bind(analyticsController)
+);
+
 export const analyticsRoutes = router;

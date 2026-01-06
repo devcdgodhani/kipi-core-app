@@ -20,7 +20,12 @@ import {
     DollarSign,
     Receipt,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    Truck,
+    AlertTriangle,
+    Settings,
+    Building2,
+    Award
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect } from 'react';
@@ -90,6 +95,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             ]
         },
         {
+            title: 'Logistics',
+            icon: Truck,
+            items: [
+                { to: '/shipments', label: 'Shipments', icon: Package },
+                { to: '/ndr-dashboard', label: 'NDR Panel', icon: Activity },
+                { to: '/rto-dashboard', label: 'RTO Management', icon: AlertTriangle },
+                { to: '/warehouses', label: 'Warehouses', icon: Building2 },
+                { to: '/courier-config', label: 'Couriers', icon: Settings }
+            ]
+        },
+        {
             title: 'Intelligence',
             icon: BarChart3,
             items: [
@@ -97,7 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { to: '/intelligence/products', label: 'Product Insights', icon: Package },
                 { to: '/intelligence/customers', label: 'Customer Insights', icon: Users },
                 { to: '/intelligence/financial', label: 'Financial Reports', icon: Receipt },
-                { to: '/intelligence/lots', label: 'Lot Intelligence', icon: Activity }
+                { to: '/intelligence/lots', label: 'Lot Intelligence', icon: Activity },
+                { to: '/intelligence/logistics', label: 'Logistics Intel', icon: Truck },
+                { to: '/intelligence/couriers', label: 'Courier Benchmarking', icon: Award }
             ]
         },
         {

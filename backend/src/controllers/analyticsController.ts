@@ -178,4 +178,86 @@ export class AnalyticsController {
       next(error);
     }
   };
+
+  getLogisticsAnalytics = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const end = endDate ? new Date(endDate as string) : new Date();
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setDate(end.getDate() - 30));
+
+      const data = await analyticsService.getLogisticsAnalytics(start, end);
+
+      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Logistics analytics fetched successfully',
+        data
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCourierPerformance = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const end = endDate ? new Date(endDate as string) : new Date();
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setDate(end.getDate() - 30));
+
+      const data = await analyticsService.getCourierPerformance(start, end);
+
+      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Courier performance fetched successfully',
+        data
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  exportLogistics = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate, format = 'xlsx' } = req.query;
+      const end = endDate ? new Date(endDate as string) : new Date();
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setDate(end.getDate() - 30));
+
+      const data = await exportService.exportLogisticsData(start, end, format as 'xlsx' | 'csv');
+
+      if (format === 'csv') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=logistics-analytics-${Date.now()}.csv`);
+        return res.send(data);
+      }
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=logistics-analytics-${Date.now()}.xlsx`);
+      return res.send(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  exportCouriers = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate, format = 'xlsx' } = req.query;
+      const end = endDate ? new Date(endDate as string) : new Date();
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setDate(end.getDate() - 30));
+
+      const data = await exportService.exportCourierPerformance(start, end, format as 'xlsx' | 'csv');
+
+      if (format === 'csv') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=courier-performance-${Date.now()}.csv`);
+        return res.send(data);
+      }
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=courier-performance-${Date.now()}.xlsx`);
+      return res.send(data);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

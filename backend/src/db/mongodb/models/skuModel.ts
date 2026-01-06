@@ -23,6 +23,8 @@ const skuSchema = new Schema<ISkuDocument>(
     discount: { type: Number, default: 0 },
     
     quantity: { type: Number, default: 0 },
+    reservedQuantity: { type: Number, default: 0 },
+    availableQuantity: { type: Number, default: 0 },
     media: [
       {
         fileType: { type: String, enum: Object.values(MEDIA_FILE_TYPE), default: MEDIA_FILE_TYPE.IMAGE },

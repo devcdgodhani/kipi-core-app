@@ -2,7 +2,9 @@ import cron from 'node-cron';
 import { UserModel } from '../../db/mongodb/models/userModel';
 import { pulseService } from './pulseService';
 
-export class EngagementCronService {
+import { IEngagementCronService } from '../contracts/engagementCronServiceInterface';
+
+export class EngagementCronService implements IEngagementCronService {
     /**
      * Initialize all engagement crons
      */

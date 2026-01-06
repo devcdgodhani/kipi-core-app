@@ -41,6 +41,9 @@ export interface Order {
   }[];
   couponCode?: string;
   discountAmount?: number;
+  awb?: string;
+  trackingId?: string;
+  estimatedDelivery?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

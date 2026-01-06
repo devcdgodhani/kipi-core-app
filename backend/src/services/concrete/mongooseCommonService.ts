@@ -263,7 +263,7 @@ export class MongooseCommonService<T, TDoc extends Document>
     options: CreateOptions & { userId?: ObjectId; session?: ClientSession } = {}
   ): Promise<T> => {
     const payload = { ...createData, createdBy: options.userId } as Partial<T>;
-    const [createdDoc] = await this.model.create([payload], options);
+    const [createdDoc] = await this.model.create([payload] as any, options);
     return createdDoc as T;
   };
 

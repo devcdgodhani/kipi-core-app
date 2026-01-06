@@ -1,0 +1,19 @@
+export const SHIPROCKET_CONFIG = {
+  BASE_URL: process.env.SHIPROCKET_API_URL || 'https://apiv2.shiprocket.in/v1',
+  EMAIL: process.env.SHIPROCKET_EMAIL || '',
+  PASSWORD: process.env.SHIPROCKET_PASSWORD || '',
+  TIMEOUT: 30000, // 30 seconds
+  RETRY_ATTEMPTS: 3,
+  WEBHOOK_SECRET: process.env.SHIPROCKET_WEBHOOK_SECRET || '',
+  DEFAULT_CHANNEL_ID: 'custom',
+  TOKEN_EXPIRY_DAYS: 10
+};
+
+export const SHIPROCKET_CONSTANTS = {
+  PROVIDER_CODE: 'SHIPROCKET',
+  PROVIDER_NAME: 'Shiprocket',
+  MAX_WEIGHT_KG: 50,
+  MAX_COD_AMOUNT: 50000,
+  MIN_DIMENSIONS_CM: 0.5,
+  MAX_DIMENSIONS_CM: 200
+};

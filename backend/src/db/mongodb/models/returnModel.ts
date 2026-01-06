@@ -30,6 +30,9 @@ const returnSchema = new Schema<IReturn>({
     },
     refundTransactionId: { type: String },
     pickupAddress: { type: Schema.Types.Mixed },
+    awb: { type: String },
+    pickupId: { type: String },
+    courierName: { type: String },
     timeline: [{
         status: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },

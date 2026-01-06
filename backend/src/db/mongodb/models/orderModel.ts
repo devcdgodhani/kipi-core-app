@@ -1,6 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
 import { IOrder } from '../../../types/order';
-interface IOrderDocument extends IOrder, Document {}
+export interface IOrderDocument extends IOrder, Document {}
 
 const OrderItemSchema = new Schema({
   productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -64,7 +64,17 @@ const OrderSchema = new Schema<IOrderDocument>({
       message: { type: String, required: true }
     }
   ],
-  notes: { type: String }
+  notes: { type: String },
+  
+  // Logistics fields
+  shipmentId: { type: Schema.Types.ObjectId as any, ref: 'Shipment' },
+  awb: { type: String },
+  idempotencyKey: { type: String, unique: true, sparse: true },
+  isRTO: { type: Boolean, default: false },
+  rtoId: { type: Schema.Types.ObjectId as any, ref: 'RTO' },
+  hasNDR: { type: Boolean, default: false },
+  ndrCount: { type: Number, default: 0 },
+  warehouseId: { type: Schema.Types.ObjectId as any, ref: 'Warehouse' }
 }, {
   timestamps: true,
   versionKey: false
@@ -75,6 +85,11 @@ const OrderSchema = new Schema<IOrderDocument>({
 OrderSchema.index({ userId: 1 });
 OrderSchema.index({ orderStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ shipmentId: 1 });
+OrderSchema.index({ awb: 1 });
+OrderSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
+OrderSchema.index({ isRTO: 1, createdAt: -1 });
+OrderSchema.index({ warehouseId: 1, orderStatus: 1 });
 
 // Create model
 export const OrderModel = model<IOrderDocument>('Order', OrderSchema);

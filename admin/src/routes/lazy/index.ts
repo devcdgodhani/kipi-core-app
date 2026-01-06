@@ -39,4 +39,14 @@ export const ProductInsightsLazy = lazy(() => import('../../pages/Analytics/Prod
 export const CustomerInsightsLazy = lazy(() => import('../../pages/Analytics/CustomerInsights'));
 export const FinancialReportsLazy = lazy(() => import('../../pages/Analytics/FinancialReports'));
 export const LotAnalyticsLazy = lazy(() => import('../../pages/Analytics/LotAnalytics'));
+export const LogisticsAnalyticsLazy = lazy(() => import('../../pages/Analytics/LogisticsAnalytics'));
+export const CourierAnalyticsLazy = lazy(() => import('../../pages/Analytics/CourierAnalytics'));
 
+// Logistics
+export const ShipmentListLazy = lazy(() => import('../../pages/Shipment/ShipmentList').then(module => ({ default: module.ShipmentList })));
+export const ShipmentDetailsLazy = lazy(() => import('../../pages/Shipment/ShipmentDetails').then(module => ({ default: module.ShipmentDetails })));
+export const RtoDashboardLazy = lazy(() => import('../../pages/RTO/RtoDashboard').then(module => ({ default: module.RtoDashboard })));
+export const CourierConfigLazy = lazy(() => import('../../pages/Courier/CourierConfig').then(module => ({ default: module.CourierConfig })));
+export const WarehouseListLazy = lazy(() => import('../../pages/Warehouse/WarehouseList').then(module => ({ default: module.WarehouseList })));
+export const WarehouseFormLazy = lazy(() => import('../../pages/Warehouse/WarehouseForm').then(module => ({ default: module.WarehouseForm })));
+export const NdrDashboardLazy = lazy(() => import('../../pages/NDR/NdrDashboard').then(module => ({ default: module.NdrDashboard })));
