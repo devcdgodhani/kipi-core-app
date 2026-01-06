@@ -211,7 +211,7 @@ export const OrderDetails: React.FC = () => {
                                         </svg>
                                         Coupon ({order.couponCode})
                                     </span>
-                                    <span className="text-emerald-600 font-bold">-₹{order.discountAmount.toLocaleString()}</span>
+                                    <span className="text-emerald-600 font-bold">-₹{order?.discountAmount?.toLocaleString()}</span>
                                 </div>
                             )}
 
