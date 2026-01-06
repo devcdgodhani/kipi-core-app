@@ -7,8 +7,6 @@ const router = express.Router();
 const shipmentController = new ShipmentController();
 const shipmentValidator = new ShipmentValidator();
 
-router.use(jwtAuth);
-
 /***************** base crud structure*******************/
 router.route('/getOne')
   .get(shipmentController.getOne)

@@ -45,8 +45,8 @@ export const CronJobHub: React.FC = () => {
     const fetchJobs = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await http.post<any>('/cron-job/getAll');
-            setJobs(response.data || []);
+            const response = await http.post<any>('/cron-job/getWithPagination');
+            setJobs(response.data?.recordList || []);
         } catch (err) {
             console.error('Failed to fetch cron jobs');
         } finally {

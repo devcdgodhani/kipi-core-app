@@ -5,8 +5,6 @@ import { jwtAuth } from '../../middlewares/jwtAuth';
 const router = Router();
 const exchangeController = new ExchangeController();
 
-router.use(jwtAuth());
-
 // Admin / Shared Endpoints
 router.route('/getOne')
   .get(exchangeController.getOne)

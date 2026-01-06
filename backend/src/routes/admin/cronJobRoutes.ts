@@ -5,9 +5,6 @@ import CronJobController from '../../controllers/cronJobController';
 const router = Router();
 const cronJobController = new CronJobController();
 
-// Authentication middleware for all admin cron routes
-router.use(jwtAuth);
-
 /***************** base crud structure*******************/
 router.route('/getOne')
   .get(cronJobController.getOne)

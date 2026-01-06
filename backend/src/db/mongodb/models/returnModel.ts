@@ -32,6 +32,7 @@ const returnSchema = new Schema<IReturn>({
     pickupAddress: { type: Schema.Types.Mixed },
     awb: { type: String },
     pickupId: { type: String },
+    courierId: { type: Schema.Types.ObjectId, ref: 'Courier' },
     courierName: { type: String },
     timeline: [{
         status: { type: String, required: true },

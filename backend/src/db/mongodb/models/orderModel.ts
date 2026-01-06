@@ -55,6 +55,7 @@ const OrderSchema = new Schema<IOrderDocument>({
   shippingCost: { type: Number, default: 0 },
   totalAmount: { type: Number, required: true, min: 0 },
   shippingProvider: { type: String },
+  courierId: { type: Schema.Types.ObjectId, ref: 'Courier' },
   trackingId: { type: String },
   estimatedDelivery: { type: Date },
   shippingLabelUrl: { type: String },

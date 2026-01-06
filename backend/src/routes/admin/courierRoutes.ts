@@ -5,8 +5,6 @@ import { jwtAuth } from '../../middlewares';
 const router = Router();
 const courierController = new CourierController();
 
-router.use(jwtAuth);
-
 /***************** base crud structure*******************/
 router.route('/getOne')
   .get(courierController.getOne)

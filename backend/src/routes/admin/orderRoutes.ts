@@ -5,8 +5,6 @@ import { jwtAuth } from '../../middlewares';
 const router = Router();
 const orderController = new OrderController();
 
-router.use(jwtAuth);
-
 /***************** base crud structure*******************/
 router.route('/getOne')
   .get(orderController.getOne)
