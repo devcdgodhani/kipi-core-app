@@ -52,8 +52,67 @@ export default class OrderController {
     }
   };
 
-  /*********** Get All Orders (Admin) ***********/
-  getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
+  /*********** Get One Order (Standard) ***********/
+  getOne = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      const reqData = { ...req.query, ...req.body };
+      
+      let order;
+      if (id) {
+        order = await this.orderService.findById(id);
+      } else {
+        const { filter, options } = this.orderService.generateFilter({
+          filters: reqData,
+        });
+        order = await this.orderService.findOne(filter, options);
+      }
+      
+      if (!order) {
+        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+          status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
+          code: HTTP_STATUS_CODE.NOTFOUND.CODE,
+          message: 'Order not found'
+        });
+      }
+
+      const response: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Order fetched successfully',
+        data: order
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Get All Orders (Standard) ***********/
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.orderService.generateFilter({
+        filters: reqData,
+      });
+
+      const orderList = await this.orderService.findAll(filter, options);
+
+      const response: IApiResponse<any[]> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'All orders fetched successfully',
+        data: orderList,
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Get With Pagination (Standard) ***********/
+  getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.orderService.generateFilter({
@@ -65,7 +124,7 @@ export default class OrderController {
       const response: IApiResponse<IPaginationData<any>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'All orders fetched successfully',
+        message: 'Orders fetched successfully',
         data: orderList,
       };
 
@@ -96,26 +155,43 @@ export default class OrderController {
     }
   };
 
-  /*********** Get One Order ***********/
-  getOne = async (req: Request, res: Response, next: NextFunction) => {
+  /*********** Update By ID (Standard) ***********/
+  updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const order = await this.orderService.findById(id);
-      
-      if (!order) {
-        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
-          status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
-          code: HTTP_STATUS_CODE.NOTFOUND.CODE,
-          message: 'Order not found'
-        });
-      }
+      const updateData = req.body;
+      const userId = req.user?._id;
 
-      const response: TOrderRes = {
+      await this.orderService.updateOne({ _id: id } as any, updateData, { userId });
+
+      const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Order fetched successfully',
-        data: order
+        message: 'Order updated successfully',
       };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Delete By Filter (Standard) ***********/
+  deleteByFilter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = req.body;
+      const { filter } = this.orderService.generateFilter({
+        filters: reqData,
+      });
+
+      await this.orderService.softDelete(filter, { userId: req.user?._id });
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Order(s) deleted successfully',
+      };
+
       return res.status(response.status).json(response);
     } catch (err) {
       return next(err);

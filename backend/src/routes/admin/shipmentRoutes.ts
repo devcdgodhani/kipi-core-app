@@ -1,48 +1,35 @@
 import express from 'express';
 import { ShipmentController } from '../../controllers/shipmentController';
 import ShipmentValidator from '../../validators/shipmentValidators';
+import { jwtAuth } from '../../middlewares';
 
 const router = express.Router();
 const shipmentController = new ShipmentController();
 const shipmentValidator = new ShipmentValidator();
 
-// Serviceability
-router.post(
-  '/check-serviceability',
-  shipmentValidator.checkServiceability,
-  shipmentController.checkServiceability
-);
+router.use(jwtAuth);
 
-// CRUD
-router.post(
-  '/create',
-  shipmentValidator.create,
-  shipmentController.create
-);
+/***************** base crud structure*******************/
+router.route('/getOne')
+  .get(shipmentController.getOne)
+  .post(shipmentController.getOne);
 
-router.post(
-  '/getWithPagination',
-  shipmentValidator.getAll,
-  shipmentController.getAll
-);
+router.route('/getAll')
+  .get(shipmentController.getAll)
+  .post(shipmentController.getAll);
 
-router.get(
-  '/:id',
-  shipmentController.getOne
-);
+router.route('/getWithPagination')
+  .get(shipmentValidator.getAll, shipmentController.getWithPagination)
+  .post(shipmentValidator.getAll, shipmentController.getWithPagination);
 
-// Tracking
-router.get(
-  '/track/:awb',
-  shipmentValidator.track,
-  shipmentController.track
-);
+router.put('/:id', shipmentController.updateById);
+router.post('/', shipmentValidator.create, shipmentController.create);
+router.delete('/deleteByFilter', shipmentController.deleteByFilter);
 
-// Cancellation
-router.post(
-  '/cancel/:id',
-  shipmentValidator.cancel,
-  shipmentController.cancel
-);
+/***************** specialized routes *******************/
+router.post('/check-serviceability', shipmentValidator.checkServiceability, shipmentController.checkServiceability);
+router.get('/track/:awb', shipmentValidator.track, shipmentController.track);
+router.post('/cancel/:id', shipmentValidator.cancel, shipmentController.cancel);
+router.get('/:id', shipmentController.getOne); // Alias for convenience
 
 export default router;

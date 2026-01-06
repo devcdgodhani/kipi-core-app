@@ -20,12 +20,14 @@ import rtoScoreRoutes from './rtoScoreRoutes';
 import etaRoutes from './etaRoutes';
 import orderRoutes from './orderRoutes';
 import returnRoutes from './returnRoutes';
-import inventoryAuditRoutes from './inventoryAuditRoutes';
+import exchangeRoutes from './exchangeRoutes';
+import stockLedgerRoutes from './stockLedgerRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
 import { analyticsRoutes } from './analyticsRoutes';
 import couponRoutes from './couponRoutes';
 import courierRoutes from './courierRoutes'; // NEW: Courier Routes
 import warehouseRoutes from './warehouseRoutes';
+import cronJobRoutes from './cronJobRoutes';
 import ndrRoutes from './ndrRoutes';
 
 import { jwtAuth } from '../../middlewares';
@@ -46,7 +48,8 @@ router.use('/address', jwtAuth(), addressRoutes);
 router.use('/coupon', jwtAuth(), couponRoutes);
 router.use('/order', jwtAuth(), orderRoutes);
 router.use('/return', jwtAuth(), returnRoutes);
-router.use('/inventory-audit', jwtAuth(), inventoryAuditRoutes);
+router.use('/exchange', jwtAuth(), exchangeRoutes);
+router.use('/stock-ledger', jwtAuth(), stockLedgerRoutes);
 router.use('/loyalty', jwtAuth(), loyaltyRoutes);
 router.use('/shipment', jwtAuth(), shipmentRoutes); // Mount Shipment Routes
 router.use('/rto', rtoScoreRoutes); // NEW: RTO Routes

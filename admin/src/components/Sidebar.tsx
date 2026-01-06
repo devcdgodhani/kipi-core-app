@@ -25,7 +25,8 @@ import {
     AlertTriangle,
     Settings,
     Building2,
-    Award
+    Award,
+    Cpu
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect } from 'react';
@@ -90,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             items: [
                 { to: '/orders', label: 'Orders', icon: ShoppingCart },
                 { to: '/returns', label: 'Returns', icon: CornerUpLeft },
-                { to: '/inventory-audit', label: 'Stock Ledger', icon: Activity },
+                { to: '/stock-ledger', label: 'Stock Ledger', icon: Activity },
                 { to: '/file-manager', label: 'File Manager', icon: HardDrive }
             ]
         },
@@ -132,7 +133,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             title: 'Settings',
             icon: Users,
             items: [
-                { to: '/users', label: 'Users', icon: Users }
+                { to: '/users', label: 'Users', icon: Users },
+                { to: '/cron-hub', label: 'Cron Hub', icon: Cpu }
             ]
         }
     ];

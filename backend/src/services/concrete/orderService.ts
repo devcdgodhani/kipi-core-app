@@ -1,9 +1,7 @@
-import { FilterQuery, Model } from 'mongoose';
 import { MongooseCommonService } from './mongooseCommonService';
 import { OrderModel, SkuModel, ProductModel, UserModel } from '../../db/mongodb';
 import { IOrder, TOrderCreateReq } from '../../types/order';
 import { CouponService } from './couponService';
-import { inventoryAuditService } from './inventoryAuditService';
 import { logisticsService } from './logisticsService';
 import { LoyaltyService } from './loyaltyService';
 import { pulseService } from './pulseService';
@@ -12,8 +10,8 @@ import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalt
 import { rtoScoreService } from './rtoScoreService';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
-import mongoose from 'mongoose';
 
+import { inventoryService } from './inventoryService';
 import { IOrderService } from '../contracts/orderServiceInterface';
 
 import { IOrderDocument } from '../../db/mongodb/models/orderModel';
@@ -85,7 +83,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
     console.log(`Backend Subtotal Resolved: ${subTotal}`);
 
     let discountAmount = 0;
-    let couponCode = orderData.couponCode;
+    const couponCode = orderData.couponCode;
 
     // 2. Handle Coupon
     if (couponCode) {
@@ -99,6 +97,9 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
       } else {
         discountAmount = coupon.value;
       }
+
+      // Save couponId to orderData for DB creation
+      (orderData as any).couponId = coupon._id;
 
       // Increment coupon usage count
       await this.couponService.updateOne(
@@ -249,44 +250,14 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
     // 1. Stock Deduction on Confirmation
     if (status === 'CONFIRMED' && currentStatus === 'PENDING') {
       for (const item of order.items) {
-        if (item.skuId) {
-          const sku = await SkuModel.findById(item.skuId);
-          if (sku) {
-            const previousQuantity = sku.quantity;
-            sku.quantity -= item.quantity;
-            await sku.save();
-
-            // Log Inventory Audit
-            await inventoryAuditService.logAdjustment({
-              skuId: item.skuId.toString(),
-              transactionType: 'ORDER_FULFILLMENT',
-              changeQuantity: -item.quantity,
-              previousQuantity,
-              newQuantity: sku.quantity,
-              referenceId: orderId,
-              referenceType: 'ORDER',
-              reason: `Order #${order.orderNumber} confirmed (SKU)`
-            });
-          } else if (item.productId) {
-            const product = await ProductModel.findById(item.productId);
-            if (product) {
-              const previousQuantity = product.stock || 0;
-              product.stock = (product.stock || 0) - item.quantity;
-              await product.save();
-
-              await inventoryAuditService.logAdjustment({
-                productId: item.productId.toString(),
-                transactionType: 'ORDER_FULFILLMENT',
-                changeQuantity: -item.quantity,
-                previousQuantity,
-                newQuantity: product.stock,
-                referenceId: orderId,
-                referenceType: 'ORDER',
-                reason: `Order #${order.orderNumber} confirmed (Product)`
-              } as any);
-            }
-          }
-        }
+        await inventoryService.deductStock({
+          skuId: item.skuId?.toString(),
+          productId: item.productId?.toString(),
+          quantity: item.quantity,
+          referenceId: orderId,
+          referenceType: 'ORDER',
+          reason: `Order #${order.orderNumber} confirmed`
+        });
       }
     }
 
@@ -312,47 +283,22 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
       }
     }
 
-    // 3. Restocking on Cancellation
-    if (status === 'CANCELLED' && ['CONFIRMED', 'PROCESSING', 'SHIPPED'].includes(currentStatus)) {
+    // 3. Stock Reversal on Cancellation
+    if (status === 'CANCELLED' && (currentStatus === 'CONFIRMED' || currentStatus === 'PROCESSING' || currentStatus === 'SHIPPED')) {
+      // Revert Coupon Usage
+      if (order.couponCode) {
+        await this.couponService.revertUsage(order.couponCode);
+      }
+
       for (const item of order.items) {
-        if (item.skuId) {
-          const sku = await SkuModel.findById(item.skuId);
-          if (sku) {
-            const previousQuantity = sku.quantity;
-            sku.quantity += item.quantity;
-            await sku.save();
-
-            // Log Inventory Audit
-            await inventoryAuditService.logAdjustment({
-              skuId: item.skuId.toString(),
-              transactionType: 'ORDER_CANCEL',
-              changeQuantity: item.quantity,
-              previousQuantity,
-              newQuantity: sku.quantity,
-              referenceId: orderId,
-              referenceType: 'ORDER',
-              reason: `Order #${order.orderNumber} cancelled (SKU)`
-            });
-          } else if (item.productId) {
-            const product = await ProductModel.findById(item.productId);
-            if (product) {
-              const previousQuantity = product.stock || 0;
-              product.stock = (product.stock || 0) + item.quantity;
-              await product.save();
-
-              await inventoryAuditService.logAdjustment({
-                productId: item.productId.toString(),
-                transactionType: 'ORDER_CANCEL',
-                changeQuantity: item.quantity,
-                previousQuantity,
-                newQuantity: product.stock,
-                referenceId: orderId,
-                referenceType: 'ORDER',
-                reason: `Order #${order.orderNumber} cancelled (Product)`
-              } as any);
-            }
-          }
-        }
+        await inventoryService.restock({
+          skuId: item.skuId?.toString(),
+          productId: item.productId?.toString(),
+          quantity: item.quantity,
+          referenceId: orderId,
+          referenceType: 'ORDER',
+          reason: `Order #${order.orderNumber} cancelled`
+        });
       }
     }
 

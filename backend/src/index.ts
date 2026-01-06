@@ -30,9 +30,9 @@ export const assertDatabaseConnection = async (): Promise<void> => {
     const whatsAppService = new WhatsAppService();
     await whatsAppService.initializeAllSessions();
 
-    /***** Pulse Engagement Crons *****/
-    const { engagementCronService } = await import('./services/concrete/engagementCronService');
-    engagementCronService.init();
+    /***** Cron Job Initializations *****/
+    const { cronJobService } = await import('./services/concrete/cronJobService');
+    await cronJobService.init();
 
     /***** Redis  Authentication *****/
     //await connectRedis();

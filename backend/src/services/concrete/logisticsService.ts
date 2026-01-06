@@ -4,6 +4,7 @@ import { ShiprocketProvider } from '../providers/shiprocketProvider';
 import { ICourierProvider } from '../../interfaces/courierProvider';
 import { ShipmentModel, OrderModel, CourierModel } from '../../db/mongodb';
 import { SHIPMENT_STATUS } from '../../constants/shipment';
+import { codLedgerService } from './codLedgerService';
 
 import { ILogisticsService } from '../contracts/logisticsServiceInterface';
 
@@ -125,6 +126,18 @@ export class LogisticsService implements ILogisticsService {
         trackingId: shipmentData.awb
       }
     );
+    
+    // 9. Handle COD Ledger entry
+    if (order.paymentMethod === 'COD') {
+      await codLedgerService.createEntry({
+        orderId: (order._id as any).toString(),
+        shipmentId: (shipment._id as any).toString(),
+        awb: shipmentData.awb,
+        codAmount: order.totalAmount,
+        courierId: courier?._id.toString() || '',
+        courierName: shipmentData.courierName
+      });
+    }
 
     return shipment;
   }

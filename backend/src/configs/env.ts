@@ -62,6 +62,16 @@ const envSchema = z
     CLOUDINARY_API_SECRET: z.string(),
 
     CLOUD_TYPE: z.string().optional(),
+    
+    SHIPROCKET_EMAIL: z.string().optional(),
+    SHIPROCKET_PASSWORD: z.string().optional(),
+    SHIPROCKET_WEBHOOK_SECRET: z.string().optional(),
+    SHIPROCKET_API_URL: z.string().optional(),
+    REDIS_HOST: z.string().optional(),
+    REDIS_PORT: z.coerce.number().optional(),
+    REDIS_PASSWORD: z.string().optional(),
+    REDIS_DB: z.coerce.number().optional(),
+    REDIS_KEY_PREFIX: z.string().optional(),
   })
   .passthrough();
 
@@ -130,4 +140,14 @@ export const ENV_VARIABLE: IEnvVariables = {
   CLOUDINARY_API_SECRET: value.CLOUDINARY_API_SECRET,
 
   CLOUD_TYPE: value.CLOUD_TYPE,
+  
+  SHIPROCKET_EMAIL: value.SHIPROCKET_EMAIL,
+  SHIPROCKET_PASSWORD: value.SHIPROCKET_PASSWORD,
+  SHIPROCKET_WEBHOOK_SECRET: value.SHIPROCKET_WEBHOOK_SECRET,
+  SHIPROCKET_API_URL: value.SHIPROCKET_API_URL,
+  REDIS_HOST: value.REDIS_HOST,
+  REDIS_PORT: value.REDIS_PORT,
+  REDIS_PASSWORD: value.REDIS_PASSWORD,
+  REDIS_DB: value.REDIS_DB,
+  REDIS_KEY_PREFIX: value.REDIS_KEY_PREFIX,
 };

@@ -90,6 +90,17 @@ export interface IEnvVariables {
   CLOUDINARY_API_SECRET: string;
 
   CLOUD_TYPE?: string;
+
+  // Logistics & Redict
+  SHIPROCKET_EMAIL?: string;
+  SHIPROCKET_PASSWORD?: string;
+  SHIPROCKET_WEBHOOK_SECRET?: string;
+  SHIPROCKET_API_URL?: string;
+  REDIS_HOST?: string;
+  REDIS_PORT?: number;
+  REDIS_PASSWORD?: string;
+  REDIS_DB?: number;
+  REDIS_KEY_PREFIX?: string;
 }
 
 export interface IEmailOptions {

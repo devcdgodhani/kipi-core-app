@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import warehouseService, { type IWarehouse } from '../../services/warehouseService';
 import {
     Plus,
@@ -9,17 +9,51 @@ import {
     User,
     CheckCircle2,
     Search,
-    Building2
+    Building2,
+    Filter,
+    RotateCcw
 } from 'lucide-react';
 import { Table, type Column } from '../../components/common/Table';
+import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import CustomButton from '../../components/common/Button';
 import { PopupModal } from '../../components/common/PopupModal';
 
+const filterFields: FilterField[] = [
+    {
+        key: 'isActive',
+        label: 'Node Status',
+        type: 'select',
+        options: [
+            { label: 'Active', value: true },
+            { label: 'Inactive', value: false }
+        ]
+    },
+    {
+        key: 'isPrimary',
+        label: 'Fulfillment Tier',
+        type: 'select',
+        options: [
+            { label: 'Primary Node', value: true },
+            { label: 'Standard Node', value: false }
+        ]
+    }
+];
+
 export const WarehouseList: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [warehouses, setWarehouses] = useState<IWarehouse[]>([]);
     const [loading, setLoading] = useState(false);
-    const [search, setSearch] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    const [pagination, setPagination] = useState({
+        totalRecords: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+    });
+
     const [popup, setPopup] = useState<{
         isOpen: boolean;
         title: string;
@@ -34,17 +68,21 @@ export const WarehouseList: React.FC = () => {
         onConfirm: () => { }
     });
 
-    const [pagination, setPagination] = useState({
-        totalRecords: 0,
-        totalPages: 0,
-        currentPage: 1,
-        limit: 10
-    });
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
 
-    const fetchWarehouses = useCallback(async (page = 1, limit = 10) => {
+    const fetchWarehouses = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await warehouseService.getWithPagination({ search }, page, limit);
+            const filters: Record<string, string | number | boolean | undefined> = {};
+            searchParams.forEach((value, key) => {
+                if (value && !['page', 'limit'].includes(key)) {
+                    filters[key] = value === 'true' ? true : value === 'false' ? false : value;
+                }
+            });
+
+            const response = await warehouseService.getWithPagination({ ...filters, search }, page, limit);
             if (response.data) {
                 setWarehouses(response.data.recordList);
                 setPagination({
@@ -59,14 +97,43 @@ export const WarehouseList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [search]);
+    }, [searchParams, page, limit, search]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchWarehouses(1, pagination.limit);
+            fetchWarehouses();
         }, 300);
         return () => clearTimeout(timer);
     }, [fetchWarehouses]);
+
+    const handleSearch = (val: string) => {
+        setSearchParams(prev => {
+            if (val) prev.set('search', val);
+            else prev.delete('search');
+            prev.set('page', '1');
+            return prev;
+        });
+    };
+
+    const handleFilterApply = (vals: Record<string, unknown>) => {
+        setSearchParams(prev => {
+            Object.entries(vals).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') prev.set(key, value.toString());
+                else prev.delete(key);
+            });
+            prev.set('page', '1');
+            return prev;
+        });
+        setIsFilterOpen(false);
+    };
+
+    const handleReset = () => {
+        setSearchParams({ page: '1', limit: '10' });
+    };
+
+    const activeFilterCount = Array.from(searchParams.keys()).filter(k =>
+        !['page', 'limit', 'search'].includes(k)
+    ).length;
 
     const columns: Column<IWarehouse>[] = [
         {
@@ -170,7 +237,7 @@ export const WarehouseList: React.FC = () => {
                 </CustomButton>
             </div>
 
-            {/* Search Bar */}
+            {/* Premium Top Bar */}
             <div className="flex flex-col xl:flex-row gap-4 items-center">
                 <div className="flex-1 relative group w-full xl:w-auto">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
@@ -178,11 +245,59 @@ export const WarehouseList: React.FC = () => {
                         type="text"
                         placeholder="Scan nodes by name, code or location..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 h-16"
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 h-16 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50"
                     />
                 </div>
+
+                <div className="flex flex-wrap gap-3 w-full xl:w-auto">
+                    {activeFilterCount > 0 && (
+                        <button
+                            onClick={handleReset}
+                            className="px-6 h-16 rounded-[2rem] bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-rose-100/50"
+                        >
+                            <RotateCcw size={16} />
+                            Reset
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setIsFilterOpen(true)}
+                        className={`px-8 h-16 rounded-[2rem] border-2 flex items-center gap-3 transition-all font-black uppercase text-[10px] tracking-widest shadow-xl ${activeFilterCount > 0
+                            ? 'bg-primary border-primary text-white shadow-primary/20'
+                            : 'bg-white border-primary/5 text-primary hover:bg-primary/5 shadow-gray-100/50'
+                            }`}
+                    >
+                        <Filter size={20} />
+                        Filter Hub
+                        {activeFilterCount > 0 && (
+                            <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
+                    <div className="flex items-center gap-2 bg-white border-2 border-primary/5 rounded-[2rem] px-6 h-16 shadow-xl shadow-gray-100/50">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Scale</span>
+                        <select
+                            value={limit}
+                            onChange={(e) => setSearchParams(prev => { prev.set('limit', e.target.value); prev.set('page', '1'); return prev; })}
+                            className="bg-transparent focus:outline-none font-black text-primary pl-2 cursor-pointer text-sm"
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </div>
+                </div>
             </div>
+
+            <CommonFilter
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+                fields={filterFields}
+                onApply={handleFilterApply}
+                currentFilters={Object.fromEntries(searchParams)}
+            />
 
             <Table
                 data={warehouses}
@@ -196,7 +311,7 @@ export const WarehouseList: React.FC = () => {
                     totalPages: pagination.totalPages,
                     totalRecords: pagination.totalRecords,
                     pageSize: pagination.limit,
-                    onPageChange: (page) => fetchWarehouses(page, pagination.limit),
+                    onPageChange: (p) => setSearchParams(prev => { prev.set('page', p.toString()); return prev; }),
                     hasPreviousPage: pagination.currentPage > 1,
                     hasNextPage: pagination.currentPage < pagination.totalPages
                 }}

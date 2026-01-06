@@ -11,7 +11,7 @@ import {
 import { IApiResponse } from '../interfaces';
 import { FileStorageModel, ProductModel, SkuModel } from '../db/mongodb';
 import { FileStorageService } from '../services/concrete/fileStorageService';
-import { inventoryAuditService } from '../services/concrete/inventoryAuditService';
+import { stockLedgerService } from '../services/concrete/stockLedgerService';
 
 export default class SkuController {
   private skuService = new SkuService();
@@ -167,7 +167,7 @@ export default class SkuController {
         const existingSku = await SkuModel.findById(id);
         if (existingSku && existingSku.quantity !== updateData.quantity) {
           const delta = updateData.quantity - existingSku.quantity;
-          await inventoryAuditService.logAdjustment({
+          await stockLedgerService.logAdjustment({
             skuId: id,
             transactionType: 'ADMIN_ADJUSTMENT',
             changeQuantity: delta,

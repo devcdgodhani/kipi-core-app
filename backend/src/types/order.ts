@@ -36,6 +36,7 @@ export interface IOrder {
   paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   orderStatus: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
   subTotal: number;
+  couponId?: string;
   couponCode?: string;
   discountAmount?: number;
   pointsUsed?: number;

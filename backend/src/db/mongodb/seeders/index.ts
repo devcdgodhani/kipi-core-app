@@ -11,15 +11,17 @@ import { seedWishlist } from './wishlistSeeder';
 import { seedCart } from './cartSeeder';
 import { seedLoyalty } from './loyaltySeeder';
 import { seedInventoryAudit } from './inventoryAuditSeeder';
+import { seedCouriers } from './courierSeeder';
 
 export const runSeeders = async () => {
   try {
     console.log('🚀 Starting Seeding Process...');
     
-    // Level 1: Foundation (Categories, Attributes, Users)
+    // Level 1: Foundation (Categories, Attributes, Users, Couriers)
     await seedCategories();
     await seedAttributes();
     await seedUsers();
+    await seedCouriers();
     
     // Level 2: Inventory & Catalog (Products -> SKUs -> Lots)
     await seedProducts();

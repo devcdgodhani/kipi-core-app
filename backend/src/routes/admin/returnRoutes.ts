@@ -1,11 +1,32 @@
 import { Router } from 'express';
-import { returnController } from '../../controllers/returnController';
+import ReturnController from '../../controllers/returnController';
+import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
+const returnController = new ReturnController();
+
+router.use(jwtAuth());
+
+// Admin / Shared Endpoints
+router.route('/getOne')
+  .get(returnController.getOne)
+  .post(returnController.getOne);
+
+router.route('/getOne/:id')
+  .get(returnController.getOne);
+
+router.route('/getAll')
+  .get(returnController.getAll)
+  .post(returnController.getAll);
+
+router.route('/getWithPagination')
+  .get(returnController.getWithPagination)
+  .post(returnController.getWithPagination);
 
 router.post('/', returnController.create);
-router.get('/', returnController.getWithPagination);
-router.get('/:id', returnController.getOne);
 router.patch('/:id/status', returnController.updateStatus);
+router.post('/:id/cancel', returnController.cancel);
+
+router.delete('/deleteByFilter', returnController.deleteByFilter);
 
 export default router;

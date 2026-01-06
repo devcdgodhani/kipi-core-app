@@ -3,7 +3,7 @@ import { ShipmentService } from '../services/concrete/shipmentService';
 import { logisticsService } from '../services/concrete/logisticsService';
 import { trackingService } from '../services/concrete/trackingService';
 import { HTTP_STATUS_CODE, SHIPMENT_MESSAGES } from '../constants';
-import { IApiResponse } from '../interfaces';
+import { IApiResponse, IPaginationData } from '../interfaces';
 import { IShipmentAttributes } from '../interfaces/shipment';
 
 export class ShipmentController {
@@ -13,6 +13,7 @@ export class ShipmentController {
     this.shipmentService = new ShipmentService();
   }
 
+  /*********** Create ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { orderId, courierId } = req.body;
@@ -31,44 +32,35 @@ export class ShipmentController {
     }
   };
 
-  getAll = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await this.shipmentService.findAllWithPagination(req.body);
-      
-      const response: IApiResponse<any> = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
-        code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Shipments fetched successfully',
-        data: result
-      };
-      
-      return res.status(response.status).json(response);
-    } catch (err) {
-      return next(err);
-    }
-  };
-
+  /*********** Get One (Standard) ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
-      const result = await this.shipmentService.findById(id);
+      const id = req.params.id;
+      const reqData = { ...req.query, ...req.body };
       
-      if (!result) {
-        // Let the error middleware handle it or return custom error response
-        const response: IApiResponse<null> = {
+      let shipment;
+      if (id) {
+        shipment = await this.shipmentService.findById(id);
+      } else {
+        const { filter, options } = this.shipmentService.generateFilter({
+          filters: reqData,
+        });
+        shipment = await this.shipmentService.findOne(filter, options);
+      }
+      
+      if (!shipment) {
+        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
-          message: SHIPMENT_MESSAGES.ERROR.NOT_FOUND,
-          data: null
-        };
-        return res.status(response.status).json(response);
+          message: SHIPMENT_MESSAGES.ERROR.NOT_FOUND
+        });
       }
 
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Shipment found successfully',
-        data: result
+        message: 'Shipment fetched successfully',
+        data: shipment
       };
 
       return res.status(response.status).json(response);
@@ -77,6 +69,96 @@ export class ShipmentController {
     }
   };
 
+  /*********** Get All (Standard) ***********/
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.shipmentService.generateFilter({
+        filters: reqData,
+      });
+
+      const shipmentList = await this.shipmentService.findAll(filter, options);
+
+      const response: IApiResponse<any[]> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'All shipments fetched successfully',
+        data: shipmentList,
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Get With Pagination (Standard) ***********/
+  getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = { ...req.query, ...req.body };
+      const { filter, options } = this.shipmentService.generateFilter({
+        filters: reqData,
+      });
+
+      const shipmentList = await this.shipmentService.findAllWithPagination(filter, options);
+
+      const response: IApiResponse<IPaginationData<any>> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Shipments fetched successfully',
+        data: shipmentList,
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Update By ID (Standard) ***********/
+  updateById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const userId = req.user?._id;
+
+      await this.shipmentService.updateOne({ _id: id } as any, updateData, { userId });
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Shipment updated successfully',
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Delete By Filter (Standard) ***********/
+  deleteByFilter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reqData = req.body;
+      const { filter } = this.shipmentService.generateFilter({
+        filters: reqData,
+      });
+
+      await this.shipmentService.softDelete(filter, { userId: req.user?._id });
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Shipment(s) deleted successfully',
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Tracking ***********/
   track = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { awb } = req.params;
@@ -95,6 +177,7 @@ export class ShipmentController {
     }
   };
 
+  /*********** Serviceability ***********/
   checkServiceability = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await logisticsService.checkServiceability(req.body);
@@ -112,12 +195,13 @@ export class ShipmentController {
     }
   };
 
+  /*********** Cancellation ***********/
   cancel = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       await logisticsService.cancelShipment(id);
       
-      const response: IApiResponse<null> = {
+      const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: SHIPMENT_MESSAGES.SUCCESS.CANCELLED,

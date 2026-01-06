@@ -3,6 +3,11 @@ import { ShiprocketProvider } from '../providers/shiprocketProvider';
 import { SHIPMENT_STATUS } from '../../constants/shipment';
 import { logisticsNotificationService } from './logisticsNotificationService';
 import { IWebhookJobPayload } from '../../jobs/types';
+import { inventoryService } from './inventoryService';
+import { codLedgerService } from './codLedgerService';
+import { loyaltyService } from './loyaltyService';
+import { couponService } from './couponService';
+import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
 
 import { IWebhookService } from '../contracts/webhookServiceInterface';
 
@@ -62,6 +67,10 @@ export class WebhookService implements IWebhookService {
             const order = await OrderModel.findById(shipment.orderId);
             if (order) {
               await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.deliveredCount': 1 } });
+              // Update COD Ledger
+              if (order.paymentMethod === 'COD') {
+                await codLedgerService.updateStatus(awb, 'DELIVERED');
+              }
               // Notify Delivery
               await logisticsNotificationService.notifyOrderDelivered(order, shipment);
             }
@@ -79,7 +88,41 @@ export class WebhookService implements IWebhookService {
             const order = await OrderModel.findById(shipment.orderId);
             if (order) {
               await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.rtoCount': 1 } });
-              // Notify RTO
+              
+              // 1. Loyalty Point Reversal for RTO
+              if (order.pointsUsed && order.pointsUsed > 0) {
+                await loyaltyService.updateBalance(
+                  order.userId.toString(),
+                  order.pointsUsed,
+                  LOYALTY_TRANSACTION_TYPE.REFUNDED,
+                  `Refunded from RTO Order #${order.orderNumber}`,
+                  order._id.toString()
+                );
+              }
+
+              // 2. Coupon Reversal for RTO
+              if (order.couponCode) {
+                await couponService.revertUsage(order.couponCode);
+              }
+
+              // 3. Inventory Restocking for RTO
+              for (const item of order.items) {
+                await inventoryService.restock({
+                  skuId: item.skuId?.toString(),
+                  productId: item.productId?.toString(),
+                  quantity: item.quantity,
+                  referenceId: order._id.toString(),
+                  referenceType: 'RTO',
+                  reason: `RTO restock for Order #${order.orderNumber}`
+                });
+              }
+
+              // 3. Update COD Ledger
+              if (order.paymentMethod === 'COD') {
+                await codLedgerService.updateStatus(awb, 'RTO');
+              }
+
+              // 4. Notify RTO
               await logisticsNotificationService.notifyRtoInitiated(order, shipment);
             }
           }

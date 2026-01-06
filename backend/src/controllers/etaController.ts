@@ -1,16 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { EtaService } from '../services/concrete/etaService';
+import { etaService } from '../services/concrete/etaService';
 import { HTTP_STATUS_CODE } from '../constants';
-import { IApiResponse } from '../interfaces';
 import { TEtaRes } from '../types/eta';
 
 export class EtaController {
-  etaService = new EtaService();
   
   calculateETA = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { destinationPincode, courierId, pickupPincode, weight } = req.body;
-      const result = await this.etaService.calculateETA(destinationPincode, courierId, pickupPincode);
+      const { destinationPincode, courierId, pickupPincode } = req.body;
+      const result = await etaService.calculateETA(destinationPincode, courierId, pickupPincode);
       
       const response: TEtaRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
