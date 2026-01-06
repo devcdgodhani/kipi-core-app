@@ -44,6 +44,7 @@ export interface IOrder {
   tax: number;
   shippingCost: number;
   shippingProvider?: string;
+  courierId?: string;
   trackingId?: string;
   estimatedDelivery?: Date;
   shippingLabelUrl?: string;

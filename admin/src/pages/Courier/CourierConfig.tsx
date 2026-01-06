@@ -10,7 +10,7 @@ import {
     RotateCcw
 } from 'lucide-react';
 import courierService from '../../services/courierService';
-import type { ICourier, ICourierFilters } from '../../types/courier.types';
+import type { ICourier } from '../../types/courier.types';
 import CustomButton from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
@@ -53,6 +53,15 @@ export const CourierConfig: React.FC = () => {
         onConfirm: () => { }
     });
 
+    const [pagination, setPagination] = useState({
+        totalRecords: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+    });
+
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
 
     const fetchCouriers = useCallback(async () => {
@@ -60,18 +69,26 @@ export const CourierConfig: React.FC = () => {
             setLoading(true);
             const filters: any = {};
             searchParams.forEach((value, key) => {
-                if (value && key !== 'search') {
+                if (value && !['page', 'limit', 'search'].includes(key)) {
                     filters[key] = value === 'true' ? true : value === 'false' ? false : value;
                 }
             });
-            const data = await courierService.getAll({ ...filters, search });
-            setCouriers(data || []);
+            const response = await courierService.getWithPagination({ ...filters, search, page, limit });
+            if (response) {
+                setCouriers(response.recordList || []);
+                setPagination({
+                    totalRecords: response.totalRecords || 0,
+                    totalPages: response.totalPages || 0,
+                    currentPage: response.currentPage || 1,
+                    limit: response.limit || 10
+                });
+            }
         } catch (err: any) {
             console.error('Failed to load couriers');
         } finally {
             setLoading(false);
         }
-    }, [searchParams, search]);
+    }, [searchParams, search, page, limit]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -122,27 +139,55 @@ export const CourierConfig: React.FC = () => {
 
     const handleOpenConfig = (courier: ICourier) => {
         setSelectedCourier(courier);
+        setConfigData({ ...courier });
+        setIsConfigModalOpen(true);
+    };
+
+    const handleAddCourier = () => {
+        setSelectedCourier(null);
         setConfigData({
-            apiUrl: courier.apiUrl || '',
-            apiCredentials: courier.apiCredentials || '',
-            webhookSecret: courier.webhookSecret || '',
-            supportEmail: courier.supportEmail || '',
-            supportPhone: courier.supportPhone || '',
-            slaMin: courier.slaMin || 2,
-            slaMax: courier.slaMax || 6
+            name: '',
+            code: '',
+            provider: '',
+            isActive: true,
+            isPrimary: false,
+            slaMin: 2,
+            slaMax: 7,
+            codCharges: 0,
+            rtoCharges: 0,
+            maxWeight: 10,
+            maxCODAmount: 50000,
+            apiUrl: '',
+            apiCredentials: '',
+            webhookSecret: '',
+            supportEmail: '',
+            supportPhone: '',
+            serviceTypes: [
+                { type: 'SURFACE', name: 'Surface', estimatedDays: 5, isActive: true },
+                { type: 'EXPRESS', name: 'Express', estimatedDays: 2, isActive: true }
+            ]
         });
         setIsConfigModalOpen(true);
     };
 
     const handleSaveConfig = async () => {
-        if (!selectedCourier) return;
         try {
             setLoading(true);
-            await courierService.update(selectedCourier._id, configData);
+            if (selectedCourier) {
+                await courierService.update(selectedCourier._id, configData);
+            } else {
+                await courierService.create(configData);
+            }
             setIsConfigModalOpen(false);
             fetchCouriers();
-        } catch (err) {
-            alert('Failed to save configuration');
+        } catch (err: any) {
+            setPopup({
+                isOpen: true,
+                title: 'Error',
+                message: err.response?.data?.message || 'Failed to save configuration',
+                type: 'alert',
+                onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setLoading(false);
         }
@@ -203,7 +248,7 @@ export const CourierConfig: React.FC = () => {
             render: (courier) => (
                 <div className="flex items-center justify-end gap-3">
                     <button
-                        onClick={() => handleToggleActive(courier._id, courier.isActive)}
+                        onClick={(e) => { e.stopPropagation(); handleToggleActive(courier._id, courier.isActive); }}
                         className={`transition-all flex items-center gap-2 px-3 py-1 rounded-full border ${courier.isActive
                             ? 'text-emerald-500 border-emerald-100 bg-emerald-50'
                             : 'text-gray-300 border-gray-100 bg-gray-50'}`}
@@ -212,7 +257,7 @@ export const CourierConfig: React.FC = () => {
                         {courier.isActive ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
                     </button>
                     <button
-                        onClick={() => handleOpenConfig(courier)}
+                        onClick={(e) => { e.stopPropagation(); handleOpenConfig(courier); }}
                         className="p-3 text-primary hover:bg-primary/5 rounded-2xl transition-all hover:scale-110 active:scale-90 border border-transparent hover:border-primary/10"
                         title="Configure Engine"
                     >
@@ -237,6 +282,9 @@ export const CourierConfig: React.FC = () => {
                         <p className="text-sm text-gray-500 font-medium">Configure logistics providers and automation parameters</p>
                     </div>
                 </div>
+                <CustomButton onClick={handleAddCourier} className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8 relative z-10">
+                    <Truck size={20} className="mr-2" /> Add New Node
+                </CustomButton>
             </div>
 
             {/* Premium Top Bar */}
@@ -277,6 +325,19 @@ export const CourierConfig: React.FC = () => {
                             </span>
                         )}
                     </button>
+
+                    <div className="flex items-center gap-2 bg-white border-2 border-primary/5 rounded-[2rem] px-6 h-16 shadow-xl shadow-gray-100/50">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Scale</span>
+                        <select
+                            value={limit}
+                            onChange={(e) => setSearchParams(prev => { prev.set('limit', e.target.value); prev.set('page', '1'); return prev; })}
+                            className="bg-transparent focus:outline-none font-black text-primary pl-2 cursor-pointer text-sm"
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -294,57 +355,236 @@ export const CourierConfig: React.FC = () => {
                 isLoading={loading}
                 emptyMessage="No carriers integrated in the control grid"
                 keyExtractor={(c) => c._id}
+                onRowClick={handleOpenConfig}
+                pagination={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalRecords: pagination.totalRecords,
+                    pageSize: pagination.limit,
+                    onPageChange: (p) => setSearchParams(prev => { prev.set('page', p.toString()); return prev; }),
+                    hasPreviousPage: pagination.currentPage > 1,
+                    hasNextPage: pagination.currentPage < pagination.totalPages
+                }}
             />
 
             {/* Config Modal */}
             <Modal
                 isOpen={isConfigModalOpen}
                 onClose={() => setIsConfigModalOpen(false)}
-                title={`Configure Node: ${selectedCourier?.name}`}
-                maxWidth="max-w-2xl"
+                title={selectedCourier ? `Configure Node: ${selectedCourier.name}` : 'Integrate New Carrier Node'}
+                maxWidth="max-w-4xl"
             >
-                <div className="space-y-4 py-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-6 py-2 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Basic Identity */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-gray-100">
                         <Input
-                            label="Neural Link URL (API)"
-                            value={configData.apiUrl}
-                            onChange={(e) => setConfigData({ ...configData, apiUrl: e.target.value })}
-                            placeholder="https://api.transmission.com"
+                            label="Carrier Name"
+                            value={configData.name}
+                            onChange={(e) => setConfigData({ ...configData, name: e.target.value })}
+                            placeholder="e.g. Shiprocket Prime"
+                            required
                         />
                         <Input
-                            label="Auth Signature / Key"
-                            value={configData.apiCredentials}
-                            onChange={(e) => setConfigData({ ...configData, apiCredentials: e.target.value })}
-                            placeholder="ENCRYPTED_SIGNATURE"
-                            type="password"
+                            label="System Code"
+                            value={configData.code}
+                            onChange={(e) => setConfigData({ ...configData, code: e.target.value.toUpperCase() })}
+                            placeholder="SR_PRIME"
+                            required
+                        />
+                        <Input
+                            label="Provider Engine"
+                            value={configData.provider}
+                            onChange={(e) => setConfigData({ ...configData, provider: e.target.value })}
+                            placeholder="SHIPROCKET"
+                            required
                         />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Operational Flags */}
+                    <div className="flex flex-wrap gap-6 py-2">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={configData.isActive}
+                                onChange={(e) => setConfigData({ ...configData, isActive: e.target.checked })}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <div className="flex flex-col">
+                                <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Active Status</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase">Enable traffic to this node</span>
+                            </div>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={configData.isPrimary}
+                                onChange={(e) => setConfigData({ ...configData, isPrimary: e.target.checked })}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <div className="flex flex-col">
+                                <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Primary Engine</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase">Default for fresh shipments</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    {/* Integration Hub */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Neural Integration Hub</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                label="Neural Link URL (API)"
+                                value={configData.apiUrl}
+                                onChange={(e) => setConfigData({ ...configData, apiUrl: e.target.value })}
+                                placeholder="https://api.transmission.com"
+                            />
+                            <Input
+                                label="Auth Signature / Key"
+                                value={configData.apiCredentials}
+                                onChange={(e) => setConfigData({ ...configData, apiCredentials: e.target.value })}
+                                placeholder="ENCRYPTED_SIGNATURE"
+                                type="password"
+                            />
+                        </div>
                         <Input
                             label="Webhook Pulse Secret"
                             value={configData.webhookSecret}
                             onChange={(e) => setConfigData({ ...configData, webhookSecret: e.target.value })}
                             placeholder="PULSE_VERIFICATION"
                         />
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">SLA Latency Window (Days)</label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    type="number"
-                                    value={configData.slaMin}
-                                    onChange={(e) => setConfigData({ ...configData, slaMin: parseInt(e.target.value) })}
-                                    className="flex-1"
-                                />
-                                <span className="text-gray-400 font-bold">~</span>
-                                <Input
-                                    type="number"
-                                    value={configData.slaMax}
-                                    onChange={(e) => setConfigData({ ...configData, slaMax: parseInt(e.target.value) })}
-                                    className="flex-1"
-                                />
+                    </div>
+
+                    {/* Logistics Parameters */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Logistics Intelligence</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <Input
+                                label="COD Fees"
+                                type="number"
+                                value={configData.codCharges}
+                                onChange={(e) => setConfigData({ ...configData, codCharges: parseFloat(e.target.value) })}
+                            />
+                            <Input
+                                label="RTO Fees"
+                                type="number"
+                                value={configData.rtoCharges}
+                                onChange={(e) => setConfigData({ ...configData, rtoCharges: parseFloat(e.target.value) })}
+                            />
+                            <Input
+                                label="Max Payload (KG)"
+                                type="number"
+                                value={configData.maxWeight}
+                                onChange={(e) => setConfigData({ ...configData, maxWeight: parseFloat(e.target.value) })}
+                            />
+                            <Input
+                                label="Max COD Cap"
+                                type="number"
+                                value={configData.maxCODAmount}
+                                onChange={(e) => setConfigData({ ...configData, maxCODAmount: parseFloat(e.target.value) })}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Delivery Latency (Days)</label>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        value={configData.slaMin}
+                                        onChange={(e) => setConfigData({ ...configData, slaMin: parseInt(e.target.value) })}
+                                        className="flex-1"
+                                        placeholder="Min"
+                                    />
+                                    <span className="text-gray-400 font-bold">~</span>
+                                    <Input
+                                        type="number"
+                                        value={configData.slaMax}
+                                        onChange={(e) => setConfigData({ ...configData, slaMax: parseInt(e.target.value) })}
+                                        className="flex-1"
+                                        placeholder="Max"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* Service Types */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Service Configurations</h3>
+                            <button
+                                onClick={() => setConfigData({
+                                    ...configData,
+                                    serviceTypes: [...(configData.serviceTypes || []), { type: 'CUSTOM', name: 'New Service', estimatedDays: 7, isActive: true }]
+                                })}
+                                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700"
+                            >
+                                + Add Service Line
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                            {configData.serviceTypes?.map((service, index) => (
+                                <div key={index} className="flex flex-wrap items-end gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 group/service relative">
+                                    <div className="flex-1">
+                                        <Input
+                                            label="Service Name"
+                                            value={service.name}
+                                            onChange={(e) => {
+                                                const newTypes = [...(configData.serviceTypes || [])];
+                                                newTypes[index].name = e.target.value;
+                                                setConfigData({ ...configData, serviceTypes: newTypes });
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="w-32">
+                                        <Input
+                                            label="Node Code"
+                                            value={service.type}
+                                            onChange={(e) => {
+                                                const newTypes = [...(configData.serviceTypes || [])];
+                                                newTypes[index].type = e.target.value.toUpperCase();
+                                                setConfigData({ ...configData, serviceTypes: newTypes });
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="w-24">
+                                        <Input
+                                            label="ETA (Days)"
+                                            type="number"
+                                            value={service.estimatedDays}
+                                            onChange={(e) => {
+                                                const newTypes = [...(configData.serviceTypes || [])];
+                                                newTypes[index].estimatedDays = parseInt(e.target.value);
+                                                setConfigData({ ...configData, serviceTypes: newTypes });
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const newTypes = [...(configData.serviceTypes || [])];
+                                            newTypes[index].isActive = !newTypes[index].isActive;
+                                            setConfigData({ ...configData, serviceTypes: newTypes });
+                                        }}
+                                        className={`px-4 h-10 rounded-xl border text-[10px] font-black uppercase transition-all ${service.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-gray-400 border-gray-200'
+                                            }`}
+                                    >
+                                        {service.isActive ? 'Active' : 'Muted'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const newTypes = configData.serviceTypes?.filter((_, i) => i !== index);
+                                            setConfigData({ ...configData, serviceTypes: newTypes });
+                                        }}
+                                        className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                    >
+                                        <RotateCcw size={16} className="rotate-45" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Support Uplinks */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                         <Input
                             label="Secure Support Email"
@@ -360,12 +600,12 @@ export const CourierConfig: React.FC = () => {
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-6">
+                    <div className="flex justify-end gap-3 pt-6 sticky bottom-0 bg-white py-4 border-t border-gray-50">
                         <CustomButton variant="secondary" onClick={() => setIsConfigModalOpen(false)} className="rounded-xl">
                             Abort Changes
                         </CustomButton>
                         <CustomButton onClick={handleSaveConfig} loading={loading} className="rounded-xl shadow-lg shadow-primary/20">
-                            Commit Configuration
+                            {selectedCourier ? 'Commit Configuration' : 'Enable Integration'}
                         </CustomButton>
                     </div>
                 </div>

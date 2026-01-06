@@ -11,6 +11,24 @@ export class NdrController {
       const { filter, options } = this.ndrService.generateFilter({
         filters: { ...req.query, ...req.body },
       });
+      const data = await this.ndrService.findAll(filter, options);
+      
+      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'NDR records fetched successfully',
+        data
+      } as IApiResponse<any>);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { filter, options } = this.ndrService.generateFilter({
+        filters: { ...req.query, ...req.body },
+      });
       const data = await this.ndrService.findAllWithPagination(filter, options);
       
       return res.status(HTTP_STATUS_CODE.OK.STATUS).json({

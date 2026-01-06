@@ -9,20 +9,17 @@ const ndrController = new NdrController();
 
 router.post(
   '/getWithPagination',
-  jwtAuth(),
-  ndrController.getAll
+  ndrController.getWithPagination
 );
 
 router.post(
   '/resolve/:ndrId',
-  jwtAuth(),
   validate(resolveNdrSchema),
   ndrController.resolve
 );
 
 router.get(
   '/:id',
-  jwtAuth(),
   validate(getNdrSchema),
   ndrController.getOne
 );

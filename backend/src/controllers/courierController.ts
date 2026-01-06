@@ -70,6 +70,7 @@ export default class CourierController {
       const reqData = { ...req.query, ...req.body };
       const { filter, options } = courierService.generateFilter({
         filters: reqData,
+        searchFields: ['name', 'code', 'provider']
       });
 
       const courierList = await courierService.findAllWithPagination(filter, options);

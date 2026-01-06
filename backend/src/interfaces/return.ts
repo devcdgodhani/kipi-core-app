@@ -22,6 +22,7 @@ export interface IReturn extends Document {
     pickupAddress?: any;
     awb?: string;
     pickupId?: string;
+    courierId?: Types.ObjectId;
     courierName?: string;
     timeline: {
         status: RETURN_STATUS;

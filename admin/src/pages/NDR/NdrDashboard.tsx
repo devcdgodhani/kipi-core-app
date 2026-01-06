@@ -67,7 +67,7 @@ export const NdrDashboard: React.FC = () => {
                     filters[key] = value;
                 }
             });
-            const response = await ndrService.getAll({ ...filters, search }, page, limit);
+            const response = await ndrService.getWithPagination({ ...filters, search }, page, limit);
             if (response.data) {
                 setNdrs(response.data.recordList || []);
                 setPagination({
