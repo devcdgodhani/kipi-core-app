@@ -8,8 +8,8 @@ const addressController = new AddressController();
 const addressValidator = new AddressValidator();
 
 router.route('/getAll')
-  .get(jwtAuth(), addressValidator.getAll, addressController.getAll)
-  .post(jwtAuth(), addressValidator.getAll, addressController.getAll);
+  .get(jwtAuth(), addressValidator.getAll, addressController.getMyAddresses)
+  .post(jwtAuth(), addressValidator.getAll, addressController.getMyAddresses);
 
 router.route('/getOne')
   .get(jwtAuth(), addressValidator.getOne, addressController.getOne)

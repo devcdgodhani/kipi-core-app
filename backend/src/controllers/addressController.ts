@@ -33,6 +33,34 @@ export default class AddressController {
     }
   };
 
+  getMyAddresses = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id;
+      const reqData = { ...req.query, ...req.body };
+      
+      // Enforce userId and active status
+      const { filter, options } = this.addressService.generateFilter({ 
+        filters: { 
+          ...reqData, 
+          userId,
+          status: 'ACTIVE' 
+        } 
+      });
+
+      const addressList = await this.addressService.findAll(filter, options);
+
+      const response: IApiResponse<IAddressAttributes[]> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: ADDRESS_SUCCESS_MESSAGES.GET_SUCCESS,
+        data: addressList,
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
