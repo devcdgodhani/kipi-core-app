@@ -66,6 +66,61 @@ Each application has its own `.rules` directory containing relevant development 
 6. **Performance** - Optimize for speed
 7. **Theme Support** - All colors must work in light and dark mode
 
+## 📝 Module Documentation Rule
+
+### **CRITICAL: All Modules Must Have Implementation Plan Flows**
+
+When developing any new module or feature, you MUST create a directory inside `implementation_plan_flows/` with the module name and document all flows.
+
+**Structure**:
+```
+implementation_plan_flows/
+└── {module-name}/
+    ├── README.md                    # Module overview
+    ├── implementation-plan.md       # Detailed implementation plan
+    ├── api-flows.md                 # API endpoint flows
+    ├── ui-flows.md                  # User interface flows
+    ├── database-schema.md           # Database models and relationships
+    └── testing-plan.md              # Testing strategy
+```
+
+**Example**:
+```
+implementation_plan_flows/
+└── product-management/
+    ├── README.md
+    ├── implementation-plan.md
+    ├── api-flows.md
+    ├── ui-flows.md
+    ├── database-schema.md
+    └── testing-plan.md
+```
+
+**What to Document**:
+1. **Module Overview** - Purpose, scope, and requirements
+2. **Implementation Plan** - Step-by-step development plan
+3. **API Flows** - All endpoints, request/response formats, authentication
+4. **UI Flows** - User journeys, component hierarchy, state management
+5. **Database Schema** - Models, relationships, indexes, migrations
+6. **Testing Plan** - Unit tests, integration tests, E2E tests
+
+**When to Create**:
+- Before starting development on any new module
+- When adding major features to existing modules
+- When refactoring significant portions of code
+
+**Benefits**:
+- Clear documentation for future developers
+- Easy onboarding for new team members
+- Reference for debugging and maintenance
+- Historical record of design decisions
+- Facilitates code reviews
+
+**Template Files**:
+See `implementation_plan_flows/_template/` for starter templates.
+
+---
+
 ## 💡 Usage
 
 When creating new features, always reference the relevant rule files to ensure consistency with the existing codebase.
