@@ -13,4 +13,7 @@ export const returnService = {
     
     updateStatus: (id: string, data: { status: string; adminNotes?: string }) => 
         axiosInstance.patch(`/return/${id}/status`, data),
+    
+    syncRefundStatus: (id: string) => 
+        axiosInstance.get(`/return/${id}/sync-refund`),
 };

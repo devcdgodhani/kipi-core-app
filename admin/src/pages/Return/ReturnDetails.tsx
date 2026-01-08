@@ -14,7 +14,8 @@ import {
     History as HistoryIcon,
     ArrowLeft,
     XCircle,
-    IndianRupee
+    IndianRupee,
+    RefreshCw
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { IReturn } from '../../types/return.types';
@@ -31,6 +32,7 @@ export const ReturnDetails: React.FC = () => {
     const [ret, setRet] = useState<IReturn | null>(null);
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(false);
+    const [syncingRefund, setSyncingRefund] = useState(false);
     const [adminNotes, setAdminNotes] = useState('');
 
     useEffect(() => {
@@ -75,6 +77,19 @@ export const ReturnDetails: React.FC = () => {
         }
     };
 
+    const handleSyncRefund = async () => {
+        try {
+            setSyncingRefund(true);
+            await returnService.syncRefundStatus(id!);
+            toast.success('Refund status synchronized');
+            fetchReturnDetails();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Synchronization failed');
+        } finally {
+            setSyncingRefund(false);
+        }
+    };
+
     if (loading && !ret) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -105,6 +120,15 @@ export const ReturnDetails: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-2">
+                        <Button
+                            onClick={handleSyncRefund}
+                            disabled={syncingRefund}
+                            variant="ghost"
+                            className="h-10 px-4 rounded-xl border-rose-100 text-rose-500 hover:bg-rose-50 text-[10px] uppercase tracking-widest font-black"
+                        >
+                            <RefreshCw size={14} className={`mr-2 ${syncingRefund ? 'animate-spin' : ''}`} />
+                            Sync Refund
+                        </Button>
                         <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest">
                             ID: {ret.returnNumber}
                         </span>
@@ -357,10 +381,20 @@ export const ReturnDetails: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Status</p>
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
-                                    'bg-amber-50 text-amber-500 border-amber-100'
-                                }`}>{ret.refundStatus}</span>
+                            <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                        'bg-amber-50 text-amber-500 border-amber-100'
+                                    }`}>{ret.refundStatus}</span>
+                                <button
+                                    onClick={handleSyncRefund}
+                                    disabled={syncingRefund}
+                                    className={`p-1.5 rounded-lg transition-all ${syncingRefund ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary'}`}
+                                    title="Sync Status"
+                                >
+                                    <RefreshCw size={14} />
+                                </button>
+                            </div>
                         </div>
                     </div>
 

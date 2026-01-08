@@ -204,6 +204,30 @@ export class RazorpayGatewayService implements IPaymentGatewayService {
   }
 
   /**
+   * Fetches current refund status from Razorpay
+   */
+  async fetchRefundStatus(refundId: string): Promise<any> {
+    try {
+      const refund = await this.razorpay.refunds.fetch(refundId);
+      
+      return {
+        success: true,
+        status: refund.status === 'processed' ? 'SUCCESS' : 
+                refund.status === 'failed' ? 'FAILED' : 'PENDING',
+        gatewayRefundId: refund.id,
+        metadata: refund
+      };
+    } catch (error: any) {
+      console.error('Razorpay fetchRefundStatus error:', error);
+      return {
+        success: false,
+        status: 'FAILED',
+        error: error.error?.description || error.message || 'Refund status fetch failed'
+      };
+    }
+  }
+
+  /**
    * Verifies Razorpay webhook signature
    */
   verifyWebhookSignature(payload: any, signature: string): boolean {

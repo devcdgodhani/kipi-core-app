@@ -309,6 +309,52 @@ export class PaytmGatewayService implements IPaymentGatewayService {
   }
 
   /**
+   * Fetches current refund status from Paytm
+   */
+  async fetchRefundStatus(refundId: string): Promise<any> {
+    try {
+      const paytmParams = {
+        body: {
+          mid: this.credentials.merchantId,
+          orderId: refundId, // Usually merchantRefundId or refId
+          refId: refundId
+        },
+        head: {
+          signature: ''
+        }
+      };
+
+      paytmParams.head.signature = this.generateChecksum(paytmParams.body);
+
+      const response = await axios.post(
+        `${this.baseUrl}/refund/api/v1/refundStatus`,
+        paytmParams,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const resultStatus = response.data?.body?.resultInfo?.resultStatus;
+      return {
+        success: true,
+        status: resultStatus === 'TXN_SUCCESS' ? 'SUCCESS' : 
+                resultStatus === 'TXN_FAILURE' ? 'FAILED' : 'PENDING',
+        gatewayRefundId: refundId,
+        metadata: response.data?.body
+      };
+    } catch (error: any) {
+      console.error('Paytm fetchRefundStatus error:', error);
+      return {
+        success: false,
+        status: 'FAILED',
+        error: error.message || 'Failed to fetch refund status'
+      };
+    }
+  }
+
+  /**
    * Verifies webhook signature from Paytm
    */
   verifyWebhookSignature(payload: any, signature: string): boolean {

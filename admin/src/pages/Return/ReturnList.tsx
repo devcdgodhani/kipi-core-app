@@ -199,6 +199,23 @@ export const ReturnList = () => {
             render: (ret: IReturn) => (
                 <div className="flex items-center gap-2">
                     <button
+                        onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                                toast.loading('Syncing...', { id: `sync-refund-${ret._id}` });
+                                await returnService.syncRefundStatus(ret._id);
+                                toast.success('Synced', { id: `sync-refund-${ret._id}` });
+                                fetchReturns();
+                            } catch (err: any) {
+                                toast.error('Sync failed', { id: `sync-refund-${ret._id}` });
+                            }
+                        }}
+                        className="p-2.5 bg-emerald-50 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 hover:shadow-md rounded-xl transition-all border border-emerald-100/50 group"
+                        title="Sync Status"
+                    >
+                        <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                    </button>
+                    <button
                         onClick={() => handleViewReturn(ret._id)}
                         className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-white hover:shadow-md rounded-xl transition-all border border-transparent hover:border-primary/10 group"
                         title="Neural View"

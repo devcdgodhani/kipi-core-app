@@ -54,4 +54,9 @@ export interface IPaymentRefundServiceContract {
     limit?: number,
     skip?: number
   ): Promise<IPaymentRefundAttributes[]>;
+
+  /**
+   * Fetch refund status from gateway
+   */
+  fetchRefundStatus(refundId: string): Promise<any>;
 }
