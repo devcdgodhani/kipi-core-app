@@ -2,6 +2,8 @@ import { PaymentGatewayModel } from '../models/paymentGatewayModel';
 import { encryptObject } from '../../../helpers/encryptionHelper';
 import { PAYMENT_GATEWAY, GATEWAY_ENVIRONMENT, PAYMENT_GATEWAY_DEFAULTS } from '../../../constants/payment';
 import { ENV_VARIABLE } from '../../../configs/env';
+import mongoose from 'mongoose';
+import { connectMongoDb } from '../index';
 
 /**
  * Seeds payment gateway configurations
@@ -100,9 +102,6 @@ export const seedPaymentGateways = async () => {
 
 // Allow running this seeder directly
 if (require.main === module) {
-  const mongoose = require('mongoose');
-  const { connectMongoDb } = require('../index');
-  
   (async () => {
     try {
       await connectMongoDb({

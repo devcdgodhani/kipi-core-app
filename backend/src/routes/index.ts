@@ -1,10 +1,9 @@
 import { Router } from 'express';
-
-const router = Router();
-
 import adminRoutes from './admin';
 import customerRoutes from './customer';
 import webhookRoutes from './webhookRoutes';
+
+const router = Router();
 
 router.use('/admin', adminRoutes);
 

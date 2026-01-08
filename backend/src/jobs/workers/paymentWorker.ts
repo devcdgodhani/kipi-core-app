@@ -3,6 +3,8 @@ import { QueueFactory } from '../../services/infrastructure/queueFactory';
 import { PAYMENT_QUEUE_NAMES } from '../../jobs/queues/paymentQueues';
 import { IPaymentWebhookJobPayload } from '../../jobs/types';
 import { PAYMENT_GATEWAY } from '../../constants/payment';
+import { WebhookHandlerService } from '../../services/concrete/WebhookHandlerService';
+import { PaymentService } from '../../services/concrete/PaymentService';
 
 /**
  * Processor for payment webhooks
@@ -13,7 +15,6 @@ const paymentWebhookProcessor = async (job: Job<IPaymentWebhookJobPayload>) => {
     console.log(`[PaymentWorker] Processing webhook for ${provider}, received at ${receivedAt}`);
 
     try {
-        const { WebhookHandlerService } = await import('../../services/concrete/WebhookHandlerService');
         const handlerService = new WebhookHandlerService();
 
         // Map provider string to PAYMENT_GATEWAY enum
@@ -47,7 +48,6 @@ const paymentSyncProcessor = async (job: Job<{ paymentId: string }>) => {
     console.log(`[PaymentWorker] Syncing status for payment ${paymentId}`);
 
     try {
-        const { PaymentService } = await import('../../services/concrete/PaymentService');
         const paymentService = new PaymentService();
         await paymentService.fetchPaymentStatus(paymentId);
         console.log(`[PaymentWorker] Successfully synced status for payment ${paymentId}`);

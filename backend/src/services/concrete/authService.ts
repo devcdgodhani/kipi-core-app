@@ -26,6 +26,7 @@ import { TOtpCreate } from '../../types/otp';
 import { addMinutes, getTime, getUnixTime } from 'date-fns';
 import { TAuthTokenCreate } from '../../types/authToken';
 import { TGenerateTokenParams } from '../../types/common';
+import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
 
 export class AuthService implements IAuthService {
   private userService = new UserService();
@@ -184,29 +185,25 @@ export class AuthService implements IAuthService {
         expiresIn: `${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes`,
       });
       // Offload to queue
-      await import('../../jobs/queues/logisticsQueues').then(({ logisticsQueues }) => {
-        return logisticsQueues.notificationQueue.add('send-notification', {
-          type: 'EMAIL',
-          recipient: user.email!,
-          template: 'OTP_VERIFICATION',
-          data: {
-            subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
-            html,
-          },
-        });
+      await logisticsQueues.notificationQueue.add('send-notification', {
+        type: 'EMAIL',
+        recipient: user.email!,
+        template: 'OTP_VERIFICATION',
+        data: {
+          subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
+          html,
+        },
       });
     }
     if (user.mobile) {
       // Offload to queue
-      await import('../../jobs/queues/logisticsQueues').then(({ logisticsQueues }) => {
-        return logisticsQueues.notificationQueue.add('send-notification', {
-          type: 'WHATSAPP',
-          recipient: (user.countryCode || '+91') + user.mobile!,
-          template: 'OTP_VERIFICATION',
-          data: {
-            message: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}. It expires in ${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes.`,
-          },
-        });
+      await logisticsQueues.notificationQueue.add('send-notification', {
+        type: 'WHATSAPP',
+        recipient: (user.countryCode || '+91') + user.mobile!,
+        template: 'OTP_VERIFICATION',
+        data: {
+          message: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}. It expires in ${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes.`,
+        },
       });
     } 
     return token;

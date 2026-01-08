@@ -6,8 +6,10 @@ import { RazorpayGatewayService } from './RazorpayGatewayService';
 import { PaytmGatewayService } from './PaytmGatewayService';
 import { IPaymentGatewayService } from '../contracts/PaymentGatewayInterface';
 import { IPaymentGatewayServiceContract } from '../contracts/IPaymentGatewayServiceContract';
-import { PAYMENT_GATEWAY, PAYMENT_ERROR_MESSAGES } from '../../constants/payment';
+import { PAYMENT_GATEWAY, PAYMENT_ERROR_MESSAGES, GATEWAY_ENVIRONMENT } from '../../constants/payment';
 import { IPhonePeCredentials, IRazorpayCredentials, IPaytmCredentials } from '../../types/payment';
+import { ENV_VARIABLE } from '../../configs/env';
+import { seedPaymentGateways } from '../../db/mongodb/seeders/paymentGatewaySeeder';
 
 /**
  * Payment Gateway Service
@@ -18,8 +20,6 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    * Get active environment based on NODE_ENV
    */
   private getActiveEnvironment(): string {
-    const { ENV_VARIABLE } = require('../../configs/env');
-    const { GATEWAY_ENVIRONMENT } = require('../../constants/payment');
     return ENV_VARIABLE.NODE_ENV === 'production' 
       ? GATEWAY_ENVIRONMENT.PRODUCTION 
       : GATEWAY_ENVIRONMENT.SANDBOX;
@@ -152,7 +152,6 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    * Seed default payment gateways
    */
   async seedGateways(): Promise<void> {
-    const { seedPaymentGateways } = await import('../../db/mongodb/seeders/paymentGatewaySeeder');
     await seedPaymentGateways();
   }
 }

@@ -1,9 +1,5 @@
 import { Router } from 'express';
-
-const router = Router();
-
 import authRoute from '../common/authRoute';
-
 import productRoutes from './productRoutes';
 import categoryRoutes from './categoryRoutes';
 import cartRoutes from './cartRoutes';
@@ -20,6 +16,8 @@ import etaRoutes from './etaRoutes';
 import paymentRoutes from './paymentRoutes';
 import paymentRefundRoutes from './paymentRefundRoutes';
 import paymentGatewayRoutes from './paymentGatewayRoutes';
+
+const router = Router();
 
 router.use('/auth', authRoute);
 router.use('/product', productRoutes);
