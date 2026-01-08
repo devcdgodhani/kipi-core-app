@@ -147,12 +147,12 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
    */
   async verifyPayment(data: any): Promise<PaymentVerifyResponse> {
     try {
-      const { merchantTransactionId } = data;
+      const { merchantOrderId } = data.payload || data;
       const accessToken = await this.getAuthToken();
 
       // Check payment status using V2 API
       const response = await axios.get(
-        `${this.baseUrl}/checkout/v2/order/${merchantTransactionId}/status`,
+        `${this.baseUrl}/checkout/v2/order/${merchantOrderId}/status`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
         return {
           success: true,
           status: 'SUCCESS',
-          gatewayTransactionId: merchantTransactionId,
+          gatewayTransactionId: merchantOrderId,
           paymentMethod: response.data.paymentInstrument?.type || 'UNKNOWN',
           metadata: {
             gatewayResponse: response.data
@@ -176,7 +176,7 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
         return {
           success: false,
           status: 'PENDING',
-          gatewayTransactionId: merchantTransactionId
+          gatewayTransactionId: merchantOrderId
         };
       } else {
          return {
