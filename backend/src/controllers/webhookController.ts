@@ -68,7 +68,7 @@ export class WebhookController {
       }
 
       await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
-        provider: 'RAZORPAY',
+        provider: PAYMENT_GATEWAY.RAZORPAY,
         body: req.body,
         headers: req.headers,
         receivedAt: new Date().toISOString()
@@ -107,7 +107,7 @@ export class WebhookController {
       }
 
       await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
-        provider: 'PHONEPE',
+        provider: PAYMENT_GATEWAY.PHONEPE,
         body: payload,
         headers: req.headers,
         receivedAt: new Date().toISOString()
