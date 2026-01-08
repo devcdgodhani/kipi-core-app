@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { IPaymentRefundDocument } from '../../../interfaces/paymentRefund';
-import { REFUND_STATUS, REFUND_REASON } from '../../../constants/payment';
+import { REFUND_STATUS, REFUND_REASON, PAYMENT_GATEWAY } from '../../../constants/payment';
 
 const PaymentRefundSchema = new Schema<IPaymentRefundDocument>(
   {
@@ -26,6 +26,11 @@ const PaymentRefundSchema = new Schema<IPaymentRefundDocument>(
       type: String,
       required: true,
       unique: true
+    },
+    gatewayName: {
+      type: String,
+      required: true,
+      enum: Object.values(PAYMENT_GATEWAY)
     },
     gatewayRefundId: {
       type: String,
