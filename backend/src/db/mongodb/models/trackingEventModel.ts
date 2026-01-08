@@ -1,25 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { ITrackingEventDocument } from '../../../interfaces/trackingEvent';
 
-export interface ITrackingEvent extends Document {
-  shipmentId: Types.ObjectId;
-  awb: string;
-  eventType: string;
-  status: string;
-  statusCode?: string;
-  location?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  timestamp: Date;
-  message: string;
-  description?: string;
-  courierPersonnel?: string;
-  providerEventId?: string;
-  providerData?: Record<string, any>;
-  createdAt: Date;
-}
-
-const trackingEventSchema = new Schema<ITrackingEvent>(
+const trackingEventSchema = new Schema<ITrackingEventDocument>(
   {
     shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment', required: true, index: true },
     awb: { type: String, required: true, index: true },
@@ -48,4 +30,4 @@ trackingEventSchema.index({ shipmentId: 1, timestamp: -1 });
 trackingEventSchema.index({ awb: 1, timestamp: -1 });
 trackingEventSchema.index({ eventType: 1, timestamp: -1 });
 
-export const TrackingEventModel = model<ITrackingEvent>('TrackingEvent', trackingEventSchema);
+export const TrackingEventModel = model<ITrackingEventDocument>('TrackingEvent', trackingEventSchema);

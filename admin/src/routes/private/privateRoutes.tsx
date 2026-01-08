@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -209,6 +209,25 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.ANALYTICS_COURIERS,
                     element: <CourierAnalyticsLazy />,
                 },
+
+                // Payment Management
+                {
+                    path: ROUTES.DASHBOARD.PAYMENT_GATEWAYS,
+                    element: <PaymentGatewayListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.PAYMENT_GATEWAY_CREATE,
+                    element: <GatewayConfigFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.PAYMENT_GATEWAY_EDIT,
+                    element: <GatewayConfigFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WEBHOOK_LOGS,
+                    element: <WebhookLogListLazy />,
+                },
+
                 {
                     path: ROUTES.PROFILE,
                     element: <ProfileLazy />,

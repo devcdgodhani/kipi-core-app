@@ -72,6 +72,23 @@ const envSchema = z
     REDIS_PASSWORD: z.string().optional(),
     REDIS_DB: z.coerce.number().optional(),
     REDIS_KEY_PREFIX: z.string().optional(),
+
+    ENCRYPTION_KEY: z.string().min(32).max(32).optional(),
+    
+    // Payment Gateway Configs
+    RAZORPAY_KEY_ID: z.string().optional(),
+    RAZORPAY_KEY_SECRET: z.string().optional(),
+    RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+    
+    PHONEPE_MERCHANT_ID: z.string().optional(),
+    PHONEPE_SALT_KEY: z.string().optional(),
+    PHONEPE_SALT_INDEX: z.string().optional(),
+    PHONEPE_WEBHOOK_SECRET: z.string().optional(),
+    
+    PAYTM_MERCHANT_ID: z.string().optional(),
+    PAYTM_MERCHANT_KEY: z.string().optional(),
+    PAYTM_WEBSITE: z.string().optional(),
+    PAYTM_WEBHOOK_SECRET: z.string().optional(),
   })
   .passthrough();
 
@@ -150,4 +167,20 @@ export const ENV_VARIABLE: IEnvVariables = {
   REDIS_PASSWORD: value.REDIS_PASSWORD,
   REDIS_DB: value.REDIS_DB,
   REDIS_KEY_PREFIX: value.REDIS_KEY_PREFIX,
+
+  ENCRYPTION_KEY: value.ENCRYPTION_KEY,
+  
+  RAZORPAY_KEY_ID: value.RAZORPAY_KEY_ID,
+  RAZORPAY_KEY_SECRET: value.RAZORPAY_KEY_SECRET,
+  RAZORPAY_WEBHOOK_SECRET: value.RAZORPAY_WEBHOOK_SECRET,
+  
+  PHONEPE_MERCHANT_ID: value.PHONEPE_MERCHANT_ID,
+  PHONEPE_SALT_KEY: value.PHONEPE_SALT_KEY,
+  PHONEPE_SALT_INDEX: value.PHONEPE_SALT_INDEX,
+  PHONEPE_WEBHOOK_SECRET: value.PHONEPE_WEBHOOK_SECRET,
+  
+  PAYTM_MERCHANT_ID: value.PAYTM_MERCHANT_ID,
+  PAYTM_MERCHANT_KEY: value.PAYTM_MERCHANT_KEY,
+  PAYTM_WEBSITE: value.PAYTM_WEBSITE,
+  PAYTM_WEBHOOK_SECRET: value.PAYTM_WEBHOOK_SECRET,
 };

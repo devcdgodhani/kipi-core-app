@@ -1,65 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IShipmentDocument } from '../../../interfaces/shipment';
 
-export interface IShipment extends Document {
-  orderId: Types.ObjectId;
-  orderNumber: string;
-  shipmentNumber: string;
-  awb: string;
-  
-  courierId: Types.ObjectId;
-  courierName: string;
-  courierCode: string;
-  serviceType: string;
-  
-  weight: number;
-  dimensions: {
-    length: number;
-    width: number;
-    height: number;
-  };
-  volumetricWeight?: number;
-  
-  pickupAddress: any;
-  deliveryAddress: any;
-  warehouseId?: Types.ObjectId;
-  
-  paymentMode: 'COD' | 'PREPAID';
-  codAmount?: number;
-  declaredValue: number;
-  shippingCost: number;
-  
-  status: string;
-  currentLocation?: string;
-  
-  pickupScheduledDate?: Date;
-  pickupCompletedDate?: Date;
-  estimatedDeliveryDate?: Date;
-  actualDeliveryDate?: Date;
-  
-  labelUrl?: string;
-  manifestUrl?: string;
-  invoiceUrl?: string;
-  trackingUrl?: string;
-  lastTrackedAt?: Date;
-  
-  isRTO: boolean;
-  rtoReason?: string;
-  rtoInitiatedDate?: Date;
-  rtoDeliveredDate?: Date;
-  
-  hasNDR: boolean;
-  ndrCount: number;
-  
-  providerShipmentId?: string;
-  providerOrderId?: string;
-  providerData?: Record<string, any>;
-  
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const shipmentSchema = new Schema<IShipment>(
+const shipmentSchema = new Schema<IShipmentDocument>(
   {
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
     orderNumber: { type: String, required: true },
@@ -123,11 +65,9 @@ const shipmentSchema = new Schema<IShipment>(
 );
 
 // Indexes
-shipmentSchema.index({ orderId: 1 });
-shipmentSchema.index({ awb: 1 });
 shipmentSchema.index({ status: 1, createdAt: -1 });
 shipmentSchema.index({ courierId: 1, createdAt: -1 });
 shipmentSchema.index({ isRTO: 1, rtoDeliveredDate: -1 });
 shipmentSchema.index({ warehouseId: 1, status: 1 });
 
-export const ShipmentModel = model<IShipment>('Shipment', shipmentSchema);
+export const ShipmentModel = model<IShipmentDocument>('Shipment', shipmentSchema);

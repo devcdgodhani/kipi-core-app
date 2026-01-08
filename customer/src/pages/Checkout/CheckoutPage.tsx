@@ -30,6 +30,16 @@ const CheckoutPage: React.FC = () => {
     const [couponCode, setCouponCode] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+
+    const handlePlaceOrder = async () => {
+        setIsRedirecting(true);
+        try {
+            await placeOrder();
+        } catch (error) {
+            setIsRedirecting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchCoupons = async () => {
@@ -64,7 +74,7 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-    if (!cart || !cart.items || cart.items.length === 0) {
+    if ((!cart || !cart.items || cart.items.length === 0) && !contextLoading && !isRedirecting) {
         return <Navigate to="/cart" />;
     }
 
@@ -324,7 +334,7 @@ const CheckoutPage: React.FC = () => {
                             </div>
 
                             <button
-                                onClick={placeOrder}
+                                onClick={handlePlaceOrder}
                                 disabled={contextLoading || !selectedAddress}
                                 className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 disabled:bg-gray-200 disabled:cursor-not-allowed transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 relative overflow-hidden group"
                             >

@@ -34,8 +34,12 @@ export const assertDatabaseConnection = async (): Promise<void> => {
     const { cronJobService } = await import('./services/concrete/cronJobService');
     await cronJobService.init();
 
+    /***** Payment Gateway Seeding *****/
+    const { PaymentGatewayService } = await import('./services/concrete/PaymentGatewayService');
+    const paymentGatewayService = new PaymentGatewayService();
+    await paymentGatewayService.seedGateways();
+
     /***** Redis  Authentication *****/
-    //await connectRedis();
     // console.log('Redis connection has been established successfully.');
   } catch (err) {
     console.log(err);

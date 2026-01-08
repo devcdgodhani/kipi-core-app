@@ -62,6 +62,9 @@ export interface IOrder {
   ndrCount?: number;
   warehouseId?: string;
   
+  // Payment gateway integration
+  paymentId?: string;
+  
   createdAt?: Date;
   updatedAt?: Date;
 }

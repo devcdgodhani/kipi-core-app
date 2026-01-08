@@ -51,3 +51,8 @@ export const WarehouseListLazy = lazy(() => import('../../pages/Warehouse/Wareho
 export const WarehouseFormLazy = lazy(() => import('../../pages/Warehouse/WarehouseForm').then(module => ({ default: module.WarehouseForm })));
 export const NdrDashboardLazy = lazy(() => import('../../pages/NDR/NdrDashboard').then(module => ({ default: module.NdrDashboard })));
 export const CronJobHubLazy = lazy(() => import('../../pages/CronJob/CronJobHub').then(module => ({ default: module.CronJobHub })));
+
+// Payment Management
+export const PaymentGatewayListLazy = lazy(() => import('../../pages/Payment/PaymentGatewayList'));
+export const GatewayConfigFormLazy = lazy(() => import('../../pages/Payment/GatewayConfigForm'));
+export const WebhookLogListLazy = lazy(() => import('../../pages/Payment/WebhookLogList'));

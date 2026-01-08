@@ -60,5 +60,8 @@ router.use('/ndr', jwtAuth(), ndrRoutes);
 router.use('/cron-job', jwtAuth(), cronJobRoutes); // Cron Job Management
 router.use('/analytics', jwtAuth(), analyticsRoutes);
 
+import paymentRoutes from './paymentAdminRoutes';
+
+router.use('/', paymentRoutes);
 
 export default router;

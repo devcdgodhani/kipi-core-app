@@ -1,39 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { ICourierDocument } from '../../../interfaces/courier';
 
-export interface ICourier extends Document {
-  name: string;
-  code: string;
-  provider: string;
-  isActive: boolean;
-  isPrimary: boolean;
-  serviceTypes: Array<{
-    type: string;
-    name: string;
-    estimatedDays: number;
-    isActive: boolean;
-  }>;
-  pricingConfig?: Record<string, any>;
-  codCharges?: number;
-  rtoCharges?: number;
-  apiUrl?: string;
-  apiCredentials?: string;
-  webhookSecret?: string;
-  avgDeliveryDays?: number;
-  rtoPercentage?: number;
-  onTimeDeliveryRate?: number;
-  maxWeight?: number;
-  maxCODAmount?: number;
-  supportEmail?: string;
-  supportPhone?: string;
-  slaMin: number;
-  slaMax: number;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-  deletedBy?: Types.ObjectId;
-}
-
-const courierSchema = new Schema<ICourier>(
+const courierSchema = new Schema<ICourierDocument>(
   {
     name: { type: String, required: true },
     code: { type: String, required: true, unique: true, uppercase: true },
@@ -73,7 +41,7 @@ const courierSchema = new Schema<ICourier>(
 );
 
 // Indexes
-courierSchema.index({ code: 1 });
-courierSchema.index({ isActive: 1 });
+// Indexes removed redundant code and isActive as they are defined in schema
+courierSchema.index({ 'tracking.integrationType': 1 });
 
-export const CourierModel = model<ICourier>('Courier', courierSchema);
+export const CourierModel = model<ICourierDocument>('Courier', courierSchema);

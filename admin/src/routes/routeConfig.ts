@@ -57,6 +57,12 @@ export const ROUTES = {
         ANALYTICS_LOTS: 'intelligence/lots',
         ANALYTICS_LOGISTICS: 'intelligence/logistics',
         ANALYTICS_COURIERS: 'intelligence/couriers',
+
+        // Payment Management
+        PAYMENT_GATEWAYS: 'payment-gateways',
+        PAYMENT_GATEWAY_CREATE: 'payment-gateways/new',
+        PAYMENT_GATEWAY_EDIT: 'payment-gateways/:name',
+        WEBHOOK_LOGS: 'webhook-logs',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',

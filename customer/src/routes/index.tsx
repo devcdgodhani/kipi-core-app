@@ -3,7 +3,7 @@ import { publicRoutes } from './public/publicRoutes';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy, ProfileLayoutLazy, ReturnHistoryLazy, LoyaltyPointsLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy, ProfileLayoutLazy, ReturnHistoryLazy, LoyaltyPointsLazy, CheckoutPaymentLazy, PaymentHistoryLazy, RefundHistoryLazy } from './lazy';
 
 import { ROUTES } from './routeConfig';
 
@@ -78,17 +78,30 @@ const router = createBrowserRouter([
                                 element: <LoyaltyPointsLazy />,
                             },
                         ]
-                    }
+                    },
+                    // Payment Routes
+                    {
+                        path: ROUTES.PAYMENT.CHECKOUT,
+                        element: <CheckoutPaymentLazy />,
+                        errorElement: <div className="p-10 text-red-500">Error loading payment page!</div>,
+                    },
+                    {
+                        path: ROUTES.PAYMENT.HISTORY,
+                        element: <PaymentHistoryLazy />,
+                    },
+                    {
+                        path: ROUTES.PAYMENT.REFUNDS,
+                        element: <RefundHistoryLazy />,
+                    },
                 ],
             },
             {
                 path: ROUTES.CART,
                 element: <CartLazy />,
             },
-
         ],
     },
-    // Public routes (Guest only, outside main layout if needed, or separate)
+    // Public routes
     ...publicRoutes,
     {
         path: '*',

@@ -1,21 +1,7 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IWebhookLogDocument } from '../../../interfaces/webhookLog';
 
-export interface IWebhookLog extends Document {
-  eventId: string;
-  provider: string;
-  eventType: string;
-  payload: Record<string, any>;
-  headers: Record<string, string>;
-  status: string;
-  processedAt?: Date;
-  processingTime?: number;
-  error?: string;
-  errorStack?: string;
-  retryCount: number;
-  createdAt: Date;
-}
-
-const webhookLogSchema = new Schema<IWebhookLog>(
+const webhookLogSchema = new Schema<IWebhookLogDocument>(
   {
     eventId: { type: String, required: true, unique: true, index: true },
     provider: { type: String, required: true, index: true },
@@ -40,4 +26,4 @@ webhookLogSchema.index({ provider: 1, createdAt: -1 });
 webhookLogSchema.index({ status: 1, createdAt: -1 });
 webhookLogSchema.index({ eventType: 1, createdAt: -1 });
 
-export const WebhookLogModel = model<IWebhookLog>('WebhookLog', webhookLogSchema);
+export const WebhookLogModel = model<IWebhookLogDocument>('WebhookLog', webhookLogSchema);

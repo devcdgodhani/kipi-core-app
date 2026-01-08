@@ -30,7 +30,7 @@ export const ReviewSchema = new Schema<IReviewDocument>(
 // Compound index for product reviews
 ReviewSchema.index({ productId: 1, status: 1, isVisible: 1 });
 // Index for user reviews
-ReviewSchema.index({ userId: 1 });
+// ReviewSchema.index({ userId: 1 }); // Removed as defined in schema
 // Prevent duplicate reviews from same user for same product in same order
 ReviewSchema.index({ userId: 1, productId: 1, orderId: 1 }, { unique: true });
 

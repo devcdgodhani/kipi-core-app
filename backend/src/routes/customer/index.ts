@@ -17,6 +17,9 @@ import loyaltyRoutes from './loyaltyRoutes';
 import returnRoutes from './returnRoutes';
 import attributeRoutes from './attributeRoutes';
 import etaRoutes from './etaRoutes';
+import paymentRoutes from './paymentRoutes';
+import paymentRefundRoutes from './paymentRefundRoutes';
+import paymentGatewayRoutes from './paymentGatewayRoutes';
 
 router.use('/auth', authRoute);
 router.use('/product', productRoutes);
@@ -32,6 +35,9 @@ router.use('/loyalty', loyaltyRoutes);
 router.use('/return', returnRoutes);
 router.use('/attribute', attributeRoutes);
 router.use('/eta', etaRoutes);
+router.use('/payment', paymentRoutes);
+router.use('/refund', paymentRefundRoutes);
+router.use('/payment-gateways', paymentGatewayRoutes);
 
 
 export default router;

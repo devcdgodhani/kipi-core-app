@@ -1,44 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IRefundLedgerDocument } from '../../../interfaces/refundLedger';
 
-export interface IRefundLedger extends Document {
-  orderId: Types.ObjectId;
-  userId: Types.ObjectId;
-  returnId?: Types.ObjectId;
-  rtoId?: Types.ObjectId;
-  refundNumber: string;
-  refundType: string;
-  amount: number;
-  refundMethod: string;
-  status: string;
-  paymentGateway?: string;
-  transactionId?: string;
-  gatewayResponse?: Record<string, any>;
-  bankDetails?: {
-    accountNumber: string;
-    ifscCode: string;
-    accountHolderName: string;
-    bankName: string;
-  };
-  initiatedDate: Date;
-  processedDate?: Date;
-  completedDate?: Date;
-  failedDate?: Date;
-  failureReason?: string;
-  retryCount: number;
-  breakdown?: {
-    itemAmount: number;
-    shippingRefund: number;
-    taxRefund: number;
-    discountAdjustment: number;
-    pointsAdjustment: number;
-  };
-  notes?: string;
-  processedBy?: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const refundLedgerSchema = new Schema<IRefundLedger>(
+const refundLedgerSchema = new Schema<IRefundLedgerDocument>(
   {
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, index: true },
@@ -81,9 +44,9 @@ const refundLedgerSchema = new Schema<IRefundLedger>(
 );
 
 // Indexes
-refundLedgerSchema.index({ orderId: 1 });
+// refundLedgerSchema.index({ orderId: 1 }); // Removed as defined in schema
 refundLedgerSchema.index({ userId: 1, createdAt: -1 });
 refundLedgerSchema.index({ status: 1, initiatedDate: -1 });
-refundLedgerSchema.index({ refundNumber: 1 });
+// refundLedgerSchema.index({ refundNumber: 1 }); // Removed as defined in schema
 
-export const RefundLedgerModel = model<IRefundLedger>('RefundLedger', refundLedgerSchema);
+export const RefundLedgerModel = model<IRefundLedgerDocument>('RefundLedger', refundLedgerSchema);

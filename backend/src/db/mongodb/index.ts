@@ -83,3 +83,8 @@ export * from './models/codLedgerModel';
 export * from './models/webhookLogModel';
 export * from './models/rtoScoreModel';
 export * from './models/cronJobModel';
+
+// Payment gateway models
+export * from './models/paymentGatewayModel';
+export * from './models/paymentModel';
+export * from './models/paymentRefundModel';

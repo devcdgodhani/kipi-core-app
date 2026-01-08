@@ -217,9 +217,15 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const order = await orderService.create(orderData);
 
             toast.success("Order placed successfully!");
+
+            if (state.paymentMethod === 'ONLINE') {
+                navigate(`/payment/checkout/${order._id}`);
+            } else {
+                navigate(`/order/success/${order._id}`);
+            }
+
             await clearCart();
             setState(prev => ({ ...prev, appliedCoupon: null }));
-            navigate(`/order/success/${order._id}`);
 
         } catch (error) {
             console.error(error);
