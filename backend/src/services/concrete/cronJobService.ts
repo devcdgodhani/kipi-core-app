@@ -5,8 +5,12 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { ICronJobService } from '../contracts/cronJobServiceInterface';
 import { pulseService } from './pulseService';
 import { UserModel } from '../../db/mongodb/models/userModel';
+import { PaymentModel } from '../../db/mongodb/models/paymentModel';
+import { paymentQueues } from '../../jobs/queues/paymentQueues';
+import { PAYMENT_STATUS } from '../../constants/payment';
+import { JOB_NAMES } from '../../jobs/types';
 
-export class CronJobService extends MongooseCommonService<ICronJobDocument, ICronJobAttributes> implements ICronJobService {
+export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
     private handlers: Map<string, () => Promise<void>> = new Map();
 
@@ -19,6 +23,7 @@ export class CronJobService extends MongooseCommonService<ICronJobDocument, ICro
         // Transferring handlers from EngagementCronService
         this.handlers.set('BIRTHDAY_REWARDS', this.processBirthdayRewards.bind(this));
         this.handlers.set('POINTS_EXPIRY_WARNING', this.processPointsExpiryWarnings.bind(this));
+        this.handlers.set('PAYMENT_STATUS_SYNC', this.processPaymentStatusSync.bind(this));
     }
 
     async init() {
@@ -46,6 +51,12 @@ export class CronJobService extends MongooseCommonService<ICronJobDocument, ICro
                 identifier: 'POINTS_EXPIRY_WARNING',
                 expression: '0 10 * * *',
                 description: 'Notifies users 30 days before points expire'
+            },
+            {
+                name: 'Payment Status Sync',
+                identifier: 'PAYMENT_STATUS_SYNC',
+                expression: '*/15 * * * *', // Every 15 minutes
+                description: 'Syncs pending payment statuses with gateways'
             }
         ];
 
@@ -158,6 +169,26 @@ export class CronJobService extends MongooseCommonService<ICronJobDocument, ICro
 
         for (const user of users) {
             await pulseService.triggerBirthdayReward(user);
+        }
+    }
+
+    async processPaymentStatusSync() {
+        console.log('CronJobService: Running payment status sync...');
+        
+        // Find payments in PENDING or INITIATED status older than 15 minutes
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        
+        const pendingPayments = await PaymentModel.find({
+            status: { $in: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.INITIATED] },
+            createdAt: { $lt: fifteenMinutesAgo }
+        }).limit(100); // Limit batch size
+
+        console.log(`CronJobService: Found ${pendingPayments.length} pending payments to sync`);
+
+        for (const payment of pendingPayments) {
+            await paymentQueues.syncQueue.add(JOB_NAMES.SYNC_PAYMENT_STATUS, {
+                paymentId: payment._id.toString()
+            });
         }
     }
 }

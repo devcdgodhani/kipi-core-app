@@ -17,14 +17,14 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   /**
    * Get all payment gateways
    */
-  async getAllGateways(): Promise<IPaymentGatewayDocument[]> {
+  async getAllGateways(): Promise<IPaymentGatewayAttributes[]> {
     return await PaymentGatewayModel.find({}).sort({ priority: 1 }).lean();
   }
 
   /**
    * Get enabled payment gateways
    */
-  async getEnabledGateways(): Promise<IPaymentGatewayDocument[]> {
+  async getEnabledGateways(): Promise<IPaymentGatewayAttributes[]> {
     return await PaymentGatewayModel.find({ isEnabled: true })
       .sort({ priority: 1 })
       .lean();
@@ -33,14 +33,14 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   /**
    * Get gateway by name
    */
-  async getGatewayByName(name: PAYMENT_GATEWAY): Promise<IPaymentGatewayDocument | null> {
+  async getGatewayByName(name: PAYMENT_GATEWAY): Promise<IPaymentGatewayAttributes | null> {
     return await PaymentGatewayModel.findOne({ name }).lean();
   }
 
   /**
    * Create new gateway configuration
    */
-  async createGateway(payload: Partial<IPaymentGatewayAttributes>): Promise<IPaymentGatewayDocument> {
+  async createGateway(payload: Partial<IPaymentGatewayAttributes>): Promise<IPaymentGatewayAttributes> {
     const gateway = new PaymentGatewayModel(payload);
     const saved = await gateway.save();
     return saved.toObject();
@@ -52,7 +52,7 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   async updateGateway(
     name: PAYMENT_GATEWAY,
     updates: Partial<IPaymentGatewayAttributes>
-  ): Promise<IPaymentGatewayDocument | null> {
+  ): Promise<IPaymentGatewayAttributes | null> {
     return await PaymentGatewayModel.findOneAndUpdate(
       { name },
       { $set: updates },
@@ -114,7 +114,7 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   /**
    * Get primary gateway (highest priority enabled gateway)
    */
-  async getPrimaryGateway(): Promise<IPaymentGatewayDocument | null> {
+  async getPrimaryGateway(): Promise<IPaymentGatewayAttributes | null> {
     return await PaymentGatewayModel.findOne({ isEnabled: true })
       .sort({ priority: 1 })
       .lean();

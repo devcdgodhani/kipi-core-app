@@ -1,11 +1,12 @@
 import { Document, Types } from 'mongoose';
 import { REFUND_STATUS, REFUND_REASON } from '../constants/payment';
+import { IDefaultAttributes } from './common';
 
 /**
  * Payment Refund Attributes Interface
  * Defines the structure of refund transactions
  */
-export interface IPaymentRefundAttributes {
+export interface IPaymentRefundAttributes extends IDefaultAttributes {
   paymentId: Types.ObjectId | string;
   orderId: Types.ObjectId | string;
   userId: Types.ObjectId | string;
@@ -30,18 +31,13 @@ export interface IPaymentRefundAttributes {
   failedAt?: Date;
   failureReason?: string;
   
-  // Audit
+  // Audit details
   initiatedBy: Types.ObjectId | string;
   processedBy?: Types.ObjectId | string;
-  
-  // Timestamps & soft delete
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt?: Date;
 }
 
 /**
  * Payment Refund Document Interface
  * Extends Mongoose Document for database operations
  */
-export interface IPaymentRefundDocument extends IPaymentRefundAttributes, Document {}
+export interface IPaymentRefundDocument extends Omit<IPaymentRefundAttributes, '_id'>, Document {}

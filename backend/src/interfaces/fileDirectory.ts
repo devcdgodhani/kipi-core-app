@@ -8,4 +8,4 @@ export interface IFileDirectoryAttributes extends IDefaultAttributes {
   isSystem?: boolean; // Optional: protect system folders
 }
 
-export interface IFileDirectoryDocument extends IFileDirectoryAttributes, Document {}
+export interface IFileDirectoryDocument extends Omit<IFileDirectoryAttributes, '_id'>, Document {}

@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import PaymentGatewayController from '../../controllers/paymentGatewayController';
 import PaymentWebhookController from '../../controllers/paymentWebhookController';
+import PaymentController from '../../controllers/paymentController';
 import AdminPaymentValidators from '../../validators/adminPaymentValidators';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
 const gatewayController = new PaymentGatewayController();
 const webhookController = new PaymentWebhookController();
+const paymentController = new PaymentController();
 const validators = new AdminPaymentValidators();
 
 // All admin routes require authentication
@@ -21,5 +23,8 @@ router.patch('/payment-gateways/:name/toggle', validators.toggleGateway, gateway
 // Webhook logs management
 router.get('/webhooks/logs', validators.getWebhookLogs, webhookController.getWebhookLogs);
 router.post('/webhooks/:id/retry', validators.retryWebhook, webhookController.retryWebhook);
+
+// Payment status management
+router.get('/payments/:id/status', validators.fetchPaymentStatus, paymentController.fetchPaymentStatus);
 
 export default router;

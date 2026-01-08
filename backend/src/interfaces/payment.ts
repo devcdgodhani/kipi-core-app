@@ -1,11 +1,12 @@
 import { Document, Types } from 'mongoose';
 import { PAYMENT_GATEWAY, PAYMENT_STATUS } from '../constants/payment';
+import { IDefaultAttributes } from './common';
 
 /**
  * Payment Attributes Interface
  * Defines the structure of payment transactions
  */
-export interface IPaymentAttributes {
+export interface IPaymentAttributes extends IDefaultAttributes {
   orderId: Types.ObjectId | string;
   userId: Types.ObjectId | string;
   
@@ -42,19 +43,10 @@ export interface IPaymentAttributes {
   // Refund tracking
   refundedAmount: number;
   refundCount: number;
-  
-  // Audit
-  createdBy?: Types.ObjectId | string;
-  
-  // Timestamps & soft delete
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt?: Date;
-  deletedBy?: Types.ObjectId | string;
 }
 
 /**
  * Payment Document Interface
  * Extends Mongoose Document for database operations
  */
-export interface IPaymentDocument extends IPaymentAttributes, Document {}
+export interface IPaymentDocument extends Omit<IPaymentAttributes, '_id'>, Document {}

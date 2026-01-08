@@ -1,4 +1,4 @@
-import { IPaymentRefundDocument } from '../../interfaces/paymentRefund';
+import { IPaymentRefundAttributes } from '../../interfaces/paymentRefund';
 import { REFUND_STATUS, REFUND_REASON } from '../../constants/payment';
 
 /**
@@ -15,7 +15,7 @@ export interface IPaymentRefundServiceContract {
     reason: REFUND_REASON,
     notes: string | undefined,
     initiatedBy: string
-  ): Promise<IPaymentRefundDocument>;
+  ): Promise<IPaymentRefundAttributes>;
 
   /**
    * Update refund status
@@ -29,22 +29,22 @@ export interface IPaymentRefundServiceContract {
   /**
    * Get refund by ID
    */
-  getRefundById(refundId: string): Promise<IPaymentRefundDocument | null>;
+  getRefundById(refundId: string): Promise<IPaymentRefundAttributes | null>;
 
   /**
    * Get refund by refund number
    */
-  getRefundByNumber(refundNumber: string): Promise<IPaymentRefundDocument | null>;
+  getRefundByNumber(refundNumber: string): Promise<IPaymentRefundAttributes | null>;
 
   /**
    * Get refunds for a payment
    */
-  getRefundsByPaymentId(paymentId: string): Promise<IPaymentRefundDocument[]>;
+  getRefundsByPaymentId(paymentId: string): Promise<IPaymentRefundAttributes[]>;
 
   /**
    * Get refunds for an order
    */
-  getRefundsByOrderId(orderId: string): Promise<IPaymentRefundDocument[]>;
+  getRefundsByOrderId(orderId: string): Promise<IPaymentRefundAttributes[]>;
 
   /**
    * Get refunds for a user
@@ -53,5 +53,5 @@ export interface IPaymentRefundServiceContract {
     userId: string,
     limit?: number,
     skip?: number
-  ): Promise<IPaymentRefundDocument[]>;
+  ): Promise<IPaymentRefundAttributes[]>;
 }

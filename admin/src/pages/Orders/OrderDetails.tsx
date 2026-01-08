@@ -13,11 +13,13 @@ import {
     ArrowLeftRight,
     FileText,
     History as HistoryIcon,
-    ArrowLeft
+    ArrowLeft,
+    RefreshCw
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Order } from '../../types/order.types';
 import { orderService } from '../../services/order.service';
+import { paymentService } from '../../services/paymentService';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
@@ -27,8 +29,10 @@ export const OrderDetails: React.FC = () => {
     const navigate = useNavigate();
 
     const [order, setOrder] = useState<Order | null>(null);
+    const [payments, setPayments] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [syncingPayment, setSyncingPayment] = useState<string | null>(null);
 
     useEffect(() => {
         if (id) {
@@ -41,6 +45,11 @@ export const OrderDetails: React.FC = () => {
             setLoading(true);
             const data = await orderService.getById(id!);
             setOrder(data);
+
+            if (data.paymentMethod === 'ONLINE') {
+                const paymentData = await paymentService.getPaymentsByOrder(id!);
+                setPayments(paymentData);
+            }
         } catch (err) {
             toast.error('Failed to load order details');
         } finally {
@@ -58,6 +67,19 @@ export const OrderDetails: React.FC = () => {
             toast.error(err.response?.data?.message || 'Transition failed');
         } finally {
             setProcessing(false);
+        }
+    };
+
+    const handleSyncPayment = async (paymentId: string) => {
+        try {
+            setSyncingPayment(paymentId);
+            await paymentService.syncPaymentStatus(paymentId);
+            toast.success('Payment status synchronized');
+            await fetchOrderDetails();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Synchronization failed');
+        } finally {
+            setSyncingPayment(null);
         }
     };
 
@@ -381,6 +403,35 @@ export const OrderDetails: React.FC = () => {
                             <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${order.paymentStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'
                                 }`}>{order.paymentStatus}</span>
                         </div>
+
+                        {payments.length > 0 && (
+                            <div className="pt-4 border-t border-gray-50 space-y-3">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Transactions</p>
+                                {payments.map((p) => (
+                                    <div key={p._id} className="flex flex-col p-3 bg-gray-50 rounded-xl border border-gray-100 gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-primary uppercase">{p.provider}</span>
+                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${p.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                                                p.status === 'FAILED' ? 'bg-rose-100 text-rose-700 border-rose-200' :
+                                                    'bg-amber-100 text-amber-700 border-amber-200'
+                                                }`}>{p.status}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-gray-900">₹{p.amount}</span>
+                                            <button
+                                                onClick={() => handleSyncPayment(p._id)}
+                                                disabled={syncingPayment === p._id}
+                                                className={`p-1.5 rounded-lg transition-all ${syncingPayment === p._id ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary'}`}
+                                                title="Sync Status"
+                                            >
+                                                <RefreshCw size={14} />
+                                            </button>
+                                        </div>
+                                        <div className="text-[8px] text-gray-400 font-mono truncate">{p.internalPaymentId}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Timeline / History */}

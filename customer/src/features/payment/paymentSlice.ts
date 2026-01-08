@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { paymentService } from '../../services/paymentService';
 import type { Payment, Refund, PaymentGatewayOption } from '../../types/payment';
 
@@ -128,7 +128,7 @@ const paymentSlice = createSlice({
         state.paymentInitiating = true;
         state.error = null;
       })
-      .addCase(initiatePayment.fulfilled, (state, action) => {
+      .addCase(initiatePayment.fulfilled, (state) => {
         state.paymentInitiating = false;
         // Handling redirect usually handled in component, but we store data if needed
       })

@@ -18,7 +18,7 @@ export default class PaymentController {
   initiatePayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { orderId, gatewayName } = req.body;
-      const userId = req.user?._id;
+      const userId = (req.user as any)?._id;
 
       const result = await this.paymentService.initiatePayment(orderId, gatewayName, userId);
 
@@ -129,7 +129,7 @@ export default class PaymentController {
    */
   getMyPayments = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?._id;
+      const userId = (req.user as any)?._id;
       const { limit = 10, skip = 0 } = req.query;
 
       const payments = await this.paymentService.getPaymentsByUserId(

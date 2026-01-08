@@ -61,7 +61,7 @@ export class RazorpayGatewayService implements IPaymentGatewayService {
         gatewayOrderId: razorpayOrder.id,
         razorpayOrderId: razorpayOrder.id,
         keyId: this.credentials.keyId,
-        amount: razorpayOrder.amount,
+        amount: razorpayOrder.amount as number,
         currency: razorpayOrder.currency
       };
     } catch (error: any) {
@@ -118,7 +118,7 @@ export class RazorpayGatewayService implements IPaymentGatewayService {
           success: false,
           status: 'FAILED',
           error: payment.error_description || 'Payment failed',
-          errorCode: payment.error_code
+          errorCode: (payment.error_code as string) || undefined
         };
       } else {
         return {
@@ -148,7 +148,7 @@ export class RazorpayGatewayService implements IPaymentGatewayService {
   ): Promise<RefundResponse> {
     try {
       const refund = await this.razorpay.payments.refund(payment.gatewayTransactionId!, {
-        amount: amount,
+        amount: amount * 100, // Amount in paise
         notes: {
           reason: reason || 'Customer request',
           paymentId: (payment as any)._id?.toString() || payment.internalPaymentId

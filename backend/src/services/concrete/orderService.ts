@@ -16,11 +16,15 @@ import { IOrderService } from '../contracts/orderServiceInterface';
 
 import { IOrderDocument } from '../../db/mongodb/models/orderModel';
 import { logisticsNotificationService } from './logisticsNotificationService';
+import { PaymentRefundService } from './PaymentRefundService';
+import { REFUND_REASON } from '../../constants/payment';
+import { PaymentModel } from '../../db/mongodb/models/paymentModel';
 
 export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> implements IOrderService {
   private couponService = new CouponService();
   private loyaltyService = new LoyaltyService();
   private pulseService = pulseService;
+  private refundService = new PaymentRefundService();
 
   constructor() {
     super(OrderModel);
@@ -299,6 +303,25 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
           referenceType: 'ORDER',
           reason: `Order #${order.orderNumber} cancelled`
         });
+      }
+
+      // 3.1. Automatic Refund for Online Payments
+      if (order.paymentMethod !== 'COD' && order.paymentStatus === 'COMPLETED') {
+        const payment = await PaymentModel.findOne({ orderId, status: 'SUCCESS' });
+        if (payment) {
+          try {
+            await this.refundService.initiateRefund(
+              payment._id.toString(),
+              order.totalAmount,
+              REFUND_REASON.CANCELLATION,
+              `Order #${order.orderNumber} cancelled by ${userId.toString() === order.userId.toString() ? 'customer' : 'admin'}`,
+              userId.toString()
+            );
+            console.log(`✅ Auto-refund initiated for Order #${order.orderNumber}`);
+          } catch (refundError) {
+            console.error(`❌ Auto-refund failed for Order #${order.orderNumber}:`, refundError);
+          }
+        }
       }
     }
 

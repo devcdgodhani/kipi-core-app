@@ -75,6 +75,7 @@ export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, 
       orderId: null as any, // Filled during saveRiskScore
       customerId: new Types.ObjectId(userId),
       riskScore,
+      totalScore: riskScore, // Assuming totalScore is riskScore for now
       riskLevel,
       factors: {
         customerHistory: customerHistoryRisk,

@@ -1,4 +1,4 @@
-import { IExchangeAttributes, IExchangeDocument } from '../../db/mongodb/models/exchangeModel';
+import { IExchangeAttributes, IExchangeDocument } from '../../interfaces/exchange';
 import { IMongooseCommonService } from './mongooseCommonServiceInterface';
 import { UpdateWriteOpResult } from 'mongoose';
 

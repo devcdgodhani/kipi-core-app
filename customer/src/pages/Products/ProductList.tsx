@@ -305,7 +305,6 @@ const ProductList: React.FC = () => {
                     <ProductFilters
                         filters={tempFilters} // Pass temp state
                         onFilterChange={handleTempFilterChange} // Update temp state
-                        onClear={handleClearTempFilters}
                     />
                 </Drawer>
 

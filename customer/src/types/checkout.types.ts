@@ -39,6 +39,15 @@ export interface CheckoutState {
 }
 
 
+export interface CreateOrderRequest {
+    shippingAddress: Address;
+    billingAddress: Address;
+    paymentMethod: 'COD' | 'ONLINE';
+    selectedGateway?: string;
+    couponCode?: string;
+    useLoyaltyPoints?: boolean;
+    pointsToUse?: number;
+}
 
 export interface OrderResponse {
     _id: string;

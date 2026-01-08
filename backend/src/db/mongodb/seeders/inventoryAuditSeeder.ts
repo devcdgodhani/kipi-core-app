@@ -1,7 +1,6 @@
-import { InventoryAuditModel } from '../models/inventoryAuditModel';
+import { StockLedgerModel as InventoryAuditModel } from '../models/stockLedgerModel';
 import { LotModel } from '../models/lotModel';
 import { SkuModel } from '../models/skuModel';
-import { ADJUST_QUANTITY_TYPE } from '../../../constants';
 
 export const seedInventoryAudit = async () => {
     console.log('🌱 Seeding inventory audit...');
@@ -12,7 +11,7 @@ export const seedInventoryAudit = async () => {
         let count = 0;
         for (const lot of lots) {
             // Check if audit exists
-            const exists = await InventoryAuditModel.findOne({ lotId: lot._id });
+            const exists = await InventoryAuditModel.findOne({ referenceId: lot._id, referenceType: 'LOT' });
             if (!exists) {
                 // Log the initial creation
                 await InventoryAuditModel.create({
@@ -24,7 +23,7 @@ export const seedInventoryAudit = async () => {
                     referenceId: lot._id,
                     referenceType: 'LOT',
                     reason: 'Initial Seed Stock',
-                    createdAt: lot.createdAt || new Date()
+                    createdAt: (lot as any).createdAt || new Date()
                 });
                 count++;
             }

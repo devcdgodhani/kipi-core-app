@@ -1,17 +1,18 @@
-import { NDRModel, INDR } from '../../db/mongodb';
+import { NDRModel } from '../../db/mongodb';
+import { INDRAttributes, INDRDocument } from '../../interfaces/ndr';
 import { INdrService } from '../contracts/ndrServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 import { Types } from 'mongoose';
 
 export class NdrService 
-  extends MongooseCommonService<any, INDR> 
+  extends MongooseCommonService<INDRAttributes, INDRDocument> 
   implements INdrService 
 {
   constructor() {
     super(NDRModel);
   }
 
-  async resolveNDR(ndrId: string, resolutionData: any): Promise<INDR> {
+  async resolveNDR(ndrId: string, resolutionData: any): Promise<INDRDocument> {
     const ndr = await this.findById(ndrId);
     if (!ndr) throw new Error('NDR record not found');
 
@@ -25,6 +26,6 @@ export class NdrService
       status: 'RESOLVED'
     };
 
-    return (await this.upsert({ _id: new Types.ObjectId(ndrId) } as any, updateData)) as INDR;
+    return (await this.upsert({ _id: new Types.ObjectId(ndrId) } as any, updateData)) as INDRDocument;
   }
 }

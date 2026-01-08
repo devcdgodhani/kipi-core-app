@@ -1,4 +1,5 @@
-import { ExchangeModel, IExchangeAttributes, IExchangeDocument } from '../../db/mongodb/models/exchangeModel';
+import { ExchangeModel } from '../../db/mongodb/models/exchangeModel';
+import { IExchangeAttributes, IExchangeDocument } from '../../interfaces/exchange';
 import { MongooseCommonService } from './mongooseCommonService';
 import { IExchangeService } from '../contracts/exchangeServiceInterface';
 import { OrderModel, SkuModel } from '../../db/mongodb';
