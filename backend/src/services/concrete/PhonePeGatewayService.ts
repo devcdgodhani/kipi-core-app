@@ -256,7 +256,7 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
    */
   async fetchPaymentStatus(transactionId: string): Promise<PaymentStatusResponse> {
      // Re-using verify logic as V2 unify status checks
-     const verifyRes = await this.verifyPayment({ merchantTransactionId: transactionId });
+     const verifyRes = await this.verifyPayment({ merchantOrderId: transactionId });
      return {
         success: verifyRes.success,
         status: verifyRes.status as any,

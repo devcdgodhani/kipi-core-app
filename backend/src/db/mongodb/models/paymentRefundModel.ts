@@ -73,13 +73,11 @@ const PaymentRefundSchema = new Schema<IPaymentRefundDocument>(
       type: String
     },
     initiatedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'users',
+      type: Schema.Types.Mixed,
       required: true
     },
     processedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'users'
+      type: Schema.Types.Mixed
     },
     deletedAt: {
       type: Date
