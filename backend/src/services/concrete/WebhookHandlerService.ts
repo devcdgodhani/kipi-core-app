@@ -4,17 +4,22 @@ import { PaymentRefundService } from './PaymentRefundService';
 import { PaymentGatewayService } from './PaymentGatewayService';
 import { IWebhookHandlerServiceContract } from '../contracts/IWebhookHandlerServiceContract';
 import { PAYMENT_GATEWAY, WEBHOOK_EVENT_TYPE } from '../../constants/payment';
+import { MongooseCommonService } from './mongooseCommonService';
+import { IWebhookLogAttributes, IWebhookLogDocument } from '../../interfaces/webhookLog';
 
 /**
  * Webhook Handler Service
  * Processes webhooks from payment gateways
  */
-export class WebhookHandlerService implements IWebhookHandlerServiceContract {
+export class WebhookHandlerService 
+  extends MongooseCommonService<IWebhookLogAttributes, IWebhookLogDocument> 
+  implements IWebhookHandlerServiceContract {
   private paymentService: PaymentService;
   private refundService: PaymentRefundService;
   private gatewayService: PaymentGatewayService;
 
   constructor() {
+    super(WebhookLogModel);
     this.paymentService = new PaymentService();
     this.refundService = new PaymentRefundService();
     this.gatewayService = new PaymentGatewayService();
@@ -303,34 +308,10 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
 
     // Reprocess webhook
     return await this.processWebhook(
-      webhookLog.provider as PAYMENT_GATEWAY,
+      webhookLog.provider.toLowerCase() as PAYMENT_GATEWAY,
       webhookLog.payload,
       webhookLog.headers,
       webhookLog.headers['x-webhook-signature'] || ''
     );
-  }
-
-  /**
-   * Get webhook logs
-   */
-  async getWebhookLogs(
-    filters: {
-      provider?: string;
-      status?: string;
-      eventType?: string;
-    },
-    limit: number = 50,
-    skip: number = 0
-  ) {
-    const query: any = {};
-    if (filters.provider) query.provider = filters.provider;
-    if (filters.status) query.status = filters.status;
-    if (filters.eventType) query.eventType = filters.eventType;
-
-    return await WebhookLogModel.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(skip)
-      .lean();
   }
 }
