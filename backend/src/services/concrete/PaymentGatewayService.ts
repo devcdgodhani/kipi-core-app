@@ -15,6 +15,17 @@ import { IPhonePeCredentials, IRazorpayCredentials, IPaytmCredentials } from '..
  */
 export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   /**
+   * Get active environment based on NODE_ENV
+   */
+  private getActiveEnvironment(): string {
+    const { ENV_VARIABLE } = require('../../configs/env');
+    const { GATEWAY_ENVIRONMENT } = require('../../constants/payment');
+    return ENV_VARIABLE.NODE_ENV === 'production' 
+      ? GATEWAY_ENVIRONMENT.PRODUCTION 
+      : GATEWAY_ENVIRONMENT.SANDBOX;
+  }
+
+  /**
    * Get all payment gateways
    */
   async getAllGateways(): Promise<IPaymentGatewayAttributes[]> {
@@ -33,8 +44,9 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
   /**
    * Get gateway by name
    */
-  async getGatewayByName(name: PAYMENT_GATEWAY): Promise<IPaymentGatewayAttributes | null> {
-    return await PaymentGatewayModel.findOne({ name }).lean();
+  async getGatewayByName(name: PAYMENT_GATEWAY, environment?: string): Promise<IPaymentGatewayAttributes | null> {
+    const targetEnvironment = environment || this.getActiveEnvironment();
+    return await PaymentGatewayModel.findOne({ name, environment: targetEnvironment }).lean();
   }
 
   /**
@@ -140,82 +152,7 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    * Seed default payment gateways
    */
   async seedGateways(): Promise<void> {
-    try {
-      console.log('🌱 Seeding payment gateways...');
-      const { ENV_VARIABLE } = await import('../../configs');
-      const { encryptObject } = await import('../../helpers/encryptionHelper');
-      const { PAYMENT_GATEWAY_DEFAULTS, GATEWAY_ENVIRONMENT } = await import('../../constants/payment');
-
-      const gateways = [
-        {
-          name: PAYMENT_GATEWAY.RAZORPAY,
-          displayName: 'Razorpay',
-          isEnabled: false,
-          environment: GATEWAY_ENVIRONMENT.SANDBOX,
-          credentials: {
-            keyId: ENV_VARIABLE.RAZORPAY_KEY_ID || '',
-            keySecret: ENV_VARIABLE.RAZORPAY_KEY_SECRET || ''
-          },
-          webhookSecret: ENV_VARIABLE.RAZORPAY_WEBHOOK_SECRET,
-          config: {
-              timeout: PAYMENT_GATEWAY_DEFAULTS.TIMEOUT,
-              retryAttempts: PAYMENT_GATEWAY_DEFAULTS.RETRY_ATTEMPTS
-          },
-          priority: 1
-        },
-        {
-          name: PAYMENT_GATEWAY.PHONEPE,
-          displayName: 'PhonePe',
-          isEnabled: false,
-          environment: GATEWAY_ENVIRONMENT.SANDBOX,
-          credentials: {
-            merchantId: ENV_VARIABLE.PHONEPE_MERCHANT_ID || '',
-            saltKey: ENV_VARIABLE.PHONEPE_SALT_KEY || '',
-            saltIndex: ENV_VARIABLE.PHONEPE_SALT_INDEX || '1'
-          },
-          webhookSecret: ENV_VARIABLE.PHONEPE_WEBHOOK_SECRET,
-          config: {
-              timeout: PAYMENT_GATEWAY_DEFAULTS.TIMEOUT,
-              retryAttempts: PAYMENT_GATEWAY_DEFAULTS.RETRY_ATTEMPTS
-          },
-          priority: 2
-        },
-        {
-          name: PAYMENT_GATEWAY.PAYTM,
-          displayName: 'Paytm',
-          isEnabled: false,
-          environment: GATEWAY_ENVIRONMENT.SANDBOX,
-          credentials: {
-            merchantId: ENV_VARIABLE.PAYTM_MERCHANT_ID || '',
-            merchantKey: ENV_VARIABLE.PAYTM_MERCHANT_KEY || '',
-            website: ENV_VARIABLE.PAYTM_WEBSITE || 'WEBSTAGING'
-          },
-          webhookSecret: ENV_VARIABLE.PAYTM_WEBHOOK_SECRET,
-          config: {
-              timeout: PAYMENT_GATEWAY_DEFAULTS.TIMEOUT,
-              retryAttempts: PAYMENT_GATEWAY_DEFAULTS.RETRY_ATTEMPTS
-          },
-          priority: 3
-        }
-      ];
-
-      for (const gateway of gateways) {
-        const existing = await PaymentGatewayModel.findOne({ name: gateway.name });
-        
-        if (!existing) {
-          // Encrypt credentials before saving
-          const encryptedCredentials = encryptObject(gateway.credentials);
-          
-          await PaymentGatewayModel.create({
-            ...gateway,
-            credentials: encryptedCredentials
-          });
-          console.log(`✅ Seeded ${gateway.displayName} gateway`);
-        }
-      }
-      console.log('✅ Payment gateway seeding completed');
-    } catch (error) {
-      console.error('❌ Error seeding payment gateways:', error);
-    }
+    const { seedPaymentGateways } = await import('../../db/mongodb/seeders/paymentGatewaySeeder');
+    await seedPaymentGateways();
   }
 }

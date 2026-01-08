@@ -70,6 +70,8 @@ export interface IEnvVariables {
 
   SERVER_URL: string;
   WEB_SERVER_URL: string;
+  BACKEND_API_URL?: string;
+  CUSTOMER_APP_URL?: string;
 
   AWS_BUCKET_NAME: string;
   AWS_ACCESS_KEY_ID: string;
@@ -114,6 +116,8 @@ export interface IEnvVariables {
   PHONEPE_SALT_KEY?: string;
   PHONEPE_SALT_INDEX?: string;
   PHONEPE_WEBHOOK_SECRET?: string;
+  PHONEPE_API_URL_SANDBOX?: string;
+  PHONEPE_API_URL_PRODUCTION?: string;
   
   PAYTM_MERCHANT_ID?: string;
   PAYTM_MERCHANT_KEY?: string;

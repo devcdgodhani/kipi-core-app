@@ -1,83 +1,97 @@
 import { PaymentGatewayModel } from '../models/paymentGatewayModel';
 import { encryptObject } from '../../../helpers/encryptionHelper';
+import { PAYMENT_GATEWAY, GATEWAY_ENVIRONMENT, PAYMENT_GATEWAY_DEFAULTS } from '../../../constants/payment';
+import { ENV_VARIABLE } from '../../../configs/env';
 
 /**
  * Seeds payment gateway configurations
- * Run this seeder to initialize payment gateways in the database
+ * Run this seeder to initialize or update payment gateways in the database
  */
 export const seedPaymentGateways = async () => {
   try {
-    console.log('Seeding payment gateways...');
+    console.log('🌱 Seeding payment gateways...');
 
-    // Check if gateways already exist
-    const existingCount = await PaymentGatewayModel.countDocuments();
-    if (existingCount > 0) {
-      console.log(`Payment gateways already seeded (${existingCount} found). Skipping...`);
-      return;
-    }
+    const isProduction = ENV_VARIABLE.NODE_ENV === 'production';
+    const currentEnvironment = isProduction ? GATEWAY_ENVIRONMENT.PRODUCTION : GATEWAY_ENVIRONMENT.SANDBOX;
 
-    // Prepare gateway configurations
-    const gateways = [
+    // Define gateway templates using unified ENV_VARIABLE constants
+    // These credentials will be applied to the current environment (Sandbox or Production)
+    const gatewayTemplates = [
       {
-        name: 'phonepe',
+        name: PAYMENT_GATEWAY.PHONEPE,
         displayName: 'PhonePe',
-        isEnabled: false,
-        environment: 'sandbox' as const,
-        credentials: encryptObject({
-          merchantId: process.env.PHONEPE_MERCHANT_ID || '',
-          saltKey: process.env.PHONEPE_SALT_KEY || '',
-          saltIndex: 1
-        }),
-        webhookSecret: process.env.PHONEPE_WEBHOOK_SECRET || '',
-        config: {
-          timeout: 300,
-          retryAttempts: 3
+        priority: 1,
+        credentials: {
+          merchantId: ENV_VARIABLE.PHONEPE_MERCHANT_ID || '',
+          saltKey: ENV_VARIABLE.PHONEPE_SALT_KEY || '',
+          saltIndex: Number(ENV_VARIABLE.PHONEPE_SALT_INDEX || 1)
         },
-        priority: 1
+        webhookSecret: ENV_VARIABLE.PHONEPE_WEBHOOK_SECRET || ''
       },
       {
-        name: 'razorpay',
+        name: PAYMENT_GATEWAY.RAZORPAY,
         displayName: 'Razorpay',
-        isEnabled: false,
-        environment: 'sandbox' as const,
-        credentials: encryptObject({
-          keyId: process.env.RAZORPAY_KEY_ID || '',
-          keySecret: process.env.RAZORPAY_KEY_SECRET || ''
-        }),
-        webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
-        config: {
-          timeout: 300,
-          retryAttempts: 3
+        priority: 2,
+        credentials: {
+          keyId: ENV_VARIABLE.RAZORPAY_KEY_ID || '',
+          keySecret: ENV_VARIABLE.RAZORPAY_KEY_SECRET || ''
         },
-        priority: 2
+        webhookSecret: ENV_VARIABLE.RAZORPAY_WEBHOOK_SECRET || ''
       },
       {
-        name: 'paytm',
+        name: PAYMENT_GATEWAY.PAYTM,
         displayName: 'Paytm',
-        isEnabled: false,
-        environment: 'sandbox' as const,
-        credentials: encryptObject({
-          merchantId: process.env.PAYTM_MERCHANT_ID || '',
-          merchantKey: process.env.PAYTM_MERCHANT_KEY || '',
-          website: process.env.PAYTM_WEBSITE || 'WEBSTAGING'
-        }),
-        webhookSecret: process.env.PAYTM_WEBHOOK_SECRET || '',
-        config: {
-          timeout: 300,
-          retryAttempts: 3
+        priority: 3,
+        credentials: {
+          merchantId: ENV_VARIABLE.PAYTM_MERCHANT_ID || '',
+          merchantKey: ENV_VARIABLE.PAYTM_MERCHANT_KEY || '',
+          website: ENV_VARIABLE.PAYTM_WEBSITE || 'WEBSTAGING'
         },
-        priority: 3
+        webhookSecret: ENV_VARIABLE.PAYTM_WEBHOOK_SECRET || ''
       }
     ];
 
-    // Insert gateways
-    await PaymentGatewayModel.insertMany(gateways);
+    for (const template of gatewayTemplates) {
+      // Check if gateway exists for the current environment
+      const existing = await PaymentGatewayModel.findOne({ 
+        name: template.name, 
+        environment: currentEnvironment 
+      });
 
-    console.log('✅ Payment gateways seeded successfully');
-    console.log('   - PhonePe (disabled, sandbox)');
-    console.log('   - Razorpay (disabled, sandbox)');
-    console.log('   - Paytm (disabled, sandbox)');
-    console.log('\nNote: Update credentials in admin panel to enable gateways');
+      const encryptedCredentials = encryptObject(template.credentials);
+
+      if (existing) {
+        // Update valid credentials and webhook secret
+        console.log(`Updating credentials for ${template.displayName} (${currentEnvironment})...`);
+        await PaymentGatewayModel.updateOne(
+          { _id: existing._id },
+          { 
+            $set: { 
+              credentials: encryptedCredentials,
+              webhookSecret: template.webhookSecret
+            } 
+          }
+        );
+      } else {
+        // Create new entry for this environment
+        console.log(`Creating ${template.displayName} (${currentEnvironment})...`);
+        await PaymentGatewayModel.create({
+          name: template.name,
+          displayName: template.displayName,
+          isEnabled: false, // Default to disabled to prevent accidental activation
+          environment: currentEnvironment,
+          credentials: encryptedCredentials,
+          webhookSecret: template.webhookSecret,
+          config: {
+            timeout: PAYMENT_GATEWAY_DEFAULTS.TIMEOUT,
+            retryAttempts: PAYMENT_GATEWAY_DEFAULTS.RETRY_ATTEMPTS
+          },
+          priority: template.priority
+        });
+      }
+    }
+
+    console.log('✅ Payment gateways seeded/updated successfully');
   } catch (error) {
     console.error('❌ Error seeding payment gateways:', error);
     throw error;
@@ -92,8 +106,8 @@ if (require.main === module) {
   (async () => {
     try {
       await connectMongoDb({
-        connectionUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017',
-        dbName: process.env.MONGODB_DB_NAME || 'kipi-core'
+        connectionUrl: ENV_VARIABLE.MONGO_DB_CONNECTION_URL || 'mongodb://localhost:27017',
+        dbName: ENV_VARIABLE.MONGO_DB_NAME || 'kipi-core'
       });
       
       await seedPaymentGateways();
