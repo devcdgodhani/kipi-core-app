@@ -14,6 +14,7 @@ import {
     FileText,
     History as HistoryIcon,
     ArrowLeft,
+    IndianRupee,
     RefreshCw
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -410,6 +411,7 @@ export const OrderDetails: React.FC = () => {
 
                 {/* Right Section: State Specific UI */}
                 <div className="space-y-6">
+
                     {/* Action Card (MEESHO/AMAZON STYLE) */}
                     <div className="bg-primary p-1 rounded-[2.5rem] shadow-xl shadow-primary/20">
                         <div className="bg-white p-8 rounded-[2.2rem] space-y-6">
@@ -503,6 +505,40 @@ export const OrderDetails: React.FC = () => {
                                     * Advancing the status will notify the customer and record a timeline entry.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Financial Status Card */}
+                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
+                        <div className="flex items-center gap-3 pb-3 border-b border-gray-50">
+                            <IndianRupee size={18} className="text-primary" />
+                            <h3 className="font-black text-xs text-gray-900 uppercase tracking-widest">Financial Status</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Status</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${order.paymentStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    order.paymentStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                    }`}>{order.paymentStatus}</span>
+                            </div>
+
+                            {['RETURNED', 'CANCELLED'].includes(order.orderStatus) && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Status</span>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${refunds.length > 0 ? (
+                                        refunds.some(r => r.status === 'PROCESSED' || r.status === 'SUCCESS') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                            refunds.some(r => r.status === 'FAILED') ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                                'bg-amber-50 text-amber-600 border-amber-100'
+                                    ) : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                                        {refunds.length > 0 ? (
+                                            refunds.some(r => r.status === 'PROCESSED' || r.status === 'SUCCESS') ? 'PROCESSED' :
+                                                refunds.some(r => r.status === 'FAILED') ? 'FAILED' : 'PENDING'
+                                        ) : 'N/A'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
