@@ -60,6 +60,13 @@ const retryWebhookSchema = z.object({
   })
 });
 
+// Get Payments By Order Validator
+const getPaymentsByOrderSchema = z.object({
+  params: z.object({
+    orderId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid order ID format')
+  })
+});
+
 export default class AdminPaymentValidators {
   getAllGateways = validate(getAllGatewaysSchema);
   getEnabledGateways = validate(getEnabledGatewaysSchema);

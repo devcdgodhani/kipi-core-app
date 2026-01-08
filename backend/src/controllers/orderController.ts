@@ -248,4 +248,23 @@ export default class OrderController {
       return next(err);
     }
   };
+
+  getPaymentsByOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const paymentService = new PaymentService();
+      const payments = await paymentService.getPaymentsByOrderId(id);
+
+      const response: IApiResponse<any[]> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Payments fetched successfully',
+        data: payments
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
 }

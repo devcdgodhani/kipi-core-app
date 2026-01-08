@@ -47,10 +47,8 @@ export const OrderDetails: React.FC = () => {
             const data = await orderService.getById(id!);
             setOrder(data);
 
-            if (data.paymentMethod === 'ONLINE') {
-                const paymentData = await paymentService.getPaymentsByOrder(id!);
-                setPayments(paymentData);
-            }
+            const paymentData = await orderService.getPayments(id!);
+            setPayments(paymentData || []);
         } catch (err) {
             toast.error('Failed to load order details');
         } finally {
@@ -427,13 +425,13 @@ export const OrderDetails: React.FC = () => {
                                 }`}>{order.paymentStatus}</span>
                         </div>
 
-                        {payments.length > 0 && (
-                            <div className="pt-4 border-t border-gray-50 space-y-3">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Transactions</p>
-                                {payments.map((p) => (
+                        <div className="pt-4 border-t border-gray-50 space-y-3">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Ledger</p>
+                            {payments.length > 0 ? (
+                                payments.map((p) => (
                                     <div key={p._id} className="flex flex-col p-3 bg-gray-50 rounded-xl border border-gray-100 gap-2">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-primary uppercase">{p.provider}</span>
+                                            <span className="text-[9px] font-black text-primary uppercase">{p.gatewayName || p.provider || 'Gateway'}</span>
                                             <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${p.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
                                                 p.status === 'FAILED' ? 'bg-rose-100 text-rose-700 border-rose-200' :
                                                     'bg-amber-100 text-amber-700 border-amber-200'
@@ -452,9 +450,11 @@ export const OrderDetails: React.FC = () => {
                                         </div>
                                         <div className="text-[8px] text-gray-400 font-mono truncate">{p.internalPaymentId}</div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                ))
+                            ) : (
+                                <div className="text-[10px] text-gray-400 italic py-2">No historical records discovered.</div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Timeline / History */}
