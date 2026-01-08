@@ -59,6 +59,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
       orderId: payment.orderId,
       userId: payment.userId,
       refundNumber,
+      gatewayName: payment.gatewayName,
       amount,
       reason,
       notes,

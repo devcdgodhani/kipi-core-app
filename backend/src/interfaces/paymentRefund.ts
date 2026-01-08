@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { REFUND_STATUS, REFUND_REASON } from '../constants/payment';
+import { REFUND_STATUS, REFUND_REASON, PAYMENT_GATEWAY } from '../constants/payment';
 import { IDefaultAttributes } from './common';
 
 /**
@@ -13,6 +13,7 @@ export interface IPaymentRefundAttributes extends IDefaultAttributes {
   
   // Refund details
   refundNumber: string;
+  gatewayName: PAYMENT_GATEWAY;
   gatewayRefundId?: string;
   amount: number;
   reason: REFUND_REASON;
