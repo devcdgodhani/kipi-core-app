@@ -2,22 +2,22 @@ import { Request, Response, NextFunction } from 'express';
 import { webhookService } from '../services/concrete/webhookService';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse } from '../interfaces';
-import { logisticsQueues, QUEUE_NAMES } from '../jobs/queues/logisticsQueues';
+import { logisticsQueues } from '../jobs/queues/logisticsQueues';
+import { paymentQueues } from '../jobs/queues/paymentQueues';
 import { JOB_NAMES } from '../jobs/types';
 import { PAYMENT_GATEWAY } from '../constants/payment';
-import { paymentQueues } from '../jobs/queues/paymentQueues';
 
 export class WebhookController {
   
+  /**
+   * Handle Shiprocket webhook (Logistics)
+   */
   handleShiprocketWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // 1. Validate and Log (Synchronous)
-      // This ensures we only accept valid requests and have a record of them.
       const { isValid, normalizedEvent } = await webhookService.validateAndLog(req.body, req.headers, 'SHIPROCKET');
 
       if (!isValid) {
-        // Invalid signature - reject
-         const response: IApiResponse<null> = {
+        const response: IApiResponse<null> = {
           status: HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
           code: HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
           message: 'Invalid Signature',
@@ -26,16 +26,13 @@ export class WebhookController {
         return res.status(response.status).json(response);
       }
 
-      // 2. Push to Queue (Asynchronous)
-      // We pass the NORMALIZED event as the body to the worker
       await logisticsQueues.webhookQueue.add(JOB_NAMES.PROCESS_WEBHOOK, {
         provider: 'SHIPROCKET',
-        headers: req.headers, // Optional, since we already validated
-        body: normalizedEvent, // Pass normalized event!
+        headers: req.headers,
+        body: normalizedEvent,
         receivedAt: new Date().toISOString()
       });
 
-      // 3. Return 200 OK immediately
       const response: IApiResponse<null> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
@@ -45,93 +42,107 @@ export class WebhookController {
 
       return res.status(response.status).json(response);
     } catch (err) {
-      console.error('Webhook Error:', err);
-      // Return 200 OK even on error to prevent provider retries if it's our internal issue 
-      // (unless we want them to retry, but for now safe fail)
-      const response: IApiResponse<null> = {
-        status: HTTP_STATUS_CODE.OK.STATUS,
-        code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Webhook received (error logged)',
-        data: null
-      };
-      return res.status(response.status).json(response);
+      console.error('Shiprocket Webhook Error:', err);
+      return res.status(200).json({ message: 'Webhook received (error logged)' });
     }
   };
 
+  /**
+   * Handle Razorpay webhook (Payment)
+   */
   handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const signature = req.headers['x-razorpay-signature'] as string;
-      const paymentService = new (await import('../services/concrete/PaymentService')).PaymentService();
-      const gatewayService = new (await import('../services/concrete/PaymentGatewayService')).PaymentGatewayService();
+      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
+      const handlerService = new WebhookHandlerService();
 
-      // 1. Verify Signature
-      const isValid = await gatewayService.verifyWebhook(PAYMENT_GATEWAY.RAZORPAY, req.body, signature);
+      const { isValid, logId } = await handlerService.validateAndLog(
+        PAYMENT_GATEWAY.RAZORPAY,
+        req.body,
+        req.headers as any,
+        signature
+      );
+
       if (!isValid) {
-        return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
+        return res.status(401).json({ success: false, message: 'Invalid signature' });
       }
 
-      // 2. Push to Queue
       await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
         provider: 'RAZORPAY',
-        payload: req.body,
+        body: req.body,
         headers: req.headers,
         receivedAt: new Date().toISOString()
       });
 
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
-    } catch (err) {
-      console.error('Razorpay Webhook Error:', err);
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'error_logged' });
+      return res.status(200).json({ success: true, message: 'Webhook received and queued', logId });
+    } catch (err: any) {
+       console.error('Razorpay Webhook Error:', err);
+       return res.status(200).json({ success: true, message: 'Webhook received (error logged)' });
     }
   };
 
+  /**
+   * Handle PhonePe webhook (Payment)
+   */
   handlePhonePeWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const signature = req.headers['x-verify'] as string;
-      const paymentService = new (await import('../services/concrete/PaymentService')).PaymentService();
-      const gatewayService = new (await import('../services/concrete/PaymentGatewayService')).PaymentGatewayService();
+      const signature = (req.headers['x-verify'] || req.headers['authorization']) as string;
+      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
+      const handlerService = new WebhookHandlerService();
 
-      // PhonePe payload is base64 encoded in the request body
-      const base64Response = req.body.response;
-      const decodedResponse = JSON.parse(Buffer.from(base64Response, 'base64').toString());
-
-      // 1. Verify Signature
-      const isValid = await gatewayService.verifyWebhook(PAYMENT_GATEWAY.PHONEPE, decodedResponse, signature);
-      if (!isValid) {
-        return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
+      let payload = req.body;
+      if (req.body.response) {
+        const decoded = Buffer.from(req.body.response, 'base64').toString();
+        payload = JSON.parse(decoded);
       }
 
-      // 2. Push to Queue
+      const { isValid, logId } = await handlerService.validateAndLog(
+        PAYMENT_GATEWAY.PHONEPE,
+        payload,
+        req.headers as any,
+        signature
+      );
+
+      if (!isValid) {
+        return res.status(401).json({ success: false, message: 'Invalid signature' });
+      }
+
       await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
         provider: 'PHONEPE',
-        body: decodedResponse,
+        body: payload,
         headers: req.headers,
         receivedAt: new Date().toISOString()
       });
 
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
-    } catch (err) {
+      return res.status(200).json({ success: true, message: 'Webhook received and queued', logId });
+    } catch (err: any) {
       console.error('PhonePe Webhook Error:', err);
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'error_logged' });
+      return res.status(200).json({ success: true, message: 'Webhook received (error logged)' });
     }
   };
 
+  /**
+   * Handle Paytm webhook (Payment)
+   */
   handlePaytmWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const paymentService = new (await import('../services/concrete/PaymentService')).PaymentService();
-      const gatewayService = new (await import('../services/concrete/PaymentGatewayService')).PaymentGatewayService();
+      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
+      const handlerService = new WebhookHandlerService();
 
-      // Paytm sends data as form-data/x-www-form-urlencoded
       const payload = req.body;
-      const signature = payload.CHECKSUMHASH;
+      const signature = payload.CHECKSUMHASH || '';
 
-      // 1. Verify Signature
-      const isValid = await gatewayService.verifyWebhook(PAYMENT_GATEWAY.PAYTM, payload, signature);
+      const { isValid, logId } = await handlerService.validateAndLog(
+        PAYMENT_GATEWAY.PAYTM,
+        payload,
+        req.headers as any,
+        signature
+      );
+
       if (!isValid) {
-        return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
+        return res.status(401).json({ success: false, message: 'Invalid signature' });
       }
 
-      // 2. Push to Queue
       await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
         provider: 'PAYTM',
         body: payload,
@@ -139,10 +150,61 @@ export class WebhookController {
         receivedAt: new Date().toISOString()
       });
 
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
-    } catch (err) {
+      return res.status(200).json({ success: true, message: 'Webhook received and queued', logId });
+    } catch (err: any) {
       console.error('Paytm Webhook Error:', err);
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'error_logged' });
+      return res.status(200).json({ success: true, message: 'Webhook received (error logged)' });
+    }
+  };
+
+  /**
+   * Get webhook logs (Admin)
+   */
+  getWebhookLogs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { provider, status, eventType, limit = 50, skip = 0 } = req.query;
+      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
+      const handlerService = new WebhookHandlerService();
+
+      const logs = await handlerService.getWebhookLogs(
+        {
+          provider: provider as string,
+          status: status as string,
+          eventType: eventType as string
+        },
+        Number(limit),
+        Number(skip)
+      );
+
+      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Webhook logs fetched successfully',
+        data: logs
+      });
+    } catch (err: any) {
+      return next(err);
+    }
+  };
+
+  /**
+   * Retry failed webhook (Admin)
+   */
+  retryWebhook = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
+      const handlerService = new WebhookHandlerService();
+
+      const result = await handlerService.retryWebhook(id);
+
+      return res.status(result.success ? 200 : 400).json({
+        status: result.success ? HTTP_STATUS_CODE.OK.STATUS : HTTP_STATUS_CODE.BAD_REQUEST.STATUS,
+        code: result.success ? HTTP_STATUS_CODE.OK.CODE : HTTP_STATUS_CODE.BAD_REQUEST.CODE,
+        message: result.message
+      });
+    } catch (err: any) {
+      return next(err);
     }
   };
 }

@@ -6,11 +6,13 @@ const router = express.Router();
 const webhookController = new WebhookController();
 const validators = new WebhookValidators();
 
+// Logistics Webhooks
 router.post(
   '/shiprocket',
   webhookController.handleShiprocketWebhook
 );
 
+// Payment Webhooks
 router.post(
   '/razorpay',
   validators.razorpayWebhook,

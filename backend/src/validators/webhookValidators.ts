@@ -11,7 +11,8 @@ import { validate } from '../helpers/zodValidator';
 const phonePeWebhookSchema = z.object({
   body: z.record(z.string(), z.any()), // Accept any payload structure
   headers: z.object({
-    'x-verify': z.string().optional()
+    'x-verify': z.string().optional(),
+    'authorization': z.string().optional()
   }).passthrough() // Allow other headers
 });
 
