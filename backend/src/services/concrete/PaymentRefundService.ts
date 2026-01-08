@@ -1,5 +1,7 @@
 import { PaymentRefundModel } from '../../db/mongodb/models/paymentRefundModel';
 import { PaymentModel } from '../../db/mongodb/models/paymentModel';
+import { OrderModel } from '../../db/mongodb/models/orderModel';
+import { ReturnModel } from '../../db/mongodb/models/returnModel';
 import { IPaymentRefundAttributes, IPaymentRefundDocument } from '../../interfaces/paymentRefund';
 import { PaymentGatewayService } from './PaymentGatewayService';
 import { IPaymentRefundServiceContract } from '../contracts/IPaymentRefundServiceContract';
@@ -155,6 +157,49 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
     }
 
     await PaymentRefundModel.updateOne({ _id: refundId }, { $set: updateData });
+
+    // Synchronization with Order and Return models
+    const refund = await PaymentRefundModel.findById(refundId);
+    if (!refund) return;
+
+    if (status === REFUND_STATUS.SUCCESS) {
+      // 1. Update Payment status
+      const payment = await PaymentModel.findById(refund.paymentId);
+      if (payment) {
+        // Note: Amount should have been incremented in initiateRefund, but let's ensure status is current
+        const newStatus = payment.refundedAmount >= payment.amount 
+          ? PAYMENT_STATUS.REFUNDED 
+          : PAYMENT_STATUS.PARTIAL_REFUND;
+          
+        await PaymentModel.updateOne(
+          { _id: payment._id },
+          { $set: { status: newStatus } }
+        );
+
+        // 2. Update Order status
+        await OrderModel.updateOne(
+          { _id: refund.orderId },
+          { $set: { paymentStatus: newStatus as any } }
+        );
+      }
+
+      // 3. Update Return status if applicable
+      await ReturnModel.findOneAndUpdate(
+        { 
+          orderId: refund.orderId, 
+          $or: [
+            { totalRefundAmount: refund.amount },
+            { status: { $ne: 'COMPLETED' } }
+          ]
+        },
+        { 
+          $set: { 
+            refundStatus: 'PROCESSED',
+            refundTransactionId: refund.gatewayRefundId || refund.refundNumber
+          } 
+        }
+      );
+    }
   }
 
   /**

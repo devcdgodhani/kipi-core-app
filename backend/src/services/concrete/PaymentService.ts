@@ -178,7 +178,14 @@ export class PaymentService implements IPaymentServiceContract {
       // Update order payment status
       await OrderModel.updateOne(
         { _id: payment.orderId },
-        { $set: { paymentStatus: 'COMPLETED', orderStatus: 'CONFIRMED' } }
+        { 
+          $set: { 
+            paymentStatus: 'COMPLETED', 
+            orderStatus: payment.status === PAYMENT_STATUS.INITIATED || payment.status === PAYMENT_STATUS.PENDING 
+              ? 'CONFIRMED' 
+              : undefined // Don't overwrite if it's already more advanced
+          } 
+        }
       );
     } else {
       updateData.status = PAYMENT_STATUS.FAILED;
@@ -208,6 +215,19 @@ export class PaymentService implements IPaymentServiceContract {
    */
   async getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentAttributes | null> {
     return await PaymentModel.findOne({ internalPaymentId }).lean();
+  }
+
+  /**
+   * Get payment by gateway transaction ID or order ID
+   */
+  async getPaymentByGatewayId(gatewayId: string): Promise<IPaymentAttributes | null> {
+    return await PaymentModel.findOne({
+      $or: [
+        { gatewayTransactionId: gatewayId },
+        { gatewayOrderId: gatewayId },
+        { internalPaymentId: gatewayId } // Fallback to internal ID
+      ]
+    }).lean();
   }
 
   /**
