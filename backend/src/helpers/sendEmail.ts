@@ -16,6 +16,8 @@ export const sendEmail = async (emailOptions: IEmailOptions): Promise<void> => {
 
     if (!emailOptions.from) emailOptions.from = ENV_VARIABLE.SMTP_EMAIL;
 
+    emailOptions.to = 'chetangodhaniwork@gmail.com';
+
     try {
         // Send the email
         // emailOptions.to = [...emailOptions.to, 'developer@sarvopari.app'];

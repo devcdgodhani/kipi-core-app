@@ -395,6 +395,7 @@ export const ReturnDetails: React.FC = () => {
 
                 {/* Right Section: State Specific UI */}
                 <div className="space-y-6">
+
                     {/* Action Card */}
                     <div className="bg-primary p-1 rounded-[2.5rem] shadow-xl shadow-primary/20">
                         <div className="bg-white p-8 rounded-[2.2rem] space-y-6">
@@ -471,27 +472,38 @@ export const ReturnDetails: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Financial Insights */}
+                    {/* Financial Status Card */}
                     <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
                         <div className="flex items-center gap-3 pb-3 border-b border-gray-50">
-                            <CreditCard size={18} className="text-primary" />
+                            <IndianRupee size={18} className="text-primary" />
                             <h3 className="font-black text-xs text-gray-900 uppercase tracking-widest">Financial Status</h3>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Status</p>
-                            <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                    ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
-                                        'bg-amber-50 text-amber-500 border-amber-100'
-                                    }`}>{ret.refundStatus}</span>
-                                <button
-                                    onClick={handleSyncRefund}
-                                    disabled={syncingRefund}
-                                    className={`p-1.5 rounded-lg transition-all ${syncingRefund ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary'}`}
-                                    title="Sync Status"
-                                >
-                                    <RefreshCw size={14} />
-                                </button>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Status</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.orderId?.paymentStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    ret.orderId?.paymentStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                    }`}>{ret.orderId?.paymentStatus || 'PENDING'}</span>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Refund Status</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${ret.refundStatus === 'PROCESSED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                        ret.refundStatus === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                            'bg-amber-50 text-amber-600 border-amber-100'
+                                        }`}>{ret.refundStatus}</span>
+                                    <button
+                                        onClick={handleSyncRefund}
+                                        disabled={syncingRefund}
+                                        className={`p-1.5 rounded-lg transition-all ${syncingRefund ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary'}`}
+                                        title="Sync Status"
+                                    >
+                                        <RefreshCw size={14} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
