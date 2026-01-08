@@ -27,6 +27,7 @@ router.put('/updateStatus/:id', orderController.updateStatus);
 router.post('/simulate-logistics/:id', orderController.simulateLogistics);
 router.get('/:id/sync-payment', orderController.syncPaymentStatus);
 router.get('/:id/payments', orderController.getPaymentsByOrder);
+router.get('/:id/refunds', orderController.getRefundsByOrder);
 router.get('/:id', orderController.getOne); // Alias for convenience
 
 export default router;

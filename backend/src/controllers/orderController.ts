@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { OrderService } from '../services/concrete/orderService';
 import { PaymentService } from '../services/concrete/PaymentService';
+import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
 import { PaymentModel } from '../db/mongodb/models/paymentModel';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
 import { IApiResponse, IPaginationData } from '../interfaces';
@@ -260,6 +261,25 @@ export default class OrderController {
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Payments fetched successfully',
         data: payments
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  getRefundsByOrder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const refundService = new PaymentRefundService();
+      const refunds = await refundService.getRefundsByOrderId(id);
+
+      const response: IApiResponse<any[]> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Refunds fetched successfully',
+        data: refunds
       };
 
       return res.status(response.status).json(response);

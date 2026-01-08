@@ -30,6 +30,7 @@ export const OrderDetails: React.FC = () => {
 
     const [order, setOrder] = useState<Order | null>(null);
     const [payments, setPayments] = useState<any[]>([]);
+    const [refunds, setRefunds] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [syncingPayment, setSyncingPayment] = useState<string | null>(null);
@@ -47,8 +48,12 @@ export const OrderDetails: React.FC = () => {
             const data = await orderService.getById(id!);
             setOrder(data);
 
-            const paymentData = await orderService.getPayments(id!);
+            const [paymentData, refundData] = await Promise.all([
+                orderService.getPayments(id!),
+                orderService.getRefunds(id!)
+            ]);
             setPayments(paymentData || []);
+            setRefunds(refundData || []);
         } catch (err) {
             toast.error('Failed to load order details');
         } finally {
@@ -309,6 +314,98 @@ export const OrderDetails: React.FC = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Payment History Section */}
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm space-y-6">
+                        <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
+                            <CreditCard size={20} className="text-primary" />
+                            <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Payment History</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Mechanism</label>
+                                <span className="text-xs font-black text-gray-900 uppercase px-3 py-1 bg-gray-50 rounded-lg">{order.paymentMethod}</span>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Settlement</label>
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${order.paymentStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                    }`}>{order.paymentStatus}</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {payments.length > 0 ? (
+                                payments.map((p) => (
+                                    <div key={p._id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                <CreditCard size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-gray-900 uppercase">{p.gatewayName || p.provider || 'Gateway'}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase">{p.internalPaymentId}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-gray-900">₹{p.amount}</p>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${p.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                    p.status === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                                        'bg-amber-50 text-amber-500 border-amber-100'
+                                                    }`}>{p.status}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleSyncPayment(p._id)}
+                                                disabled={syncingPayment === p._id}
+                                                className={`p-2 rounded-xl transition-all ${syncingPayment === p._id ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary bg-gray-50'}`}
+                                                title="Sync Status"
+                                            >
+                                                <RefreshCw size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-xs text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-50 rounded-2xl">No historical records discovered.</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Refund History Section */}
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm space-y-6">
+                        <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
+                            <RefreshCw size={20} className="text-amber-500" />
+                            <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Refund History</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            {refunds.length > 0 ? (
+                                refunds.map((r) => (
+                                    <div key={r._id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+                                                <RefreshCw size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-gray-900 uppercase">{r.gatewayName || 'Gateway'}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase">{r.internalRefundId}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-black text-gray-900">₹{r.amount}</p>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${(r.status === 'PROCESSED' || r.status === 'SUCCESS') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                r.status === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                                    'bg-amber-50 text-amber-500 border-amber-100'
+                                                }`}>{r.status}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-xs text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-50 rounded-2xl">No refund records discovered.</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Right Section: State Specific UI */}
@@ -409,53 +506,6 @@ export const OrderDetails: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Payment Insights */}
-                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
-                        <div className="flex items-center gap-3 pb-3 border-b border-gray-50">
-                            <CreditCard size={18} className="text-primary" />
-                            <h3 className="font-black text-xs text-gray-900 uppercase tracking-widest">Financial Status</h3>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mechanism</p>
-                            <span className="text-xs font-black text-gray-900 uppercase px-3 py-1 bg-gray-50 rounded-lg">{order.paymentMethod}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Settlement</p>
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${order.paymentStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'
-                                }`}>{order.paymentStatus}</span>
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-50 space-y-3">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment Ledger</p>
-                            {payments.length > 0 ? (
-                                payments.map((p) => (
-                                    <div key={p._id} className="flex flex-col p-3 bg-gray-50 rounded-xl border border-gray-100 gap-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-primary uppercase">{p.gatewayName || p.provider || 'Gateway'}</span>
-                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${p.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                                                p.status === 'FAILED' ? 'bg-rose-100 text-rose-700 border-rose-200' :
-                                                    'bg-amber-100 text-amber-700 border-amber-200'
-                                                }`}>{p.status}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-bold text-gray-900">₹{p.amount}</span>
-                                            <button
-                                                onClick={() => handleSyncPayment(p._id)}
-                                                disabled={syncingPayment === p._id}
-                                                className={`p-1.5 rounded-lg transition-all ${syncingPayment === p._id ? 'bg-gray-100 text-gray-400 animate-spin' : 'hover:bg-primary/10 text-primary'}`}
-                                                title="Sync Status"
-                                            >
-                                                <RefreshCw size={14} />
-                                            </button>
-                                        </div>
-                                        <div className="text-[8px] text-gray-400 font-mono truncate">{p.internalPaymentId}</div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-[10px] text-gray-400 italic py-2">No historical records discovered.</div>
-                            )}
-                        </div>
-                    </div>
 
                     {/* Timeline / History */}
                     <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-6">
