@@ -13,19 +13,31 @@ router.post(
 );
 
 // Payment Webhooks
-router.post(
+router
+.get('/razorpay',
+  validators.razorpayWebhook,
+  webhookController.handleRazorpayWebhook).
+post(
   '/razorpay',
   validators.razorpayWebhook,
   webhookController.handleRazorpayWebhook
 );
 
-router.post(
+router
+.get('/phonepe',
+  validators.phonePeWebhook,
+  webhookController.handlePhonePeWebhook)
+.post(
   '/phonepe',
   validators.phonePeWebhook,
   webhookController.handlePhonePeWebhook
 );
 
-router.post(
+router
+.get('/paytm',
+  validators.paytmWebhook,
+  webhookController.handlePaytmWebhook)
+.post(
   '/paytm',
   validators.paytmWebhook,
   webhookController.handlePaytmWebhook

@@ -84,7 +84,7 @@ export class PaymentService implements IPaymentServiceContract {
     });
 
     // Initiate payment with gateway
-    const callbackUrl = `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhook/${gatewayName}/payment`;
+    const callbackUrl = `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhooks/phonepe`;
     const gatewayResponse = await gatewayService.createPayment(
       order as IOrder,
       order.totalAmount,
