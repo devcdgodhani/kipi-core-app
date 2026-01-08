@@ -35,9 +35,16 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
   private determineEventType(provider: PAYMENT_GATEWAY, payload: any): string {
     switch (provider) {
       case PAYMENT_GATEWAY.PHONEPE:
-        if (payload.code === 'PAYMENT_SUCCESS') return WEBHOOK_EVENT_TYPE.PAYMENT_SUCCESS;
-        if (payload.code === 'PAYMENT_ERROR') return WEBHOOK_EVENT_TYPE.PAYMENT_FAILED;
-        if (payload.code === 'PAYMENT_PENDING') return WEBHOOK_EVENT_TYPE.PAYMENT_PENDING;
+        // Support both V1 (code) and V2 (state/event)
+        const phonePeState = payload.state || payload.code || payload.payload?.state;
+        const phonePeEvent = payload.event;
+
+        if (phonePeState === 'COMPLETED' || phonePeState === 'SUCCESS' || phonePeEvent === 'checkout.order.completed') 
+          return WEBHOOK_EVENT_TYPE.PAYMENT_SUCCESS;
+        if (phonePeState === 'FAILED' || phonePeState === 'PAYMENT_ERROR' || phonePeEvent === 'checkout.order.failed') 
+          return WEBHOOK_EVENT_TYPE.PAYMENT_FAILED;
+        if (phonePeState === 'PENDING' || phonePeState === 'PAYMENT_PENDING') 
+          return WEBHOOK_EVENT_TYPE.PAYMENT_PENDING;
         break;
 
       case PAYMENT_GATEWAY.RAZORPAY:
@@ -161,7 +168,11 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
 
       switch (provider) {
         case PAYMENT_GATEWAY.PHONEPE:
-          paymentIdentifier = payload.data?.merchantTransactionId || payload.transactionId;
+          // V2 uses merchantOrderId, V1 uses merchantTransactionId
+          paymentIdentifier = payload.payload?.merchantOrderId || 
+                              payload.merchantOrderId || 
+                              payload.data?.merchantTransactionId || 
+                              payload.transactionId;
           break;
         case PAYMENT_GATEWAY.RAZORPAY:
           paymentIdentifier = payload.payload?.payment?.entity?.order_id;

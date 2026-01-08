@@ -22,9 +22,9 @@ export const seedPaymentGateways = async () => {
         displayName: 'PhonePe',
         priority: 1,
         credentials: {
-          merchantId: ENV_VARIABLE.PHONEPE_MERCHANT_ID || '',
-          saltKey: ENV_VARIABLE.PHONEPE_SALT_KEY || '',
-          saltIndex: Number(ENV_VARIABLE.PHONEPE_SALT_INDEX || 1)
+          clientId: ENV_VARIABLE.PHONEPE_CLIENT_ID || '',
+          clientSecret: ENV_VARIABLE.PHONEPE_CLIENT_SECRET || '',
+          clientVersion: ENV_VARIABLE.PHONEPE_CLIENT_VERSION || '1'
         },
         webhookSecret: ENV_VARIABLE.PHONEPE_WEBHOOK_SECRET || ''
       },
