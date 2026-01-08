@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { OrderService } from '../services/concrete/orderService';
+import { PaymentService } from '../services/concrete/PaymentService';
+import { PaymentModel } from '../db/mongodb/models/paymentModel';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
@@ -207,6 +209,38 @@ export default class OrderController {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Logistics update simulated successfully',
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  syncPaymentStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const order = await this.orderService.findById(id);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // Find relevant payment
+      // For now, syncing the latest payment or payment tied to the order
+      const payment = await PaymentModel.findOne({ orderId: id }).sort({ createdAt: -1 });
+      
+      if (!payment) {
+        throw new Error('No payment record found for this order');
+      }
+
+      const paymentService = new PaymentService();
+      const status = await paymentService.fetchPaymentStatus(payment._id.toString());
+
+      const response: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Payment status synced successfully',
+        data: status
       };
 
       return res.status(response.status).json(response);

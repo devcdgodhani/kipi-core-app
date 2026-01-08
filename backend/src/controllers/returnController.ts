@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { returnService } from '../services/concrete/returnService';
+import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
+import { PaymentRefundModel } from '../db/mongodb/models/paymentRefundModel';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
@@ -143,6 +145,37 @@ export default class ReturnController {
                 status: HTTP_STATUS_CODE.OK.STATUS,
                 code: HTTP_STATUS_CODE.OK.CODE,
                 message: 'Return record(s) deleted successfully',
+            };
+
+            return res.status(response.status).json(response);
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    syncRefundStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            const ret = await returnService.findById(id);
+            if (!ret) {
+                throw new Error('Return record not found');
+            }
+
+            // Find latest refund for this order/payment
+            const refund = await PaymentRefundModel.findOne({ orderId: ret.orderId?._id || ret.orderId }).sort({ createdAt: -1 });
+
+            if (!refund) {
+                throw new Error('No refund record found for this return');
+            }
+
+            const refundService = new PaymentRefundService();
+            const status = await refundService.fetchRefundStatus(refund._id.toString());
+
+            const response: IApiResponse = {
+                status: HTTP_STATUS_CODE.OK.STATUS,
+                code: HTTP_STATUS_CODE.OK.CODE,
+                message: 'Refund status synced successfully',
+                data: status
             };
 
             return res.status(response.status).json(response);

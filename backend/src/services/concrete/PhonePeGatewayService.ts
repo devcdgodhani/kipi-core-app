@@ -143,6 +143,40 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
   }
 
   /**
+   * Fetches current refund status from PhonePe V2
+   */
+  async fetchRefundStatus(refundId: string): Promise<any> {
+    try {
+      const accessToken = await this.getAuthToken();
+
+      const response = await axios.get(
+        `${this.baseUrl}/payments/v2/refund/${refundId}/status`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `O-Bearer ${accessToken}`
+          }
+        }
+      );
+
+      return {
+        success: true,
+        status: response.data?.state === 'COMPLETED' ? 'SUCCESS' : 
+                response.data?.state === 'FAILED' ? 'FAILED' : 'PENDING',
+        gatewayRefundId: refundId,
+        metadata: response.data
+      };
+    } catch (error: any) {
+      console.error('PhonePe fetchRefundStatus error:', error.response?.data || error.message);
+      return {
+        success: false,
+        status: 'FAILED',
+        error: error.response?.data?.message || error.message || 'Refund status fetch failed'
+      };
+    }
+  }
+
+  /**
    * Verifies payment status from PhonePe V2
    */
   async verifyPayment(data: any): Promise<PaymentVerifyResponse> {

@@ -161,46 +161,58 @@ export class PaymentService implements IPaymentServiceContract {
     // Verify payment with gateway
     const verifyResponse = await gatewayService.verifyPayment(gatewayData);
 
-    // Update payment status
-    const updateData: Partial<IPaymentAttributes> = {
-      webhookReceivedAt: new Date(),
+    const status = verifyResponse.success ? PAYMENT_STATUS.SUCCESS : PAYMENT_STATUS.FAILED;
+    await this.updatePaymentStatus(paymentId, status, verifyResponse.metadata);
+
+    return (await PaymentModel.findById(paymentId).lean()) as IPaymentAttributes;
+  }
+
+  /**
+   * Update payment status and linked order
+   */
+  async updatePaymentStatus(
+    paymentId: string,
+    status: PAYMENT_STATUS,
+    gatewayResponse?: any
+  ): Promise<void> {
+    const payment = await PaymentModel.findById(paymentId);
+    if (!payment) return;
+
+    const updateData: any = {
+      status,
       webhookProcessedAt: new Date()
     };
 
-    if (verifyResponse.success) {
-      updateData.status = PAYMENT_STATUS.SUCCESS;
+    if (gatewayResponse) {
       updateData.metadata = {
         ...payment.metadata,
-        paymentMethod: verifyResponse.paymentMethod,
-        gatewayResponse: verifyResponse.metadata
-      };
-
-      // Update order payment status
-      await OrderModel.updateOne(
-        { _id: payment.orderId },
-        { 
-          $set: { 
-            paymentStatus: 'COMPLETED', 
-            orderStatus: payment.status === PAYMENT_STATUS.INITIATED || payment.status === PAYMENT_STATUS.PENDING 
-              ? 'CONFIRMED' 
-              : undefined // Don't overwrite if it's already more advanced
-          } 
-        }
-      );
-    } else {
-      updateData.status = PAYMENT_STATUS.FAILED;
-      updateData.metadata = {
-        ...payment.metadata,
-        gatewayResponse: {
-          error: verifyResponse.error,
-          errorCode: verifyResponse.errorCode
-        }
+        gatewayResponse
       };
     }
 
     await PaymentModel.updateOne({ _id: paymentId }, { $set: updateData });
 
-    return (await PaymentModel.findById(paymentId).lean()) as IPaymentAttributes;
+    // Update Linked Order
+    const orderStatusUpdate: any = {};
+    if (status === PAYMENT_STATUS.SUCCESS) {
+      orderStatusUpdate.paymentStatus = 'COMPLETED';
+      // Auto confirm if currently pending
+      const order = await OrderModel.findById(payment.orderId);
+      if (order && order.orderStatus === 'PENDING') {
+        orderStatusUpdate.orderStatus = 'CONFIRMED';
+      }
+    } else if (status === PAYMENT_STATUS.FAILED) {
+      orderStatusUpdate.paymentStatus = 'FAILED';
+      // Auto cancel if payment failed
+      orderStatusUpdate.orderStatus = 'CANCELLED';
+    }
+
+    if (Object.keys(orderStatusUpdate).length > 0) {
+      await OrderModel.updateOne(
+        { _id: payment.orderId },
+        { $set: orderStatusUpdate }
+      );
+    }
   }
 
   /**
@@ -262,6 +274,17 @@ export class PaymentService implements IPaymentServiceContract {
     }
 
     const gatewayService = await this.paymentGatewayService.getGatewayService(payment.gatewayName);
-    return await gatewayService.fetchPaymentStatus(payment.gatewayTransactionId!);
+    const statusResponse = await gatewayService.fetchPaymentStatus(payment.gatewayTransactionId!);
+
+    if (statusResponse.success) {
+      await this.updatePaymentStatus(paymentId, statusResponse.status as PAYMENT_STATUS, statusResponse.metadata);
+    } else {
+      // Status check failed to get a definitive status, but if it's explicitly FAILED from gateway
+      if (statusResponse.status === 'FAILED') {
+        await this.updatePaymentStatus(paymentId, PAYMENT_STATUS.FAILED, statusResponse.metadata);
+      }
+    }
+
+    return statusResponse;
   }
 }

@@ -38,5 +38,11 @@ export const orderService = {
   simulateLogistics: async (id: string) => {
     const response: any = await http.post(`${ORDER_BASE_URL}/simulate-logistics/${id}`);
     return response.data;
+  },
+
+  // Sync Payment Status
+  syncPaymentStatus: async (id: string) => {
+    const response: any = await http.get(`${ORDER_BASE_URL}/${id}/sync-payment`);
+    return response.data;
   }
 };

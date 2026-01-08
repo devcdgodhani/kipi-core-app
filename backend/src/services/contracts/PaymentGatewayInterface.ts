@@ -47,6 +47,13 @@ export interface IPaymentGatewayService {
   fetchPaymentStatus(transactionId: string): Promise<PaymentStatusResponse>;
 
   /**
+   * Fetches current refund status from gateway
+   * @param refundId - Gateway refund ID or merchant refund ID
+   * @returns Current refund status
+   */
+  fetchRefundStatus(refundId: string): Promise<RefundStatusResponse>;
+
+  /**
    * Verifies webhook signature from gateway
    * @param payload - Webhook payload
    * @param signature - Signature from webhook headers
@@ -106,6 +113,16 @@ export interface PaymentStatusResponse {
   success: boolean;
   status: 'INITIATED' | 'PENDING' | 'SUCCESS' | 'FAILED';
   gatewayTransactionId?: string;
+  metadata?: Record<string, any>;
+  error?: string;
+}
+/**
+ * Response from refund status check
+ */
+export interface RefundStatusResponse {
+  success: boolean;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  gatewayRefundId?: string;
   metadata?: Record<string, any>;
   error?: string;
 }

@@ -33,6 +33,7 @@ export const OrderDetails: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [syncingPayment, setSyncingPayment] = useState<string | null>(null);
+    const [syncingAll, setSyncingAll] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -83,6 +84,19 @@ export const OrderDetails: React.FC = () => {
         }
     };
 
+    const handleSyncAllPayments = async () => {
+        try {
+            setSyncingAll(true);
+            await orderService.syncPaymentStatus(order!._id);
+            toast.success('Order payment status synchronized');
+            await fetchOrderDetails();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Synchronization failed');
+        } finally {
+            setSyncingAll(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -108,6 +122,15 @@ export const OrderDetails: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-2">
+                        <Button
+                            onClick={handleSyncAllPayments}
+                            disabled={syncingAll}
+                            variant="ghost"
+                            className="h-10 px-4 rounded-xl border-emerald-100 text-emerald-600 hover:bg-emerald-50 text-[10px] uppercase tracking-widest font-black"
+                        >
+                            <RefreshCw size={14} className={`mr-2 ${syncingAll ? 'animate-spin' : ''}`} />
+                            Sync Status
+                        </Button>
                         <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest">
                             ID: {order.orderNumber}
                         </span>

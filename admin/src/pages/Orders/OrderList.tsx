@@ -207,6 +207,24 @@ const ManageOrders: React.FC = () => {
                         <div className="h-6 w-px bg-gray-100 mx-1" />
 
                         <button
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                    toast.loading('Syncing...', { id: `sync-${order._id}` });
+                                    await orderService.syncPaymentStatus(order._id);
+                                    toast.success('Synced', { id: `sync-${order._id}` });
+                                    fetchOrders();
+                                } catch (err: any) {
+                                    toast.error('Sync failed', { id: `sync-${order._id}` });
+                                }
+                            }}
+                            className="p-3 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:shadow-md rounded-2xl transition-all border border-emerald-100/50 group active:scale-90"
+                            title="Sync Status"
+                        >
+                            <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                        </button>
+
+                        <button
                             onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order._id}`); }}
                             className="p-3 text-gray-400 hover:text-primary hover:bg-white hover:border-primary/10 hover:shadow-md rounded-2xl transition-all border border-transparent group active:scale-90 bg-gray-50/50"
                             title="Intelligence View"

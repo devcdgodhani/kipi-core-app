@@ -114,7 +114,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
           }
         );
         throw new Error(refundResponse.error || 'Refund initiation failed');
-      }
+       }
     } catch (error: any) {
       // Mark refund as failed
       await PaymentRefundModel.updateOne(
@@ -166,7 +166,6 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
       // 1. Update Payment status
       const payment = await PaymentModel.findById(refund.paymentId);
       if (payment) {
-        // Note: Amount should have been incremented in initiateRefund, but let's ensure status is current
         const newStatus = payment.refundedAmount >= payment.amount 
           ? PAYMENT_STATUS.REFUNDED 
           : PAYMENT_STATUS.PARTIAL_REFUND;
@@ -186,16 +185,33 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
       // 3. Update Return status if applicable
       await ReturnModel.findOneAndUpdate(
         { 
-          orderId: refund.orderId, 
-          $or: [
-            { totalRefundAmount: refund.amount },
-            { status: { $ne: 'COMPLETED' } }
-          ]
+          orderId: refund.orderId,
+          refundStatus: { $ne: 'PROCESSED' }
         },
         { 
           $set: { 
             refundStatus: 'PROCESSED',
             refundTransactionId: refund.gatewayRefundId || refund.refundNumber
+          } 
+        }
+      );
+    } else if (status === REFUND_STATUS.FAILED) {
+      // 1. Update Order payment status
+      await OrderModel.updateOne(
+        { _id: refund.orderId },
+        { $set: { paymentStatus: 'FAILED' } }
+      );
+
+      // 2. Update Return status if applicable
+      await ReturnModel.findOneAndUpdate(
+        { 
+          orderId: refund.orderId,
+          refundStatus: { $ne: 'PROCESSED' }
+        },
+        { 
+          $set: { 
+            refundStatus: 'FAILED',
+            status: 'REJECTED' // "should be failed automatically"
           } 
         }
       );
@@ -243,5 +259,29 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
       .limit(limit)
       .skip(skip)
       .lean();
+  }
+
+  /**
+   * Fetch refund status from gateway
+   */
+  async fetchRefundStatus(refundId: string): Promise<any> {
+    const refund = await PaymentRefundModel.findById(refundId);
+    if (!refund) {
+      throw new Error('Refund not found');
+    }
+
+    const payment = await PaymentModel.findById(refund.paymentId);
+    if (!payment) {
+      throw new Error(PAYMENT_ERROR_MESSAGES.PAYMENT_NOT_FOUND);
+    }
+
+    const gatewayService = await this.paymentGatewayService.getGatewayService(payment.gatewayName);
+    const refundStatus = await gatewayService.fetchRefundStatus(refund.gatewayRefundId || refund.refundNumber);
+
+    if (refundStatus.success) {
+      await this.updateRefundStatus(refundId, refundStatus.status as REFUND_STATUS, refundStatus.metadata);
+    }
+
+    return refundStatus;
   }
 }

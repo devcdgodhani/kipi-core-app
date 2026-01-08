@@ -26,6 +26,7 @@ router.patch('/:id/status', returnController.updateStatus);
 router.post('/:id/cancel', returnController.cancel);
 
 router.delete('/deleteByFilter', returnController.deleteByFilter);
+router.get('/:id/sync-refund', returnController.syncRefundStatus);
 router.get('/:id', returnController.getOne); // Alias for convenience
 
 export default router;
