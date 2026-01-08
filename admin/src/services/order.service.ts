@@ -50,5 +50,11 @@ export const orderService = {
   getPayments: async (id: string) => {
     const response: any = await http.get(`${ORDER_BASE_URL}/${id}/payments`);
     return response.data;
+  },
+
+  // Get refunds for an order
+  getRefunds: async (id: string) => {
+    const response: any = await http.get(`${ORDER_BASE_URL}/${id}/refunds`);
+    return response.data;
   }
 };
