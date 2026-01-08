@@ -23,6 +23,7 @@ export const ROUTES = {
     LOYALTY: '/loyalty',
     PAYMENT: {
         CHECKOUT: '/payment/checkout/:orderId',
+        CALLBACK: '/payment/callback',
         HISTORY: '/payment/history',
         REFUNDS: '/payment/refunds',
     },

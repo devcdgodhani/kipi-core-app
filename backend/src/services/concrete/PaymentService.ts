@@ -87,7 +87,7 @@ export class PaymentService implements IPaymentServiceContract {
     const gatewayResponse = await gatewayService.createPayment(
       order as IOrder,
       order.totalAmount,
-      callbackUrl
+      { callbackUrl }
     );
 
     if (!gatewayResponse.success) {

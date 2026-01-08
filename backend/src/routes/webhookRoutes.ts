@@ -9,4 +9,19 @@ router.post(
   webhookController.handleShiprocketWebhook
 );
 
+router.post(
+  '/razorpay',
+  webhookController.handleRazorpayWebhook
+);
+
+router.post(
+  '/phonepe',
+  webhookController.handlePhonePeWebhook
+);
+
+router.post(
+  '/paytm',
+  webhookController.handlePaytmWebhook
+);
+
 export default router;
