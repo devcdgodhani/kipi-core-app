@@ -9,21 +9,22 @@ import {
     AlertTriangle,
     CheckCircle2,
     Clock,
-    ChevronDown,
-    ChevronUp
+    ChevronRight,
 } from 'lucide-react';
 import { paymentService } from '../../services/paymentService';
-import type { WebhookLog, WebhookLogFilters } from '../../types/payment';
+import type { WebhookLog } from '../../types/payment';
 import toast from 'react-hot-toast';
 import { Table, type Column } from '../../components/common/Table';
 import { CommonFilter, type FilterField } from '../../components/common/CommonFilter';
 import { PopupModal } from '../../components/common/PopupModal';
+import { Modal } from '../../components/common/Modal';
+import Button from '../../components/common/Button';
 
 const WebhookLogList: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [logs, setLogs] = useState<WebhookLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const [selectedLog, setSelectedLog] = useState<WebhookLog | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [pagination, setPagination] = useState({
         totalRecords: 0,
@@ -54,22 +55,21 @@ const WebhookLogList: React.FC = () => {
     const fetchLogs = useCallback(async () => {
         try {
             setLoading(true);
-            const filters: WebhookLogFilters = {};
-            if (provider) filters.provider = provider;
-            if (status) filters.status = status;
-            if (eventType) filters.eventType = eventType;
+            const filters = {
+                provider,
+                status,
+                eventType,
+                limit,
+                page
+            };
 
-            const data = await paymentService.getWebhookLogs(filters);
+            const response = await paymentService.getWebhookLogs(filters);
+            const paginationData = response.data;
 
-            // Client-side pagination
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            const paginatedData = data.slice(startIndex, endIndex);
-
-            setLogs(paginatedData);
+            setLogs(paginationData?.recordList || []);
             setPagination({
-                totalRecords: data.length,
-                totalPages: Math.ceil(data.length / limit),
+                totalRecords: paginationData?.totalRecords || 0,
+                totalPages: paginationData?.totalPages || 0,
                 currentPage: page
             });
         } catch (error: any) {
@@ -159,9 +159,9 @@ const WebhookLogList: React.FC = () => {
             label: 'Provider',
             type: 'select',
             options: [
-                { label: 'PhonePe', value: 'PHONEPE' },
-                { label: 'Razorpay', value: 'RAZORPAY' },
-                { label: 'Paytm', value: 'PAYTM' }
+                { label: 'PhonePe', value: 'phonepe' },
+                { label: 'Razorpay', value: 'razorpay' },
+                { label: 'Paytm', value: 'paytm' }
             ]
         },
         {
@@ -264,18 +264,14 @@ const WebhookLogList: React.FC = () => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            setExpandedRow(expandedRow === log._id ? null : log._id);
+                            setSelectedLog(log);
                         }}
                         className="p-3 text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
                         title="View Details"
                     >
-                        {expandedRow === log._id ? (
-                            <ChevronUp size={18} className="group-hover:scale-110 transition-transform" />
-                        ) : (
-                            <ChevronDown size={18} className="group-hover:scale-110 transition-transform" />
-                        )}
+                        <ChevronRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                     </button>
-                    {log.status === 'FAILED' && (
+                    {log.status !== 'SUCCESS' && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -413,26 +409,134 @@ const WebhookLogList: React.FC = () => {
                     } : undefined}
                 />
 
-                {/* Expanded Row Details */}
-                {expandedRow && logs.find(log => log._id === expandedRow) && (
-                    <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-200/50 p-6 space-y-4">
-                        <h3 className="text-sm font-black text-gray-700 uppercase tracking-wide">Webhook Details</h3>
-                        <div>
-                            <h4 className="text-xs font-black text-gray-600 mb-2 uppercase tracking-wide">Payload</h4>
-                            <pre className="bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-x-auto text-xs font-mono">
-                                {JSON.stringify(logs.find(log => log._id === expandedRow)?.payload, null, 2)}
-                            </pre>
-                        </div>
-                        {logs.find(log => log._id === expandedRow)?.error && (
-                            <div>
-                                <h4 className="text-xs font-black text-rose-700 mb-2 uppercase tracking-wide">Error</h4>
-                                <pre className="bg-rose-50 p-4 rounded-xl border border-rose-200 overflow-x-auto text-xs text-rose-800 font-mono">
-                                    {logs.find(log => log._id === expandedRow)?.error}
-                                </pre>
+                {/* Webhook Details Modal */}
+                <Modal
+                    isOpen={!!selectedLog}
+                    onClose={() => setSelectedLog(null)}
+                    title="Webhook Event Insights"
+                    maxWidth="max-w-4xl"
+                >
+                    {selectedLog && (
+                        <div className="space-y-8">
+                            {/* Summary Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Event Type</span>
+                                    <span className="text-sm font-black text-gray-900 break-all">{selectedLog.eventType}</span>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Provider</span>
+                                    <span className="text-sm font-black text-primary uppercase">{selectedLog.provider}</span>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Status</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(selectedLog.status)}`}>
+                                        {selectedLog.status}
+                                    </span>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Payload Section */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <div className="w-1.5 h-4 bg-primary rounded-full"></div>
+                                        <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest">Transaction Payload</h4>
+                                    </div>
+                                    <div className="relative group">
+                                        <div className="absolute top-4 right-4 z-10">
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(JSON.stringify(selectedLog.payload, null, 2));
+                                                    toast.success('Payload copied to clipboard');
+                                                }}
+                                                className="bg-white/80 backdrop-blur px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm text-[10px] font-black text-gray-500 hover:text-primary transition-colors uppercase tracking-widest"
+                                            >
+                                                Copy JSON
+                                            </button>
+                                        </div>
+                                        <pre className="bg-gray-900 text-gray-300 p-6 rounded-[1.5rem] border border-gray-800 overflow-x-auto text-[11px] font-mono leading-relaxed h-[400px] shadow-inner scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+                                            {JSON.stringify(selectedLog.payload, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+
+                                {/* Response & Error Section */}
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <div className="w-1.5 h-4 bg-amber-500 rounded-full"></div>
+                                            <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest">Processing Headers</h4>
+                                        </div>
+                                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 max-h-[150px] overflow-y-auto">
+                                            <pre className="text-[10px] font-mono text-gray-600 leading-tight">
+                                                {JSON.stringify(selectedLog.headers, null, 2)}
+                                            </pre>
+                                        </div>
+                                    </div>
+
+                                    {selectedLog.error && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 px-1">
+                                                <div className="w-1.5 h-4 bg-rose-500 rounded-full"></div>
+                                                <h4 className="text-xs font-black text-rose-500 uppercase tracking-widest">Failure Diagnostics</h4>
+                                            </div>
+                                            <div className="bg-rose-50 p-5 rounded-2xl border border-rose-100 font-mono text-xs text-rose-800 leading-relaxed shadow-sm">
+                                                <p className="font-black mb-2 uppercase tracking-tight">Root Cause:</p>
+                                                {selectedLog.error}
+                                                {selectedLog.errorStack && (
+                                                    <pre className="mt-4 pt-4 border-t border-rose-200/50 text-[10px] opacity-70 whitespace-pre-wrap max-h-[100px] overflow-y-auto">
+                                                        {selectedLog.errorStack}
+                                                    </pre>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!selectedLog.error && selectedLog.status === 'SUCCESS' && (
+                                        <div className="p-10 flex flex-col items-center justify-center text-center space-y-4 bg-emerald-50/30 rounded-[2rem] border-2 border-dashed border-emerald-100">
+                                            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
+                                                <CheckCircle2 size={32} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-emerald-700 uppercase tracking-widest">Integrity Verified</p>
+                                                <p className="text-[10px] font-bold text-emerald-600/70 mt-1 italic uppercase tracking-[0.1em]">Event processed successfully with zero discrepancies</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Event ID</span>
+                                    <span className="text-xs font-bold text-gray-500 font-mono tracking-tighter">{selectedLog.eventId}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setSelectedLog(null)}
+                                        className="h-12 rounded-xl text-gray-500 font-black uppercase text-[10px] tracking-widest"
+                                    >
+                                        Dismiss
+                                    </Button>
+                                    {selectedLog.status !== 'SUCCESS' && (
+                                        <Button
+                                            onClick={() => {
+                                                handleRetry(selectedLog._id);
+                                                setSelectedLog(null);
+                                            }}
+                                            className="h-12 rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20 font-black uppercase text-[10px] tracking-widest"
+                                        >
+                                            <RefreshCw size={14} className="mr-2" />
+                                            Re-process Event
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Modal>
             </div>
 
             <PopupModal

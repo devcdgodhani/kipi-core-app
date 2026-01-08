@@ -21,7 +21,7 @@ router.put('/payment-gateways/:name', validators.updateGateway, gatewayControlle
 router.patch('/payment-gateways/:name/toggle', validators.toggleGateway, gatewayController.toggleGateway);
 
 // Webhook logs management
-router.get('/webhooks/logs', validators.getWebhookLogs, webhookController.getWebhookLogs);
+router.get('/webhooks/logs', validators.getWebhookLogs, webhookController.getWithPagination);
 router.post('/webhooks/:id/retry', validators.retryWebhook, webhookController.retryWebhook);
 
 // Payment status management

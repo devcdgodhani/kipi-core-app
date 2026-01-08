@@ -158,25 +158,21 @@ export class WebhookController {
   /**
    * Get webhook logs (Admin)
    */
-  getWebhookLogs = async (req: Request, res: Response, next: NextFunction) => {
+  getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { provider, status, eventType, limit = 50, skip = 0 } = req.query;
+      const reqData = { ...req.query, ...req.body };
       const handlerService = new WebhookHandlerService();
+      
+      const { filter, options } = handlerService.generateFilter({
+        filters: reqData,
+      });
 
-      const logs = await handlerService.getWebhookLogs(
-        {
-          provider: provider as string,
-          status: status as string,
-          eventType: eventType as string
-        },
-        Number(limit),
-        Number(skip)
-      );
+      const logs = await handlerService.findAllWithPagination(filter, options);
 
       return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Webhook logs fetched successfully',
+        message: 'Webhook logs fetched successfully (paginated)',
         data: logs
       });
     } catch (err: any) {

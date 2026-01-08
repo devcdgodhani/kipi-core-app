@@ -19,17 +19,4 @@ export interface IWebhookHandlerServiceContract {
    * Retry failed webhook
    */
   retryWebhook(webhookLogId: string): Promise<{ success: boolean; message: string }>;
-
-  /**
-   * Get webhook logs
-   */
-  getWebhookLogs(
-    filters: {
-      provider?: string;
-      status?: string;
-      eventType?: string;
-    },
-    limit?: number,
-    skip?: number
-  ): Promise<any[]>;
 }

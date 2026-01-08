@@ -4,7 +4,6 @@ import type {
   PaymentGatewayName,
   UpdateGatewayPayload,
   CreateGatewayPayload,
-  WebhookLog,
   WebhookLogFilters,
 } from '../types/payment';
 
@@ -39,9 +38,9 @@ export const paymentService = {
   },
 
   // Get webhook logs
-  getWebhookLogs: async (filters?: WebhookLogFilters): Promise<WebhookLog[]> => {
+  getWebhookLogs: async (filters?: WebhookLogFilters & { limit?: number; page?: number }): Promise<any> => {
     const response: any = await http.get(`${BASE_URL}/webhooks/logs`, { params: filters });
-    return response.data;
+    return response;
   },
 
   // Retry failed webhook
