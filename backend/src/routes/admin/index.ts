@@ -1,7 +1,4 @@
 import { Router } from 'express';
-
-const router = Router();
-
 import authRoute from '../common/authRoute';
 import userRoutes from './userRoutes';
 import whatsAppRoutes from './whatsAppRoutes';
@@ -25,12 +22,14 @@ import stockLedgerRoutes from './stockLedgerRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
 import { analyticsRoutes } from './analyticsRoutes';
 import couponRoutes from './couponRoutes';
-import courierRoutes from './courierRoutes'; // NEW: Courier Routes
+import courierRoutes from './courierRoutes';
 import warehouseRoutes from './warehouseRoutes';
 import cronJobRoutes from './cronJobRoutes';
 import ndrRoutes from './ndrRoutes';
-
 import { jwtAuth } from '../../middlewares';
+import paymentRoutes from './paymentAdminRoutes';
+
+const router = Router();
 
 router.use('/auth', authRoute);
 router.use('/user',jwtAuth(), userRoutes);
@@ -59,8 +58,6 @@ router.use('/warehouse', jwtAuth(), warehouseRoutes);
 router.use('/ndr', jwtAuth(), ndrRoutes);
 router.use('/cron-job', jwtAuth(), cronJobRoutes); // Cron Job Management
 router.use('/analytics', jwtAuth(), analyticsRoutes);
-
-import paymentRoutes from './paymentAdminRoutes';
 
 router.use('/', paymentRoutes);
 

@@ -6,6 +6,7 @@ import { logisticsQueues } from '../jobs/queues/logisticsQueues';
 import { paymentQueues } from '../jobs/queues/paymentQueues';
 import { JOB_NAMES } from '../jobs/types';
 import { PAYMENT_GATEWAY } from '../constants/payment';
+import { WebhookHandlerService } from '../services/concrete/WebhookHandlerService';
 
 export class WebhookController {
   
@@ -53,7 +54,6 @@ export class WebhookController {
   handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const signature = req.headers['x-razorpay-signature'] as string;
-      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
       const handlerService = new WebhookHandlerService();
 
       const { isValid, logId } = await handlerService.validateAndLog(
@@ -87,7 +87,6 @@ export class WebhookController {
   handlePhonePeWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const signature = (req.headers['x-verify'] || req.headers['authorization']) as string;
-      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
       const handlerService = new WebhookHandlerService();
 
       let payload = req.body;
@@ -126,7 +125,6 @@ export class WebhookController {
    */
   handlePaytmWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
       const handlerService = new WebhookHandlerService();
 
       const payload = req.body;
@@ -163,7 +161,6 @@ export class WebhookController {
   getWebhookLogs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { provider, status, eventType, limit = 50, skip = 0 } = req.query;
-      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
       const handlerService = new WebhookHandlerService();
 
       const logs = await handlerService.getWebhookLogs(
@@ -193,7 +190,6 @@ export class WebhookController {
   retryWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const { WebhookHandlerService } = await import('../services/concrete/WebhookHandlerService');
       const handlerService = new WebhookHandlerService();
 
       const result = await handlerService.retryWebhook(id);

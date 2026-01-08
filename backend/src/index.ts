@@ -3,6 +3,9 @@ import app from './server';
 import { ENV_VARIABLE } from './configs';
 import { connectMongoDb } from './db/mongodb';
 import { initWorkers } from './jobs';
+import { WhatsAppService } from './services/concrete/whatsAppService';
+import { cronJobService } from './services/concrete/cronJobService';
+import { PaymentGatewayService } from './services/concrete/PaymentGatewayService';
 
 const server = createServer(app);
 
@@ -26,16 +29,13 @@ export const assertDatabaseConnection = async (): Promise<void> => {
     console.log('MongoDB database connection has been established successfully.');
     
     /***** WhatsApp Initializations *****/
-    const { WhatsAppService } = await import('./services/concrete/whatsAppService');
     const whatsAppService = new WhatsAppService();
     await whatsAppService.initializeAllSessions();
 
     /***** Cron Job Initializations *****/
-    const { cronJobService } = await import('./services/concrete/cronJobService');
     await cronJobService.init();
 
     /***** Payment Gateway Seeding *****/
-    const { PaymentGatewayService } = await import('./services/concrete/PaymentGatewayService');
     const paymentGatewayService = new PaymentGatewayService();
     await paymentGatewayService.seedGateways();
 
