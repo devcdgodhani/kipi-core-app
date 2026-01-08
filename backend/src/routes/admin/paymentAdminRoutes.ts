@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import PaymentGatewayController from '../../controllers/paymentGatewayController';
-import PaymentWebhookController from '../../controllers/paymentWebhookController';
+import { WebhookController } from '../../controllers/webhookController';
 import PaymentController from '../../controllers/paymentController';
 import AdminPaymentValidators from '../../validators/adminPaymentValidators';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
 const gatewayController = new PaymentGatewayController();
-const webhookController = new PaymentWebhookController();
+const webhookController = new WebhookController();
 const paymentController = new PaymentController();
 const validators = new AdminPaymentValidators();
 

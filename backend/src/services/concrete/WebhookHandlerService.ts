@@ -66,52 +66,90 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
   }
 
   /**
-   * Process webhook from payment gateway
+   * Validates and logs initial webhook reception
    */
-  async processWebhook(
+  async validateAndLog(
     provider: PAYMENT_GATEWAY,
     payload: any,
     headers: Record<string, string>,
     signature: string
-  ): Promise<{ success: boolean; message: string }> {
-    const startTime = Date.now();
+  ): Promise<{ isValid: boolean; logId?: string }> {
     const eventId = this.generateEventId(provider, payload);
 
     try {
-      // Check for duplicate webhook
-      const existingLog = await WebhookLogModel.findOne({ eventId });
-      if (existingLog) {
-        return { success: true, message: 'Webhook already processed' };
+      // 1. Verify webhook signature
+      const isValid = await this.gatewayService.verifyWebhook(provider, payload, signature);
+      if (!isValid) {
+        return { isValid: false };
       }
 
-      // Create webhook log
+      // 2. Check for duplicate webhook
+      const existingLog = await WebhookLogModel.findOne({ eventId });
+      if (existingLog) {
+        return { isValid: true, logId: existingLog._id.toString() };
+      }
+
+      // 3. Create initial webhook log
       const webhookLog = await WebhookLogModel.create({
         eventId,
         provider,
         eventType: this.determineEventType(provider, payload),
         payload,
         headers,
-        status: 'PROCESSING',
+        status: 'PENDING',
         retryCount: 0
       });
 
-      // Verify webhook signature
-      const isValid = await this.gatewayService.verifyWebhook(provider, payload, signature);
-      if (!isValid) {
-        await WebhookLogModel.updateOne(
-          { _id: webhookLog._id },
-          {
-            $set: {
-              status: 'FAILED',
-              error: 'Invalid webhook signature',
-              processingTime: Date.now() - startTime
-            }
-          }
-        );
-        return { success: false, message: 'Invalid webhook signature' };
+      return { isValid: true, logId: webhookLog._id.toString() };
+    } catch (error) {
+      console.error('Webhook validateAndLog error:', error);
+      return { isValid: false };
+    }
+  }
+
+  /**
+   * Process webhook from payment gateway (Main entry point for workers)
+   */
+  async processWebhook(
+    provider: PAYMENT_GATEWAY,
+    payload: any,
+    headers: Record<string, string>,
+    signature?: string // Optional if already validated
+  ): Promise<{ success: boolean; message: string }> {
+    const startTime = Date.now();
+    const eventId = this.generateEventId(provider, payload);
+
+    try {
+      // Find existing log or create one
+      let webhookLog = await WebhookLogModel.findOne({ eventId });
+      
+      if (!webhookLog) {
+        webhookLog = await WebhookLogModel.create({
+          eventId,
+          provider,
+          eventType: this.determineEventType(provider, payload),
+          payload,
+          headers,
+          status: 'PROCESSING',
+          retryCount: 0
+        });
+      } else {
+        await WebhookLogModel.updateOne({ _id: webhookLog._id }, { $set: { status: 'PROCESSING' } });
       }
 
-      // Process webhook based on event type
+      // Verify signature if provided (and not already proven valid)
+      if (signature) {
+        const isValid = await this.gatewayService.verifyWebhook(provider, payload, signature);
+        if (!isValid) {
+           await WebhookLogModel.updateOne(
+            { _id: webhookLog._id },
+            { $set: { status: 'FAILED', error: 'Invalid signature', processingTime: Date.now() - startTime } }
+          );
+          return { success: false, message: 'Invalid signature' };
+        }
+      }
+
+      // Process business logic based on event type
       const eventType = this.determineEventType(provider, payload);
       let result;
 
@@ -123,7 +161,7 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
         result = { success: false, message: 'Unknown event type' };
       }
 
-      // Update webhook log
+      // Update final log status
       await WebhookLogModel.updateOne(
         { _id: webhookLog._id },
         {
@@ -138,7 +176,7 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
 
       return result;
     } catch (error: any) {
-      // Log error
+      console.error('Webhook processing error:', error);
       await WebhookLogModel.updateOne(
         { eventId },
         {
@@ -150,7 +188,6 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
           }
         }
       );
-
       return { success: false, message: error.message };
     }
   }
