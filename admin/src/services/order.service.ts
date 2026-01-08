@@ -44,5 +44,11 @@ export const orderService = {
   syncPaymentStatus: async (id: string) => {
     const response: any = await http.get(`${ORDER_BASE_URL}/${id}/sync-payment`);
     return response.data;
+  },
+  
+  // Get payments for an order
+  getPayments: async (id: string) => {
+    const response: any = await http.get(`${ORDER_BASE_URL}/${id}/payments`);
+    return response.data;
   }
 };

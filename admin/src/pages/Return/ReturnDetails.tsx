@@ -24,6 +24,7 @@ import { returnService } from '../../services/returnService';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
+import { orderService } from '../../services/order.service';
 
 export const ReturnDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export const ReturnDetails: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(false);
     const [syncingRefund, setSyncingRefund] = useState(false);
+    const [payments, setPayments] = useState<any[]>([]);
     const [adminNotes, setAdminNotes] = useState('');
 
     useEffect(() => {
@@ -48,15 +50,32 @@ export const ReturnDetails: React.FC = () => {
             if (response && response.data) {
                 setRet(response.data);
                 setAdminNotes(response.data.adminNotes || '');
+                // Fetch payments for the order
+                if (response.data.orderId?._id) {
+                    fetchPayments(response.data.orderId._id);
+                }
             } else if (response) {
-                setRet(response as any);
-                setAdminNotes((response as any).adminNotes || '');
+                const returnData = response as any;
+                setRet(returnData);
+                setAdminNotes(returnData.adminNotes || '');
+                if (returnData.orderId?._id) {
+                    fetchPayments(returnData.orderId._id);
+                }
             }
         } catch (err) {
             console.error('Failed to fetch return details', err);
             toast.error('Failed to load metadata');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPayments = async (orderId: string) => {
+        try {
+            const data = await orderService.getPayments(orderId);
+            setPayments(data || []);
+        } catch (err) {
+            console.error('Failed to fetch payments', err);
         }
     };
 
@@ -277,6 +296,42 @@ export const ReturnDetails: React.FC = () => {
                                 <span>Total Refund Amount</span>
                                 <span className="text-xl">₹{ret.totalRefundAmount}</span>
                             </div>
+                        </div>
+                    </div>
+                    {/* Payment Ledger Section */}
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-gray-50">
+                            <div className="flex items-center gap-3">
+                                <CreditCard size={20} className="text-primary" />
+                                <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Payment Ledger</h3>
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{payments.length} Transactions</span>
+                        </div>
+                        <div className="space-y-4">
+                            {payments.length > 0 ? (
+                                payments.map((payment, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${payment.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                                                <IndianRupee size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-gray-900 uppercase">{payment.gatewayName}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase">{payment.internalPaymentId}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-black text-gray-900">₹{payment.amount}</p>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${payment.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                payment.status === 'FAILED' ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                                                    'bg-amber-50 text-amber-500 border-amber-100'
+                                                }`}>{payment.status}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-xs text-gray-400 italic py-4 text-center">No payment history discovered.</div>
+                            )}
                         </div>
                     </div>
 

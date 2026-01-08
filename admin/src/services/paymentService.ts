@@ -13,15 +13,15 @@ const BASE_URL = '';
 export const paymentService = {
   // Get all payment gateways
   getAllGateways: async (): Promise<PaymentGateway[]> => {
-    // Interceptor returns response.data, so we receive the body directly
+    // Interceptor returns response body directly (e.g. { data: [], status: 200 ... })
     const response: any = await http.get(`${BASE_URL}/payment-gateways`);
     return response.data || [];
   },
 
   // Create new gateway
   createGateway: async (payload: CreateGatewayPayload): Promise<PaymentGateway> => {
-    const response = await http.post(`${BASE_URL}/payment-gateways`, payload);
-    return response.data.data;
+    const response: any = await http.post(`${BASE_URL}/payment-gateways`, payload);
+    return response.data;
   },
 
   // Update gateway configuration
@@ -29,8 +29,8 @@ export const paymentService = {
     name: PaymentGatewayName,
     payload: UpdateGatewayPayload
   ): Promise<PaymentGateway> => {
-    const response = await http.put(`${BASE_URL}/payment-gateways/${name}`, payload);
-    return response.data.data;
+    const response: any = await http.put(`${BASE_URL}/payment-gateways/${name}`, payload);
+    return response.data;
   },
 
   // Toggle gateway enabled status
@@ -40,8 +40,8 @@ export const paymentService = {
 
   // Get webhook logs
   getWebhookLogs: async (filters?: WebhookLogFilters): Promise<WebhookLog[]> => {
-    const response = await http.get(`${BASE_URL}/webhooks/logs`, { params: filters });
-    return response.data.data;
+    const response: any = await http.get(`${BASE_URL}/webhooks/logs`, { params: filters });
+    return response.data;
   },
 
   // Retry failed webhook
@@ -58,6 +58,6 @@ export const paymentService = {
   // Get payments for an order
   getPaymentsByOrder: async (orderId: string): Promise<any[]> => {
     const response: any = await http.get(`${BASE_URL}/payments/order/${orderId}`);
-    return response.data.data || [];
+    return response.data || [];
   },
 };
