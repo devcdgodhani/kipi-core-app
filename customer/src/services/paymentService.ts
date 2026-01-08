@@ -46,5 +46,17 @@ export const paymentService = {
   getMyRefunds: async (limit = 10, skip = 0): Promise<Refund[]> => {
     const response = await http.get(`${REFUND_URL}/my`, { params: { limit, skip } });
     return response.data;
+  },
+
+  // Get payments by order
+  getPaymentsByOrder: async (orderId: string): Promise<Payment[]> => {
+    const response = await http.get(`${BASE_URL}/order/${orderId}`);
+    return response.data;
+  },
+
+  // Fetch payment status
+  fetchPaymentStatus: async (paymentId: string): Promise<any> => {
+    const response = await http.get(`${BASE_URL}/${paymentId}/status`);
+    return response.data;
   }
 };

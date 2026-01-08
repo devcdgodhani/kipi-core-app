@@ -108,7 +108,13 @@ export class PaytmGatewayService implements IPaymentGatewayService {
           gatewayTransactionId: gatewayOrderId,
           gatewayOrderId: gatewayOrderId,
           redirectUrl: `${this.baseUrl}/theia/api/v1/showPaymentPage?mid=${this.credentials.merchantId}&orderId=${gatewayOrderId}`,
-          redirectMethod: 'POST'
+          redirectMethod: 'POST',
+          data: {
+            txnToken: response.data.body.txnToken,
+            orderId: gatewayOrderId,
+            amount: amount,
+            mid: this.credentials.merchantId
+          }
         };
       } else {
         return {

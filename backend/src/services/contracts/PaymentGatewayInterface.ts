@@ -71,6 +71,7 @@ export interface PaymentInitResponse {
   currency?: string;
   error?: string;
   errorCode?: string;
+  data?: any;
 }
 
 /**

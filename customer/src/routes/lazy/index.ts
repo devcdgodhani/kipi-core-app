@@ -28,4 +28,5 @@ export const CheckoutPaymentLazy = lazy(() => {
 });
 export const PaymentHistoryLazy = lazy(() => import('../../pages/PaymentHistory').then(module => ({ default: module.PaymentHistory })));
 export const RefundHistoryLazy = lazy(() => import('../../pages/RefundHistory').then(module => ({ default: module.RefundHistory })));
+export const PaymentCallbackLazy = lazy(() => import('../../pages/PaymentCallback'));
 
