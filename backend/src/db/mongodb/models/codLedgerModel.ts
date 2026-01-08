@@ -1,38 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { ICODLedgerDocument } from '../../../interfaces/codLedger';
 
-export interface ICODLedger extends Document {
-  orderId: Types.ObjectId;
-  shipmentId: Types.ObjectId;
-  awb: string;
-  codAmount: number;
-  collectionDate?: Date;
-  status: string;
-  settlementBatchId?: string;
-  settlementDate?: Date;
-  settlementAmount?: number;
-  settlementCharges?: number;
-  netSettlement?: number;
-  courierId: Types.ObjectId;
-  courierName: string;
-  remittanceId?: string;
-  remittanceDate?: Date;
-  remittanceMode?: string;
-  utrNumber?: string;
-  isReconciled: boolean;
-  reconciledDate?: Date;
-  reconciledBy?: Types.ObjectId;
-  discrepancy?: {
-    expectedAmount: number;
-    receivedAmount: number;
-    difference: number;
-    reason?: string;
-  };
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const codLedgerSchema = new Schema<ICODLedger>(
+const codLedgerSchema = new Schema<ICODLedgerDocument>(
   {
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
     shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment', required: true, index: true },
@@ -69,10 +38,10 @@ const codLedgerSchema = new Schema<ICODLedger>(
 );
 
 // Indexes
-codLedgerSchema.index({ orderId: 1 });
-codLedgerSchema.index({ shipmentId: 1 });
+// codLedgerSchema.index({ orderId: 1 }); // Removed as defined in schema
+// codLedgerSchema.index({ shipmentId: 1 }); // Removed as defined in schema
 codLedgerSchema.index({ status: 1, collectionDate: -1 });
 codLedgerSchema.index({ isReconciled: 1, settlementDate: -1 });
 codLedgerSchema.index({ courierId: 1, settlementDate: -1 });
 
-export const CODLedgerModel = model<ICODLedger>('CODLedger', codLedgerSchema);
+export const CODLedgerModel = model<ICODLedgerDocument>('CODLedger', codLedgerSchema);

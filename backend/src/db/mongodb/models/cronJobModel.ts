@@ -1,35 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { ICronJobDocument, ICronJobHistoryDocument, CRON_JOB_STATUS, CRON_JOB_LEVEL } from '../../../interfaces/cronJob';
 
-export enum CRON_JOB_STATUS {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  PAUSED = 'PAUSED'
-}
-
-export enum CRON_JOB_LEVEL {
-  SYSTEM = 'SYSTEM',
-  USER = 'USER'
-}
-
-export interface ICronJob extends Document {
-  name: string;
-  identifier: string; // unique string to map to a function handler
-  description?: string;
-  expression: string; // cron-tab expression
-  status: CRON_JOB_STATUS;
-  level: CRON_JOB_LEVEL;
-  lastRun?: Date;
-  nextRun?: Date;
-  lastResult?: 'SUCCESS' | 'FAILURE';
-  lastError?: string;
-  config?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-  deletedBy?: Types.ObjectId;
-}
-
-const cronJobSchema = new Schema<ICronJob>(
+const cronJobSchema = new Schema<ICronJobDocument>(
   {
     name: { type: String, required: true },
     identifier: { type: String, required: true, unique: true },
@@ -51,20 +23,11 @@ const cronJobSchema = new Schema<ICronJob>(
   }
 );
 
-export const CronJobModel = model<ICronJob>('CronJob', cronJobSchema);
+export const CronJobModel = model<ICronJobDocument>('CronJob', cronJobSchema);
 
 // --- CronJobHistory Model ---
 
-export interface ICronJobHistory extends Document {
-  cronJobId: Types.ObjectId;
-  runAt: Date;
-  durationMs: number;
-  status: 'SUCCESS' | 'FAILURE';
-  error?: string;
-  metadata?: Record<string, any>;
-}
-
-const cronJobHistorySchema = new Schema<ICronJobHistory>(
+const cronJobHistorySchema = new Schema<ICronJobHistoryDocument>(
   {
     cronJobId: { type: Schema.Types.ObjectId, ref: 'CronJob', required: true, index: true },
     runAt: { type: Date, default: Date.now, index: true },
@@ -79,4 +42,4 @@ const cronJobHistorySchema = new Schema<ICronJobHistory>(
   }
 );
 
-export const CronJobHistoryModel = model<ICronJobHistory>('CronJobHistory', cronJobHistorySchema);
+export const CronJobHistoryModel = model<ICronJobHistoryDocument>('CronJobHistory', cronJobHistorySchema);

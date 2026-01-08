@@ -101,6 +101,23 @@ export interface IEnvVariables {
   REDIS_PASSWORD?: string;
   REDIS_DB?: number;
   REDIS_KEY_PREFIX?: string;
+
+  ENCRYPTION_KEY?: string;
+  
+  // Payment Gateway Configs
+  RAZORPAY_KEY_ID?: string;
+  RAZORPAY_KEY_SECRET?: string;
+  RAZORPAY_WEBHOOK_SECRET?: string;
+  
+  PHONEPE_MERCHANT_ID?: string;
+  PHONEPE_SALT_KEY?: string;
+  PHONEPE_SALT_INDEX?: string;
+  PHONEPE_WEBHOOK_SECRET?: string;
+  
+  PAYTM_MERCHANT_ID?: string;
+  PAYTM_MERCHANT_KEY?: string;
+  PAYTM_WEBSITE?: string;
+  PAYTM_WEBHOOK_SECRET?: string;
 }
 
 export interface IEmailOptions {

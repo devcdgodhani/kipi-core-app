@@ -1,32 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IWarehouseDocument } from '../../../interfaces/warehouse';
 
-export interface IWarehouse extends Document {
-  name: string;
-  code: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-    landmark?: string;
-  };
-  contactPerson: string;
-  mobile: string;
-  email: string;
-  isActive: boolean;
-  isPrimary: boolean;
-  operatingHours?: Record<string, any>;
-  serviceablePincodes?: string[];
-  maxCapacity?: number;
-  currentUtilization?: number;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-  deletedBy?: Types.ObjectId;
-}
-
-const warehouseSchema = new Schema<IWarehouse>(
+const warehouseSchema = new Schema<IWarehouseDocument>(
   {
     name: { type: String, required: true },
     code: { type: String, required: true, unique: true, uppercase: true },
@@ -57,8 +32,7 @@ const warehouseSchema = new Schema<IWarehouse>(
 );
 
 // Indexes
-warehouseSchema.index({ code: 1 });
-warehouseSchema.index({ isActive: 1 });
+// Indexes removed redundant code and isActive
 warehouseSchema.index({ 'address.pincode': 1 });
 
-export const WarehouseModel = model<IWarehouse>('Warehouse', warehouseSchema);
+export const WarehouseModel = model<IWarehouseDocument>('Warehouse', warehouseSchema);

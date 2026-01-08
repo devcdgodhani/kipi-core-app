@@ -22,4 +22,10 @@ export const NotFoundLazy = lazy(() => import('../../pages/NotFound'));
 export const ProfileLayoutLazy = lazy(() => import('../../pages/Profile/ProfileLayout'));
 export const ReturnHistoryLazy = lazy(() => import('../../pages/Profile/ReturnHistoryPage'));
 export const LoyaltyPointsLazy = lazy(() => import('../../pages/Profile/LoyaltyPointsPage'));
+export const CheckoutPaymentLazy = lazy(() => {
+    console.log('Lazy loading CheckoutPayment...');
+    return import('../../pages/CheckoutPayment').then(module => ({ default: module.CheckoutPayment }));
+});
+export const PaymentHistoryLazy = lazy(() => import('../../pages/PaymentHistory').then(module => ({ default: module.PaymentHistory })));
+export const RefundHistoryLazy = lazy(() => import('../../pages/RefundHistory').then(module => ({ default: module.RefundHistory })));
 

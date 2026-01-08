@@ -1,11 +1,12 @@
 import * as cron from 'node-cron';
-import { CronJobModel, CronJobHistoryModel, ICronJob, CRON_JOB_STATUS } from '../../db/mongodb/models/cronJobModel';
+import { CronJobModel, CronJobHistoryModel } from '../../db/mongodb/models/cronJobModel';
+import { ICronJobDocument, ICronJobAttributes, CRON_JOB_STATUS } from '../../interfaces/cronJob';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ICronJobService } from '../contracts/cronJobServiceInterface';
 import { pulseService } from './pulseService';
 import { UserModel } from '../../db/mongodb/models/userModel';
 
-export class CronJobService extends MongooseCommonService<ICronJob, ICronJob> implements ICronJobService {
+export class CronJobService extends MongooseCommonService<ICronJobDocument, ICronJobAttributes> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
     private handlers: Map<string, () => Promise<void>> = new Map();
 
@@ -56,7 +57,7 @@ export class CronJobService extends MongooseCommonService<ICronJob, ICronJob> im
         }
     }
 
-    private schedule(job: ICronJob) {
+    private schedule(job: ICronJobAttributes) {
         if (this.scheduledJobs.has(job.identifier)) {
             this.scheduledJobs.get(job.identifier)?.stop();
         }

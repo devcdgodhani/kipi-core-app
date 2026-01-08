@@ -26,7 +26,9 @@ import {
     Settings,
     Building2,
     Award,
-    Cpu
+    Cpu,
+    CreditCard,
+    Webhook
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect } from 'react';
@@ -53,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             setExpandedSections(JSON.parse(saved));
         } else {
             // Default: expand all sections
-            setExpandedSections(['Dashboard', 'Catalog', 'Operations', 'Intelligence', 'Engagement', 'Settings']);
+            setExpandedSections(['Dashboard', 'Catalog', 'Operations', 'Intelligence', 'Engagement', 'Payment', 'Settings']);
         }
     }, []);
 
@@ -127,6 +129,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { to: '/coupons', label: 'Coupons', icon: Ticket },
                 { to: '/loyalty', label: 'Rewards Hub', icon: Coins },
                 { to: '/whatsapp', label: 'WhatsApp', icon: MessageSquare }
+            ]
+        },
+        {
+            title: 'Payment',
+            icon: CreditCard,
+            items: [
+                { to: '/payment-gateways', label: 'Payment Gateways', icon: CreditCard },
+                { to: '/webhook-logs', label: 'Webhook Logs', icon: Webhook }
             ]
         },
         {

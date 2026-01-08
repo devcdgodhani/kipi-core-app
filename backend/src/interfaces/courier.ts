@@ -28,6 +28,8 @@ export interface ICourierAttributes extends IDefaultAttributes {
   maxCODAmount?: number;
   supportEmail?: string;
   supportPhone?: string;
+  slaMin: number;
+  slaMax: number;
 }
 
 export interface ICourierDocument extends Omit<ICourierAttributes, '_id'>, Document {}

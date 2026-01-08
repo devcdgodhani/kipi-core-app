@@ -76,7 +76,10 @@ const OrderSchema = new Schema<IOrderDocument>({
   rtoId: { type: Schema.Types.ObjectId as any, ref: 'RTO' },
   hasNDR: { type: Boolean, default: false },
   ndrCount: { type: Number, default: 0 },
-  warehouseId: { type: Schema.Types.ObjectId as any, ref: 'Warehouse' }
+  warehouseId: { type: Schema.Types.ObjectId as any, ref: 'Warehouse' },
+  
+  // Payment gateway integration
+  paymentId: { type: Schema.Types.ObjectId as any, ref: 'Payment' }
 }, {
   timestamps: true,
   versionKey: false
@@ -89,9 +92,9 @@ OrderSchema.index({ orderStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
 OrderSchema.index({ shipmentId: 1 });
 OrderSchema.index({ awb: 1 });
-OrderSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 OrderSchema.index({ isRTO: 1, createdAt: -1 });
 OrderSchema.index({ warehouseId: 1, orderStatus: 1 });
+OrderSchema.index({ paymentId: 1 });
 
 // Create model
 export const OrderModel = model<IOrderDocument>('Order', OrderSchema);

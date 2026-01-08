@@ -1,33 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IRtoDocument } from '../../../interfaces/rto';
 
-export interface IRTO extends Document {
-  shipmentId: Types.ObjectId;
-  orderId: Types.ObjectId;
-  awb: string;
-  rtoInitiatedDate: Date;
-  rtoDeliveredDate?: Date;
-  rtoReason: string;
-  rtoReasonText: string;
-  status: string;
-  rtoCost?: number;
-  codRecovery?: number;
-  qcStatus: string;
-  qcDate?: Date;
-  qcBy?: Types.ObjectId;
-  qcNotes?: string;
-  qcImages?: string[];
-  restockStatus: string;
-  restockDate?: Date;
-  restockBy?: Types.ObjectId;
-  restockNotes?: string;
-  disposition: string;
-  providerRTOId?: string;
-  providerData?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const rtoSchema = new Schema<IRTO>(
+const rtoSchema = new Schema<IRtoDocument>(
   {
     shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment', required: true, index: true },
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
@@ -59,10 +33,10 @@ const rtoSchema = new Schema<IRTO>(
 );
 
 // Indexes
-rtoSchema.index({ shipmentId: 1 });
-rtoSchema.index({ orderId: 1 });
+// rtoSchema.index({ shipmentId: 1 }); // Removed as defined in schema
+// rtoSchema.index({ orderId: 1 }); // Removed as defined in schema
 rtoSchema.index({ status: 1, rtoInitiatedDate: -1 });
 rtoSchema.index({ qcStatus: 1 });
 rtoSchema.index({ restockStatus: 1 });
 
-export const RTOModel = model<IRTO>('RTO', rtoSchema);
+export const RTOModel = model<IRtoDocument>('RTO', rtoSchema);

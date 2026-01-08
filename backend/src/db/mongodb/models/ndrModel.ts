@@ -1,29 +1,7 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { INDRDocument } from '../../../interfaces/ndr';
 
-export interface INDR extends Document {
-  shipmentId: Types.ObjectId;
-  orderId: Types.ObjectId;
-  awb: string;
-  ndrDate: Date;
-  ndrReason: string;
-  ndrReasonText: string;
-  attemptNumber: number;
-  status: string;
-  customerAction?: string;
-  customerActionDate?: Date;
-  rescheduledDate?: Date;
-  rescheduledTimeSlot?: string;
-  updatedAddress?: any;
-  resolution?: string;
-  resolvedDate?: Date;
-  resolvedBy?: Types.ObjectId;
-  providerNDRId?: string;
-  providerData?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const ndrSchema = new Schema<INDR>(
+const ndrSchema = new Schema<INDRDocument>(
   {
     shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment', required: true, index: true },
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
@@ -52,7 +30,7 @@ const ndrSchema = new Schema<INDR>(
 
 // Indexes
 ndrSchema.index({ shipmentId: 1, attemptNumber: 1 });
-ndrSchema.index({ orderId: 1 });
+// ndrSchema.index({ orderId: 1 }); // Removed as defined in schema
 ndrSchema.index({ status: 1, ndrDate: -1 });
 
-export const NDRModel = model<INDR>('NDR', ndrSchema);
+export const NDRModel = model<INDRDocument>('NDR', ndrSchema);

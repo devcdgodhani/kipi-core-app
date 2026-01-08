@@ -21,4 +21,9 @@ export const ROUTES = {
     RESET_PASSWORD: '/reset-password',
     RETURNS: '/returns',
     LOYALTY: '/loyalty',
+    PAYMENT: {
+        CHECKOUT: '/payment/checkout/:orderId',
+        HISTORY: '/payment/history',
+        REFUNDS: '/payment/refunds',
+    },
 };
