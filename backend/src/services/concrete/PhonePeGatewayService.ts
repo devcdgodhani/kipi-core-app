@@ -1,5 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import { ENV_VARIABLE } from '../../configs/env';
 import {
   IPaymentGatewayService,
   PaymentInitResponse,
@@ -10,6 +11,7 @@ import {
 import { IOrder } from '../../types/order';
 import { IPaymentAttributes } from '../../interfaces/payment';
 import { IPhonePeCredentials } from '../../types/payment';
+import { PAYMENT_GATEWAY_URLS } from '../../constants/payment';
 
 /**
  * PhonePe Payment Gateway Service
@@ -29,11 +31,10 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
     this.credentials = credentials;
     this.webhookSecret = webhookSecret;
     this.environment = environment;
-    this.baseUrl =
-      environment === 'production'
-        ? process.env.PHONEPE_API_URL_PRODUCTION || 'https://api.phonepe.com/apis/hermes'
-        : process.env.PHONEPE_API_URL_SANDBOX ||
-          'https://api-preprod.phonepe.com/apis/pg-sandbox';
+   this.baseUrl =
+         environment === 'production'
+           ? PAYMENT_GATEWAY_URLS.PHONEPE.PRODUCTION
+           : PAYMENT_GATEWAY_URLS.PHONEPE.SANDBOX;
   }
 
   /**
@@ -54,11 +55,11 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
         merchantTransactionId,
         merchantUserId,
         amount: amount, // Amount in paise
-        redirectUrl: process.env.CUSTOMER_APP_URL 
-          ? `${process.env.CUSTOMER_APP_URL}/payment/callback?orderId=${(order as any)._id || order.userId}`
+        redirectUrl: ENV_VARIABLE.CUSTOMER_APP_URL 
+          ? `${ENV_VARIABLE.CUSTOMER_APP_URL}/payment/callback?orderId=${(order as any)._id || order.userId}`
           : '',
         redirectMode: 'REDIRECT',
-        callbackUrl: `${process.env.BACKEND_API_URL}/api/v1/webhook/phonepe`,
+        callbackUrl: `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhook/phonepe`,
         mobileNumber: order.shippingAddress.mobile,
         paymentInstrument: {
           type: 'PAY_PAGE'
@@ -193,7 +194,7 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
         originalTransactionId: payment.gatewayTransactionId,
         merchantTransactionId,
         amount: amount,
-        callbackUrl: `${process.env.BACKEND_API_URL}/api/v1/webhook/phonepe/refund`
+        callbackUrl: `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhook/phonepe/refund`
       };
 
       const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');

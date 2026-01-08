@@ -41,6 +41,8 @@ const envSchema = z
 
     SERVER_URL: z.string(),
     WEB_SERVER_URL: z.string(),
+    BACKEND_API_URL: z.string().optional(),
+    CUSTOMER_APP_URL: z.string().optional(),
 
     AWS_BUCKET_NAME: z.string(),
     AWS_ACCESS_KEY_ID: z.string(),
@@ -84,6 +86,8 @@ const envSchema = z
     PHONEPE_SALT_KEY: z.string().optional(),
     PHONEPE_SALT_INDEX: z.string().optional(),
     PHONEPE_WEBHOOK_SECRET: z.string().optional(),
+    PHONEPE_API_URL_SANDBOX: z.string().optional(),
+    PHONEPE_API_URL_PRODUCTION: z.string().optional(),
     
     PAYTM_MERCHANT_ID: z.string().optional(),
     PAYTM_MERCHANT_KEY: z.string().optional(),
@@ -136,6 +140,8 @@ export const ENV_VARIABLE: IEnvVariables = {
 
   SERVER_URL: value.SERVER_URL,
   WEB_SERVER_URL: value.WEB_SERVER_URL,
+  BACKEND_API_URL: value.BACKEND_API_URL,
+  CUSTOMER_APP_URL: value.CUSTOMER_APP_URL,
 
   AWS_BUCKET_NAME: value.AWS_BUCKET_NAME,
   AWS_ACCESS_KEY_ID: value.AWS_ACCESS_KEY_ID,
@@ -178,6 +184,8 @@ export const ENV_VARIABLE: IEnvVariables = {
   PHONEPE_SALT_KEY: value.PHONEPE_SALT_KEY,
   PHONEPE_SALT_INDEX: value.PHONEPE_SALT_INDEX,
   PHONEPE_WEBHOOK_SECRET: value.PHONEPE_WEBHOOK_SECRET,
+  PHONEPE_API_URL_SANDBOX: value.PHONEPE_API_URL_SANDBOX,
+  PHONEPE_API_URL_PRODUCTION: value.PHONEPE_API_URL_PRODUCTION,
   
   PAYTM_MERCHANT_ID: value.PAYTM_MERCHANT_ID,
   PAYTM_MERCHANT_KEY: value.PAYTM_MERCHANT_KEY,
