@@ -9,8 +9,13 @@ import { SkuModel, OrderModel, ProductModel } from '../../db/mongodb';
 import { inventoryService } from './inventoryService';
 import { IReturnService } from '../contracts/returnServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
+import { PaymentRefundService } from './PaymentRefundService';
+import { REFUND_REASON } from '../../constants/payment';
+import { PaymentModel } from '../../db/mongodb/models/paymentModel';
 
 export class ReturnService extends MongooseCommonService<IReturn, IReturn> implements IReturnService {
+    private refundService = new PaymentRefundService();
+
     constructor() {
         super(ReturnModel);
     }
@@ -113,6 +118,26 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
                     referenceType: 'RETURN',
                     reason: `Return #${returnRequest.returnNumber} completed`
                 });
+            }
+
+            // 1.1 Automatic Refund for Online Payments
+            const order = await OrderModel.findById(returnRequest.orderId);
+            if (order && order.paymentMethod !== 'COD') {
+                const payment = await PaymentModel.findOne({ orderId: order._id, status: 'SUCCESS' });
+                if (payment) {
+                    try {
+                        await this.refundService.initiateRefund(
+                            payment._id.toString(),
+                            returnRequest.totalRefundAmount,
+                            REFUND_REASON.RETURN,
+                            `Refund for Return #${returnRequest.returnNumber}`,
+                            'SYSTEM' // Or admin ID if we had it here
+                        );
+                        console.log(`✅ Auto-refund initiated for Return #${returnRequest.returnNumber}`);
+                    } catch (refundError) {
+                        console.error(`❌ Auto-refund failed for Return #${returnRequest.returnNumber}:`, refundError);
+                    }
+                }
             }
         }
 

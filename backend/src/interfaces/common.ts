@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { Types, ObjectId } from "mongoose";
 
 export interface IApiResponse<T = undefined> {
   code: string;
@@ -25,12 +25,13 @@ export interface IPaginationData<T> {
   recordList?: T[];
 }
 export interface IDefaultAttributes {
+  _id?: any;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
-  createdBy?: ObjectId;
-  updatedBy?: ObjectId;
-  deletedBy?: ObjectId;
+  createdBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
+  deletedBy?: Types.ObjectId;
 }
 
 export interface IEnvVariables {

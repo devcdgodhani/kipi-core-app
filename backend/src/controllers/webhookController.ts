@@ -5,6 +5,7 @@ import { IApiResponse } from '../interfaces';
 import { logisticsQueues, QUEUE_NAMES } from '../jobs/queues/logisticsQueues';
 import { JOB_NAMES } from '../jobs/types';
 import { PAYMENT_GATEWAY } from '../constants/payment';
+import { paymentQueues } from '../jobs/queues/paymentQueues';
 
 export class WebhookController {
   
@@ -69,17 +70,13 @@ export class WebhookController {
         return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
       }
 
-      // 2. Extract Payment Info
-      // Razorpay sends event 'payment.captured' or 'order.paid'
-      const event = req.body.event;
-      if (event === 'payment.captured' || event === 'order.paid') {
-        const razorpayOrderId = req.body.payload.payment?.entity?.order_id || req.body.payload.order?.entity?.id;
-        const payment = await (await import('../db/mongodb/models/paymentModel')).PaymentModel.findOne({ gatewayOrderId: razorpayOrderId });
-        
-        if (payment) {
-          await paymentService.verifyPayment(payment._id.toString(), req.body.payload.payment?.entity || req.body.payload);
-        }
-      }
+      // 2. Push to Queue
+      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+        provider: 'RAZORPAY',
+        payload: req.body,
+        headers: req.headers,
+        receivedAt: new Date().toISOString()
+      });
 
       return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
     } catch (err) {
@@ -104,15 +101,13 @@ export class WebhookController {
         return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
       }
 
-      // 2. Process Payment
-      if (decodedResponse.success) {
-        const merchantTransactionId = decodedResponse.data.merchantTransactionId;
-        const payment = await (await import('../db/mongodb/models/paymentModel')).PaymentModel.findOne({ gatewayTransactionId: merchantTransactionId });
-        
-        if (payment) {
-          await paymentService.verifyPayment(payment._id.toString(), decodedResponse.data);
-        }
-      }
+      // 2. Push to Queue
+      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+        provider: 'PHONEPE',
+        body: decodedResponse,
+        headers: req.headers,
+        receivedAt: new Date().toISOString()
+      });
 
       return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
     } catch (err) {
@@ -136,15 +131,13 @@ export class WebhookController {
         return res.status(HTTP_STATUS_CODE.BAD_REQUEST.STATUS).json({ message: 'Invalid signature' });
       }
 
-      // 2. Process Payment
-      if (payload.STATUS === 'TXN_SUCCESS') {
-        const orderId = payload.ORDERID;
-        const payment = await (await import('../db/mongodb/models/paymentModel')).PaymentModel.findOne({ gatewayOrderId: orderId });
-        
-        if (payment) {
-          await paymentService.verifyPayment(payment._id.toString(), payload);
-        }
-      }
+      // 2. Push to Queue
+      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+        provider: 'PAYTM',
+        body: payload,
+        headers: req.headers,
+        receivedAt: new Date().toISOString()
+      });
 
       return res.status(HTTP_STATUS_CODE.OK.STATUS).json({ status: 'ok' });
     } catch (err) {

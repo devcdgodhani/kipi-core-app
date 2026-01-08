@@ -36,6 +36,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 productId: product._id,
                 skuId: product._id, // Fallback to product._id if skuId is not available
                 quantity: 1,
+                price: displayPrice
             } as any);
         } catch (error) {
             console.error('Failed to add to cart:', error);

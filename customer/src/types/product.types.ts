@@ -39,7 +39,8 @@ export interface SKU {
   productId: string;
   skuCode: string;
   variantAttributes: ProductAttribute[];
-  basePrice?: number;
+  basePrice: number;
+  price: number;
   salePrice?: number;
   offerPrice?: number;
   discount: number;

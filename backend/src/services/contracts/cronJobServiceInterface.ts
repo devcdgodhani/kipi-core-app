@@ -1,8 +1,8 @@
-import { ICronJob, ICronJobHistory } from '../../db/mongodb/models/cronJobModel';
+import { ICronJobAttributes, ICronJobHistoryAttributes, ICronJobDocument } from '../../interfaces/cronJob';
 import { IMongooseCommonService } from './mongooseCommonServiceInterface';
 
-export interface ICronJobService extends IMongooseCommonService<ICronJob, ICronJob> {
+export interface ICronJobService extends IMongooseCommonService<ICronJobAttributes, ICronJobDocument> {
     init(): Promise<void>;
     runJob(identifier: string): Promise<void>;
-    getHistory(cronJobId: string): Promise<ICronJobHistory[]>;
+    getHistory(cronJobId: string): Promise<ICronJobHistoryAttributes[]>;
 }

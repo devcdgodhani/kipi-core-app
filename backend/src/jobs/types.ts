@@ -5,6 +5,13 @@ export interface IWebhookJobPayload {
   receivedAt: string;
 }
 
+export interface IPaymentWebhookJobPayload {
+  provider: 'RAZORPAY' | 'PHONEPE' | 'PAYTM';
+  headers: Record<string, any>;
+  body: any;
+  receivedAt: string;
+}
+
 export interface ITrackingSyncJobPayload {
   shipmentId: string;
   awb: string;
@@ -22,4 +29,6 @@ export enum JOB_NAMES {
   PROCESS_WEBHOOK = 'process-webhook',
   SYNC_TRACKING = 'sync-tracking',
   SEND_NOTIFICATION = 'send-notification',
+  PROCESS_PAYMENT_WEBHOOK = 'process-payment-webhook',
+  SYNC_PAYMENT_STATUS = 'sync-payment-status',
 }

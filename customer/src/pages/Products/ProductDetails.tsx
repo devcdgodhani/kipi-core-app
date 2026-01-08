@@ -79,8 +79,12 @@ const ProductDetails: React.FC = () => {
                 productId: product._id,
                 skuId: selectedSku._id,
                 quantity,
+                price: selectedSku.price || selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice || 0,
                 product: product,
-                sku: selectedSku
+                sku: {
+                    ...selectedSku,
+                    price: selectedSku.price || selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice || 0
+                } as any
             });
             // Success handled by CartContext toast
         } catch (error) {

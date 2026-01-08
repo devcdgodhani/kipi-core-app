@@ -7,13 +7,11 @@ import { attributeService } from '../../services/attribute.service';
 interface ProductFiltersProps {
     filters: ProductFilters;
     onFilterChange: (filters: ProductFilters) => void;
-    onClear: () => void;
 }
 
 const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
     filters,
     onFilterChange,
-    onClear,
 }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [attributes, setAttributes] = useState<Attribute[]>([]); // New state
@@ -71,12 +69,6 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
     const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
         onFilterChange({ ...filters, sortBy: sortBy as any, sortOrder });
     };
-
-    const activeFilterCount =
-        (filters.categoryIds?.length || 0) +
-        (filters.minPrice ? 1 : 0) +
-        (filters.maxPrice ? 1 : 0) +
-        (filters.inStock ? 1 : 0);
 
     return (
         <div className="flex flex-col md:flex-row h-full">

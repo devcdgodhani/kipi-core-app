@@ -96,6 +96,7 @@ export interface RefundResponse {
   status: 'INITIATED' | 'PENDING' | 'SUCCESS' | 'FAILED';
   error?: string;
   errorCode?: string;
+  gatewayResponse?: Record<string, any>;
 }
 
 /**

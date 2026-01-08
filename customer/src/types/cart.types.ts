@@ -13,7 +13,7 @@ export interface CartItem {
     product: Product;
     sku?: {
         _id: string;
-        price?: number;
+        price: number;
         salePrice?: number;
         offerPrice?: number;
         basePrice?: number;

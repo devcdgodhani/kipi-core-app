@@ -1,16 +1,16 @@
+import { IStockLedgerAttributes, IStockLedgerDocument, StockLedgerTransactionType, StockLedgerReferenceType } from '../../interfaces/stockLedger';
 import { IMongooseCommonService } from './mongooseCommonServiceInterface';
-import { IStockLedger } from '../../db/mongodb/models/stockLedgerModel';
 
-export interface IStockLedgerService extends IMongooseCommonService<IStockLedger, IStockLedger> {
+export interface IStockLedgerService extends IMongooseCommonService<IStockLedgerAttributes, IStockLedgerDocument> {
   logAdjustment(data: {
     skuId?: string;
     productId?: string;
-    transactionType: IStockLedger['transactionType'];
+    transactionType: StockLedgerTransactionType;
     changeQuantity: number;
     previousQuantity?: number;
     newQuantity: number;
     referenceId?: string;
-    referenceType?: IStockLedger['referenceType'];
+    referenceType?: StockLedgerReferenceType;
     reason?: string;
     userId?: string;
   }): Promise<any>;

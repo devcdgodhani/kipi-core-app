@@ -9,7 +9,7 @@ import { validate } from '../helpers/zodValidator';
 
 // PhonePe Webhook Validator
 const phonePeWebhookSchema = z.object({
-  body: z.record(z.any()), // Accept any payload structure
+  body: z.record(z.string(), z.any()), // Accept any payload structure
   headers: z.object({
     'x-verify': z.string().optional()
   }).passthrough() // Allow other headers
@@ -17,7 +17,7 @@ const phonePeWebhookSchema = z.object({
 
 // Razorpay Webhook Validator
 const razorpayWebhookSchema = z.object({
-  body: z.record(z.any()), // Accept any payload structure
+  body: z.record(z.string(), z.any()), // Accept any payload structure
   headers: z.object({
     'x-razorpay-signature': z.string().optional()
   }).passthrough() // Allow other headers
@@ -25,7 +25,7 @@ const razorpayWebhookSchema = z.object({
 
 // Paytm Webhook Validator
 const paytmWebhookSchema = z.object({
-  body: z.record(z.any()), // Accept any payload structure
+  body: z.record(z.string(), z.any()), // Accept any payload structure
   headers: z.object({}).passthrough() // Allow all headers
 });
 

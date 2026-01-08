@@ -16,7 +16,7 @@ async function runRtoTests() {
   };
 
   try {
-    const score = await rtoService.calculateRiskScore(mockOrder._id, mockOrder.userId, mockOrder.pincode);
+    const score = await rtoService.calculateRiskScore(mockOrder.userId, mockOrder.pincode, 5000, 'COD');
     console.log('RTO Score Result:', score);
     
     if (score.riskLevel && score.totalScore >= 0) {

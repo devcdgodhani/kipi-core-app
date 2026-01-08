@@ -2,14 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     CreditCard,
-    Settings,
-    AlertCircle,
-    CheckCircle2,
-    XCircle,
     Search,
     Filter,
+    Settings,
+    XCircle,
+    CheckCircle2,
     RotateCcw,
-    Plus
+    AlertCircle
 } from 'lucide-react';
 import { paymentService } from '../../services/paymentService';
 import type { PaymentGateway } from '../../types/payment';

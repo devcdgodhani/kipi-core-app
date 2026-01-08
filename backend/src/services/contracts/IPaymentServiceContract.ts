@@ -1,4 +1,4 @@
-import { IPaymentDocument } from '../../interfaces/payment';
+import { IPaymentAttributes } from '../../interfaces/payment';
 import { PAYMENT_GATEWAY } from '../../constants/payment';
 
 /**
@@ -14,7 +14,7 @@ export interface IPaymentServiceContract {
     gatewayName: PAYMENT_GATEWAY,
     userId: string
   ): Promise<{
-    payment: IPaymentDocument;
+    payment: IPaymentAttributes;
     redirectUrl?: string;
     redirectMethod?: 'GET' | 'POST';
     gatewayData?: any;
@@ -23,22 +23,22 @@ export interface IPaymentServiceContract {
   /**
    * Verify payment after callback
    */
-  verifyPayment(paymentId: string, gatewayData: any): Promise<IPaymentDocument>;
+  verifyPayment(paymentId: string, gatewayData: any): Promise<IPaymentAttributes>;
 
   /**
    * Get payment by ID
    */
-  getPaymentById(paymentId: string): Promise<IPaymentDocument | null>;
+  getPaymentById(paymentId: string): Promise<IPaymentAttributes | null>;
 
   /**
    * Get payment by internal payment ID
    */
-  getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentDocument | null>;
+  getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentAttributes | null>;
 
   /**
    * Get payments for an order
    */
-  getPaymentsByOrderId(orderId: string): Promise<IPaymentDocument[]>;
+  getPaymentsByOrderId(orderId: string): Promise<IPaymentAttributes[]>;
 
   /**
    * Get payments for a user
@@ -47,7 +47,7 @@ export interface IPaymentServiceContract {
     userId: string,
     limit?: number,
     skip?: number
-  ): Promise<IPaymentDocument[]>;
+  ): Promise<IPaymentAttributes[]>;
 
   /**
    * Fetch payment status from gateway

@@ -12,9 +12,7 @@ import { HTTP_STATUS_CODE } from '../constants';
 const initiatePaymentSchema = z.object({
   body: z.object({
     orderId: z.string().min(1, 'Order ID is required'),
-    gatewayName: z.nativeEnum(PAYMENT_GATEWAY, {
-      errorMap: () => ({ message: 'Invalid payment gateway' })
-    })
+    gatewayName: z.nativeEnum(PAYMENT_GATEWAY)
   })
 });
 
@@ -36,7 +34,7 @@ export const initiatePaymentValidator = (req: Request, res: Response, next: Next
 const verifyPaymentSchema = z.object({
   body: z.object({
     paymentId: z.string().min(1, 'Payment ID is required'),
-    gatewayData: z.record(z.any()).optional()
+    gatewayData: z.record(z.string(), z.any()).optional()
   })
 });
 
@@ -59,9 +57,7 @@ const initiateRefundSchema = z.object({
   body: z.object({
     paymentId: z.string().min(1, 'Payment ID is required'),
     amount: z.number().positive('Amount must be positive'),
-    reason: z.nativeEnum(REFUND_REASON, {
-      errorMap: () => ({ message: 'Invalid refund reason' })
-    }),
+    reason: z.nativeEnum(REFUND_REASON),
     notes: z.string().optional()
   })
 });
@@ -89,7 +85,7 @@ const updateGatewaySchema = z.object({
     credentials: z.string().optional(), // Encrypted credentials
     webhookSecret: z.string().optional(),
     priority: z.number().int().positive().optional(),
-    config: z.record(z.any()).optional()
+    config: z.record(z.string(), z.any()).optional()
   })
 });
 

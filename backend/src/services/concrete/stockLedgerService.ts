@@ -1,8 +1,9 @@
-import { StockLedgerModel, IStockLedger } from '../../db/mongodb/models/stockLedgerModel';
+import { StockLedgerModel } from '../../db/mongodb/models/stockLedgerModel';
+import { IStockLedgerAttributes, IStockLedgerDocument, StockLedgerTransactionType, StockLedgerReferenceType } from '../../interfaces/stockLedger';
 import { MongooseCommonService } from './mongooseCommonService';
 import { IStockLedgerService } from '../contracts/stockLedgerServiceInterface';
 
-export class StockLedgerService extends MongooseCommonService<IStockLedger, IStockLedger> implements IStockLedgerService {
+export class StockLedgerService extends MongooseCommonService<IStockLedgerAttributes, IStockLedgerDocument> implements IStockLedgerService {
     constructor() {
         super(StockLedgerModel as any);
     }
@@ -10,12 +11,12 @@ export class StockLedgerService extends MongooseCommonService<IStockLedger, ISto
     async logAdjustment(data: {
         skuId?: string;
         productId?: string;
-        transactionType: IStockLedger['transactionType'];
+        transactionType: StockLedgerTransactionType;
         changeQuantity: number;
         previousQuantity?: number;
         newQuantity: number;
         referenceId?: string;
-        referenceType?: IStockLedger['referenceType'];
+        referenceType?: StockLedgerReferenceType;
         reason?: string;
         userId?: string;
     }) {

@@ -48,4 +48,16 @@ export const paymentService = {
   retryWebhook: async (id: string): Promise<void> => {
     await http.post(`${BASE_URL}/webhooks/${id}/retry`);
   },
+
+  // Sync payment status with gateway
+  syncPaymentStatus: async (paymentId: string): Promise<any> => {
+    const response: any = await http.get(`${BASE_URL}/payments/${paymentId}/status`);
+    return response.data;
+  },
+
+  // Get payments for an order
+  getPaymentsByOrder: async (orderId: string): Promise<any[]> => {
+    const response: any = await http.get(`${BASE_URL}/payments/order/${orderId}`);
+    return response.data.data || [];
+  },
 };

@@ -10,13 +10,21 @@ const WishlistPage: React.FC = () => {
     const { addItem } = useCart();
 
     const moveToCart = async (product: any) => {
+        const price = product.offerPrice || product.salePrice || product.basePrice || 0;
         try {
             await addItem({
                 productId: product._id,
                 skuId: product._id,
                 quantity: 1,
+                price: price,
                 product: product,
-                sku: { _id: product._id, basePrice: product.basePrice, salePrice: product.salePrice, offerPrice: product.offerPrice } as any
+                sku: {
+                    _id: product._id,
+                    basePrice: product.basePrice,
+                    salePrice: product.salePrice,
+                    offerPrice: product.offerPrice,
+                    price: price
+                } as any
             });
             removeFromWishlist(product._id);
         } catch (error) {

@@ -1,4 +1,4 @@
-import { IPaymentGatewayDocument } from '../../interfaces/paymentGateway';
+import { IPaymentGatewayAttributes } from '../../interfaces/paymentGateway';
 import { PAYMENT_GATEWAY } from '../../constants/payment';
 import { IPaymentGatewayService } from './PaymentGatewayInterface';
 
@@ -10,17 +10,17 @@ export interface IPaymentGatewayServiceContract {
   /**
    * Get all payment gateways
    */
-  getAllGateways(): Promise<IPaymentGatewayDocument[]>;
+  getAllGateways(): Promise<IPaymentGatewayAttributes[]>;
 
   /**
    * Get enabled payment gateways
    */
-  getEnabledGateways(): Promise<IPaymentGatewayDocument[]>;
+  getEnabledGateways(): Promise<IPaymentGatewayAttributes[]>;
 
   /**
    * Get gateway by name
    */
-  getGatewayByName(name: PAYMENT_GATEWAY): Promise<IPaymentGatewayDocument | null>;
+  getGatewayByName(name: PAYMENT_GATEWAY): Promise<IPaymentGatewayAttributes | null>;
 
   /**
    * Update gateway configuration
@@ -28,7 +28,7 @@ export interface IPaymentGatewayServiceContract {
   updateGateway(
     name: PAYMENT_GATEWAY,
     updates: Partial<any>
-  ): Promise<IPaymentGatewayDocument | null>;
+  ): Promise<IPaymentGatewayAttributes | null>;
 
   /**
    * Toggle gateway enabled status
@@ -43,7 +43,7 @@ export interface IPaymentGatewayServiceContract {
   /**
    * Get primary gateway
    */
-  getPrimaryGateway(): Promise<IPaymentGatewayDocument | null>;
+  getPrimaryGateway(): Promise<IPaymentGatewayAttributes | null>;
 
   /**
    * Verify webhook signature

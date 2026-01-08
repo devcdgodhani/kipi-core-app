@@ -1,6 +1,6 @@
 import { PaymentRefundModel } from '../../db/mongodb/models/paymentRefundModel';
 import { PaymentModel } from '../../db/mongodb/models/paymentModel';
-import { IPaymentRefundDocument } from '../../interfaces/paymentRefund';
+import { IPaymentRefundAttributes, IPaymentRefundDocument } from '../../interfaces/paymentRefund';
 import { PaymentGatewayService } from './PaymentGatewayService';
 import { IPaymentRefundServiceContract } from '../contracts/IPaymentRefundServiceContract';
 import { REFUND_STATUS, REFUND_REASON, PAYMENT_STATUS, PAYMENT_ERROR_MESSAGES } from '../../constants/payment';
@@ -32,7 +32,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
     reason: REFUND_REASON,
     notes: string | undefined,
     initiatedBy: string
-  ): Promise<IPaymentRefundDocument> {
+  ): Promise<IPaymentRefundAttributes> {
     // Fetch payment
     const payment = await PaymentModel.findById(paymentId);
     if (!payment) {
@@ -78,7 +78,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
           { _id: refund._id },
           {
             $set: {
-              gatewayRefundId: refundResponse.refundId,
+              gatewayRefundId: refundResponse.gatewayRefundId,
               status: REFUND_STATUS.PENDING,
               gatewayResponse: refundResponse.gatewayResponse
             }
@@ -128,7 +128,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
       throw error;
     }
 
-    return (await PaymentRefundModel.findById(refund._id))!;
+    return (await PaymentRefundModel.findById(refund._id).lean()) as IPaymentRefundAttributes;
   }
 
   /**
@@ -160,28 +160,28 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
   /**
    * Get refund by ID
    */
-  async getRefundById(refundId: string): Promise<IPaymentRefundDocument | null> {
+  async getRefundById(refundId: string): Promise<IPaymentRefundAttributes | null> {
     return await PaymentRefundModel.findById(refundId).lean();
   }
 
   /**
    * Get refund by refund number
    */
-  async getRefundByNumber(refundNumber: string): Promise<IPaymentRefundDocument | null> {
+  async getRefundByNumber(refundNumber: string): Promise<IPaymentRefundAttributes | null> {
     return await PaymentRefundModel.findOne({ refundNumber }).lean();
   }
 
   /**
    * Get refunds for a payment
    */
-  async getRefundsByPaymentId(paymentId: string): Promise<IPaymentRefundDocument[]> {
+  async getRefundsByPaymentId(paymentId: string): Promise<IPaymentRefundAttributes[]> {
     return await PaymentRefundModel.find({ paymentId }).sort({ createdAt: -1 }).lean();
   }
 
   /**
    * Get refunds for an order
    */
-  async getRefundsByOrderId(orderId: string): Promise<IPaymentRefundDocument[]> {
+  async getRefundsByOrderId(orderId: string): Promise<IPaymentRefundAttributes[]> {
     return await PaymentRefundModel.find({ orderId }).sort({ createdAt: -1 }).lean();
   }
 
@@ -192,7 +192,7 @@ export class PaymentRefundService implements IPaymentRefundServiceContract {
     userId: string,
     limit: number = 10,
     skip: number = 0
-  ): Promise<IPaymentRefundDocument[]> {
+  ): Promise<IPaymentRefundAttributes[]> {
     return await PaymentRefundModel.find({ userId })
       .sort({ createdAt: -1 })
       .limit(limit)

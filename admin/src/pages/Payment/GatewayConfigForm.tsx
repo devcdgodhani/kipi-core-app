@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, ArrowLeft, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Save, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { paymentService } from '../../services/paymentService';
 import type { PaymentGateway, UpdateGatewayPayload } from '../../types/payment';
 import toast from 'react-hot-toast';

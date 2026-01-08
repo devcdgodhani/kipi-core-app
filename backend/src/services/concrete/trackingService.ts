@@ -1,49 +1,37 @@
-import { TrackingEventModel, IShipment, ShipmentModel } from '../../db/mongodb';
+import { TrackingEventModel, ShipmentModel } from '../../db/mongodb';
 import { logisticsService } from './logisticsService';
-
 import { ITrackingService } from '../contracts/trackingServiceInterface';
+import { IShipmentDocument as IShipment } from '../../interfaces/shipment';
 
 export class TrackingService implements ITrackingService {
-  async getTrackingByAWB(awb: string) {
-    // 1. Check local DB first
-    const events = await TrackingEventModel.find({ awb }).sort({ timestamp: -1 }).lean();
-    
-    // 2. Fetch live data if no recent events (older than 1 hour)
-    const latestEvent = events[0];
-    const isStale = !latestEvent || (Date.now() - new Date(latestEvent.timestamp).getTime()) > 3600000;
-
-    if (isStale) {
-      try {
-        const liveData = await logisticsService.trackShipment(awb);
-        // We could sync live data here, but for now we just return it merged or separate
-        // For simplicity in this stage, we'll return local events merged with live status
-        return {
-          awb,
-          currentStatus: liveData.trackingData.track_status,
-          events: liveData.activities.map((activity: any) => ({
-            status: activity.status,
-            location: activity.location,
-            timestamp: activity.date,
-            message: activity.activity
-          }))
-        };
-      } catch (error) {
-        console.error('Error fetching live tracking:', error);
-      }
-    }
-
-    const shipment = await ShipmentModel.findOne({ awb }).select('status estimatedDeliveryDate courierName').lean();
+  async getTrackingByAWB(awb: string): Promise<any> {
+    const events = await TrackingEventModel.find({ awb }).sort({ timestamp: -1 });
+    const shipment = await ShipmentModel.findOne({ awb });
 
     return {
       awb,
-      currentStatus: shipment?.status,
-      estimatedDelivery: shipment?.estimatedDeliveryDate,
-      courier: shipment?.courierName,
-      events
+      shipmentStatus: shipment?.status || 'UNKNOWN',
+      events: events.map((event) => ({
+        status: event.status,
+        location: event.location,
+        timestamp: event.timestamp,
+        message: event.message,
+      })),
     };
   }
 
-  async addTrackingEvent(data: any) {
+  async getLatestStatus(awb: string): Promise<string> {
+    const latestEvent = await TrackingEventModel.findOne({ awb }).sort({ timestamp: -1 });
+    return latestEvent?.status || 'PENDING';
+  }
+
+  async addTrackingEvent(data: {
+    awb: string;
+    status: string;
+    location?: string;
+    message?: string;
+    timestamp?: Date;
+  }): Promise<any> {
     return TrackingEventModel.create(data);
   }
 
@@ -53,7 +41,7 @@ export class TrackingService implements ITrackingService {
       status,
       location,
       timestamp: new Date(),
-      message: `Status updated to ${status}`
+      message: `Status updated to ${status}${location ? ` at ${location}` : ''}`,
     });
   }
 }

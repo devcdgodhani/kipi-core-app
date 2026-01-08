@@ -18,7 +18,7 @@ export default class PaymentRefundController {
   initiateRefund = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { paymentId, amount, reason, notes } = req.body;
-      const userId = req.user?._id;
+      const userId = (req.user as any)?._id;
 
       const refund = await this.refundService.initiateRefund(
         paymentId,
@@ -129,7 +129,7 @@ export default class PaymentRefundController {
    */
   getMyRefunds = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?._id;
+      const userId = (req.user as any)?._id;
       const { limit = 10, skip = 0 } = req.query;
 
       const refunds = await this.refundService.getRefundsByUserId(

@@ -46,7 +46,7 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
   ): Promise<PaymentInitResponse> {
     try {
       const merchantTransactionId = `TXN_${order.orderNumber}_${Date.now()}`;
-      const merchantUserId = order.userId.toString();
+      const merchantUserId = (order as any)._id?.toString() || order.userId.toString();
 
       // PhonePe payload
       const payload = {
@@ -54,7 +54,9 @@ export class PhonePeGatewayService implements IPaymentGatewayService {
         merchantTransactionId,
         merchantUserId,
         amount: amount, // Amount in paise
-        redirectUrl: `${process.env.CUSTOMER_APP_URL}/payment/callback?orderId=${order._id || order.userId}`,
+        redirectUrl: process.env.CUSTOMER_APP_URL 
+          ? `${process.env.CUSTOMER_APP_URL}/payment/callback?orderId=${(order as any)._id || order.userId}`
+          : '',
         redirectMode: 'REDIRECT',
         callbackUrl: `${process.env.BACKEND_API_URL}/api/v1/webhook/phonepe`,
         mobileNumber: order.shippingAddress.mobile,

@@ -32,6 +32,7 @@ export interface IRtoScoreAttributes {
   orderId: Types.ObjectId;
   customerId: Types.ObjectId;
   riskScore: number;
+  totalScore: number;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   factors: {
     customerHistory: number;

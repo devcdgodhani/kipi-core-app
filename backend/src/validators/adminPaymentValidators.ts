@@ -16,9 +16,7 @@ const getEnabledGatewaysSchema = z.object({});
 // Update Gateway Validator
 const updateGatewaySchema = z.object({
   params: z.object({
-    name: z.nativeEnum(PAYMENT_GATEWAY, {
-      message: 'Invalid payment gateway name'
-    })
+    name: z.nativeEnum(PAYMENT_GATEWAY)
   }),
   body: z.object({
     displayName: z.string().min(1).max(100).optional(),
@@ -37,15 +35,10 @@ const updateGatewaySchema = z.object({
 // Toggle Gateway Validator
 const toggleGatewaySchema = z.object({
   params: z.object({
-    name: z.nativeEnum(PAYMENT_GATEWAY, {
-      message: 'Invalid payment gateway name'
-    })
+    name: z.nativeEnum(PAYMENT_GATEWAY)
   }),
   body: z.object({
-    isEnabled: z.boolean({
-      required_error: 'isEnabled is required',
-      invalid_type_error: 'isEnabled must be a boolean'
-    })
+    isEnabled: z.boolean()
   })
 });
 
@@ -74,4 +67,5 @@ export default class AdminPaymentValidators {
   toggleGateway = validate(toggleGatewaySchema);
   getWebhookLogs = validate(getWebhookLogsSchema);
   retryWebhook = validate(retryWebhookSchema);
+  fetchPaymentStatus = validate(retryWebhookSchema); // Reuse ID validation
 }

@@ -39,7 +39,7 @@ export class PaymentService implements IPaymentServiceContract {
     gatewayName: PAYMENT_GATEWAY,
     userId: string
   ): Promise<{
-    payment: IPaymentDocument;
+    payment: IPaymentAttributes;
     redirectUrl?: string;
     redirectMethod?: 'GET' | 'POST';
     gatewayData?: any;
@@ -111,8 +111,8 @@ export class PaymentService implements IPaymentServiceContract {
       { _id: payment._id },
       {
         $set: {
-          gatewayTransactionId: gatewayResponse.transactionId,
-          gatewayOrderId: gatewayResponse.orderId,
+          gatewayTransactionId: gatewayResponse.gatewayTransactionId,
+          gatewayOrderId: gatewayResponse.gatewayOrderId,
           status: PAYMENT_STATUS.PENDING,
           metadata: {
             gatewayResponse: gatewayResponse.data
@@ -143,7 +143,7 @@ export class PaymentService implements IPaymentServiceContract {
   async verifyPayment(
     paymentId: string,
     gatewayData: any
-  ): Promise<IPaymentDocument> {
+  ): Promise<IPaymentAttributes> {
     const payment = await PaymentModel.findById(paymentId);
     if (!payment) {
       throw new Error(PAYMENT_ERROR_MESSAGES.PAYMENT_NOT_FOUND);
@@ -151,7 +151,7 @@ export class PaymentService implements IPaymentServiceContract {
 
     // Check if already processed
     if (payment.status === PAYMENT_STATUS.SUCCESS) {
-      return payment;
+      return payment.toObject() as IPaymentAttributes;
     }
 
     // Get gateway service
@@ -171,7 +171,7 @@ export class PaymentService implements IPaymentServiceContract {
       updateData.metadata = {
         ...payment.metadata,
         paymentMethod: verifyResponse.paymentMethod,
-        gatewayResponse: verifyResponse.gatewayResponse
+        gatewayResponse: verifyResponse.metadata
       };
 
       // Update order payment status
@@ -183,34 +183,36 @@ export class PaymentService implements IPaymentServiceContract {
       updateData.status = PAYMENT_STATUS.FAILED;
       updateData.metadata = {
         ...payment.metadata,
-        error: verifyResponse.error,
-        errorCode: verifyResponse.errorCode
+        gatewayResponse: {
+          error: verifyResponse.error,
+          errorCode: verifyResponse.errorCode
+        }
       };
     }
 
     await PaymentModel.updateOne({ _id: paymentId }, { $set: updateData });
 
-    return (await PaymentModel.findById(paymentId))!;
+    return (await PaymentModel.findById(paymentId).lean()) as IPaymentAttributes;
   }
 
   /**
    * Get payment by ID
    */
-  async getPaymentById(paymentId: string): Promise<IPaymentDocument | null> {
+  async getPaymentById(paymentId: string): Promise<IPaymentAttributes | null> {
     return await PaymentModel.findById(paymentId).lean();
   }
 
   /**
    * Get payment by internal payment ID
    */
-  async getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentDocument | null> {
+  async getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentAttributes | null> {
     return await PaymentModel.findOne({ internalPaymentId }).lean();
   }
 
   /**
    * Get payments for an order
    */
-  async getPaymentsByOrderId(orderId: string): Promise<IPaymentDocument[]> {
+  async getPaymentsByOrderId(orderId: string): Promise<IPaymentAttributes[]> {
     return await PaymentModel.find({ orderId }).sort({ createdAt: -1 }).lean();
   }
 
@@ -221,7 +223,7 @@ export class PaymentService implements IPaymentServiceContract {
     userId: string,
     limit: number = 10,
     skip: number = 0
-  ): Promise<IPaymentDocument[]> {
+  ): Promise<IPaymentAttributes[]> {
     return await PaymentModel.find({ userId })
       .sort({ createdAt: -1 })
       .limit(limit)

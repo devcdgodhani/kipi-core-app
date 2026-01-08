@@ -4,12 +4,10 @@ import { ArrowRight, Star, ShoppingBag, Truck, ShieldCheck, RefreshCw } from 'lu
 import { productService } from '../../services/product.service';
 import type { Product } from '../../types/product.types';
 import { ROUTES } from '../../routes/routeConfig';
-import { useCart } from '../../context/CartContext';
 import { toast } from 'react-hot-toast';
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
-    const { addToCart } = useCart();
     const [newArrivals, setNewArrivals] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -33,10 +31,7 @@ const Home: React.FC = () => {
     const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
         e.stopPropagation();
         try {
-            // Default to first SKU if available, or just add product wrapper logic if needed by context
-            // Assuming context handles product addition or we need SKU. 
-            // For Quick Add, we might need to open modal or pick default SKU.
-            // Simplified: Redirect to detailed view for options or add if simple.
+            // Redirect to details for simple handling
             navigate(ROUTES.PRODUCTS.DETAILS.replace(':id', product._id));
         } catch (error) {
             toast.error('Could not add to cart');
@@ -140,9 +135,9 @@ const Home: React.FC = () => {
                                 onClick={() => navigate(ROUTES.PRODUCTS.DETAILS.replace(':id', product._id))}
                             >
                                 <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
-                                    {product.images?.[0] ? (
+                                    {product.media?.[0]?.url ? (
                                         <img
-                                            src={product.images[0]}
+                                            src={product.media[0].url}
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
@@ -163,9 +158,9 @@ const Home: React.FC = () => {
                                     </div>
 
                                     {/* Badges */}
-                                    {product.isNew && (
+                                    {product.status === 'ACTIVE' && product.stock > 0 && (
                                         <span className="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold px-2 py-1 uppercase tracking-widest">
-                                            New
+                                            Trending
                                         </span>
                                     )}
                                 </div>

@@ -65,7 +65,7 @@ const RUN_TEST = async () => {
     });
 
     console.log('   Data seeded. Calculating score...');
-    const riskResult = await rtoScoreService.calculateRiskScore(orderId, userId, mockPincode);
+    const riskResult = await rtoScoreService.calculateRiskScore(userId, mockPincode, 6000, 'COD');
     
     console.log('   📊 RTO Result:', JSON.stringify(riskResult, null, 2));
 

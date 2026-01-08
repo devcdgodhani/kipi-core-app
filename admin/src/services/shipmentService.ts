@@ -1,6 +1,6 @@
 import http from './http';
 import type { IShipment, IShipmentFilters } from '../types/shipment.types';
-import type { IApiResponse, IPaginationData } from '../types/common'; // Assuming common types exist, will check or strictly type
+import type { IPaginationData } from '../types/common'; // Assuming common types exist, will check or strictly type
 
 class ShipmentService {
   async getWithPagination(filters: IShipmentFilters, page = 1, limit = 10): Promise<IPaginationData<IShipment>> {
