@@ -5,6 +5,7 @@ import { PaymentGatewayService } from './PaymentGatewayService';
 import { IPaymentServiceContract } from '../contracts/IPaymentServiceContract';
 import { PAYMENT_GATEWAY, PAYMENT_STATUS, PAYMENT_ERROR_MESSAGES, PAYMENT_GATEWAY_DEFAULTS } from '../../constants/payment';
 import { IOrder } from '../../types/order';
+import { ENV_VARIABLE } from '../../configs/env';
 
 /**
  * Payment Service
@@ -83,7 +84,7 @@ export class PaymentService implements IPaymentServiceContract {
     });
 
     // Initiate payment with gateway
-    const callbackUrl = `${process.env.BACKEND_API_URL}/api/v1/webhook/${gatewayName}/payment`;
+    const callbackUrl = `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhook/${gatewayName}/payment`;
     const gatewayResponse = await gatewayService.createPayment(
       order as IOrder,
       order.totalAmount,

@@ -112,12 +112,11 @@ export interface IEnvVariables {
   RAZORPAY_KEY_SECRET?: string;
   RAZORPAY_WEBHOOK_SECRET?: string;
   
-  PHONEPE_MERCHANT_ID?: string;
-  PHONEPE_SALT_KEY?: string;
-  PHONEPE_SALT_INDEX?: string;
+  PHONEPE_CLIENT_ID?: string;
+  PHONEPE_CLIENT_SECRET?: string;
+  PHONEPE_CLIENT_VERSION?: string;
+  
   PHONEPE_WEBHOOK_SECRET?: string;
-  PHONEPE_API_URL_SANDBOX?: string;
-  PHONEPE_API_URL_PRODUCTION?: string;
   
   PAYTM_MERCHANT_ID?: string;
   PAYTM_MERCHANT_KEY?: string;

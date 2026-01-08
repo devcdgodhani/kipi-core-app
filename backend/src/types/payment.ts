@@ -2,9 +2,9 @@ import { PAYMENT_GATEWAY, REFUND_REASON } from '../constants/payment';
 
 // Gateway credentials types
 export interface IPhonePeCredentials {
-  merchantId: string;
-  saltKey: string;
-  saltIndex: number;
+  clientId?: string;
+  clientSecret?: string;
+  clientVersion?: string;
 }
 
 export interface IRazorpayCredentials {

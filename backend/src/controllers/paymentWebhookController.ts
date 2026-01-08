@@ -17,7 +17,7 @@ export default class PaymentWebhookController {
   handlePhonePeWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const payload = req.body;
-      const signature = req.headers['x-verify'] as string;
+      const signature = (req.headers['x-verify'] || req.headers['authorization']) as string;
 
       const result = await this.webhookService.processWebhook(
         PAYMENT_GATEWAY.PHONEPE,

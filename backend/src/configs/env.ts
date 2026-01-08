@@ -82,12 +82,10 @@ const envSchema = z
     RAZORPAY_KEY_SECRET: z.string().optional(),
     RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
     
-    PHONEPE_MERCHANT_ID: z.string().optional(),
-    PHONEPE_SALT_KEY: z.string().optional(),
-    PHONEPE_SALT_INDEX: z.string().optional(),
+    PHONEPE_CLIENT_ID: z.string().optional(),
+    PHONEPE_CLIENT_SECRET: z.string().optional(),
+    PHONEPE_CLIENT_VERSION: z.string().optional(),
     PHONEPE_WEBHOOK_SECRET: z.string().optional(),
-    PHONEPE_API_URL_SANDBOX: z.string().optional(),
-    PHONEPE_API_URL_PRODUCTION: z.string().optional(),
     
     PAYTM_MERCHANT_ID: z.string().optional(),
     PAYTM_MERCHANT_KEY: z.string().optional(),
@@ -180,12 +178,10 @@ export const ENV_VARIABLE: IEnvVariables = {
   RAZORPAY_KEY_SECRET: value.RAZORPAY_KEY_SECRET,
   RAZORPAY_WEBHOOK_SECRET: value.RAZORPAY_WEBHOOK_SECRET,
   
-  PHONEPE_MERCHANT_ID: value.PHONEPE_MERCHANT_ID,
-  PHONEPE_SALT_KEY: value.PHONEPE_SALT_KEY,
-  PHONEPE_SALT_INDEX: value.PHONEPE_SALT_INDEX,
+  PHONEPE_CLIENT_ID: value.PHONEPE_CLIENT_ID,
+  PHONEPE_CLIENT_SECRET: value.PHONEPE_CLIENT_SECRET,
+  PHONEPE_CLIENT_VERSION: value.PHONEPE_CLIENT_VERSION,
   PHONEPE_WEBHOOK_SECRET: value.PHONEPE_WEBHOOK_SECRET,
-  PHONEPE_API_URL_SANDBOX: value.PHONEPE_API_URL_SANDBOX,
-  PHONEPE_API_URL_PRODUCTION: value.PHONEPE_API_URL_PRODUCTION,
   
   PAYTM_MERCHANT_ID: value.PAYTM_MERCHANT_ID,
   PAYTM_MERCHANT_KEY: value.PAYTM_MERCHANT_KEY,
