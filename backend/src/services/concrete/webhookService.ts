@@ -71,6 +71,8 @@ export class WebhookService implements IWebhookService {
               if (order.paymentMethod === 'COD') {
                 await codLedgerService.updateStatus(awb, 'DELIVERED');
               }
+              // Update Order Status
+              await OrderModel.updateOne({ _id: order._id }, { $set: { orderStatus: 'DELIVERED' } });
               // Notify Delivery
               await logisticsNotificationService.notifyOrderDelivered(order, shipment);
             }
@@ -78,6 +80,7 @@ export class WebhookService implements IWebhookService {
           shipment.actualDeliveryDate = new Date(timestamp);
         } else if (eventType === 'PICKED_UP') {
           shipment.pickupCompletedDate = new Date(timestamp);
+          await OrderModel.updateOne({ _id: shipment.orderId }, { $set: { orderStatus: 'SHIPPED' } });
         } else if (eventType === 'OUT_FOR_DELIVERY') {
           // Notify OFD
           const order = await OrderModel.findById(shipment.orderId);
@@ -122,7 +125,10 @@ export class WebhookService implements IWebhookService {
                 await codLedgerService.updateStatus(awb, 'RTO');
               }
 
-              // 4. Notify RTO
+              // 4. Update Order Status
+              await OrderModel.updateOne({ _id: order._id }, { $set: { orderStatus: 'RETURNED' } });
+
+              // 5. Notify RTO
               await logisticsNotificationService.notifyRtoInitiated(order, shipment);
             }
           }

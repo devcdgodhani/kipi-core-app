@@ -222,8 +222,9 @@ export class WebhookHandlerService implements IWebhookHandlerServiceContract {
       }
 
       // Find payment by gateway transaction ID or order ID
-      const payment = await this.paymentService.getPaymentByInternalId(paymentIdentifier);
+      const payment = await this.paymentService.getPaymentByGatewayId(paymentIdentifier);
       if (!payment) {
+        console.error(`[WebhookHandlerService] Payment not found for identifier: ${paymentIdentifier}`);
         return { success: false, message: 'Payment not found' };
       }
 

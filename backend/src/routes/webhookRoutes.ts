@@ -25,11 +25,11 @@ post(
 
 router
 .get('/phonepe',
-  validators.phonePeWebhook,
+  // validators.phonePeWebhook,
   webhookController.handlePhonePeWebhook)
 .post(
   '/phonepe',
-  validators.phonePeWebhook,
+  // validators.phonePeWebhook,
   webhookController.handlePhonePeWebhook
 );
 
