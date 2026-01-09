@@ -119,16 +119,26 @@ export class WebhookHandlerService
     provider: PAYMENT_GATEWAY,
     payload: any,
     headers: Record<string, string>,
-    signature?: string // Optional if already validated
+    signature?: string, // Optional if already validated
+    webhookLogId?: string // Optional if retrying an existing log
   ): Promise<{ success: boolean; message: string }> {
     const startTime = Date.now();
-    const eventId = this.generateEventId(provider, payload);
+    let eventId = webhookLogId ? '' : this.generateEventId(provider, payload);
 
     try {
       // Find existing log or create one
-      let webhookLog = await WebhookLogModel.findOne({ eventId });
+      let webhookLog;
+      if (webhookLogId) {
+        webhookLog = await WebhookLogModel.findById(webhookLogId);
+      } else {
+        webhookLog = await WebhookLogModel.findOne({ eventId });
+      }
       
       if (!webhookLog) {
+        if (webhookLogId) {
+          return { success: false, message: 'Webhook log not found for retry' };
+        }
+
         webhookLog = await WebhookLogModel.create({
           eventId,
           provider,
@@ -139,6 +149,8 @@ export class WebhookHandlerService
           retryCount: 0
         });
       } else {
+        // Carry forward the eventId for logging updates below
+        eventId = webhookLog.eventId;
         await WebhookLogModel.updateOne({ _id: webhookLog._id }, { $set: { status: 'PROCESSING' } });
       }
 
@@ -311,7 +323,8 @@ export class WebhookHandlerService
       webhookLog.provider.toLowerCase() as PAYMENT_GATEWAY,
       webhookLog.payload,
       webhookLog.headers,
-      webhookLog.headers['x-webhook-signature'] || ''
+      webhookLog.headers['x-webhook-signature'] || '',
+      webhookLogId
     );
   }
 }

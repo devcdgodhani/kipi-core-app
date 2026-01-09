@@ -12,7 +12,8 @@ export interface IWebhookHandlerServiceContract {
     provider: PAYMENT_GATEWAY,
     payload: any,
     headers: Record<string, string>,
-    signature: string
+    signature?: string,
+    webhookLogId?: string
   ): Promise<{ success: boolean; message: string }>;
 
   /**
