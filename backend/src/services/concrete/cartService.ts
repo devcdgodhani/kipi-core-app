@@ -8,6 +8,8 @@ export class CartService
   implements ICartService
 {
   constructor() {
-    super(CartModel);
+    super(CartModel as any);
   }
 }
+ 
+export const cartService = new CartService();

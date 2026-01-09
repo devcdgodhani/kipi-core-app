@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { ProductService } from '../services/concrete/productService';
+import { SkuService } from '../services/concrete/skuService';
 import { HTTP_STATUS_CODE } from '../constants';
-import { SkuModel } from '../db/mongodb/models/skuModel';
 import { FileStorageService } from '../services/concrete/fileStorageService';
 
 export default class ProductController {
   private productService = new ProductService();
+  private skuService = new SkuService();
   private fileStorageService = new FileStorageService();
 
   private async enrichProductWithPresignedUrls(product: any) {
@@ -77,9 +78,11 @@ export default class ProductController {
       ]);
       
       if (response && response._id) {
-          const skus = await SkuModel.find({ productId: response._id })
-            .populate('media.fileStorageId')
-            .lean();
+          const skus = await this.skuService.findAll(
+            { productId: response._id } as any,
+            {},
+            [{ path: 'media.fileStorageId' }]
+          );
           (response as any).skus = skus;
       }
 

@@ -1,14 +1,14 @@
-import { OrderModel } from '../models/orderModel';
-import { UserModel } from '../models/userModel';
-import { SkuModel } from '../models/skuModel';
-import { AddressModel } from '../models/addressModel';
 import { USER_TYPE } from '../../../constants';
+import { orderService } from '../../../services/concrete/orderService';
+import { userService } from '../../../services/concrete/userService';
+import { skuService } from '../../../services/concrete/skuService';
+import { addressService } from '../../../services/concrete/addressService';
 
 export const seedOrders = async () => {
     console.log('🌱 Seeding orders...');
     try {
-        const customers = await UserModel.find({ type: USER_TYPE.CUSTOMER });
-        const skus = await SkuModel.find({}).populate('productId');
+        const customers = await userService.findAll({ type: USER_TYPE.CUSTOMER });
+        const skus = await skuService.findAll({}, {}, 'productId' as any);
 
         if (customers.length === 0 || skus.length === 0) {
             console.warn('⚠️ No Customers or SKUs found. Skipping order seeding.');
@@ -18,7 +18,7 @@ export const seedOrders = async () => {
         let orderCount = 0;
 
         for (const customer of customers) {
-            const address = await AddressModel.findOne({ userId: customer._id });
+            const address = await addressService.findOne({ userId: (customer as any)._id });
             if (!address) continue; // Skip if no address
 
             // Create 2-3 orders per customer
@@ -71,10 +71,10 @@ export const seedOrders = async () => {
                 const paymentStatus = 'COMPLETED';
 
                 // Check duplicate
-                const existingOrder = await OrderModel.findOne({ orderNumber });
+                const existingOrder = await orderService.findOne({ orderNumber });
                 if (!existingOrder) {
-                    await OrderModel.create({
-                        userId: customer._id,
+                    await orderService.create({
+                        userId: (customer as any)._id,
                         orderNumber,
                         items: orderItems,
                         shippingAddress: {
@@ -110,7 +110,7 @@ export const seedOrders = async () => {
                             { status: 'PENDING', timestamp: orderDate, message: 'Order Placed' },
                             { status: 'CONFIRMED', timestamp: orderDate, message: 'Order Confirmed' }
                         ]
-                    });
+                    } as any);
                     orderCount++;
                 }
             }

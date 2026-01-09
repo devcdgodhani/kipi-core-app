@@ -1,11 +1,12 @@
 import * as cron from 'node-cron';
-import { CronJobModel, CronJobHistoryModel } from '../../db/mongodb/models/cronJobModel';
+import { CronJobModel } from '../../db/mongodb/models/cronJobModel';
 import { ICronJobDocument, ICronJobAttributes, CRON_JOB_STATUS } from '../../interfaces/cronJob';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ICronJobService } from '../contracts/cronJobServiceInterface';
 import { pulseService } from './pulseService';
-import { UserModel } from '../../db/mongodb/models/userModel';
-import { PaymentModel } from '../../db/mongodb/models/paymentModel';
+import { UserService } from './userService';
+import { PaymentService } from './PaymentService';
+import { CronJobHistoryService } from './cronJobHistoryService';
 import { paymentQueues } from '../../jobs/queues/paymentQueues';
 import { PAYMENT_STATUS } from '../../constants/payment';
 import { JOB_NAMES } from '../../jobs/types';
@@ -13,6 +14,9 @@ import { JOB_NAMES } from '../../jobs/types';
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
     private handlers: Map<string, () => Promise<void>> = new Map();
+    private userService = new UserService();
+    private paymentService = new PaymentService();
+    private historyService = new CronJobHistoryService();
 
     constructor() {
         super(CronJobModel as any);
@@ -94,17 +98,17 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 await handler();
                 
                 const duration = Date.now() - startTime;
-                await CronJobModel.updateOne(
-                    { _id: job._id },
-                    { lastRun: new Date(), lastResult: 'SUCCESS', lastError: null }
+                await this.updateOne(
+                    { _id: (job as any)._id } as any,
+                    { lastRun: new Date(), lastResult: 'SUCCESS', lastError: null } as any
                 );
                 
-                await CronJobHistoryModel.create({
-                    cronJobId: job._id,
+                await this.historyService.create({
+                    cronJobId: (job as any)._id,
                     runAt: new Date(startTime),
                     durationMs: duration,
                     status: 'SUCCESS'
-                });
+                } as any);
             } else {
                 throw new Error(`No handler registered for identifier: ${identifier}`);
             }
@@ -112,23 +116,23 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
             const duration = Date.now() - startTime;
             console.error(`CronJobService: Error executing [${job.name}]:`, error);
             
-            await CronJobModel.updateOne(
-                { _id: job._id },
-                { lastRun: new Date(), lastResult: 'FAILURE', lastError: error.message }
+            await this.updateOne(
+                { _id: (job as any)._id } as any,
+                { lastRun: new Date(), lastResult: 'FAILURE', lastError: error.message } as any
             );
 
-            await CronJobHistoryModel.create({
-                cronJobId: job._id,
+            await this.historyService.create({
+                cronJobId: (job as any)._id,
                 runAt: new Date(startTime),
                 durationMs: duration,
                 status: 'FAILURE',
                 error: error.message
-            });
+            } as any);
         }
     }
 
     async getHistory(cronJobId: string) {
-        return CronJobHistoryModel.find({ cronJobId }).sort({ runAt: -1 }).limit(50).lean() as any;
+        return this.historyService.findAll({ cronJobId } as any, { sort: { runAt: -1 }, limit: 50 });
     }
 
     // --- Specific Handlers (Transferred from EngagementCronService) ---
@@ -139,13 +143,13 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         const startOfDay = new Date(thirtyDaysFromNow.setHours(0, 0, 0, 0));
         const endOfDay = new Date(thirtyDaysFromNow.setHours(23, 59, 59, 999));
 
-        const users = await UserModel.find({
+        const users = await this.userService.findAll({
             pointsExpiryDate: { $gte: startOfDay, $lte: endOfDay },
             loyaltyPoints: { $gt: 0 }
-        });
+        } as any);
 
         for (const user of users) {
-            await pulseService.triggerPointsExpiryWarning(user as any, user.loyaltyPoints as number, 30);
+            await pulseService.triggerPointsExpiryWarning(user as any, (user as any).loyaltyPoints as number, 30);
         }
     }
 
@@ -154,7 +158,7 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         const day = today.getDate();
         const month = today.getMonth() + 1;
 
-        const users = await UserModel.aggregate([
+        const users = await this.userService.aggregate([
             {
                 $project: {
                     firstName: 1,
@@ -178,16 +182,16 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         // Find payments in PENDING or INITIATED status older than 15 minutes
         const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
         
-        const pendingPayments = await PaymentModel.find({
+        const pendingPayments = await this.paymentService.findAll({
             status: { $in: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.INITIATED] },
             createdAt: { $lt: fifteenMinutesAgo }
-        }).limit(100); // Limit batch size
+        } as any, { limit: 100 });
 
         console.log(`CronJobService: Found ${pendingPayments.length} pending payments to sync`);
 
         for (const payment of pendingPayments) {
             await paymentQueues.syncQueue.add(JOB_NAMES.SYNC_PAYMENT_STATUS, {
-                paymentId: payment._id.toString()
+                paymentId: (payment as any)._id.toString()
             });
         }
     }

@@ -1,7 +1,7 @@
-import { PaymentGatewayModel } from '../models/paymentGatewayModel';
 import { encryptObject } from '../../../helpers/encryptionHelper';
 import { PAYMENT_GATEWAY, GATEWAY_ENVIRONMENT, PAYMENT_GATEWAY_DEFAULTS } from '../../../constants/payment';
 import { ENV_VARIABLE } from '../../../configs/env';
+import { paymentGatewayService } from '../../../services/concrete/PaymentGatewayService';
 import mongoose from 'mongoose';
 import { connectMongoDb } from '../index';
 
@@ -16,8 +16,6 @@ export const seedPaymentGateways = async () => {
     const isProduction = ENV_VARIABLE.NODE_ENV === 'production';
     const currentEnvironment = isProduction ? GATEWAY_ENVIRONMENT.PRODUCTION : GATEWAY_ENVIRONMENT.SANDBOX;
 
-    // Define gateway templates using unified ENV_VARIABLE constants
-    // These credentials will be applied to the current environment (Sandbox or Production)
     const gatewayTemplates = [
       {
         name: PAYMENT_GATEWAY.PHONEPE,
@@ -54,42 +52,39 @@ export const seedPaymentGateways = async () => {
     ];
 
     for (const template of gatewayTemplates) {
-      // Check if gateway exists for the current environment
-      const existing = await PaymentGatewayModel.findOne({ 
+      const existing = await paymentGatewayService.findOne({ 
         name: template.name, 
         environment: currentEnvironment 
-      });
+      } as any);
 
       const encryptedCredentials = encryptObject(template.credentials);
 
       if (existing) {
-        // Update valid credentials and webhook secret
         console.log(`Updating credentials for ${template.displayName} (${currentEnvironment})...`);
-        await PaymentGatewayModel.updateOne(
-          { _id: existing._id },
+        await paymentGatewayService.updateOne(
+          { _id: (existing as any)._id } as any,
           { 
             $set: { 
               credentials: encryptedCredentials,
               webhookSecret: template.webhookSecret
             } 
-          }
+          } as any
         );
       } else {
-        // Create new entry for this environment
         console.log(`Creating ${template.displayName} (${currentEnvironment})...`);
-        await PaymentGatewayModel.create({
+        await paymentGatewayService.create({
           name: template.name,
           displayName: template.displayName,
-          isEnabled: false, // Default to disabled to prevent accidental activation
+          isEnabled: false,
           environment: currentEnvironment,
           credentials: encryptedCredentials,
           webhookSecret: template.webhookSecret,
           config: {
             timeout: PAYMENT_GATEWAY_DEFAULTS.TIMEOUT,
             retryAttempts: PAYMENT_GATEWAY_DEFAULTS.RETRY_ATTEMPTS
-          },
+          } as any,
           priority: template.priority
-        });
+        } as any);
       }
     }
 

@@ -1,5 +1,5 @@
-import { CouponModel } from '../models/couponModel';
 import { COUPON_TYPE, COUPON_STATUS } from '../../../constants/coupon';
+import { couponService } from '../../../services/concrete/couponService';
 
 export const seedCoupons = async () => {
   console.log('🌱 Seeding coupons...');
@@ -36,12 +36,12 @@ export const seedCoupons = async () => {
     ];
 
     for (const c of coupons) {
-      const existing = await CouponModel.findOne({ code: c.code });
+      const existing = await couponService.findOne({ code: c.code });
       if (!existing) {
-        await CouponModel.create({
+        await couponService.create({
           ...c,
           status: c.status || COUPON_STATUS.ACTIVE,
-        });
+        } as any);
         console.log(`+ Created Coupon: ${c.code}`);
       }
     }

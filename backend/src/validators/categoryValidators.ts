@@ -3,8 +3,7 @@ import { validate } from '../helpers/zodValidator';
 import { 
   baseFilterSchema, 
   paginationSchema, 
-  stringFilter, 
-  booleanFilter 
+  stringFilter
 } from './validatorCommon';
 import { CATEGORY_STATUS } from '../constants';
 

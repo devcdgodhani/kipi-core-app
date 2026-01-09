@@ -8,6 +8,8 @@ export class UserService
   implements IUserService
 {
   constructor() {
-    super(UserModel);
+    super(UserModel as any);
   }
 }
+
+export const userService = new UserService();

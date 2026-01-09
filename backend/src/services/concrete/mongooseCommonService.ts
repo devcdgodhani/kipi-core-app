@@ -140,43 +140,43 @@ export class MongooseCommonService<T, TDoc extends Document>
     }
 
     return { filter, options: filterOptions };
-  };
+  }
 
   // ==========================
   // READ
   // ==========================
 
-  findAll = async (
+  findAll(
     filter: FilterQuery<T>,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<T[]> => {
+  ): Promise<T[]> {
     const query = this.model.find(filter, null, options);
     if (populate) query.populate(populate);
     return query.lean<T[]>().exec();
-  };
+  }
 
-  findOne = async (
+  findOne(
     filter: FilterQuery<T>,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<T | null> => {
+  ): Promise<T | null> {
     const query = this.model.findOne(filter, null, options);
     if (populate) query.populate(populate);
     return query.lean<T>().exec();
-  };
+  }
 
-  findById = async (
+  findById(
     id: string,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<T | null> => {
+  ): Promise<T | null> {
     const query = this.model.findById(id, null, options);
     if (populate) query.populate(populate);
     return query.lean<T>().exec();
-  };
+  }
 
-  findAllWithPagination = async (
+  async findAllWithPagination(
     filter: FilterQuery<T>,
     options: QueryOptions & {
       page?: number;
@@ -185,7 +185,7 @@ export class MongooseCommonService<T, TDoc extends Document>
       projection?: ProjectionType<T>;
     } = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<IPaginationData<T>> => {
+  ): Promise<IPaginationData<T>> {
     const { order, projection, page = 1, limit = 10, ...restOptions } = options;
 
     const sort = order || { updatedAt: -1 };
@@ -217,37 +217,37 @@ export class MongooseCommonService<T, TDoc extends Document>
       hasNextPage: safePage < totalPages,
       recordList,
     };
-  };
+  }
 
-  count = async (filter: FilterQuery<T>): Promise<number> => {
+  count(filter: FilterQuery<T>): Promise<number> {
     return this.model.countDocuments(filter).exec();
-  };
+  }
 
   // ==========================
   // WRITE
   // ==========================
 
-  update = async (
+  update(
     filter: FilterQuery<T>,
     updateData: UpdateQuery<TDoc>,
     options: MongooseUpdateQueryOptions<T> & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<UpdateWriteOpResult | null> => {
+  ): Promise<UpdateWriteOpResult | null> {
     return this.model.updateMany(filter, updateData, options).exec();
-  };
+  }
 
-  updateOne = async (
+  updateOne(
     filter: FilterQuery<T>,
     updateData: UpdateQuery<TDoc>,
     options: MongooseUpdateQueryOptions<T> & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<UpdateWriteOpResult | null> => {
+  ): Promise<UpdateWriteOpResult | null> {
     return this.model.updateOne(filter, updateData, options).exec();
-  };
+  }
 
-  upsert = async (
+  upsert(
     filter: FilterQuery<T>,
     updateData: UpdateQuery<TDoc>,
     options: QueryOptions & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<T | null> => {
+  ): Promise<T | null> {
     return this.model
       .findOneAndUpdate(filter, updateData, {
         ...options,
@@ -256,37 +256,51 @@ export class MongooseCommonService<T, TDoc extends Document>
       })
       .lean<T>()
       .exec();
-  };
+  }
+ 
+  findOneAndUpdate(
+    filter: FilterQuery<T>,
+    updateData: UpdateQuery<TDoc>,
+    options: QueryOptions & { userId?: ObjectId; session?: ClientSession } = {}
+  ): Promise<T | null> {
+    return this.model
+      .findOneAndUpdate(filter, updateData, {
+        ...options,
+        new: true,
+      })
+      .lean<T>()
+      .exec();
+  }
 
-  create = async (
+  async create(
     createData: Partial<T>,
     options: CreateOptions & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<T> => {
+  ): Promise<T> {
     const payload = { ...createData, createdBy: options.userId } as Partial<T>;
     const [createdDoc] = await this.model.create([payload] as any, options);
     return createdDoc as T;
-  };
+  }
 
-  bulkCreate = async (
+  async bulkCreate(
     createData: Partial<T>[],
     options: CreateOptions & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<T[]> => {
+  ): Promise<T[]> {
     const payload = createData.map((data) => ({
       ...data,
       createdBy: options.userId,
     })) as Partial<T>[];
     const docs = await this.model.create(payload, options);
     return docs.map((d) => d.toObject() as T);
-  };
+  }
 
   // ==========================
   // DELETE (Soft Delete)
   // ==========================
 
-  softDelete = async (
+  softDelete(
     filter: FilterQuery<T>,
     options: MongooseUpdateQueryOptions<T> & { userId?: ObjectId; session?: ClientSession } = {}
-  ): Promise<UpdateWriteOpResult | null> => {
+  ): Promise<UpdateWriteOpResult | null> {
     return this.model
       .updateMany(
         filter,
@@ -294,17 +308,21 @@ export class MongooseCommonService<T, TDoc extends Document>
         options
       )
       .exec();
-  };
+  }
 
-  delete = async (filter: FilterQuery<T>): Promise<DeleteResult | null> => {
+  delete(filter: FilterQuery<T>): Promise<DeleteResult | null> {
     return this.model.deleteMany(filter).exec();
-  };
+  }
+ 
+  deleteMany(filter: FilterQuery<T>): Promise<DeleteResult | null> {
+    return this.model.deleteMany(filter).exec();
+  }
 
   // ==========================
   // AGGREGATE
   // ==========================
 
-  aggregate = async (pipeline: PipelineStage[]): Promise<Record<string, unknown>[]> => {
+  aggregate(pipeline: PipelineStage[]): Promise<Record<string, unknown>[]> {
     return this.model.aggregate(pipeline).exec();
-  };
+  }
 }

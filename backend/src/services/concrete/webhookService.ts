@@ -1,4 +1,3 @@
-import { WebhookLogModel, ShipmentModel, TrackingEventModel, OrderModel, UserModel, NDRModel } from '../../db/mongodb';
 import { ShiprocketProvider } from '../providers/shiprocketProvider';
 import { SHIPMENT_STATUS } from '../../constants/shipment';
 import { logisticsNotificationService } from './logisticsNotificationService';
@@ -8,11 +7,23 @@ import { codLedgerService } from './codLedgerService';
 import { loyaltyService } from './loyaltyService';
 import { couponService } from './couponService';
 import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
+import { webhookLogService } from './webhookLogService';
+import { shipmentService } from './shipmentService';
+import { trackingEventService } from './trackingEventService';
+import { orderService } from './orderService';
+import { userService } from './userService';
+import { ndrService } from './ndrService';
 
 import { IWebhookService } from '../contracts/webhookServiceInterface';
 
 export class WebhookService implements IWebhookService {
   private shiprocketProvider: ShiprocketProvider;
+  private get webhookLogService() { return webhookLogService; }
+  private get shipmentService() { return shipmentService; }
+  private get trackingEventService() { return trackingEventService; }
+  private get orderService() { return orderService; }
+  private get userService() { return userService; }
+  private get ndrService() { return ndrService; }
 
   constructor() {
     this.shiprocketProvider = new ShiprocketProvider();
@@ -36,16 +47,16 @@ export class WebhookService implements IWebhookService {
     const normalizedEvent = this.shiprocketProvider.normalizeWebhook(payload);
 
     // 3. Log webhook with PENDING status
-    const logEntry = await WebhookLogModel.create({
+    const logEntry = await this.webhookLogService.create({
       eventId: normalizedEvent.eventId,
       provider: provider,
       eventType: normalizedEvent.eventType,
       payload: payload,
       headers: headers,
       status: 'PENDING'
-    });
+    } as any);
 
-    return { isValid: true, logId: logEntry._id.toString(), normalizedEvent };
+    return { isValid: true, logId: (logEntry as any)._id.toString(), normalizedEvent };
   }
 
   /**
@@ -56,112 +67,112 @@ export class WebhookService implements IWebhookService {
 
     try {
       // 1. Update Shipment Status
-      const shipment = await ShipmentModel.findOne({ awb });
+      const shipment = await this.shipmentService.findOne({ awb } as any);
       if (shipment) {
         shipment.status = this.mapToShipmentStatus(eventType);
         shipment.currentLocation = location;
         shipment.lastTrackedAt = new Date();
         
         if (eventType === 'DELIVERED') {
-          if (shipment.status !== SHIPMENT_STATUS.DELIVERED) {
-            const order = await OrderModel.findById(shipment.orderId);
+          if ((shipment as any).status !== SHIPMENT_STATUS.DELIVERED) {
+            const order = await this.orderService.findById((shipment as any).orderId);
             if (order) {
-              await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.deliveredCount': 1 } });
+              await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.deliveredCount': 1 } } as any);
               // Update COD Ledger
-              if (order.paymentMethod === 'COD') {
+              if ((order as any).paymentMethod === 'COD') {
                 await codLedgerService.updateStatus(awb, 'DELIVERED');
               }
               // Update Order Status
-              await OrderModel.updateOne({ _id: order._id }, { $set: { orderStatus: 'DELIVERED' } });
+              await this.orderService.updateOne({ _id: (order as any)._id } as any, { $set: { orderStatus: 'DELIVERED' } } as any);
               // Notify Delivery
-              await logisticsNotificationService.notifyOrderDelivered(order, shipment);
+              await logisticsNotificationService.notifyOrderDelivered(order as any, shipment as any);
             }
           }
-          shipment.actualDeliveryDate = new Date(timestamp);
+          (shipment as any).actualDeliveryDate = new Date(timestamp);
         } else if (eventType === 'PICKED_UP') {
-          shipment.pickupCompletedDate = new Date(timestamp);
-          await OrderModel.updateOne({ _id: shipment.orderId }, { $set: { orderStatus: 'SHIPPED' } });
+          (shipment as any).pickupCompletedDate = new Date(timestamp);
+          await this.orderService.updateOne({ _id: (shipment as any).orderId } as any, { $set: { orderStatus: 'SHIPPED' } } as any);
         } else if (eventType === 'OUT_FOR_DELIVERY') {
           // Notify OFD
-          const order = await OrderModel.findById(shipment.orderId);
-          if (order) await logisticsNotificationService.notifyOutForDelivery(order, shipment);
+          const order = await this.orderService.findById((shipment as any).orderId);
+          if (order) await logisticsNotificationService.notifyOutForDelivery(order as any, shipment as any);
         } else if (eventType === 'RTO') {
-          if (!shipment.isRTO) {
-            shipment.isRTO = true;
-            const order = await OrderModel.findById(shipment.orderId);
+          if (!(shipment as any).isRTO) {
+            (shipment as any).isRTO = true;
+            const order = await this.orderService.findById((shipment as any).orderId);
             if (order) {
-              await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.rtoCount': 1 } });
+              await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.rtoCount': 1 } } as any);
               
               // 1. Loyalty Point Reversal for RTO
-              if (order.pointsUsed && order.pointsUsed > 0) {
+              if ((order as any).pointsUsed && (order as any).pointsUsed > 0) {
                 await loyaltyService.updateBalance(
-                  order.userId.toString(),
-                  order.pointsUsed,
+                  (order as any).userId.toString(),
+                  (order as any).pointsUsed,
                   LOYALTY_TRANSACTION_TYPE.REFUNDED,
-                  `Refunded from RTO Order #${order.orderNumber}`,
-                  order._id.toString()
+                  `Refunded from RTO Order #${(order as any).orderNumber}`,
+                  (order as any)._id.toString()
                 );
               }
-
+ 
               // 2. Coupon Reversal for RTO
-              if (order.couponCode) {
-                await couponService.revertUsage(order.couponCode);
+              if ((order as any).couponCode) {
+                await couponService.revertUsage((order as any).couponCode);
               }
-
+ 
               // 3. Inventory Restocking for RTO
-              for (const item of order.items) {
+              for (const item of (order as any).items) {
                 await inventoryService.restock({
                   skuId: item.skuId?.toString(),
                   productId: item.productId?.toString(),
                   quantity: item.quantity,
-                  referenceId: order._id.toString(),
+                  referenceId: (order as any)._id.toString(),
                   referenceType: 'RTO',
-                  reason: `RTO restock for Order #${order.orderNumber}`
+                  reason: `RTO restock for Order #${(order as any).orderNumber}`
                 });
               }
-
+ 
               // 3. Update COD Ledger
-              if (order.paymentMethod === 'COD') {
+              if ((order as any).paymentMethod === 'COD') {
                 await codLedgerService.updateStatus(awb, 'RTO');
               }
-
+ 
               // 4. Update Order Status
-              await OrderModel.updateOne({ _id: order._id }, { $set: { orderStatus: 'RETURNED' } });
-
+              await this.orderService.updateOne({ _id: (order as any)._id } as any, { $set: { orderStatus: 'RETURNED' } } as any);
+ 
               // 5. Notify RTO
-              await logisticsNotificationService.notifyRtoInitiated(order, shipment);
+              await logisticsNotificationService.notifyRtoInitiated(order as any, shipment as any);
             }
           }
-          if (!shipment.rtoInitiatedDate) {
-            shipment.rtoInitiatedDate = new Date(timestamp);
-            shipment.rtoReason = message;
+          if (!(shipment as any).rtoInitiatedDate) {
+            (shipment as any).rtoInitiatedDate = new Date(timestamp);
+            (shipment as any).rtoReason = message;
           }
         } else if (eventType === 'NDR') {
           // 1. Create NDR Record
-          const order = await OrderModel.findById(shipment.orderId);
+          const order = await this.orderService.findById((shipment as any).orderId);
           if (order) {
-            await NDRModel.create({
-              shipmentId: shipment._id,
-              orderId: order._id,
-              awb: shipment.awb,
+            await this.ndrService.create({
+              shipmentId: (shipment as any)._id,
+              orderId: (order as any)._id,
+              awb: (shipment as any).awb,
               ndrDate: timestamp ? new Date(timestamp) : new Date(),
               ndrReason: status || 'UNDELIVERED',
               ndrReasonText: message || 'Delivery failed',
               attemptNumber: 1, // This should be calculated or passed by provider
               status: 'PENDING'
-            });
+            } as any);
             // 2. Notify NDR
-            await logisticsNotificationService.notifyNdrIncident(order, { ndrReasonText: message });
+            await logisticsNotificationService.notifyNdrIncident(order as any, { ndrReasonText: message });
           }
         }
-
-        await shipment.save();
+ 
+        await this.shipmentService.updateOne({ _id: (shipment as any)._id } as any, shipment as any);
       }
 
       // 2. Create Tracking Event
       if (shipment) {
-        await TrackingEventModel.create({
-          shipmentId: shipment._id,
+        await this.trackingEventService.create({
+          shipmentId: (shipment as any)._id,
           awb,
           eventType,
           status,
@@ -169,26 +180,26 @@ export class WebhookService implements IWebhookService {
           timestamp: new Date(timestamp),
           message: message || status,
           providerData: event.rawPayload
-        });
+        } as any);
       }
 
       // 3. Update Log Status to PROCESSED
-      await WebhookLogModel.updateOne(
-        { eventId: eventId },
-        { status: 'PROCESSED', processedAt: new Date() }
+      await this.webhookLogService.updateOne(
+        { eventId: eventId } as any,
+        { status: 'PROCESSED', processedAt: new Date() } as any
       );
 
       return true;
     } catch (error) {
       console.error('Event processing failed:', error);
       // Update Log Status to FAILED
-      await WebhookLogModel.updateOne(
-        { eventId: eventId },
+      await this.webhookLogService.updateOne(
+        { eventId: eventId } as any,
         { 
           status: 'FAILED', 
           error: error instanceof Error ? error.message : 'Unknown error',
           processedAt: new Date() 
-        }
+        } as any
       );
       throw error; // Rethrow to let BullMQ retry
     }

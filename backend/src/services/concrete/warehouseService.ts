@@ -8,7 +8,7 @@ export class WarehouseService
   implements IWarehouseService 
 {
   constructor() {
-    super(WarehouseModel);
+    super(WarehouseModel as any);
   }
 
   async findPrimary(): Promise<IWarehouseAttributes | null> {
@@ -21,7 +21,7 @@ export class WarehouseService
   async createWarehouse(data: any): Promise<IWarehouseAttributes> {
     if (data.isPrimary) {
       // Unmark other primary warehouses
-      await WarehouseModel.updateMany({ isPrimary: true }, { isPrimary: false });
+      await this.update({ isPrimary: true } as any, { isPrimary: false } as any);
     }
     return await this.create(data);
   }
@@ -29,8 +29,10 @@ export class WarehouseService
   async updateWarehouse(id: string, data: any): Promise<IWarehouseAttributes | null> {
     if (data.isPrimary) {
       // Unmark other primary warehouses
-      await WarehouseModel.updateMany({ isPrimary: true, _id: { $ne: id } }, { isPrimary: false });
+      await this.update({ isPrimary: true, _id: { $ne: id } } as any, { isPrimary: false } as any);
     }
-    return await WarehouseModel.findByIdAndUpdate(id, data, { new: true }).lean() as any;
+    return await this.findOneAndUpdate({ _id: id } as any, { $set: data } as any, { new: true });
   }
 }
+ 
+export const warehouseService = new WarehouseService();

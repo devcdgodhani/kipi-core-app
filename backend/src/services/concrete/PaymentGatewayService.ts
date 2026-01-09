@@ -10,12 +10,16 @@ import { PAYMENT_GATEWAY, PAYMENT_ERROR_MESSAGES, GATEWAY_ENVIRONMENT } from '..
 import { IPhonePeCredentials, IRazorpayCredentials, IPaytmCredentials } from '../../types/payment';
 import { ENV_VARIABLE } from '../../configs/env';
 import { seedPaymentGateways } from '../../db/mongodb/seeders/paymentGatewaySeeder';
-
+import { MongooseCommonService } from './mongooseCommonService';
+ 
 /**
  * Payment Gateway Service
  * Manages payment gateway configurations and provides gateway instances
  */
-export class PaymentGatewayService implements IPaymentGatewayServiceContract {
+export class PaymentGatewayService extends MongooseCommonService<IPaymentGatewayAttributes, IPaymentGatewayDocument> implements IPaymentGatewayServiceContract {
+  constructor() {
+    super(PaymentGatewayModel as any);
+  }
   /**
    * Get active environment based on NODE_ENV
    */
@@ -29,16 +33,14 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    * Get all payment gateways
    */
   async getAllGateways(): Promise<IPaymentGatewayAttributes[]> {
-    return await PaymentGatewayModel.find({}).sort({ priority: 1 }).lean();
+    return await this.findAll({}, { sort: { priority: 1 } });
   }
 
   /**
    * Get enabled payment gateways
    */
   async getEnabledGateways(): Promise<IPaymentGatewayAttributes[]> {
-    return await PaymentGatewayModel.find({ isEnabled: true })
-      .sort({ priority: 1 })
-      .lean();
+    return await this.findAll({ isEnabled: true } as any, { sort: { priority: 1 } });
   }
 
   /**
@@ -46,16 +48,14 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    */
   async getGatewayByName(name: PAYMENT_GATEWAY, environment?: string): Promise<IPaymentGatewayAttributes | null> {
     const targetEnvironment = environment || this.getActiveEnvironment();
-    return await PaymentGatewayModel.findOne({ name, environment: targetEnvironment }).lean();
+    return await this.findOne({ name, environment: targetEnvironment } as any);
   }
 
   /**
    * Create new gateway configuration
    */
   async createGateway(payload: Partial<IPaymentGatewayAttributes>): Promise<IPaymentGatewayAttributes> {
-    const gateway = new PaymentGatewayModel(payload);
-    const saved = await gateway.save();
-    return saved.toObject();
+    return await this.create(payload as any);
   }
 
   /**
@@ -65,18 +65,18 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
     name: PAYMENT_GATEWAY,
     updates: Partial<IPaymentGatewayAttributes>
   ): Promise<IPaymentGatewayAttributes | null> {
-    return await PaymentGatewayModel.findOneAndUpdate(
-      { name },
-      { $set: updates },
+    return await this.findOneAndUpdate(
+      { name } as any,
+      { $set: updates } as any,
       { new: true }
-    ).lean();
+    );
   }
 
   /**
    * Toggle gateway enabled status
    */
   async toggleGateway(name: PAYMENT_GATEWAY, isEnabled: boolean): Promise<void> {
-    await PaymentGatewayModel.updateOne({ name }, { $set: { isEnabled } });
+    await this.updateOne({ name } as any, { $set: { isEnabled } } as any);
   }
 
   /**
@@ -127,9 +127,7 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
    * Get primary gateway (highest priority enabled gateway)
    */
   async getPrimaryGateway(): Promise<IPaymentGatewayAttributes | null> {
-    return await PaymentGatewayModel.findOne({ isEnabled: true })
-      .sort({ priority: 1 })
-      .lean();
+    return await this.findOne({ isEnabled: true } as any, { sort: { priority: 1 } });
   }
 
   /**
@@ -155,3 +153,5 @@ export class PaymentGatewayService implements IPaymentGatewayServiceContract {
     await seedPaymentGateways();
   }
 }
+ 
+export const paymentGatewayService = new PaymentGatewayService();

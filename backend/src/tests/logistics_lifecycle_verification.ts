@@ -1,25 +1,17 @@
 import mongoose from 'mongoose';
 import { connectMongoDb } from '../db/mongodb';
 import { ENV_VARIABLE } from '../configs';
-import { OrderModel } from '../db/mongodb/models/orderModel';
-import { ShipmentModel } from '../db/mongodb/models/shipmentModel';
-import { WarehouseModel } from '../db/mongodb/models/warehouseModel';
-import { LotModel } from '../db/mongodb/models/lotModel';
-import { ProductModel } from '../db/mongodb/models/productModel';
-import { SkuModel } from '../db/mongodb/models/skuModel';
-import { OrderService } from '../services/concrete/orderService';
-import { LogisticsService } from '../services/concrete/logisticsService';
-import { ShipmentService } from '../services/concrete/shipmentService';
+import { orderService } from '../services/concrete/orderService';
+import { shipmentService } from '../services/concrete/shipmentService';
+import { warehouseService } from '../services/concrete/warehouseService';
+import { productService } from '../services/concrete/productService';
+import { skuService } from '../services/concrete/skuService';
+import { lotService } from '../services/concrete/lotService';
 import { ORDER_STATUS } from '../constants';
-
-// Initialize services
-const orderService = new OrderService();
-const logisticsService = new LogisticsService();
-const shipmentService = new ShipmentService();
-
+ 
 async function runVerification() {
     console.log('🚀 Starting Logistics Lifecycle Verification...');
-
+ 
     try {
         // 1. Setup Database Connection
         await connectMongoDb({
@@ -27,14 +19,14 @@ async function runVerification() {
             dbName: ENV_VARIABLE.MONGO_DB_NAME as string,
         });
         console.log('✅ Connected to MongoDB');
-
+ 
         // 2. Setup Test Data
         console.log('📦 Setting up test data...');
         
         // Find or create a test warehouse
-        let warehouse = await WarehouseModel.findOne({ code: 'TEST_WH_01' });
+        let warehouse = await warehouseService.findOne({ code: 'TEST_WH_01' });
         if (!warehouse) {
-            warehouse = await WarehouseModel.create({
+            warehouse = await warehouseService.create({
                 name: 'Test Warehouse 01',
                 code: 'TEST_WH_01',
                 address: {
@@ -50,28 +42,28 @@ async function runVerification() {
                 email: 'test@warehouse.com',
                 isPrimary: true,
                 isActive: true
-            });
+            } as any);
         }
-
+ 
         // Find or create a test product/sku/lot
-        let product = await ProductModel.findOne({ name: 'Verification Test Product' });
+        let product = await productService.findOne({ name: 'Verification Test Product' });
         if (!product) {
-            product = await ProductModel.create({
+            product = await productService.create({
                 name: 'Verification Test Product',
                 productCode: `VTP-${Date.now()}`,
                 slug: `verification-test-product-${Date.now()}`,
                 basePrice: 1000,
                 description: 'Product for automated testing',
-                categoryIds: [new mongoose.Types.ObjectId()],
+                categoryIds: [new mongoose.Types.ObjectId() as any],
                 status: 'ACTIVE',
                 stock: 100
-            });
+            } as any);
         }
-
-        let sku = await SkuModel.findOne({ productId: product._id });
+ 
+        let sku = await skuService.findOne({ productId: (product as any)._id });
         if (!sku) {
-            sku = await SkuModel.create({
-                productId: product._id,
+            sku = await skuService.create({
+                productId: (product as any)._id,
                 skuCode: `TEST-SKU-${Date.now()}`,
                 slug: `test-sku-slug-${Date.now()}`,
                 basePrice: 1000,
@@ -79,20 +71,20 @@ async function runVerification() {
                 quantity: 100,
                 availableQuantity: 100,
                 status: 'ACTIVE'
-            });
+            } as any);
         }
-
-        let lot = await LotModel.findOne({ lotNumber: `BATCH-001-${sku._id}` });
+ 
+        let lot = await lotService.findOne({ lotNumber: `BATCH-001-${(sku as any)._id}` });
         if (!lot) {
-            lot = await LotModel.create({
-                lotNumber: `BATCH-001-${sku._id}`,
+            lot = await lotService.create({
+                lotNumber: `BATCH-001-${(sku as any)._id}`,
                 basePrice: 500,
                 quantity: 100,
                 remainingQuantity: 100,
                 status: 'ACTIVE'
-            });
+            } as any);
         }
-
+ 
         // 3. Step 1: Create Test Order
         console.log('📝 Creating test order...');
         const testUserId = new mongoose.Types.ObjectId();
@@ -105,46 +97,46 @@ async function runVerification() {
             country: 'India',
             pincode: '110001'
         };
-
-        const testOrder = await OrderModel.create({
-            userId: testUserId,
+ 
+        const testOrder = await orderService.create({
+            userId: testUserId as any,
             orderNumber: `TEST-ORD-${Date.now()}`,
             items: [{
-                productId: product._id,
-                skuId: sku._id,
-                name: product.name,
+                productId: (product as any)._id,
+                skuId: (sku as any)._id,
+                name: (product as any).name,
                 price: 900,
                 quantity: 1,
                 total: 900
             }],
-            shippingAddress: address,
-            billingAddress: address,
+            shippingAddress: address as any,
+            billingAddress: address as any,
             paymentMethod: 'COD',
             subTotal: 900,
             totalAmount: 900,
             orderStatus: ORDER_STATUS.PENDING
-        });
-        console.log(`✅ Order created: ${testOrder.orderNumber}`);
-
+        } as any);
+        console.log(`✅ Order created: ${(testOrder as any).orderNumber}`);
+ 
         // 4. Step 2: Confirm Order & Auto-Assign Warehouse
         console.log('⚙️ Confirming order...');
-        await orderService.updateOrderStatus(testOrder._id as any, ORDER_STATUS.CONFIRMED, testUserId);
-        const confirmedOrder = await OrderModel.findById(testOrder._id);
+        await orderService.updateOrderStatus((testOrder as any)._id as any, ORDER_STATUS.CONFIRMED, testUserId as any);
+        const confirmedOrder = await orderService.findById((testOrder as any)._id);
         
-        if (confirmedOrder?.orderStatus === ORDER_STATUS.CONFIRMED) {
+        if ((confirmedOrder as any)?.orderStatus === ORDER_STATUS.CONFIRMED) {
             console.log('✅ Order confirmed successfully');
         } else {
             throw new Error('Verification failed: Order status not updated to CONFIRMED');
         }
-
+ 
         // 5. Step 3: Create Shipment & Generate AWB
         console.log('🚚 Creating shipment...');
         const shipmentData = {
-            orderId: testOrder._id,
-            orderNumber: testOrder.orderNumber,
+            orderId: (testOrder as any)._id,
+            orderNumber: (testOrder as any).orderNumber,
             shipmentNumber: `SHIP-${Date.now()}`,
             awb: `AWB-${Date.now()}`,
-            warehouseId: warehouse._id,
+            warehouseId: (warehouse as any)._id,
             courierId: new mongoose.Types.ObjectId(),
             courierName: 'Shiprocket Test',
             courierCode: 'SR_TEST',
@@ -161,24 +153,26 @@ async function runVerification() {
             pickupAddress: address,
             deliveryAddress: address
         };
-
+ 
         const shipmentRes = await shipmentService.create(shipmentData as any) as any;
         console.log(`✅ Shipment created: ${shipmentRes._id}`);
-
+ 
         // Link order and shipment (Crucial for consistency)
-        await OrderModel.findByIdAndUpdate(testOrder._id, {
-            shipmentId: shipmentRes._id,
-            awb: shipmentData.awb
-        });
-
+        await orderService.updateOne({ _id: (testOrder as any)._id } as any, {
+            $set: {
+                shipmentId: shipmentRes._id,
+                awb: shipmentData.awb
+            }
+        } as any);
+ 
         // Verify AWB Generation (Simulated)
-        const updatedShipment = await ShipmentModel.findById(shipmentRes._id);
-        if (updatedShipment?.awb) {
-            console.log(`✅ AWB Generated: ${updatedShipment.awb}`);
+        const updatedShipment = await shipmentService.findById(shipmentRes._id);
+        if ((updatedShipment as any)?.awb) {
+            console.log(`✅ AWB Generated: ${(updatedShipment as any).awb}`);
         } else {
             console.log('⚠️ AWB not immediately available');
         }
-
+ 
         // 6. Step 4: Simulate Status Transitions
         console.log('🔄 Simulating tracking updates...');
         const statuses = ['PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'];
@@ -187,28 +181,28 @@ async function runVerification() {
             console.log(`   -> Transitioning to ${status}...`);
             // We directly call the private/internal update logic or simulate webhook
             // For simplicity in verification script, we update the Shipment model
-            await ShipmentModel.findByIdAndUpdate(shipmentRes._id, { status });
+            await shipmentService.updateOne({ _id: shipmentRes._id } as any, { $set: { status } } as any);
             // And trigger associated order updates if needed (usually handled by webhookService)
             if (status === 'DELIVERED') {
-                await OrderModel.findByIdAndUpdate(testOrder._id, { orderStatus: ORDER_STATUS.DELIVERED });
+                await orderService.updateOne({ _id: (testOrder as any)._id } as any, { $set: { orderStatus: ORDER_STATUS.DELIVERED } } as any);
             }
         }
-
-        const finalOrder = await OrderModel.findById(testOrder._id);
-        if (finalOrder?.orderStatus === ORDER_STATUS.DELIVERED) {
+ 
+        const finalOrder = await orderService.findById((testOrder as any)._id);
+        if ((finalOrder as any)?.orderStatus === ORDER_STATUS.DELIVERED) {
             console.log('🎉 Verification SUCCESS: Lifecycle completed from PENDING to DELIVERED');
         } else {
-            throw new Error(`Verification failed: Expected status DELIVERED, got ${finalOrder?.orderStatus}`);
+            throw new Error(`Verification failed: Expected status DELIVERED, got ${(finalOrder as any)?.orderStatus}`);
         }
-
+ 
         // 7. Cleanup (Optional: Delete test data)
         console.log('🧹 Cleaning up test data...');
-        await OrderModel.findByIdAndDelete(testOrder._id);
-        await ShipmentModel.findByIdAndDelete(shipmentRes._id);
-
+        await orderService.delete({ _id: (testOrder as any)._id } as any);
+        await shipmentService.delete({ _id: shipmentRes._id } as any);
+ 
         
         console.log('🏁 Verification Finished Successfully');
-
+ 
     } catch (error) {
         console.error('❌ Verification FAILED');
         console.error(error);
@@ -217,5 +211,5 @@ async function runVerification() {
         await mongoose.disconnect();
     }
 }
-
+ 
 runVerification();

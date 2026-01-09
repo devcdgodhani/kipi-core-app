@@ -6,7 +6,7 @@ import { ITreeNode } from '../../types/category';
 
 export class CategoryService extends MongooseCommonService<ICategoryAttributes, ICategoryDocument> implements ICategoryService {
   constructor() {
-    super(CategoryModel);
+    super(CategoryModel as any);
   }
 
   async getTree(filter: any): Promise<ITreeNode[]> {
@@ -32,25 +32,25 @@ export class CategoryService extends MongooseCommonService<ICategoryAttributes, 
     return tree;
   }
   softDelete = async (filter: any, options: any = {}): Promise<any> => {
-    const categoriesToDelete = await this.model.find(filter).select('_id');
+    const categoriesToDelete = await this.findAll(filter, { projection: { _id: 1 } });
     const ids = categoriesToDelete.map((c) => c._id);
-
+ 
     if (ids.length > 0) {
-      const subCategoryCount = await this.model.countDocuments({
-        parentId: { $in: ids },
-      });
-
+      const subCategoryCount = await this.count({
+        parentId: { $in: ids as any },
+      } as any);
+ 
       if (subCategoryCount > 0) {
         throw new Error(`Cannot delete category because it has active sub-categories.`);
       }
     }
-
-    return this.model
-      .updateMany(
+ 
+    return this.update(
         filter,
         { deletedBy: options.userId, deletedAt: new Date() } as any,
         options
-      )
-      .exec();
+      );
   };
 }
+ 
+export const categoryService = new CategoryService();

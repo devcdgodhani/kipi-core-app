@@ -4,10 +4,12 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
+import { userService } from './userService';
 
 import { ILoyaltyService } from '../contracts/loyaltyServiceInterface';
 
 export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAttributes, ILoyaltyTransactionDocument> implements ILoyaltyService {
+  private get userService() { return userService; }
   constructor() {
     super(LoyaltyTransactionModel);
   }
@@ -16,13 +18,13 @@ export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAtt
    * Add/Subtract points with ledger entry
    */
   async updateBalance(userId: string, points: number, type: LOYALTY_TRANSACTION_TYPE, message: string, orderId?: string) {
-    const user = await UserModel.findById(userId);
+    const user = await this.userService.findById(userId);
     if (!user) {
       throw new ApiError(HTTP_STATUS_CODE.NOTFOUND.CODE, HTTP_STATUS_CODE.NOTFOUND.STATUS, 'User not found');
     }
-
+ 
     // Update user balance
-    const newBalance = user.loyaltyPoints + points;
+    const newBalance = (user as any).loyaltyPoints + points;
     if (newBalance < 0) {
       throw new ApiError(
         HTTP_STATUS_CODE.BAD_REQUEST.CODE,
@@ -30,14 +32,14 @@ export class LoyaltyService extends MongooseCommonService<ILoyaltyTransactionAtt
         'Insufficient loyalty balance'
       );
     }
-
-    user.loyaltyPoints = newBalance;
+ 
+    const updateData: any = { loyaltyPoints: newBalance };
     if (points > 0) {
-      user.totalEarnedPoints += points;
+      updateData.totalEarnedPoints = ((user as any).totalEarnedPoints || 0) + points;
       // Points expire 1 year from now
-      user.pointsExpiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      updateData.pointsExpiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     }
-    await user.save();
+    await this.userService.updateOne({ _id: userId } as any, updateData);
 
     // Create ledger entry
     return this.create({

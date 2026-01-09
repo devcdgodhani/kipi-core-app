@@ -1,7 +1,12 @@
 import { CODLedgerModel } from '../../db/mongodb';
 import { Types } from 'mongoose';
-
-export class CodLedgerService {
+import { MongooseCommonService } from './mongooseCommonService';
+import { ICODLedgerAttributes, ICODLedgerDocument } from '../../interfaces/codLedger';
+ 
+export class CodLedgerService extends MongooseCommonService<ICODLedgerAttributes, ICODLedgerDocument> {
+  constructor() {
+    super(CODLedgerModel as any);
+  }
   /**
    * Creates a new COD ledger entry for a shipment.
    */
@@ -13,7 +18,7 @@ export class CodLedgerService {
     courierId: string;
     courierName: string;
   }): Promise<void> {
-    await CODLedgerModel.create({
+    await this.create({
       orderId: new Types.ObjectId(params.orderId),
       shipmentId: new Types.ObjectId(params.shipmentId),
       awb: params.awb,
@@ -22,7 +27,7 @@ export class CodLedgerService {
       courierId: new Types.ObjectId(params.courierId),
       courierName: params.courierName,
       isReconciled: false
-    });
+    } as any);
   }
 
   /**
@@ -37,7 +42,7 @@ export class CodLedgerService {
       update.status = 'RTO';
     }
 
-    await CODLedgerModel.updateOne({ awb }, { $set: { ...update, ...additionalData } });
+    await this.updateOne({ awb } as any, { $set: { ...update, ...additionalData } } as any);
   }
 
   /**
@@ -51,13 +56,13 @@ export class CodLedgerService {
   }): Promise<void> {
     const { settlementAmount, settlementDate, utrNumber, charges } = settlementData;
     
-    const ledger = await CODLedgerModel.findOne({ awb });
+    const ledger = await this.findOne({ awb } as any);
     if (!ledger) return;
 
     const difference = ledger.codAmount - settlementAmount - (charges || 0);
     
-    await CODLedgerModel.updateOne(
-      { awb },
+    await this.updateOne(
+      { awb } as any,
       {
         $set: {
           status: 'SETTLED',
@@ -75,7 +80,7 @@ export class CodLedgerService {
             reason: 'Settlement mismatch'
           } : undefined
         }
-      }
+      } as any
     );
   }
 }

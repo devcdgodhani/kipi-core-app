@@ -12,7 +12,7 @@ export class CouponService
   implements ICouponService
 {
   constructor() {
-    super(CouponModel);
+    super(CouponModel as any);
   }
 
   async validateCoupon(code: string, orderAmount: number, userId?: string | string[]): Promise<ICouponAttributes> {
@@ -57,9 +57,9 @@ export class CouponService
 
   async revertUsage(code: string): Promise<void> {
     if (!code) return;
-    await this.model.updateOne(
+    await this.update(
       { code: code.trim().toUpperCase() },
-      { $inc: { usageCount: -1 } }
+      { $inc: { usageCount: -1 } } as any
     );
   }
 }

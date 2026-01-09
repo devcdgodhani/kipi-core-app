@@ -8,6 +8,8 @@ export class WishlistService
   implements IWishlistService
 {
   constructor() {
-    super(WishlistModel);
+    super(WishlistModel as any);
   }
 }
+ 
+export const wishlistService = new WishlistService();

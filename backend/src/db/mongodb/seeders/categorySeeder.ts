@@ -1,6 +1,6 @@
-import { CategoryModel } from '../models/categoryModel';
 import slugify from 'slugify';
 import { CATEGORY_STATUS } from '../../../constants';
+import { categoryService } from '../../../services/concrete/categoryService';
 
 interface ISeedCategory {
   name: string;
@@ -70,17 +70,17 @@ export const seedCategories = async () => {
 const upsertCategory = async (cat: ISeedCategory, parentId: any = null) => {
   const slug = slugify(cat.name, { lower: true });
   
-  let category = await CategoryModel.findOne({ slug });
+  let category = await categoryService.findOne({ slug });
   
   if (!category) {
-    category = await CategoryModel.create({
+    category = await categoryService.create({
       name: cat.name,
       slug,
       parentId,
       description: cat.description || '',
       status: CATEGORY_STATUS.ACTIVE,
       order: 0,
-    });
+    } as any);
     console.log(`+ Created category: ${cat.name}`);
   } else {
     // console.log(`~ Category already exists: ${cat.name}`);
@@ -88,7 +88,7 @@ const upsertCategory = async (cat: ISeedCategory, parentId: any = null) => {
 
   if (cat.children && cat.children.length > 0) {
     for (const child of cat.children) {
-      await upsertCategory(child, category._id);
+      await upsertCategory(child, (category as any)._id);
     }
   }
 };

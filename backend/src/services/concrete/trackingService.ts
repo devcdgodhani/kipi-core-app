@@ -1,17 +1,18 @@
-import { TrackingEventModel, ShipmentModel } from '../../db/mongodb';
-import { logisticsService } from './logisticsService';
 import { ITrackingService } from '../contracts/trackingServiceInterface';
-import { IShipmentDocument as IShipment } from '../../interfaces/shipment';
+import { ShipmentService } from './shipmentService';
+import { TrackingEventService } from './trackingEventService';
 
 export class TrackingService implements ITrackingService {
+  private shipmentService = new ShipmentService();
+  private trackingEventService = new TrackingEventService();
   async getTrackingByAWB(awb: string): Promise<any> {
-    const events = await TrackingEventModel.find({ awb }).sort({ timestamp: -1 });
-    const shipment = await ShipmentModel.findOne({ awb });
+    const events = await this.trackingEventService.findAll({ awb } as any, { sort: { timestamp: -1 } });
+    const shipment = await this.shipmentService.findOne({ awb } as any);
 
     return {
       awb,
       shipmentStatus: shipment?.status || 'UNKNOWN',
-      events: events.map((event) => ({
+      events: events.map((event: any) => ({
         status: event.status,
         location: event.location,
         timestamp: event.timestamp,
@@ -21,7 +22,7 @@ export class TrackingService implements ITrackingService {
   }
 
   async getLatestStatus(awb: string): Promise<string> {
-    const latestEvent = await TrackingEventModel.findOne({ awb }).sort({ timestamp: -1 });
+    const latestEvent = await this.trackingEventService.findOne({ awb } as any, { sort: { timestamp: -1 } });
     return latestEvent?.status || 'PENDING';
   }
 
@@ -32,17 +33,17 @@ export class TrackingService implements ITrackingService {
     message?: string;
     timestamp?: Date;
   }): Promise<any> {
-    return TrackingEventModel.create(data);
+    return this.trackingEventService.create(data as any);
   }
 
   async updateTrackingStatus(awb: string, status: string, location?: string): Promise<any> {
-    return TrackingEventModel.create({
+    return this.trackingEventService.create({
       awb,
       status,
       location,
       timestamp: new Date(),
       message: `Status updated to ${status}${location ? ` at ${location}` : ''}`,
-    });
+    } as any);
   }
 }
 

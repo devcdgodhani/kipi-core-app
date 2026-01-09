@@ -1,66 +1,65 @@
 import mongoose from 'mongoose';
 import { connectMongoDb } from '../db/mongodb';
 import { ENV_VARIABLE } from '../configs';
-import { OrderModel } from '../db/mongodb/models/orderModel';
-import { ShipmentModel } from '../db/mongodb/models/shipmentModel';
-import { NDRModel } from '../db/mongodb/models/ndrModel';
-import { ORDER_STATUS } from '../constants';
-
+import { orderService } from '../services/concrete/orderService';
+import { shipmentService } from '../services/concrete/shipmentService';
+import { ndrService } from '../services/concrete/ndrService';
+ 
 async function runAudit() {
     console.log('🔍 Starting Logistics Consistency Audit...');
-
+ 
     try {
         await connectMongoDb({
             connectionUrl: ENV_VARIABLE.MONGO_DB_CONNECTION_URL as string,
             dbName: ENV_VARIABLE.MONGO_DB_NAME as string,
         });
-
+ 
         // 1. Check for CONFIRMED orders without shipments
         console.log('--- Checking for Confirmed Orders without Shipments ---');
-        const orphanOrders = await OrderModel.find({
+        const orphanOrders = await orderService.findAll({
             orderStatus: { $in: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'] },
             shipmentId: { $exists: false }
-        });
+        } as any);
         
         if (orphanOrders.length > 0) {
             console.warn(`⚠️ Found ${orphanOrders.length} orders in advanced states without shipment records.`);
-            orphanOrders.forEach(o => console.warn(`   Order: ${o.orderNumber} Status: ${o.orderStatus}`));
+            orphanOrders.forEach(o => console.warn(`   Order: ${(o as any).orderNumber} Status: ${(o as any).orderStatus}`));
         } else {
             console.log('✅ No orphan confirmed orders found.');
         }
-
+ 
         // 2. Check for Shipments without corresponding Orders
         console.log('--- Checking for Orphan Shipments ---');
-        const shipments = await ShipmentModel.find().lean();
+        const shipments = await shipmentService.findAll({});
         let shipmentOrphans = 0;
         for (const shipment of shipments) {
-            const order = await OrderModel.findById(shipment.orderId);
+            const order = await orderService.findById((shipment as any).orderId);
             if (!order) {
                 shipmentOrphans++;
-                console.warn(`⚠️ Shipment ID ${shipment._id} has no corresponding order.`);
+                console.warn(`⚠️ Shipment ID ${(shipment as any)._id} has no corresponding order.`);
             }
         }
         if (shipmentOrphans === 0) {
             console.log('✅ No orphan shipments found.');
         }
-
+ 
         // 3. Check for NDRs without Shipments
         console.log('--- Checking for Orphan NDRs ---');
-        const ndrs = await NDRModel.find().lean();
+        const ndrs = await ndrService.findAll({});
         let ndrOrphans = 0;
         for (const ndr of ndrs) {
-            const shipment = await ShipmentModel.findById(ndr.shipmentId);
+            const shipment = await shipmentService.findById((ndr as any).shipmentId);
             if (!shipment) {
                 ndrOrphans++;
-                console.warn(`⚠️ NDR ID ${ndr._id} has no corresponding shipment.`);
+                console.warn(`⚠️ NDR ID ${(ndr as any)._id} has no corresponding shipment.`);
             }
         }
         if (ndrOrphans === 0) {
             console.log('✅ No orphan NDRs found.');
         }
-
+ 
         console.log('🏁 Consistency Audit Finished');
-
+ 
     } catch (error) {
         console.error('❌ Audit FAILED');
         console.error(error);
@@ -69,5 +68,5 @@ async function runAudit() {
         await mongoose.disconnect();
     }
 }
-
+ 
 runAudit();

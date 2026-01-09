@@ -29,3 +29,5 @@ export class NdrService
     return (await this.upsert({ _id: new Types.ObjectId(ndrId) } as any, updateData)) as INDRDocument;
   }
 }
+ 
+export const ndrService = new NdrService();

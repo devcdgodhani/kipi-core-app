@@ -7,7 +7,7 @@ import { ILotService } from '../contracts/lotServiceInterface';
 
 export class LotService extends MongooseCommonService<ILotAttributes, ILotDocument> implements ILotService {
   constructor() {
-    super(LotModel);
+    super(LotModel as any);
   }
 
   updateOne = async (
@@ -16,20 +16,21 @@ export class LotService extends MongooseCommonService<ILotAttributes, ILotDocume
     options: MongooseUpdateQueryOptions<ILotAttributes> & { userId?: ObjectId; session?: ClientSession } = {}
   ): Promise<any> => {
     // Perform the update first
-    const result = await this.model.updateOne(filter, updateData, options).exec();
-
+    const result = await this.update(filter as any, updateData as any, options as any);
+ 
     // Then find the document to recalculate remainingQuantity
-    const doc = await this.model.findOne(filter);
+    const doc = await this.findOne(filter as any);
     if (doc) {
-      const totalAdjusted = (doc.adjustQuantity || []).reduce((acc: number, curr: any) => acc + curr.quantity, 0);
-      const newRemaining = doc.quantity - totalAdjusted;
+      const totalAdjusted = ((doc as any).adjustQuantity || []).reduce((acc: number, curr: any) => acc + curr.quantity, 0);
+      const newRemaining = (doc as any).quantity - totalAdjusted;
       
-      if (doc.remainingQuantity !== newRemaining) {
-         doc.remainingQuantity = newRemaining;
-         await doc.save();
+      if ((doc as any).remainingQuantity !== newRemaining) {
+         await this.update({ _id: (doc as any)._id } as any, { remainingQuantity: newRemaining } as any);
       }
     }
-
+ 
     return result;
   };
 }
+ 
+export const lotService = new LotService();

@@ -1,10 +1,11 @@
 import cron from 'node-cron';
-import { UserModel } from '../../db/mongodb/models/userModel';
+import { UserService } from './userService';
 import { pulseService } from './pulseService';
 
 import { IEngagementCronService } from '../contracts/engagementCronServiceInterface';
 
 export class EngagementCronService implements IEngagementCronService {
+    private userService = new UserService();
     /**
      * Initialize all engagement crons
      */
@@ -35,10 +36,10 @@ export class EngagementCronService implements IEngagementCronService {
             const startOfDay = new Date(thirtyDaysFromNow.setHours(0, 0, 0, 0));
             const endOfDay = new Date(thirtyDaysFromNow.setHours(23, 59, 59, 999));
 
-            const users = await UserModel.find({
+            const users = await this.userService.findAll({
                 pointsExpiryDate: { $gte: startOfDay, $lte: endOfDay },
                 loyaltyPoints: { $gt: 0 }
-            });
+            } as any);
 
             console.log(`EngagementCron: Found ${users.length} users with points expiring in 30 days.`);
 
@@ -61,7 +62,7 @@ export class EngagementCronService implements IEngagementCronService {
             const month = today.getMonth() + 1; // getMonth is 0-indexed
 
             // MongoDB aggregation to find users whose DOB matches today (ignoring year)
-            const users = await UserModel.aggregate([
+            const users = await this.userService.aggregate([
                 {
                     $project: {
                         firstName: 1,
@@ -77,7 +78,7 @@ export class EngagementCronService implements IEngagementCronService {
                         month: month
                     }
                 }
-            ]);
+            ] as any);
 
             console.log(`EngagementCron: Found ${users.length} birthdays today.`);
 

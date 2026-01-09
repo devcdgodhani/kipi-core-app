@@ -1,13 +1,18 @@
-import { LotModel } from '../../db/mongodb/models/lotModel';
-import { OrderModel } from '../../db/mongodb/models/orderModel';
-import { ShipmentModel } from '../../db/mongodb/models/shipmentModel';
-import { RTOModel } from '../../db/mongodb/models/rtoModel';
-import { NDRModel } from '../../db/mongodb/models/ndrModel';
 import { ORDER_STATUS } from '../../constants';
+import { OrderService } from './orderService';
+import { LotService } from './lotService';
+import { ShipmentService } from './shipmentService';
+import { RtoService } from './rtoService';
+import { NdrService } from './ndrService';
 
 import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance } from '../contracts/analyticsServiceInterface';
 
 export class AnalyticsService implements IAnalyticsService {
+  private orderService = new OrderService();
+  private lotService = new LotService();
+  private shipmentService = new ShipmentService();
+  private rtoService = new RtoService();
+  private ndrService = new NdrService();
 
   /**
    * Get revenue analytics for a specific date range
@@ -34,7 +39,7 @@ export class AnalyticsService implements IAnalyticsService {
       { $sort: { _id: 1 } }
     ];
 
-    const result = await OrderModel.aggregate(pipeline as any);
+    const result = await this.orderService.aggregate(pipeline as any) as any[];
     let totalRevenue = 0;
     let totalOrders = 0;
 
@@ -102,8 +107,8 @@ export class AnalyticsService implements IAnalyticsService {
     ];
 
     const [topProducts, topReturns] = await Promise.all([
-      OrderModel.aggregate(salesPipeline as any),
-      OrderModel.aggregate(returnsPipeline as any)
+      this.orderService.aggregate(salesPipeline as any) as Promise<any[]>,
+      this.orderService.aggregate(returnsPipeline as any) as Promise<any[]>
     ]);
 
     return { topProducts, topReturns };
@@ -201,9 +206,9 @@ export class AnalyticsService implements IAnalyticsService {
     ];
 
     const [topSpenders, churnRisk, acquisitionData] = await Promise.all([
-      OrderModel.aggregate(spendersPipeline as any),
-      OrderModel.aggregate(churnPipeline as any),
-      OrderModel.aggregate(acquisitionPipeline as any)
+      this.orderService.aggregate(spendersPipeline as any) as Promise<any[]>,
+      this.orderService.aggregate(churnPipeline as any) as Promise<any[]>,
+      this.orderService.aggregate(acquisitionPipeline as any) as Promise<any[]>
     ]);
 
     const acquisition = {
@@ -226,7 +231,7 @@ export class AnalyticsService implements IAnalyticsService {
    * Get lot intelligence (Stock health, Expiry risks, Movements)
    */
   async getLotAnalytics(startDate: Date, endDate: Date) {
-    const stockOverview = await LotModel.aggregate([
+    const stockOverview = await this.lotService.aggregate([
       {
         $group: {
           _id: null,
@@ -236,7 +241,7 @@ export class AnalyticsService implements IAnalyticsService {
           outOfStockItems: { $sum: { $cond: [{ $eq: ['$remainingQuantity', 0] }, 1, 0] } }
         }
       }
-    ]);
+    ]) as any[];
 
     const now = new Date();
     const thirtyDays = new Date();
@@ -244,7 +249,7 @@ export class AnalyticsService implements IAnalyticsService {
     const ninetyDays = new Date();
     ninetyDays.setDate(now.getDate() + 90);
 
-    const expiryRisks = await LotModel.aggregate([
+    const expiryRisks = await this.lotService.aggregate([
       {
         $group: {
           _id: null,
@@ -253,7 +258,7 @@ export class AnalyticsService implements IAnalyticsService {
           expiringNext90Days: { $sum: { $cond: [{ $and: [{ $gte: ['$endDate', now] }, { $lt: ['$endDate', ninetyDays] }] }, 1, 0] } }
         }
       }
-    ]);
+    ]) as any[];
 
     const movementsPipeline = [
       { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
@@ -282,8 +287,8 @@ export class AnalyticsService implements IAnalyticsService {
     ];
 
     const [receivedData, soldData] = await Promise.all([
-      LotModel.aggregate(movementsPipeline as any),
-      OrderModel.aggregate(salesPipeline as any)
+      this.lotService.aggregate(movementsPipeline as any) as Promise<any[]>,
+      this.orderService.aggregate(salesPipeline as any) as Promise<any[]>
     ]);
 
     const movementMap = new Map();
@@ -310,7 +315,7 @@ export class AnalyticsService implements IAnalyticsService {
    * Get logistics analytics (RTO & NDR metrics)
    */
   async getLogisticsAnalytics(startDate: Date, endDate: Date): Promise<ILogisticsAnalytics> {
-    const shipmentStats = await ShipmentModel.aggregate([
+    const shipmentStats = await this.shipmentService.aggregate([
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate }
@@ -324,12 +329,12 @@ export class AnalyticsService implements IAnalyticsService {
           ndrCount: { $sum: { $cond: ['$hasNDR', 1, 0] } }
         }
       }
-    ]);
+    ]) as any[];
 
     const stats = shipmentStats[0] || { totalShipments: 0, rtoCount: 0, ndrCount: 0 };
 
     // NDR Conversion: NDRs followed by successful delivery
-    const ndrConversion = await ShipmentModel.aggregate([
+    const ndrConversion = await this.shipmentService.aggregate([
       {
         $match: {
           hasNDR: true,
@@ -338,10 +343,10 @@ export class AnalyticsService implements IAnalyticsService {
         }
       },
       { $count: 'converted' }
-    ]);
+    ]) as any[];
 
     // RTO Reasons
-    const rtoReasons = await RTOModel.aggregate([
+    const rtoReasons = await this.rtoService.aggregate([
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate }
@@ -355,10 +360,10 @@ export class AnalyticsService implements IAnalyticsService {
       },
       { $sort: { count: -1 } },
       { $project: { reason: '$_id', count: 1, _id: 0 } }
-    ]);
+    ]) as any[];
 
     // Avg RTO Age
-    const rtoAge = await RTOModel.aggregate([
+    const rtoAge = await this.rtoService.aggregate([
       {
         $match: {
           status: 'DELIVERED',
@@ -372,7 +377,7 @@ export class AnalyticsService implements IAnalyticsService {
           avgAge: { $avg: { $divide: [{ $subtract: ['$rtoDeliveredDate', '$rtoInitiatedDate'] }, 1000 * 60 * 60 * 24] } }
         }
       }
-    ]);
+    ]) as any[];
 
     return {
       rtoRate: stats.totalShipments > 0 ? (stats.rtoCount / stats.totalShipments) * 100 : 0,
@@ -436,7 +441,7 @@ export class AnalyticsService implements IAnalyticsService {
       }
     ];
 
-    return await ShipmentModel.aggregate(pipeline as any);
+    return await this.shipmentService.aggregate(pipeline as any) as any[];
   }
 }
 

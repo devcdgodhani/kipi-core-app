@@ -1,19 +1,20 @@
 import { APP_DETAILS } from '../../constants';
 import { IPulseService } from '../contracts/pulseServiceInterface';
-import { UserModel } from '../../db/mongodb/models/userModel';
+import { UserService } from './userService';
 import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
 import { JOB_NAMES } from '../../jobs/types';
 import { loyaltyService } from './loyaltyService';
 import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
 
 export class PulseService implements IPulseService {
+    private userService = new UserService();
 
     /**
      * Trigger a feedback request message to the customer when an order is delivered
      */
     async triggerFeedbackRequest(order: any) {
         try {
-            const user = await UserModel.findById(order.userId);
+            const user = await this.userService.findById(order.userId);
             if (!user || !user.mobile) return;
 
             const message = `Hi ${user.firstName || 'there'}! 👋\n\nYour order #${order.orderNumber} from ${APP_DETAILS.APP_NAME} has been delivered! 📦\n\nWe'd love to hear your thoughts. Could you take a moment to leave a review?\n\nRate here: ${APP_DETAILS.CUSTOMER_URL}/orders/${order._id}\n\nThank you for shopping with us! ✨`;
@@ -34,7 +35,7 @@ export class PulseService implements IPulseService {
      */
     async triggerLoyaltyAccretionPulse(userId: string, points: number, orderNumber: string) {
         try {
-            const user = await UserModel.findById(userId);
+            const user = await this.userService.findById(userId);
             if (!user || !user.mobile) return;
 
             const message = `Woohoo! 🥳\n\nYou've earned ${points} Kipi Points from your order #${orderNumber}!\n\nYour new loyalty balance is ${user.loyaltyPoints} points. ✨\n\nKeep shopping and save more on your next order! 🛍️`;

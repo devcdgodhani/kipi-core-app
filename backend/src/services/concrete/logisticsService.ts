@@ -2,15 +2,20 @@ import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
 import { JOB_NAMES } from '../../jobs/types';
 import { ShiprocketProvider } from '../providers/shiprocketProvider';
 import { ICourierProvider } from '../../interfaces/courierProvider';
-import { ShipmentModel, OrderModel, CourierModel } from '../../db/mongodb';
 import { SHIPMENT_STATUS } from '../../constants/shipment';
 import { codLedgerService } from './codLedgerService';
+import { orderService } from './orderService';
+import { shipmentService } from './shipmentService';
+import { courierService } from './courierService';
 
 import { ILogisticsService } from '../contracts/logisticsServiceInterface';
 
 export class LogisticsService implements ILogisticsService {
   private providers: Map<string, ICourierProvider>;
   private defaultProvider: string = 'SHIPROCKET';
+  private get orderService() { return orderService; }
+  private get shipmentService() { return shipmentService; }
+  private get courierService() { return courierService; }
 
   constructor() {
     this.providers = new Map();
@@ -44,7 +49,7 @@ export class LogisticsService implements ILogisticsService {
 
   async createShipment(orderId: string, courierId?: number): Promise<any> {
     // 1. Get order with populated user
-    const order = await OrderModel.findById(orderId).populate('userId').lean() as any;
+    const order = await this.orderService.findById(orderId, {}, { path: 'userId' });
     if (!order) {
       throw new Error('Order not found');
     }
@@ -65,7 +70,7 @@ export class LogisticsService implements ILogisticsService {
       billing_pincode: order.billingAddress.pincode,
       billing_state: order.billingAddress.state,
       billing_country: order.billingAddress.country,
-      billing_email: order.userId.email || 'customer@example.com',
+      billing_email: (order as any).userId?.email || 'customer@example.com',
       billing_phone: order.billingAddress.mobile,
       shipping_is_billing: true,
       order_items: order.items.map((item: any) => ({
@@ -92,50 +97,50 @@ export class LogisticsService implements ILogisticsService {
     });
 
     // 6. Get courier details
-    const courier = await CourierModel.findOne({ code: 'SHIPROCKET' }).lean();
+    const courier = await this.courierService.findOne({ code: 'SHIPROCKET' } as any);
 
     // 7. Save shipment to database
-    const shipment = await ShipmentModel.create({
-      orderId: order._id,
-      orderNumber: order.orderNumber,
+    const shipment = await this.shipmentService.create({
+      orderId: (order as any)._id,
+      orderNumber: (order as any).orderNumber,
       shipmentNumber: `SHP-${Date.now()}`,
-      awb: shipmentData.awb,
-      courierId: courier?._id || null,
-      courierName: shipmentData.courierName,
+      awb: (shipmentData as any).awb,
+      courierId: (courier as any)?._id || null,
+      courierName: (shipmentData as any).courierName,
       courierCode: 'SHIPROCKET',
       serviceType: 'SURFACE',
       weight: 0.5,
       dimensions: { length: 10, width: 10, height: 10 },
-      pickupAddress: order.shippingAddress,
-      deliveryAddress: order.shippingAddress,
-      paymentMode: order.paymentMethod === 'COD' ? 'COD' : 'PREPAID',
-      codAmount: order.paymentMethod === 'COD' ? order.totalAmount : 0,
-      declaredValue: order.totalAmount,
-      shippingCost: order.shippingCost,
+      pickupAddress: (order as any).shippingAddress,
+      deliveryAddress: (order as any).shippingAddress,
+      paymentMode: (order as any).paymentMethod === 'COD' ? 'COD' : 'PREPAID',
+      codAmount: (order as any).paymentMethod === 'COD' ? (order as any).totalAmount : 0,
+      declaredValue: (order as any).totalAmount,
+      shippingCost: (order as any).shippingCost,
       status: SHIPMENT_STATUS.CREATED,
       providerShipmentId: shiprocketOrder.shipmentId.toString(),
       providerOrderId: shiprocketOrder.orderId.toString()
-    });
+    } as any);
 
     // 8. Update order with shipment details
-    await OrderModel.updateOne(
-      { _id: order._id },
+    await this.orderService.updateOne(
+      { _id: (order as any)._id },
       {
-        shipmentId: shipment._id,
-        awb: shipmentData.awb,
-        trackingId: shipmentData.awb
+        shipmentId: (shipment as any)._id,
+        awb: (shipmentData as any).awb,
+        trackingId: (shipmentData as any).awb
       }
     );
     
     // 9. Handle COD Ledger entry
     if (order.paymentMethod === 'COD') {
       await codLedgerService.createEntry({
-        orderId: (order._id as any).toString(),
-        shipmentId: (shipment._id as any).toString(),
-        awb: shipmentData.awb,
-        codAmount: order.totalAmount,
-        courierId: courier?._id.toString() || '',
-        courierName: shipmentData.courierName
+        orderId: ((order as any)._id as any).toString(),
+        shipmentId: ((shipment as any)._id as any).toString(),
+        awb: (shipmentData as any).awb,
+        codAmount: (order as any).totalAmount,
+        courierId: (courier as any)?._id.toString() || '',
+        courierName: (shipmentData as any).courierName
       });
     }
 
@@ -148,17 +153,17 @@ export class LogisticsService implements ILogisticsService {
   }
 
   async cancelShipment(shipmentId: string): Promise<boolean> {
-    const shipment = await ShipmentModel.findById(shipmentId).lean();
+    const shipment = await this.shipmentService.findById(shipmentId);
     if (!shipment) {
       throw new Error('Shipment not found');
     }
 
     const provider = this.getProvider();
-    const providerShipmentId = parseInt(shipment.providerShipmentId || '0');
+    const providerShipmentId = parseInt((shipment as any).providerShipmentId || '0');
 
     await provider.cancelShipment([providerShipmentId]);
 
-    await ShipmentModel.updateOne(
+    await this.shipmentService.updateOne(
       { _id: shipmentId },
       { status: SHIPMENT_STATUS.CANCELLED }
     );

@@ -1,12 +1,12 @@
-import { AttributeModel } from '../models/attributeModel';
-import { CategoryModel } from '../models/categoryModel';
 import slugify from 'slugify';
 import { 
   ATTRIBUTE_STATUS, 
   ATTRIBUTE_VALUE_TYPE, 
   ATTRIBUTE_INPUT_TYPE 
 } from '../../../constants';
-
+import { attributeService } from '../../../services/concrete/attributeService';
+import { categoryService } from '../../../services/concrete/categoryService';
+ 
 interface ISeedAttribute {
   name: string;
   description?: string;
@@ -19,7 +19,7 @@ interface ISeedAttribute {
   isVariant?: boolean;
   categoryNames?: string[]; // Category names to associate with
 }
-
+ 
 // Common attributes for e-commerce (similar to Meesho, Flipkart, Amazon)
 const commonAttributes: ISeedAttribute[] = [
   // Variant Attributes (used for product variations)
@@ -235,43 +235,43 @@ const commonAttributes: ISeedAttribute[] = [
     categoryNames: ['Men', 'Women', 'Kids', 'Accessories'],
   },
 ];
-
+ 
 // Store created attributes to avoid duplicates
 const createdAttributes = new Map<string, any>();
-
+ 
 export const seedAttributes = async () => {
   console.log('🌱 Seeding attributes...');
   try {
     // Get all categories
-    const categories = await CategoryModel.find({});
+    const categories = await categoryService.findAll({});
     const categoryMap = new Map<string, any>(categories.map((cat: any) => [cat.name, cat]));
-
+ 
     for (const attr of commonAttributes) {
       await upsertAttribute(attr, categoryMap);
     }
-
+ 
     console.log('✅ Attribute seeding completed.');
     console.log(`📊 Total attributes created/updated: ${createdAttributes.size}`);
   } catch (error) {
     console.error('❌ Error seeding attributes:', error);
   }
 };
-
+ 
 const upsertAttribute = async (
   attr: ISeedAttribute,
   categoryMap: Map<string, any>
 ) => {
   const slug = slugify(attr.name, { lower: true });
-
+ 
   // Check if already created in this session
   if (createdAttributes.has(slug)) {
     // console.log(`~ Attribute already processed in this session: ${attr.name}`);
     return createdAttributes.get(slug);
   }
-
+ 
   // Find or create attribute
-  let attribute = await AttributeModel.findOne({ slug });
-
+  let attribute = await attributeService.findOne({ slug });
+ 
   // Get category IDs
   const categoryIds: any[] = [];
   if (attr.categoryNames && attr.categoryNames.length > 0) {
@@ -282,56 +282,57 @@ const upsertAttribute = async (
       }
     }
   }
-
+ 
   if (!attribute) {
     // Create new attribute
-    attribute = await AttributeModel.create({
+    attribute = await attributeService.create({
       name: attr.name,
       slug,
       description: attr.description || '',
-      valueType: attr.valueType,
-      inputType: attr.inputType,
-      options: attr.options || [],
+      valueType: attr.valueType as any,
+      inputType: attr.inputType as any,
+      options: attr.options as any || [],
       unit: attr.unit,
       isFilterable: attr.isFilterable || false,
       isRequired: attr.isRequired || false,
       isVariant: attr.isVariant || false,
-      categoryIds,
+      categoryIds: categoryIds as any,
       order: 0,
       status: ATTRIBUTE_STATUS.ACTIVE,
-    });
+    } as any);
     console.log(`+ Created attribute: ${attr.name}`);
   } else {
     // Update existing attribute with new category associations
-    const existingCategoryIds = attribute.categoryIds.map((id: any) => id.toString());
+    const existingCategoryIds = ((attribute as any).categoryIds || []).map((id: any) => id.toString());
     const newCategoryIds = categoryIds.filter(
       (id: any) => !existingCategoryIds.includes(id.toString())
     );
-
+ 
     if (newCategoryIds.length > 0) {
-      attribute.categoryIds = [...attribute.categoryIds, ...newCategoryIds];
-      await attribute.save();
+      await attributeService.updateOne(
+        { _id: (attribute as any)._id } as any,
+        { $push: { categoryIds: { $each: newCategoryIds } } } as any
+      );
       console.log(`~ Updated attribute categories: ${attr.name}`);
     }
   }
-
+ 
   // Store in map to avoid duplicates
   createdAttributes.set(slug, attribute);
-
+ 
   // Update categories to include this attribute
   for (const categoryId of categoryIds) {
-    const category = await CategoryModel.findById(categoryId);
+    const category = await categoryService.findById(categoryId);
     if (category) {
-      const attributeIds = category.attributeIds || [];
-      if (!attributeIds.some((id: any) => id.toString() === attribute._id.toString())) {
-        attributeIds.push(attribute._id);
-        await CategoryModel.updateOne(
-          { _id: categoryId },
-          { $set: { attributeIds } }
+      const attributeIds = (category as any).attributeIds || [];
+      if (!attributeIds.some((id: any) => id.toString() === (attribute as any)._id.toString())) {
+        await categoryService.updateOne(
+          { _id: categoryId } as any,
+          { $push: { attributeIds: (attribute as any)._id } } as any
         );
       }
     }
   }
-
+ 
   return attribute;
 };

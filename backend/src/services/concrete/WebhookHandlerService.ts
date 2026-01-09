@@ -89,13 +89,13 @@ export class WebhookHandlerService
       }
 
       // 2. Check for duplicate webhook
-      const existingLog = await WebhookLogModel.findOne({ eventId });
+      const existingLog = await this.findOne({ eventId } as any);
       if (existingLog) {
-        return { isValid: true, logId: existingLog._id.toString() };
+        return { isValid: true, logId: (existingLog as any)._id.toString() };
       }
 
       // 3. Create initial webhook log
-      const webhookLog = await WebhookLogModel.create({
+      const webhookLog = await this.create({
         eventId,
         provider,
         eventType: this.determineEventType(provider, payload),
@@ -103,9 +103,9 @@ export class WebhookHandlerService
         headers,
         status: 'PENDING',
         retryCount: 0
-      });
+      } as any);
 
-      return { isValid: true, logId: webhookLog._id.toString() };
+      return { isValid: true, logId: (webhookLog as any)._id.toString() };
     } catch (error) {
       console.error('Webhook validateAndLog error:', error);
       return { isValid: false };
@@ -129,9 +129,9 @@ export class WebhookHandlerService
       // Find existing log or create one
       let webhookLog;
       if (webhookLogId) {
-        webhookLog = await WebhookLogModel.findById(webhookLogId);
+        webhookLog = await this.findById(webhookLogId);
       } else {
-        webhookLog = await WebhookLogModel.findOne({ eventId });
+        webhookLog = await this.findOne({ eventId } as any);
       }
       
       if (!webhookLog) {
@@ -139,7 +139,7 @@ export class WebhookHandlerService
           return { success: false, message: 'Webhook log not found for retry' };
         }
 
-        webhookLog = await WebhookLogModel.create({
+        webhookLog = await this.create({
           eventId,
           provider,
           eventType: this.determineEventType(provider, payload),
@@ -147,20 +147,20 @@ export class WebhookHandlerService
           headers,
           status: 'PROCESSING',
           retryCount: 0
-        });
+        } as any);
       } else {
         // Carry forward the eventId for logging updates below
-        eventId = webhookLog.eventId;
-        await WebhookLogModel.updateOne({ _id: webhookLog._id }, { $set: { status: 'PROCESSING' } });
+        eventId = (webhookLog as any).eventId;
+        await this.updateOne({ _id: (webhookLog as any)._id } as any, { $set: { status: 'PROCESSING' } } as any);
       }
 
       // Verify signature if provided (and not already proven valid)
       if (signature) {
         const isValid = await this.gatewayService.verifyWebhook(provider, payload, signature);
         if (!isValid) {
-           await WebhookLogModel.updateOne(
-            { _id: webhookLog._id },
-            { $set: { status: 'FAILED', error: 'Invalid signature', processingTime: Date.now() - startTime } }
+           await this.updateOne(
+            { _id: (webhookLog as any)._id } as any,
+            { $set: { status: 'FAILED', error: 'Invalid signature', processingTime: Date.now() - startTime } } as any
           );
           return { success: false, message: 'Invalid signature' };
         }
@@ -179,8 +179,8 @@ export class WebhookHandlerService
       }
 
       // Update final log status
-      await WebhookLogModel.updateOne(
-        { _id: webhookLog._id },
+      await this.updateOne(
+        { _id: (webhookLog as any)._id } as any,
         {
           $set: {
             status: result.success ? 'SUCCESS' : 'FAILED',
@@ -188,14 +188,14 @@ export class WebhookHandlerService
             processingTime: Date.now() - startTime,
             error: result.success ? undefined : result.message
           }
-        }
+        } as any
       );
 
       return result;
     } catch (error: any) {
       console.error('Webhook processing error:', error);
-      await WebhookLogModel.updateOne(
-        { eventId },
+      await this.updateOne(
+        { eventId } as any,
         {
           $set: {
             status: 'FAILED',
@@ -203,7 +203,7 @@ export class WebhookHandlerService
             errorStack: error.stack,
             processingTime: Date.now() - startTime
           }
-        }
+        } as any
       );
       return { success: false, message: error.message };
     }
@@ -307,15 +307,15 @@ export class WebhookHandlerService
    * Retry failed webhook
    */
   async retryWebhook(webhookLogId: string): Promise<{ success: boolean; message: string }> {
-    const webhookLog = await WebhookLogModel.findById(webhookLogId);
+    const webhookLog = await this.findById(webhookLogId);
     if (!webhookLog) {
       return { success: false, message: 'Webhook log not found' };
     }
 
     // Increment retry count
-    await WebhookLogModel.updateOne(
-      { _id: webhookLogId },
-      { $inc: { retryCount: 1 } }
+    await this.updateOne(
+      { _id: webhookLogId } as any,
+      { $inc: { retryCount: 1 } } as any
     );
 
     // Reprocess webhook

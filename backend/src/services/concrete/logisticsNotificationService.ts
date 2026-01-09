@@ -2,12 +2,13 @@ import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
 import { JOB_NAMES } from '../../jobs/types';
 import { APP_DETAILS } from '../../constants';
 import { ILogisticsNotificationService } from '../contracts/logisticsNotificationServiceInterface';
-import { UserModel } from '../../db/mongodb/models/userModel';
+import { UserService } from './userService';
 
 export class LogisticsNotificationService implements ILogisticsNotificationService {
+  private userService = new UserService();
 
   private async getCustomerDetails(userId: string) {
-    const user = await UserModel.findById(userId);
+    const user = await this.userService.findById(userId);
     if (!user || !user.mobile) return null;
     return {
       name: user.firstName || 'Customer',

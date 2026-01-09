@@ -1,5 +1,5 @@
 import { AddressModel } from '../../db/mongodb/models/addressModel';
-import { IAddressAttributes, IAddressDocument } from '../../interfaces/address';
+import { IAddressAttributes, IAddressDocument } from '../../interfaces';
 import { IAddressService } from '../contracts/addressServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 
@@ -8,6 +8,8 @@ export class AddressService
   implements IAddressService
 {
   constructor() {
-    super(AddressModel);
+    super(AddressModel as any);
   }
 }
+
+export const addressService = new AddressService();

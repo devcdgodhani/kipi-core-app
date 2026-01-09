@@ -1,18 +1,20 @@
-import { ReviewModel, OrderModel } from '../../db/mongodb';
+import { ReviewModel } from '../../db/mongodb';
 import { IReviewAttributes, IReviewDocument } from '../../interfaces/review';
 import { MongooseCommonService } from './mongooseCommonService';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 import { REVIEW_STATUS } from '../../constants/review';
 import { FileStorageService } from './fileStorageService';
+import { OrderService } from './orderService';
 
 import { IReviewService } from '../contracts/reviewServiceInterface';
 
 export class ReviewService extends MongooseCommonService<IReviewAttributes, IReviewDocument> implements IReviewService {
   private fileStorageService = new FileStorageService();
+  private orderService = new OrderService();
 
   constructor() {
-    super(ReviewModel);
+    super(ReviewModel as any);
   }
 
   /**
@@ -54,12 +56,12 @@ export class ReviewService extends MongooseCommonService<IReviewAttributes, IRev
    */
   async createReview(userId: string, data: any) {
     // 1. Check if user has purchased the product and order is DELIVERED
-    const order = await OrderModel.findOne({
+    const order = await this.orderService.findOne({
       userId,
       orderStatus: 'DELIVERED',
       'items.productId': data.productId,
       _id: data.orderId 
-    });
+    } as any);
 
     if (!order) {
       throw new ApiError(
@@ -70,11 +72,11 @@ export class ReviewService extends MongooseCommonService<IReviewAttributes, IRev
     }
 
     // 2. Check if user already reviewed this product for this order
-    const existingReview = await ReviewModel.findOne({
+    const existingReview = await this.findOne({
       userId,
       productId: data.productId,
       orderId: data.orderId
-    });
+    } as any);
 
     if (existingReview) {
       throw new ApiError(
@@ -107,3 +109,5 @@ export class ReviewService extends MongooseCommonService<IReviewAttributes, IRev
     return this.updateOne({ _id: reviewId }, updateData);
   }
 }
+ 
+export const reviewService = new ReviewService();
