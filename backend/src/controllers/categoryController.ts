@@ -11,7 +11,6 @@ import {
 } from '../types/category';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
-import { CategoryModel } from '../db/mongodb';
 import { FileStorageService } from '../services/concrete/fileStorageService';
 
 export default class CategoryController {
@@ -26,12 +25,11 @@ export default class CategoryController {
         filters: reqData,
       });
 
-      const categoryDoc = await this.categoryService.findOne(filter, options);
+      const categoryDoc = await this.categoryService.findOne(filter, options, { path: 'image' });
       let category = categoryDoc as any;
 
       if (category) {
           if (category.image === '') delete category.image;
-          category = await CategoryModel.populate(category, { path: 'image' });
           if (category.image) await this.fileStorageService.ensurePresignedUrl(category.image);
       }
 
@@ -66,9 +64,8 @@ export default class CategoryController {
         return res.status(response.status).json(response);
       }
 
-      let categories = await this.categoryService.findAll(filter, options);
+      let categories = await this.categoryService.findAll(filter, options, { path: 'image' });
       
-      categories = await CategoryModel.populate(categories, { path: 'image' });
       await Promise.all(categories.map(async (c: any) => {
           if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
       }));

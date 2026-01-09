@@ -12,7 +12,7 @@ export class ShipmentService
   }
 
   async findByAWB(awb: string): Promise<IShipmentDocument | null> {
-    return ShipmentModel.findOne({ awb }).lean() as unknown as IShipmentDocument | null;
+    return this.findOne({ awb } as any) as any;
   }
 
   async updateStatus(shipmentId: string, status: string, data?: any): Promise<IShipmentDocument | null> {
@@ -25,6 +25,9 @@ export class ShipmentService
       Object.assign(updateData, data);
     }
 
-    return ShipmentModel.findByIdAndUpdate(shipmentId, updateData, { new: true }).lean() as unknown as IShipmentDocument | null;
+    await this.updateOne({ _id: shipmentId } as any, { $set: updateData } as any);
+    return this.findById(shipmentId) as any;
   }
 }
+ 
+export const shipmentService = new ShipmentService();

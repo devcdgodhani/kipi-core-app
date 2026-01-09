@@ -1,6 +1,6 @@
 import { FilterQuery, PopulateOptions, QueryOptions, ProjectionType } from 'mongoose';
-import { FileStorageModel, PresignedUrlModel, FileDirectoryModel } from '../../db/mongodb';
-import { IFileStorageAttributes, IFileStorageDocument, IPresignedUrlDocument, IPaginationData, IFileDirectoryDocument, IFileDirectoryAttributes } from '../../interfaces';
+import { FileStorageModel } from '../../db/mongodb';
+import { IFileStorageAttributes, IFileStorageDocument, IPaginationData, IFileDirectoryAttributes } from '../../interfaces';
 import { IFileStorageService } from '../contracts/fileStorageServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 import { CLOUD_TYPE, FILE_TYPE, FILE_STORAGE_STATUS } from '../../constants';
@@ -8,13 +8,18 @@ import { ENV_VARIABLE } from '../../configs/env';
 import * as s3Uploader from '../../helpers/s3Uploader';
 import * as cloudinaryUploader from '../../helpers/cloudinaryUploader';
 import path from 'path';
-
+import { FileDirectoryService } from './fileDirectoryService';
+import { PresignedUrlService } from './presignedUrlService';
+ 
 export class FileStorageService
   extends MongooseCommonService<IFileStorageAttributes, IFileStorageDocument>
   implements IFileStorageService
 {
+  private fileDirectoryService = new FileDirectoryService();
+  private presignedUrlService = new PresignedUrlService();
+ 
   constructor() {
-    super(FileStorageModel);
+    super(FileStorageModel as any);
   }
 
   // Helper to determine file type from extension
@@ -34,43 +39,40 @@ export class FileStorageService
   }
 
   // Override findOne to populate presigned URL
-  findOne = async (
+  async findOne(
     filter: FilterQuery<IFileStorageAttributes>,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<IFileStorageAttributes | null> => {
-    const query = this.model.findOne(filter, null, options);
-    if (populate) query.populate(populate);
-    const doc = await query.lean<IFileStorageAttributes>().exec();
+  ): Promise<IFileStorageAttributes | null> {
+    const doc = await super.findOne(filter, options, populate);
     
     if (doc) {
       await this.ensurePresignedUrl(doc);
     }
     return doc;
-  };
+  }
 
-  findAll = async (
+  async findAll(
     filter: FilterQuery<IFileStorageAttributes>,
     options: QueryOptions = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<IFileStorageAttributes[]> => {
+  ): Promise<IFileStorageAttributes[]> {
     // Handle Root Directory Filter from file perspective
-    if (filter.storageDirPath === '') {
-        delete filter.storageDirPath;
-        filter.$or = [
+    const effectiveFilter = { ...filter };
+    if (effectiveFilter.storageDirPath === '') {
+        delete effectiveFilter.storageDirPath;
+        effectiveFilter.$or = [
             { storageDirPath: '' },
             { storageDirPath: null },
             { storageDirPath: { $exists: false } }
-        ];
+        ] as any;
     }
     
-    const query = this.model.find(filter, null, options);
-    if (populate) query.populate(populate);
-    const docs = await query.lean<IFileStorageAttributes[]>().exec();
+    const docs = await super.findAll(effectiveFilter as any, options, populate);
     
     await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
     return docs;
-  };
+  }
 
   async getFilesAndFolders(
     filter: FilterQuery<IFileStorageAttributes>,
@@ -97,9 +99,7 @@ export class FileStorageService
              storageDirPath = fileFilter.storageDirPath as string;
          }
     // Fetch Files
-    const query = this.model.find(fileFilter, null, options);
-    if (populate) query.populate(populate);
-    const docs = await query.lean<IFileStorageAttributes[]>().exec();
+    const docs = await super.findAll(fileFilter as any, options, populate);
 
     // Fetch Directories
     let dirParentPath: string | null = null;
@@ -112,7 +112,7 @@ export class FileStorageService
             dirParentPath = [...storageDirPath.$in].pop() || null;
         }
     }
-    const mappedDirs = await FileDirectoryModel.find({ parentPath: dirParentPath }).lean();
+    const mappedDirs = await this.fileDirectoryService.findAll({ parentPath: dirParentPath } as any);
     
     await Promise.all(docs.map(doc => this.ensurePresignedUrl(doc)));
     
@@ -122,7 +122,7 @@ export class FileStorageService
     };
   }
 
-  findAllWithPagination = async (
+  async findAllWithPagination(
     filter: FilterQuery<IFileStorageAttributes>,
     options: QueryOptions & {
       page?: number;
@@ -131,58 +131,32 @@ export class FileStorageService
       projection?: ProjectionType<IFileStorageAttributes>;
     } = {},
     populate?: PopulateOptions | PopulateOptions[]
-  ): Promise<IPaginationData<IFileStorageAttributes>> => {
+  ): Promise<IPaginationData<IFileStorageAttributes>> {
     // Handle Root Directory Filter
-    if (filter.storageDirPath === '') {
-        delete filter.storageDirPath;
-        filter.$or = [
+    const effectiveFilter = { ...filter };
+    if (effectiveFilter.storageDirPath === '') {
+        delete effectiveFilter.storageDirPath;
+        effectiveFilter.$or = [
             { storageDirPath: '' },
             { storageDirPath: null },
             { storageDirPath: { $exists: false } }
-        ];
+        ] as any;
     }
-
-    const { order, projection, page = 1, limit = 10, ...restOptions } = options;
-
-    const sort = order || { updatedAt: -1 };
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.max(1, limit);
-    const skip = (safePage - 1) * safeLimit;
-
-    const totalRecords = await this.model.countDocuments(filter).exec();
-    const totalPages = Math.ceil(totalRecords / safeLimit);
-
-    const query = this.model.find(filter, projection, {
-      ...restOptions,
-      limit: safeLimit,
-      skip,
-      sort,
-    });
-
-    if (populate) query.populate(populate);
-
-    const recordList = await query.lean<IFileStorageAttributes[]>().exec();
-
-    if (recordList && Array.isArray(recordList)) {
-       await Promise.all(recordList.map((doc) => this.ensurePresignedUrl(doc)));
+ 
+    const result = await super.findAllWithPagination(effectiveFilter as any, options, populate);
+ 
+    if (result.recordList && Array.isArray(result.recordList)) {
+       await Promise.all(result.recordList.map((doc) => this.ensurePresignedUrl(doc)));
     }
-
-    return {
-      limit: safeLimit,
-      totalRecords,
-      totalPages,
-      hasPreviousPage: safePage > 1,
-      currentPage: page,
-      hasNextPage: safePage < totalPages,
-      recordList,
-    };
-  };
+ 
+    return result;
+  }
 
   async ensurePresignedUrl(doc: IFileStorageAttributes): Promise<void> {
     // Check if active presigned url exists
     // We need to cast _id because in lean objects it might be object or string, but typically ObjectId
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let presignedUrlDoc = await PresignedUrlModel.findOne({ fileId: (doc as any)._id });
+    let presignedUrlDoc = await this.presignedUrlService.findOne({ fileId: (doc as any)._id } as any);
 
     if (!presignedUrlDoc) {
       // Generate new one
@@ -194,7 +168,7 @@ export class FileStorageService
   }
 
   async generatePresignedUrl(fileId: string, expiryTime: number = 60 * 60): Promise<string> {
-    const file = await this.model.findById(fileId);
+    const file = await this.findById(fileId);
     if (!file) throw new Error('File not found');
 
     const uploader = this.getUploader(file.cloudType);
@@ -206,11 +180,11 @@ export class FileStorageService
 
     const expiresAt = new Date(Date.now() + expiryTime * 1000);
 
-    await PresignedUrlModel.create({
+    await this.presignedUrlService.create({
       fileId: file._id,
       url: signedUrl,
       expiresAt: expiresAt,
-    });
+    } as any);
 
     return signedUrl;
   }
@@ -257,13 +231,13 @@ export class FileStorageService
         const parentPath = currentPath || null;
        currentPath = currentPath ? `${currentPath}/${part}` : part;
        
-       const existing = await FileDirectoryModel.findOne({ path: currentPath });
+       const existing = await this.fileDirectoryService.findOne({ path: currentPath } as any);
        if (!existing) {
-           await FileDirectoryModel.create({
+           await this.fileDirectoryService.create({
                name: part,
                path: currentPath,
                parentPath: parentPath,
-           });
+           } as any);
            await this.createCloudFolderHelper(currentPath);
        }
     }
@@ -332,18 +306,18 @@ export class FileStorageService
     const fullPath = storageDirPath ? `${storageDirPath}/${name}` : name;
     
     // Check if exists
-    const existing = await FileDirectoryModel.findOne({ path: fullPath });
+    const existing = await this.fileDirectoryService.findOne({ path: fullPath } as any);
     if(existing) throw new Error('Folder already exists');
 
     // Cloud creation
     await this.createCloudFolderHelper(fullPath);
 
     // DB Creation
-    const dir = await FileDirectoryModel.create({
+    const dir = await this.fileDirectoryService.create({
       name, 
       path: fullPath, 
       parentPath: storageDirPath ? storageDirPath : null 
-    });
+    } as any);
     
     // Return mapped to IFileStorageAttributes
     return {
@@ -362,7 +336,7 @@ export class FileStorageService
   }
 
   async moveFile(fileId: string, newStorageDirPath: string): Promise<IFileStorageAttributes> {
-    const file = await this.model.findById(fileId);
+    const file = await this.findById(fileId);
     if (!file) throw new Error('File not found');
 
     const cleanNewPath = newStorageDirPath ? newStorageDirPath.split('/').filter(p => p).join('/') : '';
@@ -390,21 +364,24 @@ export class FileStorageService
     const storageDir = cleanNewPath ? path.basename(cleanNewPath) : null;
 
     // Update DB Record while preserving ID
-    const updatedFile = await this.model.findByIdAndUpdate(
-      file._id,
+    const updatedFile = await this.updateOne(
+      { _id: file._id } as any,
       {
         $set: {
           storageDirPath: cleanNewPath || null,
           storageDir: storageDir,
         },
-      },
-      { new: true }
+      } as any
     );
 
     if (!updatedFile) throw new Error('Failed to update file record');
     
-    await this.ensurePresignedUrl(updatedFile as any);
-    return updatedFile.toObject() as any as IFileStorageAttributes;
+    // Refresh for the response
+    const refreshedFile = await this.findById(file._id.toString());
+    if (!refreshedFile) throw new Error('Failed to refresh file record');
+
+    await this.ensurePresignedUrl(refreshedFile);
+    return refreshedFile;
   }
 
   // --- Deletion Logic for Directories and Files (Override softDelete) ---
@@ -423,8 +400,8 @@ export class FileStorageService
         console.error("Cloud delete error", e);
     }
 
-    await PresignedUrlModel.deleteOne({ fileId: file._id });
-    await this.model.deleteOne({ _id: file._id });
+    await this.presignedUrlService.delete({ fileId: (file as any)._id } as any);
+    await this.delete({ _id: (file as any)._id } as any);
   }
 
   private async deleteCloudFolderHelper(path: string) {
@@ -453,25 +430,25 @@ export class FileStorageService
 
   private async deleteDirectoryRecursively(dirPath: string) {
       // 1. Files in this dir
-      const files = await this.model.find({ storageDirPath: dirPath });
+      const files = await this.findAll({ storageDirPath: dirPath } as any);
       for (const file of files) {
           await this.performHardDeleteFile(file);
       }
 
       // 2. Subdirectories
-      const subDirs = await FileDirectoryModel.find({ 
+      const subDirs = await this.fileDirectoryService.findAll({ 
           parentPath: dirPath
-      });
+      } as any);
       for (const subDir of subDirs) {
-          await this.deleteDirectoryRecursively(subDir.path);
-          await FileDirectoryModel.deleteOne({ _id: subDir._id });
-          await this.deleteCloudFolderHelper(subDir.path);
+          await this.deleteDirectoryRecursively((subDir as any).path);
+          await this.fileDirectoryService.delete({ _id: (subDir as any)._id } as any);
+          await this.deleteCloudFolderHelper((subDir as any).path);
       }
   }
 
-  softDelete = async (filter: FilterQuery<IFileStorageAttributes>, options?: any): Promise<any> => {
+  async softDelete(filter: FilterQuery<IFileStorageAttributes>, options?: any): Promise<any> {
       // 1. Try to find File first
-      const file = await this.model.findOne(filter);
+      const file = await this.findOne(filter);
       if (file) {
           // Perform Hard Delete as requested for cleanup
           await this.performHardDeleteFile(file);
@@ -481,11 +458,11 @@ export class FileStorageService
       // 2. Try to find Directory
       const id = filter._id || filter.id || (filter as any)._id; // Check different forms
       if (id) { 
-          const dir = await FileDirectoryModel.findById(id);
+          const dir = await this.fileDirectoryService.findById(id as string);
           if (dir) {
-              await this.deleteDirectoryRecursively(dir.path);
-              await FileDirectoryModel.deleteOne({ _id: dir._id });
-              await this.deleteCloudFolderHelper(dir.path);
+              await this.deleteDirectoryRecursively((dir as any).path);
+              await this.fileDirectoryService.delete({ _id: (dir as any)._id } as any);
+              await this.deleteCloudFolderHelper((dir as any).path);
               return { acknowledged: true, modifiedCount: 1, upsertedId: null, upsertedCount: 0, matchedCount: 1 };
           }
       }

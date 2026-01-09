@@ -1,21 +1,25 @@
 import { PaymentModel } from '../../db/mongodb/models/paymentModel';
-import { OrderModel } from '../../db/mongodb/models/orderModel';
 import { IPaymentAttributes, IPaymentDocument } from '../../interfaces/payment';
-import { PaymentGatewayService } from './PaymentGatewayService';
+import { paymentGatewayService } from './PaymentGatewayService';
+import { orderService } from './orderService';
 import { IPaymentServiceContract } from '../contracts/IPaymentServiceContract';
 import { PAYMENT_GATEWAY, PAYMENT_STATUS, PAYMENT_ERROR_MESSAGES, PAYMENT_GATEWAY_DEFAULTS } from '../../constants/payment';
 import { IOrder } from '../../types/order';
 import { ENV_VARIABLE } from '../../configs/env';
+import { MongooseCommonService } from './mongooseCommonService';
 
 /**
  * Payment Service
  * Core orchestrator for payment operations
  */
-export class PaymentService implements IPaymentServiceContract {
-  private paymentGatewayService: PaymentGatewayService;
+export class PaymentService 
+  extends MongooseCommonService<IPaymentAttributes, IPaymentDocument>
+  implements IPaymentServiceContract {
+  private get paymentGatewayService() { return paymentGatewayService; }
+  private get orderService() { return orderService; }
 
   constructor() {
-    this.paymentGatewayService = new PaymentGatewayService();
+    super(PaymentModel);
   }
 
   /**
@@ -46,16 +50,16 @@ export class PaymentService implements IPaymentServiceContract {
     gatewayData?: any;
   }> {
     // Fetch order
-    const order = await OrderModel.findById(orderId).lean();
+    const order = await this.orderService.findById(orderId);
     if (!order) {
       throw new Error('Order not found');
     }
 
     // Check if payment already exists for this order
-    const existingPayment = await PaymentModel.findOne({
+    const existingPayment = await this.findOne({
       orderId,
       status: { $in: [PAYMENT_STATUS.INITIATED, PAYMENT_STATUS.PENDING, PAYMENT_STATUS.SUCCESS] }
-    });
+    } as any);
 
     if (existingPayment) {
       throw new Error(PAYMENT_ERROR_MESSAGES.PAYMENT_ALREADY_PROCESSED);
@@ -68,7 +72,7 @@ export class PaymentService implements IPaymentServiceContract {
     const internalPaymentId = this.generatePaymentId();
     const idempotencyKey = this.generateIdempotencyKey(orderId, gatewayName);
 
-    const payment = await PaymentModel.create({
+    const payment = await this.create({
       orderId,
       userId,
       gatewayName,
@@ -79,9 +83,9 @@ export class PaymentService implements IPaymentServiceContract {
       idempotencyKey,
       refundedAmount: 0,
       refundCount: 0,
-      createdBy: userId,
+      createdBy: userId as any,
       metadata: {}
-    });
+    } as any);
 
     // Initiate payment with gateway
     const callbackUrl = `${ENV_VARIABLE.BACKEND_API_URL}/api/v1/webhooks/phonepe`;
@@ -93,8 +97,8 @@ export class PaymentService implements IPaymentServiceContract {
 
     if (!gatewayResponse.success) {
       // Update payment status to failed
-      await PaymentModel.updateOne(
-        { _id: payment._id },
+      await this.updateOne(
+        { _id: (payment as any)._id } as any,
         {
           $set: {
             status: PAYMENT_STATUS.FAILED,
@@ -102,14 +106,14 @@ export class PaymentService implements IPaymentServiceContract {
               gatewayResponse: gatewayResponse
             }
           }
-        }
+        } as any
       );
       throw new Error(gatewayResponse.error || 'Payment initiation failed');
     }
 
     // Update payment with gateway details
-    await PaymentModel.updateOne(
-      { _id: payment._id },
+    await this.updateOne(
+      { _id: (payment as any)._id } as any,
       {
         $set: {
           gatewayTransactionId: gatewayResponse.gatewayTransactionId,
@@ -119,16 +123,16 @@ export class PaymentService implements IPaymentServiceContract {
             gatewayResponse: gatewayResponse.data
           }
         }
-      }
+      } as any
     );
 
     // Update order with payment ID
-    await OrderModel.updateOne(
+    await this.orderService.updateOne(
       { _id: orderId },
-      { $set: { paymentId: payment._id } }
+      { $set: { paymentId: (payment as any)._id } }
     );
 
-    const updatedPayment = await PaymentModel.findById(payment._id).lean();
+    const updatedPayment = await this.findById((payment as any)._id);
 
     return {
       payment: updatedPayment!,
@@ -145,14 +149,14 @@ export class PaymentService implements IPaymentServiceContract {
     paymentId: string,
     gatewayData: any
   ): Promise<IPaymentAttributes> {
-    const payment = await PaymentModel.findById(paymentId);
+    const payment = await this.findById(paymentId);
     if (!payment) {
       throw new Error(PAYMENT_ERROR_MESSAGES.PAYMENT_NOT_FOUND);
     }
 
     // Check if already processed
     if (payment.status === PAYMENT_STATUS.SUCCESS) {
-      return payment.toObject() as IPaymentAttributes;
+      return payment;
     }
 
     // Get gateway service
@@ -164,7 +168,7 @@ export class PaymentService implements IPaymentServiceContract {
     const status = verifyResponse.success ? PAYMENT_STATUS.SUCCESS : PAYMENT_STATUS.FAILED;
     await this.updatePaymentStatus(paymentId, status, verifyResponse.metadata);
 
-    return (await PaymentModel.findById(paymentId).lean()) as IPaymentAttributes;
+    return (await this.findById(paymentId)) as IPaymentAttributes;
   }
 
   /**
@@ -175,7 +179,7 @@ export class PaymentService implements IPaymentServiceContract {
     status: PAYMENT_STATUS,
     gatewayResponse?: any
   ): Promise<void> {
-    const payment = await PaymentModel.findById(paymentId);
+    const payment = await this.findById(paymentId);
     if (!payment) return;
 
     const updateData: any = {
@@ -190,15 +194,15 @@ export class PaymentService implements IPaymentServiceContract {
       };
     }
 
-    await PaymentModel.updateOne({ _id: paymentId }, { $set: updateData });
+    await this.updateOne({ _id: paymentId } as any, { $set: updateData } as any);
 
     // Update Linked Order
     const orderStatusUpdate: any = {};
     if (status === PAYMENT_STATUS.SUCCESS) {
       orderStatusUpdate.paymentStatus = 'COMPLETED';
       // Auto confirm if currently pending
-      const order = await OrderModel.findById(payment.orderId);
-      if (order && order.orderStatus === 'PENDING') {
+      const order = await this.orderService.findById((payment as any).orderId);
+      if (order && (order as any).orderStatus === 'PENDING') {
         orderStatusUpdate.orderStatus = 'CONFIRMED';
       }
     } else if (status === PAYMENT_STATUS.FAILED) {
@@ -208,8 +212,8 @@ export class PaymentService implements IPaymentServiceContract {
     }
 
     if (Object.keys(orderStatusUpdate).length > 0) {
-      await OrderModel.updateOne(
-        { _id: payment.orderId },
+      await this.orderService.updateOne(
+        { _id: (payment as any).orderId },
         { $set: orderStatusUpdate }
       );
     }
@@ -219,34 +223,34 @@ export class PaymentService implements IPaymentServiceContract {
    * Get payment by ID
    */
   async getPaymentById(paymentId: string): Promise<IPaymentAttributes | null> {
-    return await PaymentModel.findById(paymentId).lean();
+    return await this.findById(paymentId);
   }
 
   /**
    * Get payment by internal payment ID
    */
   async getPaymentByInternalId(internalPaymentId: string): Promise<IPaymentAttributes | null> {
-    return await PaymentModel.findOne({ internalPaymentId }).lean();
+    return await this.findOne({ internalPaymentId } as any);
   }
 
   /**
    * Get payment by gateway transaction ID or order ID
    */
   async getPaymentByGatewayId(gatewayId: string): Promise<IPaymentAttributes | null> {
-    return await PaymentModel.findOne({
+    return await this.findOne({
       $or: [
         { gatewayTransactionId: gatewayId },
         { gatewayOrderId: gatewayId },
         { internalPaymentId: gatewayId } // Fallback to internal ID
       ]
-    }).lean();
+    } as any);
   }
 
   /**
    * Get payments for an order
    */
   async getPaymentsByOrderId(orderId: string): Promise<IPaymentAttributes[]> {
-    return await PaymentModel.find({ orderId }).sort({ createdAt: -1 }).lean();
+    return await this.findAll({ orderId } as any, { sort: { createdAt: -1 } });
   }
 
   /**
@@ -257,18 +261,18 @@ export class PaymentService implements IPaymentServiceContract {
     limit: number = 10,
     skip: number = 0
   ): Promise<IPaymentAttributes[]> {
-    return await PaymentModel.find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(skip)
-      .lean();
+    return await this.findAll({ userId } as any, {
+      sort: { createdAt: -1 },
+      limit,
+      skip,
+    });
   }
 
   /**
    * Fetch payment status from gateway
    */
   async fetchPaymentStatus(paymentId: string): Promise<any> {
-    const payment = await PaymentModel.findById(paymentId);
+    const payment = await this.findById(paymentId);
     if (!payment) {
       throw new Error(PAYMENT_ERROR_MESSAGES.PAYMENT_NOT_FOUND);
     }
@@ -288,3 +292,5 @@ export class PaymentService implements IPaymentServiceContract {
     return statusResponse;
   }
 }
+ 
+export const paymentService = new PaymentService();

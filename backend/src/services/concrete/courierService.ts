@@ -5,7 +5,7 @@ import { ICourierAttributes, ICourierDocument } from '../../interfaces/courier';
 
 export class CourierService extends MongooseCommonService<ICourierAttributes, ICourierDocument> implements ICourierService {
   constructor() {
-    super(CourierModel);
+    super(CourierModel as any);
   }
 
   async getAll(filters: any): Promise<ICourierAttributes[]> {
@@ -14,11 +14,11 @@ export class CourierService extends MongooseCommonService<ICourierAttributes, IC
       query.isActive = filters.status === 'active';
     }
     // Add more filters as needed
-    return this.model.find(query).sort({ name: 1 }).lean() as any;
+    return this.findAll(query, { sort: { name: 1 } });
   }
 
   async toggleActive(id: string, isActive: boolean): Promise<boolean> {
-    const result = await this.model.findByIdAndUpdate(id, { isActive }, { new: true });
+    const result = await this.findOneAndUpdate({ _id: id } as any, { $set: { isActive } } as any, { new: true });
     return !!result;
   }
 }

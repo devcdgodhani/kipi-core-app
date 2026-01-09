@@ -1,4 +1,4 @@
-import { CourierModel } from '../models/courierModel';
+import { courierService } from '../../../services/concrete/courierService';
 
 export const seedCouriers = async () => {
     const couriers = [
@@ -30,9 +30,9 @@ export const seedCouriers = async () => {
     ];
 
     for (const courier of couriers) {
-        const exists = await CourierModel.findOne({ code: courier.code });
+        const exists = await courierService.findOne({ code: courier.code });
         if (!exists) {
-            await CourierModel.create(courier);
+            await courierService.create(courier as any);
             console.log(`Seeded courier: ${courier.name}`);
         }
     }

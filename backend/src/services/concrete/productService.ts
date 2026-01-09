@@ -1,15 +1,17 @@
 import { ProductModel } from '../../db/mongodb/models/productModel';
-import { SkuModel } from '../../db/mongodb/models/skuModel';
 import { IProductAttributes, IProductDocument } from '../../interfaces/product';
 import { IProductService } from '../contracts/productServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
+import { skuService } from './skuService';
 
 export class ProductService
   extends MongooseCommonService<IProductAttributes, IProductDocument>
   implements IProductService
 {
+  private get skuService() { return skuService; }
+ 
   constructor() {
-    super(ProductModel);
+    super(ProductModel as any);
   }
 
   generateFilter(options: {
@@ -78,53 +80,55 @@ export class ProductService
 
       if (_id) {
         // Direct update by ID
-        await SkuModel.updateOne(
-          { _id },
+        await this.skuService.findOneAndUpdate(
+          { _id } as any,
           { 
             $set: { 
               ...rest, 
               variantAttributes: normalizedAttrs, 
               updatedBy: userId 
             } 
-          }
+          } as any
         );
       } else {
         // Attribute-aware Upsert: Find if a SKU with these attributes already exists for this product
-        const existingSku = await SkuModel.findOne({
+        const existingSku = await this.skuService.findOne({
           productId,
           variantAttributes: {
             $size: normalizedAttrs.length,
             $all: normalizedAttrs.map((attr: any) => ({ $elemMatch: attr }))
           }
-        });
+        } as any);
 
         if (existingSku) {
           // Update existing
-          await SkuModel.updateOne(
-            { _id: existingSku._id },
+          await this.skuService.findOneAndUpdate(
+            { _id: (existingSku as any)._id } as any,
             { 
               $set: { 
                 ...rest, 
                 updatedBy: userId 
               } 
-            }
+            } as any
           );
         } else {
           // Create new
-          await SkuModel.create({
+          await this.skuService.create({
             ...rest,
             productId,
             variantAttributes: normalizedAttrs,
             createdBy: userId,
             updatedBy: userId
-          });
+          } as any);
         }
       }
     }
     // Explicitly sync product stock after bulk SKU operations
-    const SkuModelVar = SkuModel as any;
-    if (SkuModelVar.syncProductStock) {
+    const SkuModelVar = (this.skuService as any).model;
+    if (SkuModelVar && SkuModelVar.syncProductStock) {
       await SkuModelVar.syncProductStock(product._id);
     }
   }
 }
+ 
+export const productService = new ProductService();

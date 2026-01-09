@@ -1,11 +1,16 @@
-import { ShipmentModel, UserModel, RtoScoreModel } from '../../db/mongodb';
+import { RtoScoreModel } from '../../db/mongodb';
 import { IRtoScoreAttributes, IRtoScoreDocument } from '../../interfaces/rto';
 import { IRtoScoreService } from '../contracts/rtoServiceInterface';
 import { RTO_RISK_LEVEL } from '../../constants/rto';
 import { Types } from 'mongoose';
 import { MongooseCommonService } from './mongooseCommonService';
+import { userService } from './userService';
+import { shipmentService } from './shipmentService';
 
 export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, IRtoScoreDocument> implements IRtoScoreService {
+  private get userService() { return userService; }
+  private get shipmentService() { return shipmentService; }
+
   constructor() {
     super(RtoScoreModel as any);
   }
@@ -19,7 +24,7 @@ export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, 
     orderAmount: number, 
     paymentMethod: string
   ): Promise<IRtoScoreAttributes> {
-    const user = await UserModel.findById(userId).lean() as any;
+    const user = await this.userService.findById(userId) as any;
     
     // 1. Customer History Factor (0-100)
     const customerHistoryRisk = await this.calculateCustomerHistoryRisk(user);
@@ -91,7 +96,7 @@ export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, 
     * Persists the risk score in the database
     */
   async saveRiskScore(scoreData: IRtoScoreAttributes): Promise<IRtoScoreDocument> {
-    return await RtoScoreModel.create(scoreData);
+    return await this.create(scoreData) as any;
   }
 
   private async calculateCustomerHistoryRisk(user: any): Promise<number> {
@@ -110,8 +115,8 @@ export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, 
     // Prototype: Static high-risk zones (could be moved to a DB collection or Config)
     const highRiskZones = ['201301', '110001', '400001']; 
     if (highRiskZones.includes(pincode)) return 100;
-
-    const shipments = await ShipmentModel.find({ 'deliveryAddress.pincode': pincode }).limit(50).lean();
+ 
+    const shipments = await this.shipmentService.findAll({ 'deliveryAddress.pincode': pincode } as any, { limit: 50 });
     if (shipments.length < 5) return 10;
 
     const rtoCount = shipments.filter((s: any) => s.isRTO).length;

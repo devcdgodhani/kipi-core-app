@@ -4,20 +4,22 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { RETURN_STATUS } from '../../constants/return';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
-import { SkuModel, OrderModel, ProductModel } from '../../db/mongodb';
+import { orderService } from './orderService';
+import { paymentService } from './PaymentService';
 
 import { inventoryService } from './inventoryService';
 import { IReturnService } from '../contracts/returnServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
-import { PaymentRefundService } from './PaymentRefundService';
+import { paymentRefundService } from './PaymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
-import { PaymentModel } from '../../db/mongodb/models/paymentModel';
 
 export class ReturnService extends MongooseCommonService<IReturn, IReturn> implements IReturnService {
-    private refundService = new PaymentRefundService();
+    private get refundService() { return paymentRefundService; }
+    private get orderService() { return orderService; }
+    private get paymentService() { return paymentService; }
 
     constructor() {
-        super(ReturnModel);
+        super(ReturnModel as any);
     }
 
     generateReturnNumber = (): string => {
@@ -33,7 +35,7 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
             throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 'Order ID is required');
         }
 
-        const order = await OrderModel.findById(data.orderId);
+        const order = await this.orderService.findById(data.orderId as any);
         if (!order) {
             throw new ApiError(HTTP_STATUS_CODE.NOTFOUND.CODE, HTTP_STATUS_CODE.NOTFOUND.STATUS, 'Original order not found');
         }
@@ -121,9 +123,9 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
             }
 
             // 1.1 Automatic Refund for Online Payments
-            const order = await OrderModel.findById(returnRequest.orderId);
-            if (order && order.paymentMethod !== 'COD') {
-                const payment = await PaymentModel.findOne({ orderId: order._id, status: 'SUCCESS' });
+            const order = await this.orderService.findById(returnRequest.orderId as any);
+            if (order && (order as any).paymentMethod !== 'COD') {
+                const payment = await this.paymentService.findOne({ orderId: (order as any)._id, status: 'SUCCESS' } as any);
                 if (payment) {
                     try {
                         await this.refundService.initiateRefund(
@@ -141,11 +143,11 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
             }
         }
 
-        const updatedReturn = await this.model.findByIdAndUpdate({ _id: id }, updateData, { new: true });
+        const updatedReturn = await this.findOneAndUpdate({ _id: id } as any, updateData as any, { new: true });
 
         // Trigger Notifications
         if (updatedReturn) {
-            const order = await OrderModel.findById(updatedReturn.orderId);
+            const order = await this.orderService.findById(updatedReturn.orderId as any);
             if (order) {
                 if (status === RETURN_STATUS.APPROVED) {
                     await logisticsNotificationService.notifyReturnApproved(order, updatedReturn);
@@ -179,7 +181,7 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
             $push: { timeline: timelineEntry }
         };
 
-        return this.model.findByIdAndUpdate({ _id: id }, updateData, { new: true });
+        return this.findOneAndUpdate({ _id: id } as any, updateData as any, { new: true });
     }
 }
 

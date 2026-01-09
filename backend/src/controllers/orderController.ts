@@ -3,7 +3,6 @@ import { HTTP_STATUS_CODE } from '../constants';
 import { OrderService } from '../services/concrete/orderService';
 import { PaymentService } from '../services/concrete/PaymentService';
 import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
-import { PaymentModel } from '../db/mongodb/models/paymentModel';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
@@ -227,15 +226,15 @@ export default class OrderController {
       }
 
       // Find relevant payment
-      // For now, syncing the latest payment or payment tied to the order
-      const payment = await PaymentModel.findOne({ orderId: id }).sort({ createdAt: -1 });
+      const paymentService = new PaymentService();
+      const payments = await paymentService.getPaymentsByOrderId(id);
+      const payment = payments.length > 0 ? payments[0] : null;
       
       if (!payment) {
         throw new Error('No payment record found for this order');
       }
 
-      const paymentService = new PaymentService();
-      const status = await paymentService.fetchPaymentStatus(payment._id.toString());
+      const status = await paymentService.fetchPaymentStatus((payment as any)._id.toString());
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,

@@ -82,6 +82,8 @@ export interface IDeleteService<T> {
   ): Promise<UpdateWriteOpResult | null>;
 
   delete(filter: FilterQuery<T>): Promise<DeleteResult | null>;
+ 
+  deleteMany(filter: FilterQuery<T>): Promise<DeleteResult | null>;
 }
 
 export interface IHookService<T> {

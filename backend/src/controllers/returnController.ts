@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { returnService } from '../services/concrete/returnService';
 import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
-import { PaymentRefundModel } from '../db/mongodb/models/paymentRefundModel';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
@@ -162,14 +161,15 @@ export default class ReturnController {
             }
 
             // Find latest refund for this order/payment
-            const refund = await PaymentRefundModel.findOne({ orderId: ret.orderId?._id || ret.orderId }).sort({ createdAt: -1 });
-
+            const refundService = new PaymentRefundService();
+            const refunds = await refundService.getRefundsByOrderId((ret.orderId as any)?._id || ret.orderId);
+            const refund = refunds.length > 0 ? refunds[0] : null;
+ 
             if (!refund) {
                 throw new Error('No refund record found for this return');
             }
-
-            const refundService = new PaymentRefundService();
-            const status = await refundService.fetchRefundStatus(refund._id.toString());
+ 
+            const status = await refundService.fetchRefundStatus((refund as any)._id.toString());
 
             const response: IApiResponse = {
                 status: HTTP_STATUS_CODE.OK.STATUS,

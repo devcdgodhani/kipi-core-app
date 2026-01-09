@@ -1,8 +1,11 @@
-import { CourierModel, ShipmentModel } from '../../db/mongodb';
 import { IEtaResult } from '../../interfaces/eta';
 import { IEtaService } from '../contracts/etaServiceInterface';
+import { CourierService } from './courierService';
+import { ShipmentService } from './shipmentService';
 
 export class EtaService implements IEtaService {
+  private courierService = new CourierService();
+  private shipmentService = new ShipmentService();
   
   async calculateETA(
     destinationPincode: string,
@@ -13,7 +16,7 @@ export class EtaService implements IEtaService {
       return this.calculateForCourier(courierId, destinationPincode, pickupPincode);
     }
 
-    const couriers = await CourierModel.find({ isActive: true }).lean();
+    const couriers = await this.courierService.findAll({ isActive: true } as any);
     
     const results = await Promise.all(
       couriers.map(async (courier: any) => {
@@ -28,13 +31,13 @@ export class EtaService implements IEtaService {
     return results.filter(r => r !== null) as IEtaResult[];
   }
 
-  private async calculateForCourier(
+  async calculateForCourier(
     courierId: string, 
     destinationPincode: string, 
     pickupPincode: string,
     courierModel?: any
   ): Promise<IEtaResult> {
-    const courier = courierModel || await CourierModel.findById(courierId).lean();
+    const courier = courierModel || await this.courierService.findById(courierId);
     if (!courier) throw new Error('Courier not found');
     
     // 1. Base Days (Average SLA)
@@ -77,16 +80,16 @@ export class EtaService implements IEtaService {
   private async getHistoricalPerformance(courierId: string, pincode: string): Promise<{ avgDays: number, confidence: 'LOW' | 'MEDIUM' | 'HIGH' }> {
     // Look at last 100 shipments for this courier to this pincode zone
     const zonePrefix = pincode.substring(0, 3);
-    const shipments = await ShipmentModel.find({
+    const shipments = await this.shipmentService.findAll({
       courierId,
       'deliveryAddress.pincode': { $regex: new RegExp(`^${zonePrefix}`) },
       actualDeliveryDate: { $exists: true },
       pickupCompletedDate: { $exists: true }
-    })
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .select('actualDeliveryDate pickupCompletedDate')
-    .lean();
+    } as any, {
+      sort: { createdAt: -1 },
+      limit: 50,
+      projection: { actualDeliveryDate: 1, pickupCompletedDate: 1 }
+    });
 
     if (shipments.length === 0) {
       return { avgDays: 0, confidence: 'LOW' };

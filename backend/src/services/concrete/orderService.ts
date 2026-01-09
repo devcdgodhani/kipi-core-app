@@ -1,10 +1,14 @@
 import { MongooseCommonService } from './mongooseCommonService';
-import { OrderModel, SkuModel, ProductModel, UserModel } from '../../db/mongodb';
+import { OrderModel } from '../../db/mongodb';
 import { IOrder, TOrderCreateReq } from '../../types/order';
-import { CouponService } from './couponService';
+import { couponService } from './couponService';
 import { logisticsService } from './logisticsService';
-import { LoyaltyService } from './loyaltyService';
+import { loyaltyService } from './loyaltyService';
 import { pulseService } from './pulseService';
+import { skuService } from './skuService';
+import { productService } from './productService';
+import { userService } from './userService';
+import { paymentService } from './PaymentService';
 import { COUPON_TYPE } from '../../constants/coupon';
 import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
 import { rtoScoreService } from './rtoScoreService';
@@ -16,15 +20,18 @@ import { IOrderService } from '../contracts/orderServiceInterface';
 
 import { IOrderDocument } from '../../db/mongodb/models/orderModel';
 import { logisticsNotificationService } from './logisticsNotificationService';
-import { PaymentRefundService } from './PaymentRefundService';
+import { paymentRefundService } from './PaymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
-import { PaymentModel } from '../../db/mongodb/models/paymentModel';
 
 export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> implements IOrderService {
-  private couponService = new CouponService();
-  private loyaltyService = new LoyaltyService();
-  private pulseService = pulseService;
-  private refundService = new PaymentRefundService();
+  private get couponService() { return couponService; }
+  private get loyaltyService() { return loyaltyService; }
+  private get pulseService() { return pulseService; }
+  private get skuService() { return skuService; }
+  private get productService() { return productService; }
+  private get userService() { return userService; }
+  private get paymentService() { return paymentService; }
+  private get refundService() { return paymentRefundService; }
 
   constructor() {
     super(OrderModel);
@@ -51,18 +58,18 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
 
       // 1. Try SKU first
       if (item.skuId) {
-        const sku = await SkuModel.findById(item.skuId).lean();
+        const sku = await this.skuService.findById(item.skuId);
         if (sku) {
-          actualPrice = Number(sku.offerPrice || sku.salePrice || sku.basePrice || 0);
+          actualPrice = Number((sku as any).offerPrice || (sku as any).salePrice || (sku as any).basePrice || 0);
           if (actualPrice > 0) found = true;
         }
       }
 
       // 2. Try Product if SKU failed or has no price
       if (!found && item.productId) {
-        const product = await ProductModel.findById(item.productId).lean();
+        const product = await this.productService.findById(item.productId);
         if (product) {
-          actualPrice = Number(product.offerPrice || product.salePrice || product.basePrice || 0);
+          actualPrice = Number((product as any).offerPrice || (product as any).salePrice || (product as any).basePrice || 0);
           if (actualPrice > 0) found = true;
         }
       }
@@ -193,15 +200,15 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
     await rtoScoreService.saveRiskScore(rtoScore);
 
     // 8. Update User Metrics
-    await UserModel.findByIdAndUpdate(userId, {
+    await this.userService.updateOne({ _id: userId } as any, {
       $inc: { 'metrics.totalOrders': 1 }
-    });
+    } as any);
 
     // Update the transaction with the orderId now that we have it
     if (pointsUsed > 0) {
         await this.loyaltyService.updateOne(
-            { userId, orderId: { $exists: false }, type: LOYALTY_TRANSACTION_TYPE.SPENT },
-            { orderId: (newOrder as any)._id }
+            { userId, orderId: { $exists: false }, type: LOYALTY_TRANSACTION_TYPE.SPENT } as any,
+            { orderId: (newOrder as any)._id } as any
         );
     }
 
@@ -307,14 +314,14 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
 
       // 3.1. Automatic Refund for Online Payments
       if (order.paymentMethod !== 'COD' && order.paymentStatus === 'COMPLETED') {
-        const payment = await PaymentModel.findOne({ orderId, status: 'SUCCESS' });
+        const payment = await this.paymentService.findOne({ orderId, status: 'SUCCESS' } as any);
         if (payment) {
           try {
             await this.refundService.initiateRefund(
-              payment._id.toString(),
+              (payment as any)._id.toString(),
               order.totalAmount,
               REFUND_REASON.CANCELLATION,
-              `Order #${order.orderNumber} cancelled by ${userId.toString() === order.userId.toString() ? 'customer' : 'admin'}`,
+              `Order #${order.orderNumber} cancelled by ${userId.toString() === (order as any).userId.toString() ? 'customer' : 'admin'}`,
               userId.toString()
             );
             console.log(`✅ Auto-refund initiated for Order #${order.orderNumber}`);
@@ -327,9 +334,9 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
 
     // 3.5 User Metrics Update
     if (status === 'DELIVERED' && currentStatus !== 'DELIVERED') {
-      await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.deliveredCount': 1 } });
+      await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.deliveredCount': 1 } } as any);
     } else if (status === 'CANCELLED' && currentStatus !== 'CANCELLED') {
-      await UserModel.findByIdAndUpdate(order.userId, { $inc: { 'metrics.cancelledCount': 1 } });
+      await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.cancelledCount': 1 } } as any);
     }
 
     // 4. Loyalty Point Accretion on Delivery
@@ -407,3 +414,5 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
     );
   };
 }
+ 
+export const orderService = new OrderService();

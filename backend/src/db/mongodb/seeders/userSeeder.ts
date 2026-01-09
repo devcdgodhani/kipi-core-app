@@ -1,7 +1,7 @@
-import { UserModel } from '../models/userModel';
-import { AddressModel } from '../models/addressModel';
 import bcrypt from 'bcryptjs';
 import { USER_TYPE, USER_STATUS, GENDER, ADDRESS_TYPE, ADDRESS_STATUS } from '../../../constants';
+import { userService } from '../../../services/concrete/userService';
+import { addressService } from '../../../services/concrete/addressService';
 
 export const seedUsers = async () => {
   console.log('🌱 Seeding users...');
@@ -39,7 +39,7 @@ export const seedUsers = async () => {
 
       // Add address for customer
       if (user) {
-        await upsertAddress(user._id, {
+        await upsertAddress((user as any)._id, {
           name: `${customer.firstName} ${customer.lastName}`,
           mobile: customer.mobile,
           street: '123, Main Street, Near Park',
@@ -59,11 +59,11 @@ export const seedUsers = async () => {
 };
 
 const upsertUser = async (data: any) => {
-  let user = await UserModel.findOne({ email: data.email });
+  let user = await userService.findOne({ email: data.email });
   if (!user) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, salt);
-    user = await UserModel.create({
+    user = await userService.create({
       ...data,
       password: hashedPassword,
       status: USER_STATUS.ACTIVE,
@@ -74,14 +74,14 @@ const upsertUser = async (data: any) => {
 };
 
 const upsertAddress = async (userId: any, data: any) => {
-  const address = await AddressModel.findOne({ userId, isDefault: true });
+  const address = await addressService.findOne({ userId, isDefault: true } as any);
   if (!address) {
-    await AddressModel.create({
+    await addressService.create({
       userId,
       ...data,
       location: { type: 'Point', coordinates: [72.8777, 19.0760] }, // Default Mumbai coordinates
       status: ADDRESS_STATUS.ACTIVE,
-    });
+    } as any);
     // console.log(`+ Added address for user: ${data.name}`);
   }
 };

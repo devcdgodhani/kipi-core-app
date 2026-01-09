@@ -2,36 +2,40 @@ import { ExchangeModel } from '../../db/mongodb/models/exchangeModel';
 import { IExchangeAttributes, IExchangeDocument } from '../../interfaces/exchange';
 import { MongooseCommonService } from './mongooseCommonService';
 import { IExchangeService } from '../contracts/exchangeServiceInterface';
-import { OrderModel, SkuModel } from '../../db/mongodb';
+import { OrderService } from './orderService';
+import { SkuService } from './skuService';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 import { UpdateWriteOpResult } from 'mongoose';
 
 export class ExchangeService extends MongooseCommonService<IExchangeAttributes, IExchangeDocument> implements IExchangeService {
+  private orderService = new OrderService();
+  private skuService = new SkuService();
+
   constructor() {
-    super(ExchangeModel);
+    super(ExchangeModel as any);
   }
 
   async requestExchange(data: any): Promise<IExchangeAttributes> {
     const { orderId, items, userId } = data;
 
-    const order = await OrderModel.findById(orderId);
+    const order = await this.orderService.findById(orderId);
     if (!order) {
       throw new ApiError(HTTP_STATUS_CODE.NOTFOUND.CODE, HTTP_STATUS_CODE.NOTFOUND.STATUS, 'Original order not found');
     }
 
-    if (order.userId.toString() !== userId.toString()) {
+    if ((order as any).userId.toString() !== userId.toString()) {
         throw new ApiError(HTTP_STATUS_CODE.FORBIDDEN.CODE, HTTP_STATUS_CODE.FORBIDDEN.STATUS, 'Unauthorized access to order');
     }
 
     // Basic validation of items
     for (const item of items) {
-        const orderItem = order.items.find(oi => oi.skuId?.toString() === item.originalSkuId.toString());
+        const orderItem = (order as any).items.find((oi: any) => oi.skuId?.toString() === item.originalSkuId.toString());
         if (!orderItem) {
             throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, `Item ${item.originalSkuId} not found in order`);
         }
         
-        const exchangeSku = await SkuModel.findById(item.exchangeSkuId);
+        const exchangeSku = await this.skuService.findById(item.exchangeSkuId);
         if (!exchangeSku) {
             throw new ApiError(HTTP_STATUS_CODE.NOTFOUND.CODE, HTTP_STATUS_CODE.NOTFOUND.STATUS, `Exchange SKU ${item.exchangeSkuId} not found`);
         }

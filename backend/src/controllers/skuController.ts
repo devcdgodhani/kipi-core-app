@@ -9,7 +9,6 @@ import {
   TSkuListPaginationRes 
 } from '../types/sku';
 import { IApiResponse } from '../interfaces';
-import { FileStorageModel, ProductModel, SkuModel } from '../db/mongodb';
 import { FileStorageService } from '../services/concrete/fileStorageService';
 import { stockLedgerService } from '../services/concrete/stockLedgerService';
 
@@ -36,7 +35,11 @@ export default class SkuController {
         filters: reqData,
       });
 
-      const skuDoc = await this.skuService.findOne(filter);
+      const skuDoc = await this.skuService.findOne(filter, {}, [
+          { path: 'productId', select: 'name productCode' },
+          { path: 'variantAttributes.attributeId', select: 'name key label type' },
+          { path: 'media.fileStorageId' }
+      ]);
       let sku = skuDoc as any;
 
       if (sku) {
@@ -52,13 +55,6 @@ export default class SkuController {
                   return m;
               });
           }
-
-          // Manually perform population
-          sku = await SkuModel.populate(sku, [
-              { path: 'productId', select: 'name productCode' },
-              { path: 'variantAttributes.attributeId', select: 'name key label type' },
-              { path: 'media.fileStorageId' }
-          ]);
 
           await this.enrichSkuWithPresignedUrls(sku);
       }
@@ -164,9 +160,9 @@ export default class SkuController {
 
       // --- INVENTORY AUDIT: MANUAL ADJUSTMENT ---
       if (updateData.quantity !== undefined) {
-        const existingSku = await SkuModel.findById(id);
-        if (existingSku && existingSku.quantity !== updateData.quantity) {
-          const delta = updateData.quantity - existingSku.quantity;
+        const existingSku = await this.skuService.findById(id);
+        if (existingSku && (existingSku as any).quantity !== updateData.quantity) {
+          const delta = updateData.quantity - (existingSku as any).quantity;
           await stockLedgerService.logAdjustment({
             skuId: id,
             transactionType: 'ADMIN_ADJUSTMENT',
