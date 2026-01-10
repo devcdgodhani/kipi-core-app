@@ -41,6 +41,12 @@ router.get(
 );
 
 router.get(
+  '/logistics',
+  jwtAuth(),
+  analyticsController.getLogisticsAnalytics
+);
+
+router.get(
   '/export',
   jwtAuth(),
   analyticsController.exportAnalytics
