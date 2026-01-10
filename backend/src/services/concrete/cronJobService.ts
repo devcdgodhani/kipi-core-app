@@ -10,6 +10,9 @@ import { CronJobHistoryService } from './cronJobHistoryService';
 import { paymentQueue } from '../../jobs/payment/queue';
 import { PAYMENT_STATUS } from '../../constants/payment';
 import { BULL_QUEUES } from '../../constants/bullQueue';
+import { whatsAppAccountService } from './whatsAppAccountService';
+import { whatsAppRiskService } from './whatsAppRiskService';
+import { notificationQueue } from '../../jobs/notification/queue';
 
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
@@ -28,6 +31,12 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         this.handlers.set('BIRTHDAY_REWARDS', this.processBirthdayRewards.bind(this));
         this.handlers.set('POINTS_EXPIRY_WARNING', this.processPointsExpiryWarnings.bind(this));
         this.handlers.set('PAYMENT_STATUS_SYNC', this.processPaymentStatusSync.bind(this));
+        
+        // WhatsApp Handlers
+        this.handlers.set('WHATSAPP_DAILY_RESET', this.processDailyCounterReset.bind(this));
+        this.handlers.set('WHATSAPP_HOURLY_RESET', this.processHourlyCounterReset.bind(this));
+        this.handlers.set('WHATSAPP_RISK_DECAY', this.processRiskDecay.bind(this));
+        this.handlers.set('WHATSAPP_HEALTH_CHECK', this.processHealthCheck.bind(this));
     }
 
     async init() {
@@ -61,6 +70,30 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 identifier: 'PAYMENT_STATUS_SYNC',
                 expression: '*/15 * * * *', // Every 15 minutes
                 description: 'Syncs pending payment statuses with gateways'
+            },
+            {
+                name: 'WhatsApp Daily Reset',
+                identifier: 'WHATSAPP_DAILY_RESET',
+                expression: '0 0 * * *',
+                description: 'Resets daily message counters for all WhatsApp accounts'
+            },
+            {
+                name: 'WhatsApp Hourly Reset',
+                identifier: 'WHATSAPP_HOURLY_RESET',
+                expression: '0 * * * *',
+                description: 'Resets hourly message counters for all WhatsApp accounts'
+            },
+            {
+                name: 'WhatsApp Risk Decay',
+                identifier: 'WHATSAPP_RISK_DECAY',
+                expression: '0 1 * * *',
+                description: 'Decays risk scores for all WhatsApp accounts daily'
+            },
+            {
+                name: 'WhatsApp Health Check',
+                identifier: 'WHATSAPP_HEALTH_CHECK',
+                expression: '*/5 * * * *',
+                description: 'Monitors global risk level and pauses system if critical'
             }
         ];
 
@@ -193,6 +226,70 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
             await paymentQueue.queue.add(BULL_QUEUES.PAYMENT.JOBS.SYNC_PAYMENT_STATUS, {
                 paymentId: (payment as any)._id.toString()
             });
+        }
+    }
+
+    // --- WhatsApp Handlers ---
+
+    async processDailyCounterReset() {
+        console.log('CronJobService: Running daily counter reset...');
+        try {
+            await whatsAppAccountService.resetDailyCounters();
+            console.log('CronJobService: Daily counters reset successfully');
+        } catch (error) {
+            console.error('CronJobService: Error resetting daily counters:', error);
+            throw error;
+        }
+    }
+
+    async processHourlyCounterReset() {
+        console.log('CronJobService: Running hourly counter reset...');
+        try {
+            await whatsAppAccountService.resetHourlyCounters();
+            console.log('CronJobService: Hourly counters reset successfully');
+        } catch (error) {
+            console.error('CronJobService: Error resetting hourly counters:', error);
+             throw error;
+        }
+    }
+
+    async processRiskDecay() {
+        console.log('CronJobService: Running risk decay...');
+        try {
+            await whatsAppRiskService.decayRiskScores();
+            console.log('CronJobService: Risk scores decayed successfully');
+        } catch (error) {
+            console.error('CronJobService: Error decaying risk scores:', error);
+             throw error;
+        }
+    }
+
+    async processHealthCheck() {
+        const RISK_THRESHOLD = 60; // Pause if average risk > 60
+        try {
+            const avgRisk = await whatsAppRiskService.getGlobalRiskAverage();
+            
+            if (avgRisk > RISK_THRESHOLD) {
+                console.warn(`CronJobService: HIGH RISK ALERT: Average risk score is ${avgRisk.toFixed(2)}`);
+                
+                // Pause the queue
+                const isPaused = await notificationQueue.queue.isPaused();
+                if (!isPaused) {
+                    await notificationQueue.queue.pause();
+                    console.warn('CronJobService: System paused due to high global risk');
+                    // TODO: Send alert notification to admin
+                }
+            } else {
+                // Auto-resume if risk is back to normal
+                const isPaused = await notificationQueue.queue.isPaused();
+                if (isPaused && avgRisk < RISK_THRESHOLD - 10) {
+                    await notificationQueue.queue.resume();
+                    console.log('CronJobService: System auto-resumed, risk is back to normal');
+                }
+            }
+        } catch (error) {
+            console.error('CronJobService: Error in health check:', error);
+             throw error;
         }
     }
 }

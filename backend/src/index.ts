@@ -6,7 +6,15 @@ import { initWorkers } from './jobs';
 import { WhatsAppAccountService } from './services/concrete/whatsAppAccountService';
 import { cronJobService } from './services/concrete/cronJobService';
 import { PaymentGatewayService } from './services/concrete/paymentGatewayService';
-import { initWhatsAppCronJobs } from './jobs/cron/whatsAppCronJobs';
+// import { initWhatsAppCronJobs } from './jobs/cron/whatsAppCronJobs';
+
+// ... other imports
+
+const initApp = async () => {
+    // ...
+    // initWhatsAppCronJobs(); // Initialize WhatsApp cron jobs -> REMOVED
+    // ...
+}
 import { logger } from './configs/logger';
 import { Request, Response } from 'express';
 
@@ -37,7 +45,6 @@ export const assertDatabaseConnection = async (): Promise<void> => {
 
     /***** Cron Job Initializations *****/
     await cronJobService.init();
-    initWhatsAppCronJobs(); // Initialize WhatsApp cron jobs
 
     /***** Payment Gateway Seeding *****/
     const paymentGatewayService = new PaymentGatewayService();
