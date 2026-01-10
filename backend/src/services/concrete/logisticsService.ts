@@ -1,5 +1,5 @@
-import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
-import { JOB_NAMES } from '../../jobs/types';
+import { logisticsQueue } from '../../jobs/logistics/queue';
+import { BULL_QUEUES } from '../../constants/bullQueue';
 import { ShiprocketProvider } from '../providers/shiprocketProvider';
 import { ICourierProvider } from '../../interfaces/courierProvider';
 import { SHIPMENT_STATUS } from '../../constants/shipment';

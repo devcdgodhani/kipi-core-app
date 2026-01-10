@@ -4,9 +4,9 @@ dotenv.config();
 import mongoose from 'mongoose';
 import { shipmentService } from '../services/concrete/shipmentService';
 import { webhookLogService } from '../services/concrete/webhookLogService';
-import { logisticsQueues } from '../jobs/queues/logisticsQueues';
+import { logisticsQueue } from '../jobs/logistics/queue';
 import { initWorkers } from '../jobs';
-import { JOB_NAMES } from '../jobs/types';
+import { BULL_QUEUES } from '../constants/bullQueue';
  
 const RUN_TEST = async () => {
   try {
@@ -23,8 +23,8 @@ const RUN_TEST = async () => {
     console.log('✅ Workers Initialized');
  
     // 3. Clear existing queues for clean test
-    await logisticsQueues.webhookQueue.drain();
-    // await logisticsQueues.trackingQueue.drain();
+    await logisticsQueue.queue.drain();
+    // await logisticsQueue.queue.drain();
     console.log('🧹 Queues Drained');
  
     // ==========================================
@@ -106,7 +106,7 @@ const RUN_TEST = async () => {
     } as any);
  
     // Add Job
-    await logisticsQueues.webhookQueue.add(JOB_NAMES.PROCESS_WEBHOOK, {
+    await logisticsQueue.queue.add(BULL_QUEUES.LOGISTICS.JOBS.PROCESS_WEBHOOK, {
       provider: 'SHIPROCKET',
       headers: {},
       body: mockWebhookPayload,

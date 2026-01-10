@@ -7,9 +7,9 @@ import { pulseService } from './pulseService';
 import { UserService } from './userService';
 import { PaymentService } from './paymentService';
 import { CronJobHistoryService } from './cronJobHistoryService';
-import { paymentQueues } from '../../jobs/queues/paymentQueues';
+import { paymentQueue } from '../../jobs/payment/queue';
 import { PAYMENT_STATUS } from '../../constants/payment';
-import { JOB_NAMES } from '../../jobs/types';
+import { BULL_QUEUES } from '../../constants/bullQueue';
 
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
@@ -190,7 +190,7 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         console.log(`CronJobService: Found ${pendingPayments.length} pending payments to sync`);
 
         for (const payment of pendingPayments) {
-            await paymentQueues.syncQueue.add(JOB_NAMES.SYNC_PAYMENT_STATUS, {
+            await paymentQueue.queue.add(BULL_QUEUES.PAYMENT.JOBS.SYNC_PAYMENT_STATUS, {
                 paymentId: (payment as any)._id.toString()
             });
         }

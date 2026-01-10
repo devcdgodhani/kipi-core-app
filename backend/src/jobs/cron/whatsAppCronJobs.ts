@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { whatsAppAccountService } from '../../services/concrete/whatsAppAccountService';
 import { whatsAppRiskService } from '../../services/concrete/whatsAppRiskService';
-import { logisticsQueues } from '../queues/logisticsQueues';
+import { notificationQueue } from '../notification/queue';
 
 /**
  * Daily counter reset - runs at midnight (00:00)
@@ -67,17 +67,17 @@ export const setupHealthCheck = () => {
         console.warn(`[WhatsApp Cron] HIGH RISK ALERT: Average risk score is ${avgRisk.toFixed(2)}`);
         
         // Pause the queue
-        const isPaused = await logisticsQueues.whatsappQueue.isPaused();
+        const isPaused = await notificationQueue.queue.isPaused();
         if (!isPaused) {
-          await logisticsQueues.whatsappQueue.pause();
+          await notificationQueue.queue.pause();
           console.warn('[WhatsApp Cron] System paused due to high global risk');
           // TODO: Send alert notification to admin
         }
       } else {
         // Auto-resume if risk is back to normal
-        const isPaused = await logisticsQueues.whatsappQueue.isPaused();
+        const isPaused = await notificationQueue.queue.isPaused();
         if (isPaused && avgRisk < RISK_THRESHOLD - 10) {
-          await logisticsQueues.whatsappQueue.resume();
+          await notificationQueue.queue.resume();
           console.log('[WhatsApp Cron] System auto-resumed, risk is back to normal');
         }
       }

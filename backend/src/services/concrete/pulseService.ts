@@ -1,8 +1,8 @@
 import { APP_DETAILS } from '../../constants';
 import { IPulseService } from '../contracts/pulseServiceInterface';
 import { UserService } from './userService';
-import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
-import { JOB_NAMES } from '../../jobs/types';
+import { BULL_QUEUES } from '../../constants/bullQueue';
+import { notificationQueue } from '../../jobs/notification/queue';
 import { loyaltyService } from './loyaltyService';
 import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
 
@@ -19,7 +19,7 @@ export class PulseService implements IPulseService {
 
             const message = `Hi ${user.firstName || 'there'}! 👋\n\nYour order #${order.orderNumber} from ${APP_DETAILS.APP_NAME} has been delivered! 📦\n\nWe'd love to hear your thoughts. Could you take a moment to leave a review?\n\nRate here: ${APP_DETAILS.CUSTOMER_URL}/orders/${order._id}\n\nThank you for shopping with us! ✨`;
             
-            await logisticsQueues.notificationQueue.add(JOB_NAMES.SEND_NOTIFICATION, {
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
                 type: 'WHATSAPP',
                 recipient: user.mobile,
                 template: 'FEEDBACK_REQUEST',
@@ -40,7 +40,7 @@ export class PulseService implements IPulseService {
 
             const message = `Woohoo! 🥳\n\nYou've earned ${points} Kipi Points from your order #${orderNumber}!\n\nYour new loyalty balance is ${user.loyaltyPoints} points. ✨\n\nKeep shopping and save more on your next order! 🛍️`;
             
-            await logisticsQueues.notificationQueue.add(JOB_NAMES.SEND_NOTIFICATION, {
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
                 type: 'WHATSAPP',
                 recipient: user.mobile,
                 template: 'LOYALTY_POINTS_EARNED',
@@ -65,7 +65,7 @@ export class PulseService implements IPulseService {
             );
             
             const message = `Happy Birthday, ${user.firstName}! 🎂🥳\n\nWe have a special gift for you! We've added 500 Kipi Points to your account as a birthday reward. ✨\n\nTreat yourself today! 🛍️\n\nShop now: ${APP_DETAILS.CUSTOMER_URL}`;
-            await logisticsQueues.notificationQueue.add(JOB_NAMES.SEND_NOTIFICATION, {
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
                 type: 'WHATSAPP',
                 recipient: user.mobile,
                 template: 'BIRTHDAY_REWARD',
@@ -86,7 +86,7 @@ export class PulseService implements IPulseService {
 
             const message = `Don't let your rewards go to waste! ⏳\n\nYour ${points} Kipi Points are expiring in ${daysRemaining} days. 😱\n\nUse them now to save on your favorite products! 🛍️\n\nShop here: ${APP_DETAILS.CUSTOMER_URL}/cart`;
             
-            await logisticsQueues.notificationQueue.add(JOB_NAMES.SEND_NOTIFICATION, {
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
                 type: 'WHATSAPP',
                 recipient: user.mobile,
                 template: 'POINTS_EXPIRY_WARNING',

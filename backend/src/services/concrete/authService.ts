@@ -26,7 +26,8 @@ import { TOtpCreate } from '../../types/otp';
 import { addMinutes, getTime, getUnixTime } from 'date-fns';
 import { TAuthTokenCreate } from '../../types/authToken';
 import { TGenerateTokenParams } from '../../types/common';
-import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
+import { notificationQueue } from '../../jobs/notification/queue';
+import { BULL_QUEUES } from '../../constants/bullQueue';
 
 export class AuthService implements IAuthService {
   private get userService() { return userService; }
@@ -185,7 +186,7 @@ export class AuthService implements IAuthService {
         expiresIn: `${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes`,
       });
       // Offload to queue
-      await logisticsQueues.notificationQueue.add('send-notification', {
+      await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
         type: 'EMAIL',
         recipient: user.email!,
         template: 'OTP_VERIFICATION',
@@ -197,7 +198,7 @@ export class AuthService implements IAuthService {
     }
     if (user.mobile) {
       // Offload to queue
-      await logisticsQueues.notificationQueue.add('send-notification', {
+      await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
         type: 'WHATSAPP',
         recipient: (user.countryCode || '+91') + user.mobile!,
         template: 'OTP_VERIFICATION',

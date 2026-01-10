@@ -1,4 +1,4 @@
-import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
+import { notificationQueue } from '../../jobs/notification/queue';
 import { logger } from '../../configs/logger';
 
 import { IWhatsAppSystemServiceContract } from '../contracts/whatsAppSystemServiceInterface';
@@ -6,7 +6,7 @@ import { IWhatsAppSystemServiceContract } from '../contracts/whatsAppSystemServi
 import { whatsAppAccountService } from './whatsAppAccountService';
 
 export class WhatsAppSystemService implements IWhatsAppSystemServiceContract {
-  private get queue() { return logisticsQueues.whatsappQueue; }
+  private get queue() { return notificationQueue.queue; }
   private get accountService() { return whatsAppAccountService; }
 
   constructor() {}

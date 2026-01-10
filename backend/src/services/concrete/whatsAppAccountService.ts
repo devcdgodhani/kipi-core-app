@@ -8,8 +8,8 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { WhatsAppAccountModel } from '../../db/mongodb';
 import { IWhatsAppAccountAttributes, IWhatsAppAccountDocument } from '../../interfaces';
 import { WHATSAPP_ACCOUNT_STATUS, WHATSAPP_CONNECTION_STATUS, APP_DETAILS } from '../../constants';
-import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
-import { JOB_NAMES } from '../../jobs/types';
+import { BULL_QUEUES } from '../../constants/bullQueue';
+import { notificationQueue } from '../../jobs/notification/queue';
 import { whatsAppContactService } from './whatsAppContactService';
 import { whatsAppMessageService } from './whatsAppMessageService';
 import { whatsAppThrottleService } from './whatsAppThrottleService';
@@ -440,8 +440,8 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
     });
 
     // 6. Add job to queue
-    await logisticsQueues.whatsappQueue.add(
-      JOB_NAMES.SEND_WHATSAPP,
+    await notificationQueue.queue.add(
+      BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP,
       {
         accountId: account._id.toString(),
         contactId: contact._id.toString(),
@@ -663,7 +663,7 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
       const message = typeof content === 'string' ? content : content.message;
       if (!message) throw new Error('Message content required');
       
-      await logisticsQueues.whatsappQueue.add(JOB_NAMES.SEND_WHATSAPP, {
+      await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
             recipient: to,
             message: message,
             accountId: accountId, // Force specific account
@@ -676,7 +676,7 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
        if (!message) throw new Error('Message content required');
 
        const jobs = recipients.map(to => ({
-            name: JOB_NAMES.SEND_WHATSAPP,
+            name: BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP,
             data: {
                 recipient: to,
                 message: message,
@@ -685,7 +685,7 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
             }
        }));
        
-       await logisticsQueues.whatsappQueue.addBulk(jobs);
+       await notificationQueue.queue.addBulk(jobs);
   }
 
   /**

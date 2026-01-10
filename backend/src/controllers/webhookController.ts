@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { webhookService } from '../services/concrete/webhookService';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse } from '../interfaces';
-import { logisticsQueues } from '../jobs/queues/logisticsQueues';
-import { paymentQueues } from '../jobs/queues/paymentQueues';
-import { JOB_NAMES } from '../jobs/types';
+import { logisticsQueue } from '../jobs/logistics/queue';
+import { paymentQueue } from '../jobs/payment/queue';
+import { BULL_QUEUES } from '../constants/bullQueue';
 import { PAYMENT_GATEWAY } from '../constants/payment';
 import { WebhookHandlerService } from '../services/concrete/webhookHandlerService';
 
@@ -29,7 +29,7 @@ export class WebhookController {
         return res.status(response.status).json(response);
       }
 
-      await logisticsQueues.webhookQueue.add(JOB_NAMES.PROCESS_WEBHOOK, {
+      await logisticsQueue.queue.add(BULL_QUEUES.LOGISTICS.JOBS.PROCESS_WEBHOOK, {
         provider: 'SHIPROCKET',
         headers: req.headers,
         body: normalizedEvent,
@@ -68,7 +68,7 @@ export class WebhookController {
         return res.status(401).json({ success: false, message: 'Invalid signature' });
       }
 
-      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+      await paymentQueue.queue.add(BULL_QUEUES.PAYMENT.JOBS.PROCESS_PAYMENT_WEBHOOK, {
         provider: PAYMENT_GATEWAY.RAZORPAY,
         body: req.body,
         headers: req.headers,
@@ -106,7 +106,7 @@ export class WebhookController {
         return res.status(401).json({ success: false, message: 'Invalid signature' });
       }
 
-      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+      await paymentQueue.queue.add(BULL_QUEUES.PAYMENT.JOBS.PROCESS_PAYMENT_WEBHOOK, {
         provider: PAYMENT_GATEWAY.PHONEPE,
         body: payload,
         headers: req.headers,
@@ -139,7 +139,7 @@ export class WebhookController {
         return res.status(401).json({ success: false, message: 'Invalid signature' });
       }
 
-      await paymentQueues.webhookQueue.add(JOB_NAMES.PROCESS_PAYMENT_WEBHOOK, {
+      await paymentQueue.queue.add(BULL_QUEUES.PAYMENT.JOBS.PROCESS_PAYMENT_WEBHOOK, {
         provider: 'PAYTM',
         body: payload,
         headers: req.headers,
