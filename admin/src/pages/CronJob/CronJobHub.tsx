@@ -15,6 +15,7 @@ import { Table, type Column } from '../../components/common/Table';
 import { Modal } from '../../components/common/Modal';
 import CustomButton from '../../components/common/Button';
 import CustomInput from '../../components/common/Input';
+import { CronBuilder } from '../../components/CronBuilder';
 import { toast } from 'react-hot-toast';
 import { PopupModal } from '../../components/common/PopupModal';
 
@@ -23,6 +24,11 @@ interface ICronJob {
     name: string;
     identifier: string;
     expression: string;
+    scheduleMinute?: string;
+    scheduleHour?: string;
+    scheduleDayOfMonth?: string;
+    scheduleMonth?: string;
+    scheduleDayOfWeek?: string;
     status: 'ACTIVE' | 'INACTIVE' | 'PAUSED';
     level: 'SYSTEM' | 'USER';
     lastRun?: string;
@@ -52,6 +58,11 @@ export const CronJobHub: React.FC = () => {
         name: '',
         identifier: '',
         expression: '0 0 * * *',
+        scheduleMinute: '0',
+        scheduleHour: '0',
+        scheduleDayOfMonth: '*',
+        scheduleMonth: '*',
+        scheduleDayOfWeek: '*',
         status: 'ACTIVE',
         level: 'USER'
     });
@@ -100,6 +111,11 @@ export const CronJobHub: React.FC = () => {
                 name: job.name,
                 identifier: job.identifier,
                 expression: job.expression,
+                scheduleMinute: job.scheduleMinute || '*',
+                scheduleHour: job.scheduleHour || '*',
+                scheduleDayOfMonth: job.scheduleDayOfMonth || '*',
+                scheduleMonth: job.scheduleMonth || '*',
+                scheduleDayOfWeek: job.scheduleDayOfWeek || '*',
                 status: job.status,
                 level: job.level
             });
@@ -109,6 +125,11 @@ export const CronJobHub: React.FC = () => {
                 name: '',
                 identifier: '',
                 expression: '0 0 * * *',
+                scheduleMinute: '0',
+                scheduleHour: '0',
+                scheduleDayOfMonth: '*',
+                scheduleMonth: '*',
+                scheduleDayOfWeek: '*',
                 status: 'ACTIVE',
                 level: 'USER'
             });
@@ -344,12 +365,21 @@ export const CronJobHub: React.FC = () => {
                             disabled={!!selectedJob}
                             required
                         />
-                        <CustomInput
-                            label="Cron Pattern"
-                            value={formData.expression}
-                            onChange={(e) => setFormData({ ...formData, expression: e.target.value })}
-                            placeholder="0 0 * * *"
-                            required
+                        <CronBuilder
+                            scheduleMinute={formData.scheduleMinute}
+                            scheduleHour={formData.scheduleHour}
+                            scheduleDayOfMonth={formData.scheduleDayOfMonth}
+                            scheduleMonth={formData.scheduleMonth}
+                            scheduleDayOfWeek={formData.scheduleDayOfWeek}
+                            onChange={(data) => setFormData({
+                                ...formData,
+                                expression: data.expression,
+                                scheduleMinute: data.scheduleMinute,
+                                scheduleHour: data.scheduleHour,
+                                scheduleDayOfMonth: data.scheduleDayOfMonth,
+                                scheduleMonth: data.scheduleMonth,
+                                scheduleDayOfWeek: data.scheduleDayOfWeek
+                            })}
                         />
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1">

@@ -19,6 +19,11 @@ export interface ICronJobAttributes extends IDefaultAttributes {
   identifier: string;
   description?: string;
   expression: string;
+  scheduleMinute?: string;
+  scheduleHour?: string;
+  scheduleDayOfMonth?: string;
+  scheduleMonth?: string;
+  scheduleDayOfWeek?: string;
   status: CRON_JOB_STATUS;
   level: CRON_JOB_LEVEL;
   lastRun?: Date;

@@ -44,6 +44,23 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         const jobs = await this.findAll({ status: CRON_JOB_STATUS.ACTIVE });
         
         for (const job of jobs) {
+             // Migration: If schedule fields are missing, populate them from expression
+             if (!job.scheduleMinute && job.expression) {
+                const parts = job.expression.split(' ');
+                if (parts.length === 5) {
+                    await this.updateOne(
+                        { _id: (job as any)._id } as any,
+                        {
+                            scheduleMinute: parts[0],
+                            scheduleHour: parts[1],
+                            scheduleDayOfMonth: parts[2],
+                            scheduleMonth: parts[3],
+                            scheduleDayOfWeek: parts[4]
+                        } as any
+                    );
+                }
+             }
+
             this.schedule(job);
         }
 
@@ -103,6 +120,45 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 await this.create(dj as any);
             }
         }
+    }
+
+    async updateCronSchedule(id: string, data: Partial<ICronJobAttributes>) {
+        const existingJob = await this.findOne({ _id: id } as any);
+        if (!existingJob) throw new Error('Cron job not found');
+
+        // Construct expression if individual fields are present
+        if (data.scheduleMinute || data.scheduleHour || data.scheduleDayOfMonth || data.scheduleMonth || data.scheduleDayOfWeek) {
+            const m = data.scheduleMinute ?? existingJob.scheduleMinute ?? '*';
+            const h = data.scheduleHour ?? existingJob.scheduleHour ?? '*';
+            const dom = data.scheduleDayOfMonth ?? existingJob.scheduleDayOfMonth ?? '*';
+            const mon = data.scheduleMonth ?? existingJob.scheduleMonth ?? '*';
+            const dow = data.scheduleDayOfWeek ?? existingJob.scheduleDayOfWeek ?? '*';
+            data.expression = `${m} ${h} ${dom} ${mon} ${dow}`;
+        }
+
+        await super.update({ _id: id } as any, data as any);
+        const updatedJob = await this.findOne({ _id: id } as any);
+        
+        if (!updatedJob) return null;
+
+        // If expression or status changed, we need to reschedule
+        if (data.expression !== existingJob.expression || data.status !== existingJob.status) {
+            console.log(`CronJobService: Rescheduling job [${updatedJob.name}] due to updates`);
+            
+            // Stop existing task
+            if (this.scheduledJobs.has(updatedJob.identifier)) {
+                this.scheduledJobs.get(updatedJob.identifier)?.stop();
+                this.scheduledJobs.delete(updatedJob.identifier);
+                console.log(`CronJobService: Stopped existing task for [${updatedJob.name}]`);
+            }
+
+            // Start new task if active
+            if (updatedJob.status === CRON_JOB_STATUS.ACTIVE) {
+                this.schedule(updatedJob);
+            }
+        }
+
+        return updatedJob;
     }
 
     private schedule(job: ICronJobAttributes) {
@@ -279,9 +335,6 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                     console.warn('CronJobService: System paused due to high global risk');
                     // TODO: Send alert notification to admin
                 }
-            } else {
-                // Auto-resume if risk is back to normal
-                const isPaused = await notificationQueue.queue.isPaused();
                 if (isPaused && avgRisk < RISK_THRESHOLD - 10) {
                     await notificationQueue.queue.resume();
                     console.log('CronJobService: System auto-resumed, risk is back to normal');
@@ -291,6 +344,18 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
             console.error('CronJobService: Error in health check:', error);
              throw error;
         }
+    }
+
+    async create(data: Partial<ICronJobAttributes>, options?: any) {
+        if (!data.expression && (data.scheduleMinute || data.scheduleHour)) {
+            const m = data.scheduleMinute ?? '*';
+            const h = data.scheduleHour ?? '*';
+            const dom = data.scheduleDayOfMonth ?? '*';
+            const mon = data.scheduleMonth ?? '*';
+            const dow = data.scheduleDayOfWeek ?? '*';
+            data.expression = `${m} ${h} ${dom} ${mon} ${dow}`;
+        }
+        return super.create(data, options);
     }
 }
 

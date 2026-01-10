@@ -92,7 +92,7 @@ export class CronJobController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await cronJobService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
+      await cronJobService.updateCronSchedule(id, updateData);
 
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
