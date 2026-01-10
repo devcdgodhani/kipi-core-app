@@ -13,6 +13,15 @@ import { BULL_QUEUES } from '../../constants/bullQueue';
 import { whatsAppAccountService } from './whatsAppAccountService';
 import { whatsAppRiskService } from './whatsAppRiskService';
 import { notificationQueue } from '../../jobs/notification/queue';
+import { CouponModel } from '../../db/mongodb/models/couponModel';
+import { COUPON_STATUS } from '../../constants/coupon';
+import { FlashDealModel } from '../../db/mongodb/models/flashDealModel';
+import { FLASH_DEAL_STATUS } from '../../constants/flashDeal';
+import { CartModel } from '../../db/mongodb/models/cartModel';
+import { CART_STATUS } from '../../constants/cart';
+import { PushNotificationModel } from '../../db/mongodb/models/pushNotificationModel';
+import { PUSH_NOTIFICATION_STATUS } from '../../constants/pushNotification';
+import { pushNotificationService } from './pushNotificationService';
 
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
@@ -37,6 +46,12 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         this.handlers.set('WHATSAPP_HOURLY_RESET', this.processHourlyCounterReset.bind(this));
         this.handlers.set('WHATSAPP_RISK_DECAY', this.processRiskDecay.bind(this));
         this.handlers.set('WHATSAPP_HEALTH_CHECK', this.processHealthCheck.bind(this));
+
+        // New Engagement Handlers
+        this.handlers.set('OFFER_EXPIRY', this.processOfferExpiry.bind(this));
+        this.handlers.set('FLASH_DEAL_CLEANUP', this.processFlashDealCleanup.bind(this));
+        this.handlers.set('ABANDONED_CART', this.processAbandonedCarts.bind(this));
+        this.handlers.set('PUSH_CAMPAIGN_SCHEDULER', this.processScheduledPushCampaigns.bind(this));
     }
 
     async init() {
@@ -111,6 +126,31 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 identifier: 'WHATSAPP_HEALTH_CHECK',
                 expression: '*/5 * * * *',
                 description: 'Monitors global risk level and pauses system if critical'
+            },
+            // New Default Jobs
+            {
+                name: 'Offer Expiry Check',
+                identifier: 'OFFER_EXPIRY',
+                expression: '0 0 * * *', // Daily at midnight
+                description: 'Marks expired offers and coupons as inactive'
+            },
+            {
+                name: 'Flash Deal Cleanup',
+                identifier: 'FLASH_DEAL_CLEANUP',
+                expression: '0 * * * *', // Hourly
+                description: 'Deactivates ended flash deals'
+            },
+            {
+                name: 'Abandoned Cart Follow-up',
+                identifier: 'ABANDONED_CART',
+                expression: '0 * * * *', // Hourly
+                description: 'Notifies users with items left in cart for > 24h'
+            },
+            {
+                name: 'Push Campaign Scheduler',
+                identifier: 'PUSH_CAMPAIGN_SCHEDULER',
+                expression: '*/15 * * * *', // Every 15 mins
+                description: 'Triggers scheduled push notification campaigns'
             }
         ];
 
@@ -356,6 +396,135 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
             data.expression = `${m} ${h} ${dom} ${mon} ${dow}`;
         }
         return super.create(data, options);
+    }
+
+    // --- New Handlers Implementation ---
+
+    async processOfferExpiry() {
+        console.log('CronJobService: Running offer expiry check...');
+        const now = new Date();
+        
+        // Expire Coupons
+        const expiredCoupons = await CouponModel.updateMany(
+            { 
+                endDate: { $lt: now }, 
+                status: COUPON_STATUS.ACTIVE 
+            },
+            { 
+                status: COUPON_STATUS.EXPIRED,
+                updatedBy: null // System update
+            }
+        ).exec();
+
+        console.log(`CronJobService: Expired ${expiredCoupons.modifiedCount} coupons.`);
+    }
+
+    async processFlashDealCleanup() {
+        console.log('CronJobService: Running flash deal cleanup...');
+        const now = new Date();
+
+        // Expire Flash Deals
+        const expiredDeals = await FlashDealModel.updateMany(
+            { 
+                endTime: { $lt: now }, 
+                status: FLASH_DEAL_STATUS.ACTIVE 
+            },
+            { 
+                status: FLASH_DEAL_STATUS.EXPIRED 
+            }
+        ).exec();
+
+        console.log(`CronJobService: Expired ${expiredDeals.modifiedCount} flash deals.`);
+    }
+
+    async processAbandonedCarts() {
+        console.log('CronJobService: Running abandoned cart check...');
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+        // Find active carts updated between 24 and 48 hours ago (so we don't spam indefinitely)
+        // And ensure they haven't been abandoned yet (if we had a status for that)
+        // For now, we'll just log them. Real implementation would send a notification and maybe mark as ABANDONED.
+        
+        const abandonedCarts = await CartModel.find({
+            status: CART_STATUS.ACTIVE,
+            updatedAt: { 
+                $lt: twentyFourHoursAgo,
+                $gt: fortyEightHoursAgo 
+            },
+            items: { $not: { $size: 0 } }
+        }).limit(50); // limit to avoid overload
+
+        for (const cart of abandonedCarts) {
+             // Logic to trigger push notification would go here
+             // e.g. await pushNotificationService.sendToUser(cart.userId, { ... })
+             // For now we just log
+             console.log(`CronJobService: Found abandoned cart for user ${cart.userId}`);
+        }
+        
+        console.log(`CronJobService: Processed ${abandonedCarts.length} abandoned carts.`);
+    }
+
+    async processScheduledPushCampaigns() {
+        console.log('CronJobService: Running push campaign scheduler...');
+        const now = new Date();
+
+        const scheduledCampaigns = await PushNotificationModel.find({
+            status: PUSH_NOTIFICATION_STATUS.SCHEDULED,
+            'scheduling.scheduledAt': { $lte: now }
+        });
+
+        for (const campaign of scheduledCampaigns) {
+            try {
+                // Update to PROCESSING
+                await PushNotificationModel.updateOne(
+                    { _id: campaign._id },
+                    { status: PUSH_NOTIFICATION_STATUS.PROCESSING }
+                );
+
+                // Get Target Users
+                let tokens: string[] = [];
+                // Logic to fetch tokens based on campaign.target (ALL, SEGMENT, etc)
+                // Simplified: Fetch ALL users with tokens for now if target is ALL
+                if (campaign.target.type === 'ALL') {
+                     const users = await this.userService.findAll({ fcmTokens: { $exists: true, $not: { $size: 0 } } } as any, { projection: { fcmTokens: 1 } });
+                     tokens = users.flatMap(u => u.fcmTokens || []).filter((t): t is string => !!t);
+                }
+                
+                // Trigger Send
+                if (tokens.length > 0) {
+                     await pushNotificationService.sendMulticast(tokens, {
+                        title: campaign.title,
+                        body: campaign.body,
+                        imageUrl: campaign.imageUrl,
+                        data: campaign.data
+                     });
+                     
+                     // Update stats (simplified)
+                     await PushNotificationModel.updateOne(
+                        { _id: campaign._id },
+                        { 
+                            status: PUSH_NOTIFICATION_STATUS.COMPLETED,
+                            'stats.sentCount': tokens.length
+                        }
+                     );
+                } else {
+                     await PushNotificationModel.updateOne(
+                        { _id: campaign._id },
+                        { status: PUSH_NOTIFICATION_STATUS.COMPLETED, 'stats.failureCount': 1 } // No tokens found
+                     );
+                }
+
+            } catch (error) {
+                console.error(`CronJobService: Error processing campaign ${campaign._id}:`, error);
+                await PushNotificationModel.updateOne(
+                    { _id: campaign._id },
+                    { status: PUSH_NOTIFICATION_STATUS.FAILED }
+                );
+            }
+        }
+
+        console.log(`CronJobService: Processed ${scheduledCampaigns.length} scheduled campaigns.`);
     }
 }
 

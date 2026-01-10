@@ -1,76 +1,73 @@
 import { Job } from 'bullmq';
 import { QueueFactory } from '../../services/infrastructure/queueFactory';
 import { BULL_QUEUES } from '../../constants/bullQueue';
-import { IWebhookJobPayload, ITrackingSyncJobPayload } from '../types';
 import { webhookService } from '../../services/concrete/webhookService';
-import { trackingService } from '../../services/concrete/trackingService';
+import { logisticsService } from '../../services/concrete/logisticsService';
 
 /**
- * Webhook Job Processor
- * Processes logistics webhooks from providers like Shiprocket
- */
-const processWebhookJob = async (job: Job<IWebhookJobPayload>) => {
-  const { provider, body } = job.data;
-  console.log(`[Logistics Worker] Processing webhook job ${job.id} for ${provider}`);
-
-  try {
-    // Process the normalized webhook event
-    // The controller should queue the normalized event in job.data.body
-    await webhookService.processEvent(body);
-
-    console.log(`[Logistics Worker] Webhook processed successfully`);
-    return { success: true, jobId: job.id };
-  } catch (error: any) {
-    console.error(`[Logistics Worker] Webhook processing failed:`, error);
-    throw error;
-  }
-};
-
-/**
- * Tracking Sync Job Processor
- * Syncs shipment tracking updates from courier providers
- */
-const processTrackingJob = async (job: Job<ITrackingSyncJobPayload>) => {
-  const { awb } = job.data;
-  console.log(`[Logistics Worker] Processing tracking sync job ${job.id} for AWB: ${awb}`);
-
-  try {
-    // Force sync tracking data from provider
-    await trackingService.getTrackingByAWB(awb);
-
-    console.log(`[Logistics Worker] Tracking synced successfully for AWB: ${awb}`);
-    return { success: true, jobId: job.id };
-  } catch (error: any) {
-    console.error(`[Logistics Worker] Tracking sync failed for AWB ${awb}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Unified Logistics Processor
- * Routes jobs to appropriate handler based on job name
- */
-const logisticsProcessor = async (job: Job<IWebhookJobPayload | ITrackingSyncJobPayload>) => {
-  console.log(`[Logistics Worker] Processing job ${job.id} of type ${job.name}`);
-
-  switch (job.name) {
-    case BULL_QUEUES.LOGISTICS.JOBS.PROCESS_WEBHOOK:
-      return processWebhookJob(job as Job<IWebhookJobPayload>);
-    
-    case BULL_QUEUES.LOGISTICS.JOBS.SYNC_TRACKING:
-      return processTrackingJob(job as Job<ITrackingSyncJobPayload>);
-    
-    default:
-      console.error(`[Logistics Worker] Unknown job type: ${job.name}`);
-      throw new Error(`Unknown logistics job type: ${job.name}`);
-  }
-};
-
-/**
- * Setup Logistics Workers
- * Initializes the unified logistics worker
+ * Logistics Queue Worker
+ * Processes background jobs for logistics operations
  */
 export const setupLogisticsWorkers = () => {
-  QueueFactory.createWorker(BULL_QUEUES.LOGISTICS.NAME, logisticsProcessor);
-  console.log('[Logistics Worker] Logistics worker started');
+    QueueFactory.createWorker(BULL_QUEUES.LOGISTICS.NAME, async (job: Job) => {
+        console.log(`LogisticsWorker: Processing job ${job.name} with ID ${job.id}`);
+
+        try {
+            switch (job.name) {
+                case BULL_QUEUES.LOGISTICS.JOBS.PUSH_TO_LOGISTICS:
+                    await pushToLogistics(job.data);
+                    break;
+                case BULL_QUEUES.LOGISTICS.JOBS.SYNC_TRACKING:
+                    await syncTracking(job.data);
+                    break;
+                case BULL_QUEUES.LOGISTICS.JOBS.PROCESS_WEBHOOK:
+                    await processWebhook(job.data);
+                    break;
+                default:
+                    console.warn(`LogisticsWorker: Unknown job type ${job.name}`);
+            }
+        } catch (error) {
+            console.error(`LogisticsWorker: Job ${job.name} failed:`, error);
+            throw error;
+        }
+    });
+    console.log('[Logistics Worker] Logistics worker started');
 };
+
+async function pushToLogistics(data: { orderId: string }) {
+    console.log('LogisticsWorker: Pushing order to logistics provider:', data.orderId);
+    try {
+        await logisticsService.createShipment(data.orderId);
+        console.log('LogisticsWorker: Order successfully pushed to logistics:', data.orderId);
+    } catch (error) {
+        console.error('LogisticsWorker: Failed to push order to logistics:', error);
+        throw error;
+    }
+}
+
+async function syncTracking(data: { shipmentId: string }) {
+    console.log('LogisticsWorker: Syncing tracking for shipment:', data.shipmentId);
+    try {
+        await logisticsService.syncTrackingStatus(data.shipmentId);
+        console.log('LogisticsWorker: Tracking synced for shipment:', data.shipmentId);
+    } catch (error) {
+         console.error('LogisticsWorker: Failed to sync tracking:', error);
+         throw error;
+    }
+}
+
+async function processWebhook(data: any) {
+    console.log('LogisticsWorker: Processing webhook data');
+    try {
+        // Assuming data contains the normalized body needed for processing
+        if (data && data.body) {
+             await webhookService.processEvent(data.body);
+             console.log('LogisticsWorker: Webhook processed successfully');
+        } else {
+             console.warn('LogisticsWorker: Invalid webhook payload');
+        }
+    } catch (error) {
+         console.error('LogisticsWorker: Failed to process webhook:', error);
+         throw error;
+    }
+}

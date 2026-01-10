@@ -29,3 +29,18 @@ export const enqueueWhatsAppJob = async (payload: IWhatsAppJobPayload) => {
     },
   });
 };
+
+/**
+ * Enqueue Push Campaign Job
+ * Add a push campaign to the queue for multicast sending
+ */
+export const enqueuePushCampaignJob = async (payload: { campaignId: string, tokens: string[] }) => {
+  return notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_PUSH_CAMPAIGN, payload, {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000,
+    },
+  });
+};
+

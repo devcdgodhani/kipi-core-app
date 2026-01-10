@@ -129,6 +129,104 @@ export class ProductService
       await SkuModelVar.syncProductStock(product._id);
     }
   }
+
+  async getRecommended(userId?: string, limit: number = 10): Promise<IProductAttributes[]> {
+    let categoryIds: any[] = [];
+
+    if (userId) {
+      // Get user's recently viewed products to extract categories
+      const RecentlyViewedModel = (await import('../../db/mongodb')).RecentlyViewedModel;
+      const recentViews = await RecentlyViewedModel.find({ userId })
+        .sort({ viewedAt: -1 })
+        .limit(5)
+        .populate('productId')
+        .lean();
+
+      const viewedProducts = recentViews.map((v: any) => v.productId).filter(Boolean);
+      categoryIds = viewedProducts.flatMap((p: any) => p.categoryIds || []);
+    }
+
+    // Build query
+    const query: any = { status: 'ACTIVE' };
+    if (categoryIds.length > 0) {
+      query.categoryIds = { $in: categoryIds };
+    }
+
+    // Get recommended products
+    const products = await ProductModel.find(query)
+      .sort({ createdAt: -1 }) // Newest first, or could use rating/popularity
+      .limit(limit)
+      .lean();
+
+    return products as any;
+  }
+
+  async getSimilar(productId: string, limit: number = 6): Promise<IProductAttributes[]> {
+    // Get source product
+    const sourceProduct = await ProductModel.findById(productId).lean();
+    if (!sourceProduct) {
+      return [];
+    }
+
+    // Calculate price range (±30%)
+    const basePrice = sourceProduct.basePrice || 0;
+    const minPrice = basePrice * 0.7;
+    const maxPrice = basePrice * 1.3;
+
+    // Find similar products
+    const products = await ProductModel.find({
+      _id: { $ne: productId }, // Exclude source product
+      status: 'ACTIVE',
+      categoryIds: { $in: sourceProduct.categoryIds || [] }, // Same categories
+      basePrice: { $gte: minPrice, $lte: maxPrice }, // Similar price range
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    return products as any;
+  }
+
+  async getFrequentlyBoughtTogether(productId: string, limit: number = 4): Promise<IProductAttributes[]> {
+    // Get orders containing this product
+    const OrderModel = (await import('../../db/mongodb')).OrderModel;
+    const orders = await OrderModel.find({
+      'items.productId': productId,
+      status: { $nin: ['CANCELLED', 'FAILED'] },
+    })
+      .select('items')
+      .limit(100) // Limit orders to analyze
+      .lean();
+
+    // Count frequency of other products
+    const productFrequency: Record<string, number> = {};
+    orders.forEach((order: any) => {
+      order.items?.forEach((item: any) => {
+        const itemProductId = item.productId?.toString();
+        if (itemProductId && itemProductId !== productId) {
+          productFrequency[itemProductId] = (productFrequency[itemProductId] || 0) + 1;
+        }
+      });
+    });
+
+    // Sort by frequency and get top N
+    const topProductIds = Object.entries(productFrequency)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit)
+      .map(([id]) => id);
+
+    if (topProductIds.length === 0) {
+      return [];
+    }
+
+    // Get product details
+    const products = await ProductModel.find({
+      _id: { $in: topProductIds },
+      status: 'ACTIVE',
+    }).lean();
+
+    return products as any;
+  }
 }
  
 export const productService = new ProductService();

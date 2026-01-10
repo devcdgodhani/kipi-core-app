@@ -21,6 +21,7 @@ export interface IUserAttributes extends IDefaultAttributes {
   totalEarnedPoints: number;
   dob?: Date;
   pointsExpiryDate?: Date;
+  fcmTokens?: string[];
   metrics?: {
     totalOrders: number;
     rtoCount: number;

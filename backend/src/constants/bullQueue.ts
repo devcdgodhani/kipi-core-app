@@ -9,6 +9,7 @@ export const BULL_QUEUES = {
     JOBS: {
       SEND_EMAIL: 'send-email',
       SEND_WHATSAPP: 'send-whatsapp',
+      SEND_PUSH_CAMPAIGN: 'send-push-campaign',
     },
   },
   LOGISTICS: {
@@ -16,6 +17,14 @@ export const BULL_QUEUES = {
     JOBS: {
       PROCESS_WEBHOOK: 'process-logistics-webhook',
       SYNC_TRACKING: 'sync-logistics-tracking',
+      PUSH_TO_LOGISTICS: 'push-to-logistics',
+    },
+  },
+  ORDER: {
+    NAME: 'order-queue',
+    JOBS: {
+      PROCESS_ORDER_PLACED: 'process-order-placed',
+      GENERATE_INVOICE: 'generate-invoice',
     },
   },
   PAYMENT: {

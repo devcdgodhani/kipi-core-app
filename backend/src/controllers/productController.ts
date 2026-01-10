@@ -207,6 +207,75 @@ export class ProductController {
       next(err);
     }
   };
+
+  getRecommended = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id?.toString();
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+
+      const products = await this.productService.getRecommended(userId, limit);
+
+      // Enrich with presigned URLs
+      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+
+      const apiResponse: TProductListRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Recommended products retrieved successfully',
+        data: products,
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getSimilar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { productId } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 6;
+
+      const products = await this.productService.getSimilar(productId, limit);
+
+      // Enrich with presigned URLs
+      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+
+      const apiResponse: TProductListRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Similar products retrieved successfully',
+        data: products,
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getFrequentlyBoughtTogether = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { productId } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 4;
+
+      const products = await this.productService.getFrequentlyBoughtTogether(productId, limit);
+
+      // Enrich with presigned URLs
+      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+
+      const apiResponse: TProductListRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Frequently bought together products retrieved successfully',
+        data: products,
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export const productController = new ProductController();

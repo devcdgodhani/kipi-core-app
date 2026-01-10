@@ -35,6 +35,10 @@ import whatsAppMessageRoutes from './whatsAppMessageRoutes';
 import whatsAppRiskRoutes from './whatsAppRiskRoutes';
 import whatsAppSystemRoutes from './whatsAppSystemRoutes';
 import bullBoardRoutes from './bullBoardRoutes';
+import bannerRoutes from './bannerRoutes';
+import notificationRoutes from './notificationRoutes';
+import flashDealRoutes from './flashDealRoutes';
+import searchQueryRoutes from './searchQueryRoutes';
 
 const router = Router();
 
@@ -80,6 +84,10 @@ router.use('/warehouse', jwtAuth(), warehouseRoutes);
 router.use('/ndr', jwtAuth(), ndrRoutes);
 router.use('/cron-job', jwtAuth(), cronJobRoutes); // Cron Job Management
 router.use('/analytics', jwtAuth(), analyticsRoutes);
+router.use('/banner', jwtAuth(), bannerRoutes);
+router.use('/notification', jwtAuth(), notificationRoutes);
+router.use('/flash-deal', jwtAuth(), flashDealRoutes);
+router.use('/search-query', jwtAuth(), searchQueryRoutes);
 
 router.use('/', paymentRoutes);
 

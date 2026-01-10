@@ -17,3 +17,8 @@ export * from './review';
 export * from './return';
 export * from './shipment';
 export * from './logistics';
+export * from './banner';
+export * from './notification';
+export * from './flashDeal';
+export * from './searchQuery';
+export * from './recentlyViewed';

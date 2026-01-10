@@ -17,4 +17,9 @@ router.route('/getWithPagination')
   .get(productValidator.getWithPagination, productController.getWithPagination)
   .post(productValidator.getWithPagination, productController.getWithPagination);
 
+// Recommendation routes
+router.get('/getRecommended', productController.getRecommended);
+router.get('/getSimilar/:productId', productController.getSimilar);
+router.get('/getFrequentlyBoughtTogether/:productId', productController.getFrequentlyBoughtTogether);
+
 export default router;

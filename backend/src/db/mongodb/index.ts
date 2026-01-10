@@ -88,6 +88,11 @@ export * from './models/codLedgerModel';
 export * from './models/webhookLogModel';
 export * from './models/rtoScoreModel';
 export * from './models/cronJobModel';
+export * from './models/bannerModel';
+export * from './models/notificationModel';
+export * from './models/flashDealModel';
+export * from './models/searchQueryModel';
+export * from './models/recentlyViewedModel';
 
 // Payment gateway models
 export * from './models/paymentGatewayModel';

@@ -414,6 +414,46 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       { $push: { timeline: timelineEntry } }
     );
   };
+
+  /**
+   * Background Job: Process Post-Order Actions
+   * Handles non-critical post-order tasks like notifications and analytics
+   */
+  processPostOrderActions = async (orderId: string, userId: string) => {
+    const order = await this.findById(orderId);
+    if (!order) return;
+
+    // 1. Send Order Confirmation Notification
+    // We use the existing logisticsNotificationService which abstracts the notification logic
+    await logisticsNotificationService.notifyOrderConfirmed(order);
+
+    // 2. Future: Check for automated fraud detection (if not done inline)
+    
+    // 3. Future: Update extensive analytics/recommendation engine
+  };
+
+  /**
+   * Background Job: Generate Invoice
+   * Generates PDF invoice and uploads to storage
+   */
+  generateInvoice = async (orderId: string) => {
+    const order = await this.findById(orderId);
+    if (!order) return;
+
+    // TODO: Integrate actual PDF generation library (e.g., puppeteer, pdfkit)
+    // For now, we simulate generation and S3 upload
+    console.log(`[Mock] Generating PDF invoice for Order #${order.orderNumber}...`);
+    
+    const mockInvoiceUrl = `https://storage.kipi.com/invoices/${order.orderNumber}.pdf`;
+    
+    // Update order with invoice URL
+    await this.updateOne(
+        { _id: orderId } as any,
+        { invoiceUrl: mockInvoiceUrl } as any
+    );
+    
+    console.log(`[Mock] Invoice generated and linked: ${mockInvoiceUrl}`);
+  };
 }
- 
+
 export const orderService = new OrderService();

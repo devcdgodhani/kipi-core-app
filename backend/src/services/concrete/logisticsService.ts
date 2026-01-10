@@ -170,6 +170,38 @@ export class LogisticsService implements ILogisticsService {
 
     return true;
   }
+
+  /**
+   * Background Job: Sync Tracking Status
+   * Fetches latest tracking info from provider and updates local DB
+   */
+  async syncTrackingStatus(shipmentId: string): Promise<void> {
+    const shipment = await this.shipmentService.findById(shipmentId);
+    if (!shipment || !(shipment as any).awb) {
+       console.warn(`Shipment ${shipmentId} not found or missing AWB`);
+       return;
+    }
+
+    const awb = (shipment as any).awb;
+    try {
+        const trackingData = await this.trackShipment(awb);
+        
+        // If we get valid status, update the shipment
+        if (trackingData && trackingData.tracking_data && trackingData.tracking_data.shipment_track_activities) {
+             // const latestActivity = trackingData.tracking_data.shipment_track_activities[0];
+             
+             await this.shipmentService.updateOne(
+                 { _id: shipmentId },
+                 { 
+                     lastTrackedAt: new Date(),
+                 }
+             );
+        }
+    } catch (error) {
+        console.error(`Failed to sync tracking for shipment ${shipmentId}:`, error);
+        throw error;
+    }
+  }
 }
 
 export const logisticsService = new LogisticsService();

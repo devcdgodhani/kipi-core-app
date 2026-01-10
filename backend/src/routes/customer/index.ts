@@ -16,6 +16,11 @@ import etaRoutes from './etaRoutes';
 import paymentRoutes from './paymentRoutes';
 import paymentRefundRoutes from './paymentRefundRoutes';
 import paymentGatewayRoutes from './paymentGatewayRoutes';
+import bannerRoutes from './bannerRoutes';
+import notificationRoutes from './notificationRoutes';
+import flashDealRoutes from './flashDealRoutes';
+import searchQueryRoutes from './searchQueryRoutes';
+import recentlyViewedRoutes from './recentlyViewedRoutes';
 
 const router = Router();
 
@@ -36,6 +41,11 @@ router.use('/eta', etaRoutes);
 router.use('/payment', paymentRoutes);
 router.use('/refund', paymentRefundRoutes);
 router.use('/payment-gateways', paymentGatewayRoutes);
+router.use('/banner', bannerRoutes);
+router.use('/notification', notificationRoutes);
+router.use('/flash-deal', flashDealRoutes);
+router.use('/search', searchQueryRoutes);
+router.use('/recently-viewed', recentlyViewedRoutes);
 
 
 export default router;

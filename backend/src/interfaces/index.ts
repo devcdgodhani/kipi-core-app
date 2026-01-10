@@ -27,3 +27,8 @@ export * from './wishlist';
 export * from './review';
 export * from './address';
 export * from './coupon';export * from './order';
+export * from './banner';
+export * from './notification';
+export * from './flashDeal';
+export * from './searchQuery';
+export * from './recentlyViewed';
