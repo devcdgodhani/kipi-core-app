@@ -386,7 +386,9 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
       console.warn(`[WhatsAppAccountService] No active client for account ${accountId}. Attempting to send message failed.`);
       throw new Error('Session not active/found for account');
     }
-    
+    if(to.includes('+')) {
+      to = to.replace('+', '');
+    }
     const formattedTo = to.includes('@c.us') ? to : `${to}@c.us`;
     return await client.sendMessage(formattedTo, message);
   }
