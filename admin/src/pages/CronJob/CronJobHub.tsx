@@ -16,6 +16,7 @@ import { Modal } from '../../components/common/Modal';
 import CustomButton from '../../components/common/Button';
 import CustomInput from '../../components/common/Input';
 import { toast } from 'react-hot-toast';
+import { PopupModal } from '../../components/common/PopupModal';
 
 interface ICronJob {
     _id: string;
@@ -45,6 +46,8 @@ export const CronJobHub: React.FC = () => {
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<ICronJob | null>(null);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [jobToTerminate, setJobToTerminate] = useState<string | null>(null);
     const [formData, setFormData] = useState<Partial<ICronJob>>({
         name: '',
         identifier: '',
@@ -130,14 +133,23 @@ export const CronJobHub: React.FC = () => {
         }
     };
 
-    const handleDeleteJob = async (id: string) => {
-        if (!window.confirm('Are you sure you want to terminate this job?')) return;
+    const handleDeleteJob = (id: string) => {
+        setJobToTerminate(id);
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const confirmTerminateJob = async () => {
+        if (!jobToTerminate) return;
         try {
-            await http.delete(`/cron-job/deleteByFilter`, { data: { _id: id } });
+            await http.delete(`/cron-job/deleteByFilter`, { data: { _id: jobToTerminate } });
             toast.success('Job terminated');
+            setIsEditModalOpen(false);
             fetchJobs();
         } catch (err) {
             toast.error('Failed to delete job');
+        } finally {
+            setIsDeleteConfirmOpen(false);
+            setJobToTerminate(null);
         }
     };
 
@@ -384,6 +396,21 @@ export const CronJobHub: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+            {isDeleteConfirmOpen && (
+                <PopupModal
+                    isOpen={isDeleteConfirmOpen}
+                    onClose={() => {
+                        setIsDeleteConfirmOpen(false);
+                        setJobToTerminate(null);
+                    }}
+                    title="Terminate Task Node"
+                    message="Are you sure you want to terminate this job? This action will permanently remove it from the infrastructure."
+                    type="confirm"
+                    onConfirm={confirmTerminateJob}
+                    confirmLabel="Terminate"
+                    cancelLabel="Abort"
+                />
+            )}
         </div>
     );
 };

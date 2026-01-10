@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { whatsappContactService, type IWhatsAppContact } from '../../services/whatsappContactService';
 import { Check, X, Ban, RefreshCw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const WhatsAppContacts: React.FC = () => {
     const [contacts, setContacts] = useState<IWhatsAppContact[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isDNDModalOpen, setIsDNDModalOpen] = useState(false);
+    const [contactToMarkDND, setContactToMarkDND] = useState<string | null>(null);
 
     const fetchContacts = async () => {
         try {
@@ -26,19 +30,28 @@ const WhatsAppContacts: React.FC = () => {
         try {
             await whatsappContactService.updateConsent(id, consent);
             fetchContacts();
+            toast.success('Consent updated successfully');
         } catch (error) {
-            alert('Error updating consent');
+            toast.error('Error updating consent');
         }
     };
 
     const handleDND = async (id: string) => {
-        if (confirm('Mark this contact as DND? This cannot be undone easily.')) {
-            try {
-                await whatsappContactService.markAsDND(id);
-                fetchContacts();
-            } catch (error) {
-                alert('Error marking DND');
-            }
+        setContactToMarkDND(id);
+        setIsDNDModalOpen(true);
+    };
+
+    const confirmDND = async () => {
+        if (!contactToMarkDND) return;
+        try {
+            await whatsappContactService.markAsDND(contactToMarkDND);
+            fetchContacts();
+            toast.success('Contact marked as DND');
+        } catch (error) {
+            toast.error('Error marking DND');
+        } finally {
+            setIsDNDModalOpen(false);
+            setContactToMarkDND(null);
         }
     };
 
@@ -120,6 +133,21 @@ const WhatsAppContacts: React.FC = () => {
                     </table>
                 </div>
             </div>
+            {isDNDModalOpen && (
+                <PopupModal
+                    isOpen={isDNDModalOpen}
+                    onClose={() => {
+                        setIsDNDModalOpen(false);
+                        setContactToMarkDND(null);
+                    }}
+                    title="Confirm DND"
+                    message="Mark this contact as DND? This cannot be undone easily."
+                    type="confirm"
+                    onConfirm={confirmDND}
+                    confirmLabel="Mark DND"
+                    cancelLabel="Cancel"
+                />
+            )}
         </div>
     );
 };

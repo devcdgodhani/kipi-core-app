@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { whatsappSystemService } from '../../services/whatsappSystemService';
 import { RefreshCw, Trash2, RotateCcw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { PopupModal } from '../../components/common/PopupModal';
 
 interface QueueStats {
     waiting: number;
@@ -19,6 +21,7 @@ interface QueueStats {
 const WhatsAppQueue: React.FC = () => {
     const [stats, setStats] = useState<QueueStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -44,22 +47,26 @@ const WhatsAppQueue: React.FC = () => {
     const handleRetryFailed = async () => {
         try {
             await whatsappSystemService.retryFailedJobs();
-            alert('Retrying all failed jobs...');
+            toast.success('Retrying all failed jobs...');
             fetchStats();
         } catch (error) {
-            alert('Error retrying jobs');
+            toast.error('Error retrying jobs');
         }
     };
 
     const handleClearFailed = async () => {
-        if (confirm('Are you sure you want to clear all failed jobs?')) {
-            try {
-                await whatsappSystemService.clearQueue();
-                alert('Failed jobs cleared');
-                fetchStats();
-            } catch (error) {
-                alert('Error clearing jobs');
-            }
+        setIsClearModalOpen(true);
+    };
+
+    const confirmClearFailed = async () => {
+        try {
+            await whatsappSystemService.clearQueue();
+            toast.success('Failed jobs cleared');
+            fetchStats();
+        } catch (error) {
+            toast.error('Error clearing failed jobs');
+        } finally {
+            setIsClearModalOpen(false);
         }
     };
 
@@ -146,6 +153,18 @@ const WhatsAppQueue: React.FC = () => {
                     )}
                 </div>
             </div>
+            {isClearModalOpen && (
+                <PopupModal
+                    isOpen={isClearModalOpen}
+                    onClose={() => setIsClearModalOpen(false)}
+                    title="Clear Failed Jobs"
+                    message="Are you sure you want to clear all failed jobs?"
+                    type="confirm"
+                    onConfirm={confirmClearFailed}
+                    confirmLabel="Clear"
+                    cancelLabel="Cancel"
+                />
+            )}
         </div>
     );
 };

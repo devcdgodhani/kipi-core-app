@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import Button from '../../components/common/Button';
 import { Table, type Column } from '../../components/common/Table';
 import { ROUTES } from '../../routes/routeConfig';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const CouponList: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +26,8 @@ const CouponList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
 
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -81,15 +84,23 @@ const CouponList: React.FC = () => {
         });
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this coupon?')) return;
+    const handleDelete = (id: string) => {
+        setCouponToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!couponToDelete) return;
         try {
-            await couponService.deleteById(id);
+            await couponService.deleteById(couponToDelete);
             toast.success('Coupon deleted successfully');
             fetchCoupons();
         } catch (error) {
             console.error('Error deleting coupon:', error);
             toast.error('Failed to delete coupon');
+        } finally {
+            setIsDeleteModalOpen(false);
+            setCouponToDelete(null);
         }
     };
 
@@ -293,6 +304,21 @@ const CouponList: React.FC = () => {
                     hasNextPage: page < totalPages
                 } : undefined}
             />
+            {isDeleteModalOpen && (
+                <PopupModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => {
+                        setIsDeleteModalOpen(false);
+                        setCouponToDelete(null);
+                    }}
+                    title="Confirm Deletion"
+                    message="Are you sure you want to delete this coupon? This action cannot be undone."
+                    type="confirm"
+                    onConfirm={confirmDelete}
+                    confirmLabel="Delete"
+                    cancelLabel="Cancel"
+                />
+            )}
         </div>
     );
 };

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { whatsappAccountService, type IWhatsAppAccount } from '../../services/whatsappAccount.service';
 import { Table, type Column } from '../../components/common/Table';
 import { Play, Pause, RefreshCw, Users, Smartphone, Power, Trash2, XCircle, QrCode, Edit, ShieldCheck, Activity, BarChart2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { PopupModal } from '../../components/common/PopupModal';
 import CustomButton from '../../components/common/Button';
 
 const WhatsAppAccounts = () => {
@@ -11,6 +13,8 @@ const WhatsAppAccounts = () => {
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
     const [selectedAccount, setSelectedAccount] = useState<IWhatsAppAccount | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
     // Form States
     const [newAccountName, setNewAccountName] = useState('');
@@ -71,8 +75,9 @@ const WhatsAppAccounts = () => {
             setNewAccountNumber('');
             setNewAccountDate(new Date().toISOString().split('T')[0]);
             fetchAccounts();
+            toast.success('Account created successfully');
         } catch (error: any) {
-            alert(`Error creating account: ${error.message}`);
+            toast.error(`Error creating account: ${error.message}`);
         }
     };
 
@@ -80,8 +85,9 @@ const WhatsAppAccounts = () => {
     const handleAction = async (id: string, action: 'pause' | 'resume' | 'cooldown' | 'disable' | 'logout' | 'initialize' | 'terminate' | 'delete') => {
         try {
             if (action === 'delete') {
-                if (!window.confirm('Are you sure you want to delete this account? This will permanently remove it.')) return;
-                await whatsappAccountService.delete(id);
+                setAccountToDelete(id);
+                setIsDeleteModalOpen(true);
+                return;
             } else {
                 if (action === 'pause') await whatsappAccountService.pause(id);
                 if (action === 'resume') await whatsappAccountService.resume(id);
@@ -92,8 +98,23 @@ const WhatsAppAccounts = () => {
                 if (action === 'terminate') await whatsappAccountService.terminate(id);
             }
             fetchAccounts();
+            toast.success(`${action.charAt(0).toUpperCase() + action.slice(1)} action successful`);
         } catch (error: any) {
-            alert(`Error: ${error.message || 'Action failed'}`);
+            toast.error(`Error: ${error.message || 'Action failed'}`);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!accountToDelete) return;
+        try {
+            await whatsappAccountService.delete(accountToDelete);
+            toast.success('Account deleted successfully');
+            fetchAccounts();
+        } catch (error: any) {
+            toast.error(`Error deleting account: ${error.message}`);
+        } finally {
+            setIsDeleteModalOpen(false);
+            setAccountToDelete(null);
         }
     };
 
@@ -387,6 +408,21 @@ const WhatsAppAccounts = () => {
                     </div>
                 )
             }
+            {isDeleteModalOpen && (
+                <PopupModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => {
+                        setIsDeleteModalOpen(false);
+                        setAccountToDelete(null);
+                    }}
+                    title="Confirm Deletion"
+                    message="Are you sure you want to delete this account? This will permanently remove it."
+                    type="confirm"
+                    onConfirm={confirmDelete}
+                    confirmLabel="Delete"
+                    cancelLabel="Cancel"
+                />
+            )}
         </div >
     );
 };

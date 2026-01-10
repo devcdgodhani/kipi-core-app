@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { whatsappAccountService, type IWhatsAppAccount } from '../../services/whatsappAccount.service';
 import { Smartphone, Power, ShieldCheck, Activity, Save, ArrowLeft } from 'lucide-react';
 import CustomButton from '../../components/common/Button';
@@ -21,14 +22,15 @@ const WhatsAppAccountDetails = () => {
             if (!id) return;
             try {
                 setLoading(true);
-                const accountData: any = await whatsappAccountService.getOne(id);
+                const response: any = await whatsappAccountService.getOne(id);
+                const accountData = response.data;
                 setAccount(accountData);
                 setEditName(accountData.name);
                 setEditAutoResume(accountData.isAutoResume ?? true);
                 setEditNumberDate(accountData.numberActivatedAt ? new Date(accountData.numberActivatedAt).toISOString().split('T')[0] : '');
             } catch (error) {
                 console.error('Error fetching account:', error);
-                alert('Account not found');
+                toast.error('Account not found');
                 navigate(-1);
             } finally {
                 setLoading(false);
@@ -47,13 +49,12 @@ const WhatsAppAccountDetails = () => {
                 isAutoResume: editAutoResume,
                 numberActivatedAt: editNumberDate ? new Date(editNumberDate).toISOString() : null,
             });
-            alert('Account updated successfully');
+            toast.success('Account updated successfully');
             // Refresh
-            const response = await whatsappAccountService.getAll();
-            const found = (response as any).find((a: IWhatsAppAccount) => a._id === id);
-            if (found) setAccount(found);
+            const response: any = await whatsappAccountService.getOne(account._id);
+            if (response.data) setAccount(response.data);
         } catch (error: any) {
-            alert(`Error updating account: ${error.message}`);
+            toast.error(`Error updating account: ${error.message}`);
         } finally {
             setSaving(false);
         }

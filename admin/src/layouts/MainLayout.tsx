@@ -4,6 +4,7 @@ import { Navbar } from '../components/Navbar';
 import { useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { Toaster } from 'react-hot-toast';
 
 const MainLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -17,6 +18,7 @@ const MainLayout: React.FC = () => {
                 <Outlet />
             </main>
             <ThemeSwitcher />
+            <Toaster position="top-right" reverseOrder={false} />
         </div>
     );
 };

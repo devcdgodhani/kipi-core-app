@@ -4,6 +4,8 @@ import { Modal } from '../common/Modal';
 import CustomButton from '../common/Button';
 import { lotService } from '../../services/lot.service';
 import { type ILot, ADJUST_QUANTITY_TYPE } from '../../types/lot';
+import { PopupModal } from '../common/PopupModal';
+import { toast } from 'react-hot-toast';
 
 interface AdjustQuantityModalProps {
     isOpen: boolean;
@@ -15,6 +17,8 @@ interface AdjustQuantityModalProps {
 export const AdjustQuantityModal: React.FC<AdjustQuantityModalProps> = ({ isOpen, onClose, onSuccess, lot }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
+    const [adjustmentToRemove, setAdjustmentToRemove] = useState<string | null>(null);
     const [formData, setFormData] = useState<{
         quantity: number | '';
         type: ADJUST_QUANTITY_TYPE;
@@ -48,27 +52,43 @@ export const AdjustQuantityModal: React.FC<AdjustQuantityModalProps> = ({ isOpen
                 }
             } as any);
             onSuccess();
+            toast.success('Adjustment added successfully');
+            setLoading(false);
+            setFormData({
+                quantity: '',
+                type: ADJUST_QUANTITY_TYPE.USED,
+                reason: ''
+            });
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to add adjustment');
             setLoading(false);
         }
     };
 
-    const handleRemoveAdjustment = async (adjId?: string) => {
+    const handleRemoveAdjustment = (adjId?: string) => {
         if (!adjId) return;
-        if (!window.confirm('Are you sure you want to remove this adjustment? Record will be deleted.')) return;
+        setAdjustmentToRemove(adjId);
+        setIsRemoveConfirmOpen(true);
+    };
+
+    const confirmRemoveAdjustment = async () => {
+        if (!adjustmentToRemove) return;
 
         setLoading(true);
         try {
             await lotService.update(lot._id, {
                 $pull: {
-                    adjustQuantity: { _id: adjId }
+                    adjustQuantity: { _id: adjustmentToRemove }
                 }
             } as any);
             onSuccess();
+            toast.success('Adjustment removed successfully');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to remove adjustment');
+        } finally {
             setLoading(false);
+            setIsRemoveConfirmOpen(false);
+            setAdjustmentToRemove(null);
         }
     };
 
@@ -179,6 +199,21 @@ export const AdjustQuantityModal: React.FC<AdjustQuantityModalProps> = ({ isOpen
                     </div>
                 </div>
             </div>
+            {isRemoveConfirmOpen && (
+                <PopupModal
+                    isOpen={isRemoveConfirmOpen}
+                    onClose={() => {
+                        setIsRemoveConfirmOpen(false);
+                        setAdjustmentToRemove(null);
+                    }}
+                    title="Confirm Removal"
+                    message="Are you sure you want to remove this adjustment? The record will be permanently deleted."
+                    type="confirm"
+                    onConfirm={confirmRemoveAdjustment}
+                    confirmLabel="Remove"
+                    cancelLabel="Cancel"
+                />
+            )}
         </Modal>
     );
 };
