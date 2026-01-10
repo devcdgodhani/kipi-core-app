@@ -67,7 +67,7 @@ const getPaymentsByOrderSchema = z.object({
   })
 });
 
-export default class AdminPaymentValidators {
+export class AdminPaymentValidators {
   getAllGateways = validate(getAllGatewaysSchema);
   getEnabledGateways = validate(getEnabledGatewaysSchema);
   updateGateway = validate(updateGatewaySchema);
@@ -76,3 +76,5 @@ export default class AdminPaymentValidators {
   retryWebhook = validate(retryWebhookSchema);
   fetchPaymentStatus = validate(retryWebhookSchema); // Reuse ID validation
 }
+
+export const adminPaymentValidator = new AdminPaymentValidators();

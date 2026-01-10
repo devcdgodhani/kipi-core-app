@@ -1,90 +1,21 @@
-export interface IOrderItem {
-  productId: string;
-  skuId?: string;
-  name: string;
-  skuCode?: string;
-  image?: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
+import { IOrderAttributes } from '../interfaces';
 
-export interface IOrderAddress {
-  name: string;
-  mobile: string;
-  street: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  landmark?: string;
-}
+export type TOrderCreateReq = Omit<IOrderAttributes, '_id' | 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId' | 'orderStatus' | 'paymentStatus' | 'isDeleted' | 'isActive'>;
 
-export interface IOrderTimeline {
-  status: string;
-  timestamp: Date;
-  message: string;
-}
-
-export interface IOrder {
-  userId: string;
-  orderNumber: string;
-  items: IOrderItem[];
-  shippingAddress: IOrderAddress;
-  billingAddress: IOrderAddress;
-  paymentMethod: 'COD' | 'ONLINE';
-  paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-  orderStatus: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
-  subTotal: number;
-  couponId?: string;
-  couponCode?: string;
-  discountAmount?: number;
-  pointsUsed?: number;
-  pointsAmount?: number;
-  tax: number;
-  shippingCost: number;
-  shippingProvider?: string;
-  courierId?: string;
-  trackingId?: string;
-  estimatedDelivery?: Date;
-  shippingLabelUrl?: string;
-  totalAmount: number;
-  timeline: IOrderTimeline[];
-  notes?: string;
-  
-  // Logistics fields
-  shipmentId?: string;
-  awb?: string;
-  idempotencyKey?: string;
-  isRTO?: boolean;
-  rtoId?: string;
-  hasNDR?: boolean;
-  ndrCount?: number;
-  warehouseId?: string;
-  
-  // Payment gateway integration
-  paymentId?: string;
-  
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export type TOrderCreateReq = Omit<IOrder, 'orderNumber' | 'createdAt' | 'updatedAt' | 'userId' | 'orderStatus' | 'paymentStatus'>;
-
-export type TOrderUpdateReq = Partial<IOrder>;
+export type TOrderUpdateReq = Partial<IOrderAttributes>;
 
 export type TOrderRes = {
   status: number;
   code: string;
   message: string;
-  data?: IOrder;
+  data?: IOrderAttributes;
 };
 
 export type TOrderListRes = {
   status: number;
   code: string;
   message: string;
-  data: IOrder[];
+  data: IOrderAttributes[];
 };
 
 export type TOrderListPaginationRes = {
@@ -98,6 +29,6 @@ export type TOrderListPaginationRes = {
       hasPreviousPage: boolean;
       currentPage: number;
       hasNextPage: boolean;
-      recordList: IOrder[];
+      recordList: IOrderAttributes[];
   };
 };

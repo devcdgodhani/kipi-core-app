@@ -7,3 +7,5 @@ export class FileDirectoryService extends MongooseCommonService<IFileDirectoryAt
     super(FileDirectoryModel as any);
   }
 }
+
+export const fileDirectoryService = new FileDirectoryService();

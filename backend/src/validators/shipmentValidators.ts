@@ -33,7 +33,7 @@ export const shipmentCancelSchema = z.object({
   notes: z.string().optional()
 }).strict();
 
-export default class ShipmentValidator {
+export class ShipmentValidator {
   create = validate(
     z.object({
       body: shipmentCreateSchema
@@ -83,3 +83,5 @@ export default class ShipmentValidator {
     })
   );
 }
+
+export const shipmentValidator = new ShipmentValidator();

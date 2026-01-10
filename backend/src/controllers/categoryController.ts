@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, CATEGORY_SUCCESS_MESSAGES } from '../constants';
-import { CategoryService } from '../services/concrete/categoryService';
+import { categoryService } from '../services/concrete/categoryService';
 import { 
   TCategoryCreateReq, 
   TCategoryUpdateReq, 
@@ -11,11 +11,11 @@ import {
 } from '../types/category';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
-import { FileStorageService } from '../services/concrete/fileStorageService';
+import { fileStorageService } from '../services/concrete/fileStorageService';
 
-export default class CategoryController {
-  private categoryService = new CategoryService();
-  private fileStorageService = new FileStorageService();
+export class CategoryController {
+  private get categoryService() { return categoryService; }
+  private get fileStorageService() { return fileStorageService; }
 
   /*********** Fetch Categories ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -94,9 +94,9 @@ export default class CategoryController {
           { path: 'parentId', select: 'name slug' },
           { path: 'image' }
       ];
- 
+
       const categoryList = await this.categoryService.findAllWithPagination(filter, options);
- 
+
       if (categoryList && categoryList.recordList) {
           await Promise.all(categoryList.recordList.map(async (c: any) => {
               if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
@@ -181,3 +181,5 @@ export default class CategoryController {
     }
   };
 }
+
+export const categoryController = new CategoryController();

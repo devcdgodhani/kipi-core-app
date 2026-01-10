@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { WarehouseService } from '../services/concrete/warehouseService';
+import { warehouseService } from '../services/concrete/warehouseService';
 import { HTTP_STATUS_CODE } from '../constants';
-import { IApiResponse } from '../interfaces';
+import { IApiResponse, IPaginationData } from '../interfaces';
+import { IWarehouseAttributes } from '../interfaces/warehouse';
 
 export class WarehouseController {
-  private warehouseService = new WarehouseService();
+  private get warehouseService() { return warehouseService; }
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -13,12 +14,13 @@ export class WarehouseController {
       });
       const data = await this.warehouseService.findAllWithPagination(filter, options);
       
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<IPaginationData<IWarehouseAttributes>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Warehouses fetched successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
@@ -31,12 +33,13 @@ export class WarehouseController {
       });
       const data = await this.warehouseService.findAll(filter, options);
       
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<IWarehouseAttributes[]> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'All warehouses fetched successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
@@ -45,12 +48,13 @@ export class WarehouseController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.warehouseService.createWarehouse(req.body);
-      return res.status(HTTP_STATUS_CODE.CREATED.STATUS).json({
+      const response: IApiResponse<IWarehouseAttributes> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: 'Warehouse created successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
@@ -60,18 +64,20 @@ export class WarehouseController {
     try {
       const data = await this.warehouseService.findById(req.params.id);
       if (!data) {
-        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+        const response: IApiResponse = {
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
           message: 'Warehouse not found'
-        } as IApiResponse<any>);
+        };
+        return res.status(response.status).json(response);
       }
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<IWarehouseAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Warehouse fetched successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
@@ -80,12 +86,13 @@ export class WarehouseController {
   getPrimary = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.warehouseService.findPrimary();
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<IWarehouseAttributes | null> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Primary warehouse fetched successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
@@ -95,20 +102,24 @@ export class WarehouseController {
     try {
       const data = await this.warehouseService.updateWarehouse(req.params.id, req.body);
       if (!data) {
-        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+        const response: IApiResponse = {
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
           message: 'Warehouse not found'
-        } as IApiResponse<any>);
+        };
+        return res.status(response.status).json(response);
       }
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<IWarehouseAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Warehouse updated successfully',
         data
-      } as IApiResponse<any>);
+      };
+      return res.status(response.status).json(response);
     } catch (err) {
       next(err);
     }
   };
 }
+
+export const warehouseController = new WarehouseController();

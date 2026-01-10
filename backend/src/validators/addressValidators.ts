@@ -50,7 +50,7 @@ const addressUpdateSchema = z.object({
   status: z.string().optional(),
 }).strict();
 
-export default class AddressValidator {
+export class AddressValidator {
   getOne = validate(
     z.object({
       body: addressFilterSchema.partial().optional(),
@@ -91,3 +91,5 @@ export default class AddressValidator {
     })
   );
 }
+
+export const addressValidator = new AddressValidator();

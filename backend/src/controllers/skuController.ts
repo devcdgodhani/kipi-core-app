@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { SkuService } from '../services/concrete/skuService';
+import { skuService } from '../services/concrete/skuService';
 import { 
   TSkuCreateReq, 
   TSkuUpdateReq, 
@@ -9,12 +9,13 @@ import {
   TSkuListPaginationRes 
 } from '../types/sku';
 import { IApiResponse } from '../interfaces';
-import { FileStorageService } from '../services/concrete/fileStorageService';
+import { fileStorageService } from '../services/concrete/fileStorageService';
 import { stockLedgerService } from '../services/concrete/stockLedgerService';
 
-export default class SkuController {
-  private skuService = new SkuService();
-  private fileStorageService = new FileStorageService();
+export class SkuController {
+  private get skuService() { return skuService; }
+  private get fileStorageService() { return fileStorageService; }
+  private get stockLedgerService() { return stockLedgerService; }
 
   private async enrichSkuWithPresignedUrls(sku: any) {
     if (!sku || !sku.media || !Array.isArray(sku.media)) return;
@@ -163,7 +164,7 @@ export default class SkuController {
         const existingSku = await this.skuService.findById(id);
         if (existingSku && (existingSku as any).quantity !== updateData.quantity) {
           const delta = updateData.quantity - (existingSku as any).quantity;
-          await stockLedgerService.logAdjustment({
+          await this.stockLedgerService.logAdjustment({
             skuId: id,
             transactionType: 'ADMIN_ADJUSTMENT',
             changeQuantity: delta,
@@ -210,3 +211,5 @@ export default class SkuController {
     }
   };
 }
+
+export const skuController = new SkuController();

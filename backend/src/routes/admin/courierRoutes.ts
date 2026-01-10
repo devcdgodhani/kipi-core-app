@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import CourierController from '../../controllers/courierController';
+import { courierController } from '../../controllers/courierController';
 import { jwtAuth } from '../../middlewares';
 
 const router = Router();
-const courierController = new CourierController();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

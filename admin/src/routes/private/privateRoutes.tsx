@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -90,9 +90,34 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.USERS_EDIT, // routeConfig handles :id
                     element: <ManageUserFormLazy />,
                 },
+
                 {
-                    path: ROUTES.DASHBOARD.WHATSAPP,
-                    element: <WhatsAppLazy />,
+                    path: ROUTES.DASHBOARD.WHATSAPP_DASHBOARD,
+                    element: <WhatsAppDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_ACCOUNTS,
+                    element: <WhatsAppAccountsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_ACCOUNTS_DETAILS,
+                    element: <WhatsAppAccountDetailsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_QUEUE,
+                    element: <WhatsAppQueueLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_CONTACTS,
+                    element: <WhatsAppContactsLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_RISK,
+                    element: <WhatsAppRiskLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WHATSAPP_SYSTEM,
+                    element: <WhatsAppSystemLazy />,
                 },
                 {
                     path: ROUTES.DASHBOARD.LOTS,

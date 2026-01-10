@@ -11,3 +11,5 @@ export class AuthTokenService
     super(AuthTokenModel);
   }
 }
+
+export const authTokenService = new AuthTokenService();

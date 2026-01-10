@@ -18,4 +18,6 @@ logs
 #env
 .env
 
-backend/.wwebjs_auth
+# WhatsApp Web.js session data
+.wwebjs_auth/
+.wwebjs_cache/

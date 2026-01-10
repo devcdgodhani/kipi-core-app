@@ -2,6 +2,7 @@ import { setupWebhookWorker } from './workers/webhookWorker';
 import { setupTrackingWorker } from './workers/trackingWorker';
 import { setupNotificationWorker } from './workers/notificationWorker';
 import { setupPaymentWorkers } from './workers/paymentWorker';
+import { setupWhatsAppWorker } from './workers/whatsAppWorker';
 
 export const initWorkers = () => {
   console.log('Initializing Background Workers...');
@@ -9,4 +10,5 @@ export const initWorkers = () => {
   setupTrackingWorker();
   setupNotificationWorker();
   setupPaymentWorkers();
+  setupWhatsAppWorker();
 };

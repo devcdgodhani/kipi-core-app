@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
-import SkuController from '../../controllers/skuController';
-import SkuValidator from '../../validators/skuValidators';
+import { skuController } from '../../controllers/skuController';
+import { skuValidator } from '../../validators/skuValidators';
 
 const router = Router();
-const skuController = new SkuController();
-const skuValidator = new SkuValidator();
 
 router.route('/getAll')
   .get(skuValidator.getAll, skuController.getAll)

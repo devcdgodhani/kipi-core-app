@@ -1,20 +1,18 @@
 import { Router } from 'express';
-import CouponController from '../../controllers/couponController';
-import CouponValidator from '../../validators/couponValidators';
+import { couponController } from '../../controllers/couponController';
+import { couponValidator } from '../../validators/couponValidators';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
-const controller = new CouponController();
-const validator = new CouponValidator();
 
-router.get('/', jwtAuth(), controller.getAll);
+router.get('/', jwtAuth(), couponController.getAll);
 
 // Apply coupon requires authentication
 router.post(
   '/apply',
   jwtAuth(),
-  validator.apply,
-  controller.apply
+  couponValidator.apply,
+  couponController.apply
 );
 
 export default router;

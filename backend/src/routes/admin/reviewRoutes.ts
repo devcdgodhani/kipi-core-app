@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import ReviewController from '../../controllers/reviewController';
-// import ReviewValidator from '../../validators/reviewValidators'; // Assuming it exists or will be updated
+import { reviewController } from '../../controllers/reviewController';
+import { reviewValidator } from '../../validators/reviewValidators';
 
 const router = Router();
-const reviewController = new ReviewController();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

@@ -54,15 +54,14 @@ export class MongooseCommonService<T, TDoc extends Document>
     // 🔍 Handle search keyword (from filters.search)
     if (filters.search && searchFields.length > 0) {
       const search = filters.search;
-      filter['$or'] = searchFields.map((field) => ({
+      filter['$or'] = (searchFields as string[]).map((field) => ({
         [field === 'id' ? '_id' : field]: { $regex: search, $options: 'i' },
       }));
-      delete filters.search; // remove so it doesn’t double-apply
     }
 
     // 🎯 Handle other filters
     for (const [field, value] of Object.entries(filters)) {
-      if (['page', 'limit', 'isPaginate', 'search', 'order', 'sort', 'isTree'].includes(field)) continue;
+      if (['page', 'limit', 'isPaginate', 'search', 'order', 'sort', 'isTree', 'populate'].includes(field)) continue;
       const actualField = field === 'id' ? '_id' : field;
       const schemaType = schemaPaths[actualField];
       if (!schemaType || value === undefined || value === null || value === '') continue;
@@ -139,6 +138,10 @@ export class MongooseCommonService<T, TDoc extends Document>
       filterOptions.order = filters.order;
     }
 
+    if (filters.populate) {
+      filterOptions.populate = filters.populate;
+    }
+
     return { filter, options: filterOptions };
   }
 
@@ -148,31 +151,46 @@ export class MongooseCommonService<T, TDoc extends Document>
 
   findAll(
     filter: FilterQuery<T>,
-    options: QueryOptions = {},
+    options: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    } = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T[]> {
-    const query = this.model.find(filter, null, options);
-    if (populate) query.populate(populate);
+    const { projection, populate: optionsPopulate, ...restOptions } = options;
+    const query = this.model.find(filter, projection || null, restOptions);
+    const finalPopulate = optionsPopulate || populate;
+    if (finalPopulate) query.populate(finalPopulate as any);
     return query.lean<T[]>().exec();
   }
 
   findOne(
     filter: FilterQuery<T>,
-    options: QueryOptions = {},
+    options: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    } = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T | null> {
-    const query = this.model.findOne(filter, null, options);
-    if (populate) query.populate(populate);
+    const { projection, populate: optionsPopulate, ...restOptions } = options;
+    const query = this.model.findOne(filter, projection || null, restOptions);
+    const finalPopulate = optionsPopulate || populate;
+    if (finalPopulate) query.populate(finalPopulate as any);
     return query.lean<T>().exec();
   }
 
   findById(
     id: string,
-    options: QueryOptions = {},
+    options: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    } = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T | null> {
-    const query = this.model.findById(id, null, options);
-    if (populate) query.populate(populate);
+    const { projection, populate: optionsPopulate, ...restOptions } = options;
+    const query = this.model.findById(id, projection || null, restOptions);
+    const finalPopulate = optionsPopulate || populate;
+    if (finalPopulate) query.populate(finalPopulate as any);
     return query.lean<T>().exec();
   }
 
@@ -183,10 +201,11 @@ export class MongooseCommonService<T, TDoc extends Document>
       limit?: number;
       order?: Partial<Record<keyof T, 1 | -1>>;
       projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
     } = {},
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<IPaginationData<T>> {
-    const { order, projection, page = 1, limit = 10, ...restOptions } = options;
+    const { order, projection, page = 1, limit = 10, populate: optionsPopulate, ...restOptions } = options;
 
     const sort = order || { updatedAt: -1 };
     const safePage = Math.max(1, page);
@@ -203,7 +222,8 @@ export class MongooseCommonService<T, TDoc extends Document>
       sort,
     });
 
-    if (populate) query.populate(populate);
+    const finalPopulate = optionsPopulate || populate;
+    if (finalPopulate) query.populate(finalPopulate as any);
 
     const recordList = await query.lean<T[]>().exec();
 

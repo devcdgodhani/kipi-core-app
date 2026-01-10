@@ -1,6 +1,7 @@
 import { MongooseCommonService } from './mongooseCommonService';
 import { OrderModel } from '../../db/mongodb';
-import { IOrder, TOrderCreateReq } from '../../types/order';
+import { TOrderCreateReq } from '../../types/order';
+import { IOrderAttributes, IOrderDocument } from '../../interfaces';
 import { couponService } from './couponService';
 import { logisticsService } from './logisticsService';
 import { loyaltyService } from './loyaltyService';
@@ -8,7 +9,7 @@ import { pulseService } from './pulseService';
 import { skuService } from './skuService';
 import { productService } from './productService';
 import { userService } from './userService';
-import { paymentService } from './PaymentService';
+import { paymentService } from './paymentService';
 import { COUPON_TYPE } from '../../constants/coupon';
 import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
 import { rtoScoreService } from './rtoScoreService';
@@ -18,12 +19,12 @@ import { HTTP_STATUS_CODE } from '../../constants';
 import { inventoryService } from './inventoryService';
 import { IOrderService } from '../contracts/orderServiceInterface';
 
-import { IOrderDocument } from '../../db/mongodb/models/orderModel';
+// import { IOrderDocument } from '../../db/mongodb/models/orderModel';
 import { logisticsNotificationService } from './logisticsNotificationService';
-import { paymentRefundService } from './PaymentRefundService';
+import { paymentRefundService } from './paymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
 
-export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> implements IOrderService {
+export class OrderService extends MongooseCommonService<IOrderAttributes, IOrderDocument> implements IOrderService {
   private get couponService() { return couponService; }
   private get loyaltyService() { return loyaltyService; }
   private get pulseService() { return pulseService; }
@@ -45,7 +46,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
     return `${prefix}-${dateStr}-${random}`;
   };
 
-  createOrder = async (orderData: TOrderCreateReq, userId: any): Promise<IOrder> => {
+  createOrder = async (orderData: TOrderCreateReq, userId: any): Promise<IOrderAttributes> => {
     // 1. Calculate and Validate Subtotal from DB prices (Anti-Tamper)
     let subTotal = 0;
     if (!orderData.items || orderData.items.length === 0) {
@@ -58,7 +59,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
 
       // 1. Try SKU first
       if (item.skuId) {
-        const sku = await this.skuService.findById(item.skuId);
+        const sku = await this.skuService.findById(item.skuId.toString());
         if (sku) {
           actualPrice = Number((sku as any).offerPrice || (sku as any).salePrice || (sku as any).basePrice || 0);
           if (actualPrice > 0) found = true;
@@ -67,7 +68,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
 
       // 2. Try Product if SKU failed or has no price
       if (!found && item.productId) {
-        const product = await this.productService.findById(item.productId);
+        const product = await this.productService.findById(item.productId.toString());
         if (product) {
           actualPrice = Number((product as any).offerPrice || (product as any).salePrice || (product as any).basePrice || 0);
           if (actualPrice > 0) found = true;
@@ -370,7 +371,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
         );
     }
 
-    return this.updateOne(
+    return this.findOneAndUpdate(
       { _id: orderId }, 
       updateData, 
       { userId }
@@ -408,7 +409,7 @@ export class OrderService extends MongooseCommonService<IOrder, IOrderDocument> 
       message: `[Logistics Hub] ${randomUpdate}`
     };
 
-    return this.updateOne(
+    return this.findOneAndUpdate(
       { _id: orderId },
       { $push: { timeline: timelineEntry } }
     );

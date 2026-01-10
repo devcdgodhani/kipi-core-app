@@ -38,13 +38,11 @@ const LoyaltyAuditList: React.FC = () => {
         setLoading(true);
         try {
             const res = await loyaltyService.getLedger({
-                options: {
-                    page: filters.page,
-                    limit: filters.limit,
-                    search: filters.search,
-                    populate: ['userId']
-                },
-                query: filters.type ? { type: filters.type } : {}
+                page: filters.page,
+                limit: filters.limit,
+                search: filters.search,
+                populate: ['userId'],
+                ...(filters.type ? { type: filters.type } : {})
             });
 
             if (res) {

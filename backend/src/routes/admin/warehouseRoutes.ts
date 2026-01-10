@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import { WarehouseController } from '../../controllers/warehouseController';
-import WarehouseValidator from '../../validators/warehouseValidators';
+import { warehouseController } from '../../controllers/warehouseController';
+import { warehouseValidator } from '../../validators/warehouseValidators';
 
 const router = Router();
-const warehouseController = new WarehouseController();
-const warehouseValidator = new WarehouseValidator();
 
 router.route('/getOne')
   .get(warehouseValidator.getOne, warehouseController.getOne)

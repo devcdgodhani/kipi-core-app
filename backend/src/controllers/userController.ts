@@ -1,17 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, USER_SUCCESS_MESSAGES } from '../constants';
-import { UserService } from '../services/concrete/userService';
+import { userService } from '../services/concrete/userService';
 import { IApiResponse, IPaginationData, IUserAttributes } from '../interfaces';
 
-export default class UserController {
-  userService = new UserService();
+export class UserController {
+  private get userService() { return userService; }
 
   constructor() {}
 
   /*********** Fetch users ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -33,7 +33,7 @@ export default class UserController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -54,7 +54,7 @@ export default class UserController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -98,7 +98,7 @@ export default class UserController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await this.userService.updateOne({ _id: id }, updateData, { userId: req.user._id });
+      await this.userService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -119,7 +119,7 @@ export default class UserController {
         filters: reqData,
       });
 
-      await this.userService.softDelete(filter, { userId: req.user._id });
+      await this.userService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -132,3 +132,5 @@ export default class UserController {
     }
   };
 }
+
+export const userController = new UserController();

@@ -5,7 +5,7 @@ import { MongooseCommonService } from './mongooseCommonService';
 import { ICronJobService } from '../contracts/cronJobServiceInterface';
 import { pulseService } from './pulseService';
 import { UserService } from './userService';
-import { PaymentService } from './PaymentService';
+import { PaymentService } from './paymentService';
 import { CronJobHistoryService } from './cronJobHistoryService';
 import { paymentQueues } from '../../jobs/queues/paymentQueues';
 import { PAYMENT_STATUS } from '../../constants/payment';

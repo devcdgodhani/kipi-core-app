@@ -1,9 +1,8 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
-import CronJobController from '../../controllers/cronJobController';
+import { cronJobController } from '../../controllers/cronJobController';
 
 const router = Router();
-const cronJobController = new CronJobController();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

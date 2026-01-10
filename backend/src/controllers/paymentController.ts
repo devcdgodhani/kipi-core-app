@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { PaymentService } from '../services/concrete/PaymentService';
+import { PaymentService } from '../services/concrete/paymentService';
 import { IApiResponse } from '../interfaces';
 import { PAYMENT_SUCCESS_MESSAGES, PAYMENT_ERROR_MESSAGES } from '../constants/payment';
 
@@ -8,8 +8,10 @@ import { PAYMENT_SUCCESS_MESSAGES, PAYMENT_ERROR_MESSAGES } from '../constants/p
  * Payment Controller
  * Handles payment-related API endpoints
  */
-export default class PaymentController {
-  private paymentService = new PaymentService();
+import { paymentService } from '../services/concrete/paymentService';
+
+export class PaymentController {
+  private get paymentService() { return paymentService; }
 
   /**
    * Initiate payment for an order
@@ -174,3 +176,5 @@ export default class PaymentController {
     }
   };
 }
+
+export const paymentController = new PaymentController();

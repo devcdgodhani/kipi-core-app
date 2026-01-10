@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ShipmentService } from '../services/concrete/shipmentService';
+import { shipmentService } from '../services/concrete/shipmentService';
 import { logisticsService } from '../services/concrete/logisticsService';
 import { trackingService } from '../services/concrete/trackingService';
 import { HTTP_STATUS_CODE, SHIPMENT_MESSAGES } from '../constants';
@@ -7,11 +7,7 @@ import { IApiResponse, IPaginationData } from '../interfaces';
 import { IShipmentAttributes } from '../interfaces/shipment';
 
 export class ShipmentController {
-  shipmentService: ShipmentService;
-
-  constructor() {
-    this.shipmentService = new ShipmentService();
-  }
+  private get shipmentService() { return shipmentService; }
 
   /*********** Create ***********/
   create = async (req: Request, res: Response, next: NextFunction) => {
@@ -49,14 +45,15 @@ export class ShipmentController {
       }
       
       if (!shipment) {
-        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+        const errorResponse: IApiResponse = {
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
           message: SHIPMENT_MESSAGES.ERROR.NOT_FOUND
-        });
+        };
+        return res.status(errorResponse.status).json(errorResponse);
       }
 
-      const response: IApiResponse<any> = {
+      const response: IApiResponse<IShipmentAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Shipment fetched successfully',
@@ -79,7 +76,7 @@ export class ShipmentController {
 
       const shipmentList = await this.shipmentService.findAll(filter, options);
 
-      const response: IApiResponse<any[]> = {
+      const response: IApiResponse<IShipmentAttributes[]> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'All shipments fetched successfully',
@@ -102,7 +99,7 @@ export class ShipmentController {
 
       const shipmentList = await this.shipmentService.findAllWithPagination(filter, options);
 
-      const response: IApiResponse<IPaginationData<any>> = {
+      const response: IApiResponse<IPaginationData<IShipmentAttributes>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Shipments fetched successfully',
@@ -214,3 +211,5 @@ export class ShipmentController {
     }
   };
 }
+
+export const shipmentController = new ShipmentController();

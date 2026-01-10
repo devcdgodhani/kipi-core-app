@@ -1,12 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, COUPON_SUCCESS_MESSAGES } from '../constants';
-import { CouponService } from '../services/concrete/couponService';
+import { couponService } from '../services/concrete/couponService';
 import { IApiResponse, IPaginationData, ICouponAttributes } from '../interfaces';
 
-export default class CouponController {
-  private couponService = new CouponService();
-
-  constructor() {}
+export class CouponController {
+  private get couponService() { return couponService; }
 
   /*********** Fetch Coupons ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -133,7 +131,7 @@ export default class CouponController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await this.couponService.updateOne({ _id: id }, updateData, { userId: req.user?._id });
+      await this.couponService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -187,3 +185,5 @@ export default class CouponController {
     }
   };
 }
+
+export const couponController = new CouponController();

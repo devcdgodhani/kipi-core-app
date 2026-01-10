@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { OrderService } from '../services/concrete/orderService';
-import { PaymentService } from '../services/concrete/PaymentService';
-import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
+import { PaymentService } from '../services/concrete/paymentService';
+import { PaymentRefundService } from '../services/concrete/paymentRefundService';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
 import { IApiResponse, IPaginationData } from '../interfaces';
 

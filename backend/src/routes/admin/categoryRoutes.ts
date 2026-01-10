@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import CategoryController from '../../controllers/categoryController';
-import CategoryValidator from '../../validators/categoryValidators';
+import { categoryController } from '../../controllers/categoryController';
+import { categoryValidator } from '../../validators/categoryValidators';
 
 const router = Router();
-const categoryController = new CategoryController();
-const categoryValidator = new CategoryValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

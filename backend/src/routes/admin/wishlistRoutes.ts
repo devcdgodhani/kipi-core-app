@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
-import WishlistController from '../../controllers/wishlistController';
-import WishlistValidator from '../../validators/wishlistValidators';
+import { wishlistController } from '../../controllers/wishlistController';
+import { wishlistValidator } from '../../validators/wishlistValidators';
 
 const router = Router();
-const wishlistController = new WishlistController();
-const wishlistValidator = new WishlistValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

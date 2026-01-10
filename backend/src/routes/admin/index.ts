@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import authRoute from '../common/authRoute';
 import userRoutes from './userRoutes';
-import whatsAppRoutes from './whatsAppRoutes';
+
 import lotRoutes from './lotRoutes';
 import categoryRoutes from './categoryRoutes';
 import attributeRoutes from './attributeRoutes';
@@ -29,11 +29,33 @@ import ndrRoutes from './ndrRoutes';
 import { jwtAuth } from '../../middlewares';
 import paymentRoutes from './paymentAdminRoutes';
 
+import whatsAppAccountRoutes from './whatsAppAccountRoutes';
+import whatsAppContactRoutes from './whatsAppContactRoutes';
+import whatsAppMessageRoutes from './whatsAppMessageRoutes';
+import whatsAppRiskRoutes from './whatsAppRiskRoutes';
+import whatsAppSystemRoutes from './whatsAppSystemRoutes';
+import bullBoardRoutes from './bullBoardRoutes';
+
 const router = Router();
 
 router.use('/auth', authRoute);
 router.use('/user',jwtAuth(), userRoutes);
-router.use('/whatsapp',jwtAuth(), whatsAppRoutes);
+router.use('/whatsapp/accounts', jwtAuth(), whatsAppAccountRoutes);
+router.use('/whatsapp/contacts', jwtAuth(), whatsAppContactRoutes);
+router.use('/whatsapp/messages', jwtAuth(), whatsAppMessageRoutes);
+router.use('/whatsapp/risk', jwtAuth(), whatsAppRiskRoutes);
+router.use('/whatsapp/system', jwtAuth(), whatsAppSystemRoutes);
+router.use('/queues-dashboard', (req, res, next) => {
+    if (req.query.token) {
+        res.cookie('admin_token', req.query.token as string, {
+            path: '/',
+            httpOnly: true,
+            maxAge: 3600000 * 24 // 24 hours
+        });
+    }
+    next();
+}, jwtAuth(), bullBoardRoutes);
+
 router.use('/lot', jwtAuth(), lotRoutes);
 router.use('/category', jwtAuth(), categoryRoutes);
 router.use('/attribute', jwtAuth(), attributeRoutes);

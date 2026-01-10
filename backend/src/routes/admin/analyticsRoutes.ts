@@ -1,81 +1,49 @@
 import express from 'express';
-import { AnalyticsController } from '../../controllers/analyticsController';
+import { analyticsController } from '../../controllers/analyticsController';
 import { jwtAuth } from '../../middlewares';
-import { USER_TYPE } from '../../constants';
 
 const router = express.Router();
-const analyticsController = new AnalyticsController();
 
 router.get(
   '/sales',
   jwtAuth(), // Uses default TOKEN_TYPE.ACCESS_TOKEN
-  analyticsController.getSalesAnalytics.bind(analyticsController)
+  analyticsController.getSalesAnalytics
 );
 
 router.get(
   '/products',
   jwtAuth(),
-  analyticsController.getProductAnalytics.bind(analyticsController)
+  analyticsController.getProductAnalytics
 );
 
 router.get(
   '/customers',
   jwtAuth(),
-  analyticsController.getCustomerAnalytics.bind(analyticsController)
-);
-
-router.get(
-  '/export/sales',
-  jwtAuth(),
-  analyticsController.exportSales.bind(analyticsController)
-);
-
-router.get(
-  '/export/products',
-  jwtAuth(),
-  analyticsController.exportProducts.bind(analyticsController)
-);
-
-router.get(
-  '/export/customers',
-  jwtAuth(),
-  analyticsController.exportCustomers.bind(analyticsController)
+  analyticsController.getCustomerAnalytics
 );
 
 router.get(
   '/tax-summary',
   jwtAuth(),
-  analyticsController.getTaxSummary.bind(analyticsController)
+  analyticsController.getTaxSummary
 );
 
 router.get(
   '/lots',
   jwtAuth(),
-  analyticsController.getLotAnalytics.bind(analyticsController)
+  analyticsController.getInventoryAnalytics
 );
 
 router.get(
-  '/logistics',
+  '/dashboard-summary',
   jwtAuth(),
-  analyticsController.getLogisticsAnalytics.bind(analyticsController)
+  analyticsController.getDashboardSummary
 );
 
 router.get(
-  '/couriers',
+  '/export',
   jwtAuth(),
-  analyticsController.getCourierPerformance.bind(analyticsController)
-);
-
-router.get(
-  '/export/logistics',
-  jwtAuth(),
-  analyticsController.exportLogistics.bind(analyticsController)
-);
-
-router.get(
-  '/export/couriers',
-  jwtAuth(),
-  analyticsController.exportCouriers.bind(analyticsController)
+  analyticsController.exportAnalytics
 );
 
 export const analyticsRoutes = router;

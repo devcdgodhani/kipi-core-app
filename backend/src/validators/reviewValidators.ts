@@ -25,7 +25,7 @@ const reviewUpdateSchema = z.object({
   isVisible: z.boolean().optional(),
 }).strict();
 
-export default class ReviewValidator {
+export class ReviewValidator {
   getOne = validate(
     z.object({
       body: reviewFilterSchema.partial().optional(),
@@ -66,3 +66,5 @@ export default class ReviewValidator {
     })
   );
 }
+
+export const reviewValidator = new ReviewValidator();

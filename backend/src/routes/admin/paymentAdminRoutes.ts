@@ -1,30 +1,26 @@
 import { Router } from 'express';
-import PaymentGatewayController from '../../controllers/paymentGatewayController';
-import { WebhookController } from '../../controllers/webhookController';
-import PaymentController from '../../controllers/paymentController';
-import AdminPaymentValidators from '../../validators/adminPaymentValidators';
+import { paymentGatewayController } from '../../controllers/paymentGatewayController';
+import { webhookController } from '../../controllers/webhookController';
+import { paymentController } from '../../controllers/paymentController';
+import { adminPaymentValidator } from '../../validators/adminPaymentValidators';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
-const gatewayController = new PaymentGatewayController();
-const webhookController = new WebhookController();
-const paymentController = new PaymentController();
-const validators = new AdminPaymentValidators();
 
 // All admin routes require authentication
 router.use(jwtAuth());
 
 // Payment gateway management
-router.get('/payment-gateways', validators.getAllGateways, gatewayController.getAllGateways);
-router.post('/payment-gateways', validators.updateGateway, gatewayController.createGateway); // Reusing update validator for now
-router.put('/payment-gateways/:name', validators.updateGateway, gatewayController.updateGateway);
-router.patch('/payment-gateways/:name/toggle', validators.toggleGateway, gatewayController.toggleGateway);
+router.get('/payment-gateways', adminPaymentValidator.getAllGateways, paymentGatewayController.getAllGateways);
+router.post('/payment-gateways', adminPaymentValidator.updateGateway, paymentGatewayController.createGateway); // Reusing update validator for now
+router.put('/payment-gateways/:name', adminPaymentValidator.updateGateway, paymentGatewayController.updateGateway);
+router.patch('/payment-gateways/:name/toggle', adminPaymentValidator.toggleGateway, paymentGatewayController.toggleGateway);
 
 // Webhook logs management
-router.get('/webhooks/logs', validators.getWebhookLogs, webhookController.getWithPagination);
-router.post('/webhooks/:id/retry', validators.retryWebhook, webhookController.retryWebhook);
+router.get('/webhooks/logs', adminPaymentValidator.getWebhookLogs, webhookController.getWithPagination);
+router.post('/webhooks/:id/retry', adminPaymentValidator.retryWebhook, webhookController.retryWebhook);
 
 // Payment status management
-router.get('/payments/:id/status', validators.fetchPaymentStatus, paymentController.fetchPaymentStatus);
+router.get('/payments/:id/status', adminPaymentValidator.fetchPaymentStatus, paymentController.fetchPaymentStatus);
 
 export default router;

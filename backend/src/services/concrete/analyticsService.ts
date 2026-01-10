@@ -1,18 +1,20 @@
 import { ORDER_STATUS } from '../../constants';
-import { OrderService } from './orderService';
-import { LotService } from './lotService';
-import { ShipmentService } from './shipmentService';
-import { RtoService } from './rtoService';
-import { NdrService } from './ndrService';
+import { orderService } from './orderService';
+import { lotService } from './lotService';
+import { shipmentService } from './shipmentService';
+import { rtoService } from './rtoService';
+import { ndrService } from './ndrService';
 
 import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance } from '../contracts/analyticsServiceInterface';
 
 export class AnalyticsService implements IAnalyticsService {
-  private orderService = new OrderService();
-  private lotService = new LotService();
-  private shipmentService = new ShipmentService();
-  private rtoService = new RtoService();
-  private ndrService = new NdrService();
+  private get orderService() { return orderService; }
+  private get lotService() { return lotService; }
+  private get shipmentService() { return shipmentService; }
+  private get rtoService() { return rtoService; }
+  private get ndrService() { return ndrService; }
+
+  constructor() {}
 
   /**
    * Get revenue analytics for a specific date range

@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import LoyaltyController from '../../controllers/loyaltyController';
+import { loyaltyController } from '../../controllers/loyaltyController';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
-const controller = new LoyaltyController();
 
 // All loyalty routes are protected
 router.use(jwtAuth());
@@ -13,6 +12,6 @@ router.use(jwtAuth());
  * @desc    Get user points balance and transaction ledger
  * @access  Private
  */
-router.post('/status', controller.getUserLoyalty);
+router.post('/status', loyaltyController.getUserLoyalty);
 
 export default router;

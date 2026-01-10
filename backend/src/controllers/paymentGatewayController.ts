@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { PaymentGatewayService } from '../services/concrete/PaymentGatewayService';
+import { PaymentGatewayService } from '../services/concrete/paymentGatewayService';
 import { IApiResponse } from '../interfaces';
 import { encryptObject, decryptObject } from '../helpers/encryptionHelper';
 
@@ -8,8 +8,14 @@ import { encryptObject, decryptObject } from '../helpers/encryptionHelper';
  * Payment Gateway Controller
  * Handles payment gateway configuration endpoints (Admin only)
  */
-export default class PaymentGatewayController {
-  private gatewayService = new PaymentGatewayService();
+import { paymentGatewayService } from '../services/concrete/paymentGatewayService';
+
+/**
+ * Payment Gateway Controller
+ * Handles payment gateway configuration endpoints (Admin only)
+ */
+export class PaymentGatewayController {
+  private get gatewayService() { return paymentGatewayService; }
 
   /**
    * Get all payment gateways
@@ -149,3 +155,5 @@ export default class PaymentGatewayController {
     }
   };
 }
+
+export const paymentGatewayController = new PaymentGatewayController();

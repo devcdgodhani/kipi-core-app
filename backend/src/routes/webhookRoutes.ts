@@ -1,10 +1,8 @@
 import express from 'express';
-import { WebhookController } from '../controllers/webhookController';
-import WebhookValidators from '../validators/webhookValidators';
+import { webhookController } from '../controllers/webhookController';
+import { webhookValidator } from '../validators/webhookValidators';
 
 const router = express.Router();
-const webhookController = new WebhookController();
-const validators = new WebhookValidators();
 
 // Logistics Webhooks
 router.post(
@@ -15,31 +13,31 @@ router.post(
 // Payment Webhooks
 router
 .get('/razorpay',
-  validators.razorpayWebhook,
+  webhookValidator.razorpayWebhook,
   webhookController.handleRazorpayWebhook).
 post(
   '/razorpay',
-  validators.razorpayWebhook,
+  webhookValidator.razorpayWebhook,
   webhookController.handleRazorpayWebhook
 );
 
 router
 .get('/phonepe',
-  // validators.phonePeWebhook,
+  // webhookValidator.phonePeWebhook,
   webhookController.handlePhonePeWebhook)
 .post(
   '/phonepe',
-  // validators.phonePeWebhook,
+  // webhookValidator.phonePeWebhook,
   webhookController.handlePhonePeWebhook
 );
 
 router
 .get('/paytm',
-  validators.paytmWebhook,
+  webhookValidator.paytmWebhook,
   webhookController.handlePaytmWebhook)
 .post(
   '/paytm',
-  validators.paytmWebhook,
+  webhookValidator.paytmWebhook,
   webhookController.handlePaytmWebhook
 );
 

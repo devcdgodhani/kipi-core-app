@@ -14,7 +14,14 @@ export const ManageOrderDetailsLazy = lazy(() => import('../../pages/Orders/Orde
 export const ManageUsersLazy = lazy(() => import('../../pages/User/UserList'));
 export const ProfileLazy = lazy(() => import('../../pages/Profile/Profile'));
 export const ChangePasswordLazy = lazy(() => import('../../pages/Auth/ChangePassword'));
-export const WhatsAppLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppList'));
+
+export const WhatsAppDashboardLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppDashboard'));
+export const WhatsAppAccountsLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppAccounts'));
+export const WhatsAppAccountDetailsLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppAccountDetails'));
+export const WhatsAppQueueLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppQueue'));
+export const WhatsAppContactsLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppContacts'));
+export const WhatsAppRiskLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppRisk'));
+export const WhatsAppSystemLazy = lazy(() => import('../../pages/WhatsApp/WhatsAppSystem'));
 export const ManageLotsLazy = lazy(() => import('../../pages/Lot/LotList'));
 export const ManageLotFormLazy = lazy(() => import('../../pages/Lot/LotForm'));
 export const ManageCategoriesLazy = lazy(() => import('../../pages/Category/CategoryList'));

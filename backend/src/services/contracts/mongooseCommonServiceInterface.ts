@@ -11,6 +11,7 @@ import {
   DeleteResult,
   ObjectId,
   Document,
+  ProjectionType,
 } from 'mongoose';
 import { IPaginationData } from '../../interfaces';
 
@@ -23,25 +24,40 @@ export interface IReadService<T> {
 
   findAll(
     filter: FilterQuery<T>,
-    options?: QueryOptions,
+    options?: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    },
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T[]>;
 
   findOne(
     filter: FilterQuery<T>,
-    options?: QueryOptions,
+    options?: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    },
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T | null>;
 
   findById(
     id: string,
-    options?: QueryOptions,
+    options?: QueryOptions & {
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    },
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<T | null>;
 
   findAllWithPagination(
     filter: FilterQuery<T>,
-    options: QueryOptions,
+    options: QueryOptions & {
+      page?: number;
+      limit?: number;
+      order?: Partial<Record<keyof T, 1 | -1>>;
+      projection?: ProjectionType<T>;
+      populate?: string | string[] | PopulateOptions | PopulateOptions[];
+    },
     populate?: PopulateOptions | PopulateOptions[]
   ): Promise<IPaginationData<T>>;
 

@@ -63,7 +63,7 @@ const productCreateSchema = z.object({
 
 const productUpdateSchema = productCreateSchema.partial();
 
-export default class ProductValidator {
+export class ProductValidator {
   getOne = validate(
     z.object({
       body: productFilterSchema.partial().optional(),
@@ -106,3 +106,5 @@ export default class ProductValidator {
     })
   );
 }
+
+export const productValidator = new ProductValidator();

@@ -48,10 +48,12 @@ const getRefundsByOrderSchema = z.object({
   })
 });
 
-export default class CustomerRefundValidators {
+export class CustomerRefundValidators {
   initiateRefund = validate(initiateRefundSchema);
   getMyRefunds = validate(getMyRefundsSchema);
   getRefundById = validate(getRefundByIdSchema);
   getRefundsByPayment = validate(getRefundsByPaymentSchema);
   getRefundsByOrder = validate(getRefundsByOrderSchema);
 }
+
+export const customerRefundValidator = new CustomerRefundValidators();

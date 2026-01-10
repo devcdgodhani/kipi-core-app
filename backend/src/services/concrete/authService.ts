@@ -18,10 +18,10 @@ import {
 } from '../../constants';
 import { ApiError, generateOtp, sendEmail } from '../../helpers';
 import { IAuthTokenAttributes, IUserAttributes } from '../../interfaces';
-import { AuthTokenService } from './authTokenService';
-import { OtpService } from './otpService';
-import { UserService } from './userService';
-import { WhatsAppService } from './whatsAppService';
+import { AuthTokenService, authTokenService } from './authTokenService';
+import { OtpService, otpService } from './otpService';
+import { UserService, userService } from './userService';
+
 import { TOtpCreate } from '../../types/otp';
 import { addMinutes, getTime, getUnixTime } from 'date-fns';
 import { TAuthTokenCreate } from '../../types/authToken';
@@ -29,10 +29,10 @@ import { TGenerateTokenParams } from '../../types/common';
 import { logisticsQueues } from '../../jobs/queues/logisticsQueues';
 
 export class AuthService implements IAuthService {
-  private userService = new UserService();
-  private authTokenService = new AuthTokenService();
-  private otpService = new OtpService();
-  private whatsAppService = new WhatsAppService();
+  private get userService() { return userService; }
+  private get authTokenService() { return authTokenService; }
+  private get otpService() { return otpService; }
+
   constructor() {}
 
   checkUserAccountExist = async (
@@ -209,3 +209,5 @@ export class AuthService implements IAuthService {
     return token;
   };
 }
+
+export const authService = new AuthService();

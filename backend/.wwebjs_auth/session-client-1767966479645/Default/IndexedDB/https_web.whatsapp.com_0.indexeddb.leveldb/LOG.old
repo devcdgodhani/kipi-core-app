@@ -1,0 +1,23 @@
+2026/01/10-13:48:07.053 322b Reusing MANIFEST /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-client-1767966479645/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/01/10-13:48:07.054 322b Recovering log #993
+2026/01/10-13:48:07.101 322b Reusing old log /home/aurum/dev-chetan/kipi-core-app/backend/.wwebjs_auth/session-client-1767966479645/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000993.log 
+2026/01/10-13:48:08.715 3237 Level-0 table #1016: started
+2026/01/10-13:48:08.726 3237 Level-0 table #1016: 456778 bytes OK
+2026/01/10-13:48:08.727 3237 Delete type=0 #993
+2026/01/10-13:48:08.727 322b Manual compaction at level-0 from '\x00+\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00,\x00\x00\x00' @ 0 : 0; will stop at '\x00+\x00\x00\x05' @ 3408812 : 1
+2026/01/10-13:48:08.727 322b Compacting 1@0 + 2@1 files
+2026/01/10-13:48:08.751 322b Generated table #1017@0: 11315 keys, 199338 bytes
+2026/01/10-13:48:08.753 322b Generated table #1018@0: 1135 keys, 34505 bytes
+2026/01/10-13:48:08.753 322b Compacted 1@0 + 2@1 files => 233843 bytes
+2026/01/10-13:48:08.754 322b compacted to: files[ 0 2 23 0 0 0 0 ]
+2026/01/10-13:48:08.755 322b Delete type=2 #1016
+2026/01/10-13:48:08.755 322b Manual compaction at level-0 from '\x00+\x00\x00\x05' @ 3408812 : 1 .. '\x00,\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/01/10-13:48:09.390 322d Compacting 1@1 + 1@2 files
+2026/01/10-13:48:09.446 322d Generated table #1019@1: 69524 keys, 2234462 bytes
+2026/01/10-13:48:09.447 322d Generated table #1020@1: 112 keys, 29548 bytes
+2026/01/10-13:48:09.447 322d Compacted 1@1 + 1@2 files => 2264010 bytes
+2026/01/10-13:48:09.449 322d compacted to: files[ 0 1 24 0 0 0 0 ]
+2026/01/10-13:48:09.449 322d Delete type=2 #1004
+2026/01/10-13:48:09.449 322d Delete type=2 #988
+2026/01/10-13:48:09.449 322d Delete type=2 #1003
+2026/01/10-13:48:09.449 322d Delete type=2 #1017

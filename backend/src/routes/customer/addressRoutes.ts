@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
-import AddressController from '../../controllers/addressController';
-import AddressValidator from '../../validators/addressValidators';
+import { addressController } from '../../controllers/addressController';
+import { addressValidator } from '../../validators/addressValidators';
 
 const router = Router();
-const addressController = new AddressController();
-const addressValidator = new AddressValidator();
 
 router.route('/getAll')
   .get(jwtAuth(), addressValidator.getAll, addressController.getMyAddresses)

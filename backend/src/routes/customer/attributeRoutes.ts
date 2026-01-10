@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import AttributeController from '../../controllers/attributeController';
-import AttributeValidator from '../../validators/attributeValidators';
+import { attributeController } from '../../controllers/attributeController';
+import { attributeValidator } from '../../validators/attributeValidators';
 
 const router = Router();
-const attributeController = new AttributeController();
-const attributeValidator = new AttributeValidator();
 
 router.route('/getOne')
   .get(attributeValidator.getOne, attributeController.getOne)

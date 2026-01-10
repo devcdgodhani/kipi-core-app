@@ -43,7 +43,7 @@ const userUpdateSchema = z.object({
   isVerified: z.boolean().optional(),
 }).strict();
 
-export default class UserValidator {
+export class UserValidator {
   getOne = validate(
     z.object({
       body: userFilterSchema.partial().optional(),
@@ -86,3 +86,5 @@ export default class UserValidator {
     })
   );
 }
+
+export const userValidator = new UserValidator();

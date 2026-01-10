@@ -1,12 +1,9 @@
 import { Router } from 'express';
-// import { jwtAuth } from '../../middlewares/jwtAuth'; // Assuming auth is needed, usually yes
-import FileStorageController from '../../controllers/fileStorageController';
-import FileStorageValidator from '../../validators/fileStorageValidators';
+import { fileStorageController } from '../../controllers/fileStorageController';
+import { fileStorageValidator } from '../../validators/fileStorageValidators';
 import { uploadMiddleware } from '../../middlewares/uploadMiddleware';
 
 const router = Router();
-const fileStorageController = new FileStorageController();
-const fileStorageValidator = new FileStorageValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

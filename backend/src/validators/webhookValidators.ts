@@ -30,8 +30,10 @@ const paytmWebhookSchema = z.object({
   headers: z.object({}).passthrough() // Allow all headers
 });
 
-export default class WebhookValidators {
+export class WebhookValidators {
   phonePeWebhook = validate(phonePeWebhookSchema);
   razorpayWebhook = validate(razorpayWebhookSchema);
   paytmWebhook = validate(paytmWebhookSchema);
 }
+
+export const webhookValidator = new WebhookValidators();

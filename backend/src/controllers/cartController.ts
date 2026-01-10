@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { CartService } from '../services/concrete/cartService';
+import { cartService } from '../services/concrete/cartService';
 import { IApiResponse, IPaginationData, ICartAttributes } from '../interfaces';
 
 const CART_SUCCESS_MESSAGES = {
@@ -10,10 +10,8 @@ const CART_SUCCESS_MESSAGES = {
   DELETE_SUCCESS: 'Cart deleted successfully',
 };
 
-export default class CartController {
-  cartService = new CartService();
-
-  constructor() {}
+export class CartController {
+  private get cartService() { return cartService; }
 
   /*********** Fetch carts ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -116,7 +114,7 @@ export default class CartController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await this.cartService.updateOne({ _id: id }, updateData, { userId: req.user._id });
+      await this.cartService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -137,7 +135,7 @@ export default class CartController {
         filters: reqData,
       });
 
-      await this.cartService.softDelete(filter, { userId: req.user._id });
+      await this.cartService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -150,3 +148,5 @@ export default class CartController {
     }
   };
 }
+
+export const cartController = new CartController();

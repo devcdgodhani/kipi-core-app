@@ -1,6 +1,5 @@
-import { Schema, model, Document } from 'mongoose';
-import { IOrder } from '../../../types/order';
-export interface IOrderDocument extends IOrder, Document {}
+import { Schema, model } from 'mongoose';
+import { IOrderDocument } from '../../../interfaces';
 
 const OrderItemSchema = new Schema({
   productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },

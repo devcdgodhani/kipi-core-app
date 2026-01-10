@@ -3,11 +3,11 @@ import { HTTP_STATUS_CODE } from '../constants';
 import { cronJobService } from '../services/concrete/cronJobService';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
-export default class CronJobController {
+export class CronJobController {
   
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = cronJobService.generateFilter({
         filters: reqData,
       });
@@ -29,7 +29,7 @@ export default class CronJobController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = cronJobService.generateFilter({
         filters: reqData,
       });
@@ -50,7 +50,7 @@ export default class CronJobController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = cronJobService.generateFilter({
         filters: reqData,
       });
@@ -92,7 +92,7 @@ export default class CronJobController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await cronJobService.updateOne({ _id: id } as any, updateData, { userId: req.user._id });
+      await cronJobService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -112,7 +112,7 @@ export default class CronJobController {
         filters: reqData,
       });
 
-      await cronJobService.softDelete(filter, { userId: req.user._id });
+      await cronJobService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -158,3 +158,5 @@ export default class CronJobController {
     }
   };
 }
+
+export const cronJobController = new CronJobController();

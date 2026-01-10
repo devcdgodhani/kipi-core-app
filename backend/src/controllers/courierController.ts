@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { courierService } from '../services/concrete/courierService';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse, IPaginationData } from '../interfaces';
+import { ICourierAttributes } from '../interfaces/courier';
 
-export default class CourierController {
+export class CourierController {
+  private get courierService() { return courierService; }
   
   /*********** Get One (Standard) ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,23 +15,24 @@ export default class CourierController {
       
       let courier;
       if (id) {
-        courier = await courierService.findById(id);
+        courier = await this.courierService.findById(id);
       } else {
-        const { filter, options } = courierService.generateFilter({
+        const { filter, options } = this.courierService.generateFilter({
           filters: reqData,
         });
-        courier = await courierService.findOne(filter, options);
+        courier = await this.courierService.findOne(filter, options);
       }
       
       if (!courier) {
-        return res.status(HTTP_STATUS_CODE.NOTFOUND.STATUS).json({
+        const errorResponse: IApiResponse = {
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
           message: 'Courier not found'
-        });
+        };
+        return res.status(errorResponse.status).json(errorResponse);
       }
 
-      const response: IApiResponse<any> = {
+      const response: IApiResponse<ICourierAttributes> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Courier fetched successfully',
@@ -45,13 +48,13 @@ export default class CourierController {
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
-      const { filter, options } = courierService.generateFilter({
+      const { filter, options } = this.courierService.generateFilter({
         filters: reqData,
       });
 
-      const courierList = await courierService.findAll(filter, options);
+      const courierList = await this.courierService.findAll(filter, options);
 
-      const response: IApiResponse<any[]> = {
+      const response: IApiResponse<ICourierAttributes[]> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'All couriers fetched successfully',
@@ -68,14 +71,14 @@ export default class CourierController {
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query, ...req.body };
-      const { filter, options } = courierService.generateFilter({
+      const { filter, options } = this.courierService.generateFilter({
         filters: reqData,
         searchFields: ['name', 'code', 'provider']
       });
 
-      const courierList = await courierService.findAllWithPagination(filter, options);
+      const courierList = await this.courierService.findAllWithPagination(filter, options);
 
-      const response: IApiResponse<IPaginationData<any>> = {
+      const response: IApiResponse<IPaginationData<ICourierAttributes>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Couriers fetched successfully',
@@ -92,9 +95,9 @@ export default class CourierController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = req.body;
-      const result = await courierService.create(data, { userId: req.user?._id });
+      const result = await this.courierService.create(data, { userId: req.user?._id });
 
-      const response: IApiResponse<any> = {
+      const response: IApiResponse<ICourierAttributes> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: 'Courier created successfully',
@@ -113,7 +116,7 @@ export default class CourierController {
       const updateData = req.body;
       const userId = req.user?._id;
 
-      await courierService.updateOne({ _id: id } as any, updateData, { userId });
+      await this.courierService.updateOne({ _id: id } as any, updateData, { userId });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -130,11 +133,11 @@ export default class CourierController {
   deleteByFilter = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = req.body;
-      const { filter } = courierService.generateFilter({
+      const { filter } = this.courierService.generateFilter({
         filters: reqData,
       });
 
-      await courierService.softDelete(filter, { userId: req.user?._id });
+      await this.courierService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -152,7 +155,7 @@ export default class CourierController {
     try {
       const { id } = req.params;
       const { isActive } = req.body;
-      await courierService.toggleActive(id, isActive);
+      await this.courierService.toggleActive(id, isActive);
       
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -165,3 +168,5 @@ export default class CourierController {
     }
   };
 }
+
+export const courierController = new CourierController();

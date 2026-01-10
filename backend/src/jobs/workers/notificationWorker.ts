@@ -4,11 +4,11 @@ import { QUEUE_NAMES } from '../../jobs/queues/logisticsQueues';
 import { INotificationJobPayload } from '../../jobs/types';
 import { sendEmail } from '../../helpers/sendEmail';
 
-import { WhatsAppService } from '../../services/concrete/whatsAppService'; 
+import { WhatsAppAccountService } from '../../services/concrete/whatsAppAccountService'; 
 
 const notificationProcessor = async (job: Job<INotificationJobPayload>) => {
   const { type, recipient, template, data } = job.data;
-  const whatsAppService = new WhatsAppService();
+  const whatsAppAccountService = new WhatsAppAccountService();
   console.log(`Processing notification job ${job.id} [${type}] for ${recipient}`);
 
   try {
@@ -25,7 +25,8 @@ const notificationProcessor = async (job: Job<INotificationJobPayload>) => {
       });
     } else if (type === 'WHATSAPP') {
        const message = data.body || data.message || `Update for your order: ${template}`;
-       await whatsAppService.sendAutomatedMessage(recipient, message);
+       // Use queue-based sending instead of direct send
+       await whatsAppAccountService.enqueueBestEffortMessage(recipient, message);
     }
 
     return Promise.resolve();
@@ -34,6 +35,7 @@ const notificationProcessor = async (job: Job<INotificationJobPayload>) => {
     return Promise.reject(error);
   }
 };
+
 
 export const setupNotificationWorker = () => {
   QueueFactory.createWorker(QUEUE_NAMES.NOTIFICATION, notificationProcessor);

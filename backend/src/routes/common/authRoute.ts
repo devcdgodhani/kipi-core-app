@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 import { TOKEN_TYPE } from '../../constants';
-import AuthController from '../../controllers/authController';
-import AuthValidator from '../../validators/authValidators';
+import { authController } from '../../controllers/authController';
+import { authValidator } from '../../validators/authValidators';
 
 
 
   const router = Router();
-  const authController = new AuthController();
-  const authValidator = new AuthValidator();
 
   // Public routes
   router.post('/register', authValidator.registerValidator, authController.register);

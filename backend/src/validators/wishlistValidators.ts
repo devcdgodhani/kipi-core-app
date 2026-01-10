@@ -23,7 +23,7 @@ const wishlistUpdateSchema = z.object({
   status: z.string().optional(),
 }).strict();
 
-export default class WishlistValidator {
+export class WishlistValidator {
   getOne = validate(
     z.object({
       body: wishlistFilterSchema.partial().optional(),
@@ -64,3 +64,5 @@ export default class WishlistValidator {
     })
   );
 }
+
+export const wishlistValidator = new WishlistValidator();

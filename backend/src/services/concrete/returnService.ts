@@ -5,12 +5,12 @@ import { RETURN_STATUS } from '../../constants/return';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 import { orderService } from './orderService';
-import { paymentService } from './PaymentService';
+import { paymentService } from './paymentService';
 
 import { inventoryService } from './inventoryService';
 import { IReturnService } from '../contracts/returnServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
-import { paymentRefundService } from './PaymentRefundService';
+import { paymentRefundService } from './paymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
 
 export class ReturnService extends MongooseCommonService<IReturn, IReturn> implements IReturnService {

@@ -7,3 +7,5 @@ export class PresignedUrlService extends MongooseCommonService<IPresignedUrlAttr
     super(PresignedUrlModel as any);
   }
 }
+
+export const presignedUrlService = new PresignedUrlService();

@@ -31,7 +31,7 @@ const cartUpdateSchema = z.object({
   status: z.string().optional(),
 }).strict();
 
-export default class CartValidator {
+export class CartValidator {
   getOne = validate(
     z.object({
       body: cartFilterSchema.partial().optional(),
@@ -74,3 +74,5 @@ export default class CartValidator {
     })
   );
 }
+
+export const cartValidator = new CartValidator();

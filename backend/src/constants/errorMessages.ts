@@ -26,3 +26,11 @@ export enum OTP_ERROR_MESSAGES {
   INVALID_OTP = 'Invalid otp!',
 }
 
+export enum PRODUCT_ERROR_MESSAGES {
+  CREATE_FAIL = 'Unable to create product!',
+  GET_FAIL = 'Unable to retrieve product details!',
+  UPDATE_FAIL = 'Unable to update product details!',
+  DELETE_FAIL = 'Unable to delete product details!',
+  NOT_FOUND = 'Unable to find product details!',
+  EXIST = 'Product already exists!',
+}

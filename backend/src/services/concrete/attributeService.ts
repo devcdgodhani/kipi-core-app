@@ -2,13 +2,13 @@ import { AttributeModel } from '../../db/mongodb/models/attributeModel';
 import { IAttributeAttributes, IAttributeDocument } from '../../interfaces';
 import { IAttributeService } from '../contracts/attributeServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
-import { CategoryService } from './categoryService';
+import { categoryService } from './categoryService';
 
 export class AttributeService
   extends MongooseCommonService<IAttributeAttributes, IAttributeDocument>
   implements IAttributeService
 {
-  private categoryService = new CategoryService();
+  private get categoryService() { return categoryService; }
 
   constructor() {
     super(AttributeModel as any);

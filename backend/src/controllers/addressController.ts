@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { AddressService } from '../services/concrete/addressService';
+import { addressService } from '../services/concrete/addressService';
 import { IApiResponse, IPaginationData, IAddressAttributes } from '../interfaces';
 
 const ADDRESS_SUCCESS_MESSAGES = {
@@ -10,10 +10,8 @@ const ADDRESS_SUCCESS_MESSAGES = {
   DELETE_SUCCESS: 'Address deleted successfully',
 };
 
-export default class AddressController {
-  addressService = new AddressService();
-
-  constructor() {}
+export class AddressController {
+  private get addressService() { return addressService; }
 
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -118,7 +116,7 @@ export default class AddressController {
     try {
       const { id } = req.params;
       const updateData = req.body;
-      await this.addressService.updateOne({ _id: id }, updateData, { userId: req.user._id });
+      await this.addressService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -135,7 +133,7 @@ export default class AddressController {
     try {
       const reqData = req.body;
       const { filter } = this.addressService.generateFilter({ filters: reqData });
-      await this.addressService.softDelete(filter, { userId: req.user._id });
+      await this.addressService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -148,3 +146,5 @@ export default class AddressController {
     }
   };
 }
+
+export const addressController = new AddressController();

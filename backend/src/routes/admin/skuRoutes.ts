@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import SkuController from '../../controllers/skuController';
-import SkuValidator from '../../validators/skuValidators';
+import { skuController } from '../../controllers/skuController';
+import { skuValidator } from '../../validators/skuValidators';
 
 const router = Router();
-const skuController = new SkuController();
-const skuValidator = new SkuValidator();
 
 router.route('/getOne')
   .get(skuValidator.getOne, skuController.getOne)

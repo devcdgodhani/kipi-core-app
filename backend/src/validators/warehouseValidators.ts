@@ -32,7 +32,7 @@ const warehouseCreateSchema = z.object({
 
 const warehouseUpdateSchema = warehouseCreateSchema.partial();
 
-export default class WarehouseValidator {
+export class WarehouseValidator {
   getOne = validate(
     z.object({
       body: warehouseFilterSchema.partial().optional(),
@@ -75,3 +75,5 @@ export default class WarehouseValidator {
     })
   );
 }
+
+export const warehouseValidator = new WarehouseValidator();

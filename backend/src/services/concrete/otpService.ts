@@ -11,3 +11,5 @@ export class OtpService
     super(OtpModel);
   }
 }
+
+export const otpService = new OtpService();

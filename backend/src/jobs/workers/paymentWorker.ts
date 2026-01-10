@@ -3,8 +3,8 @@ import { QueueFactory } from '../../services/infrastructure/queueFactory';
 import { PAYMENT_QUEUE_NAMES } from '../../jobs/queues/paymentQueues';
 import { IPaymentWebhookJobPayload } from '../../jobs/types';
 import { PAYMENT_GATEWAY } from '../../constants/payment';
-import { WebhookHandlerService } from '../../services/concrete/WebhookHandlerService';
-import { PaymentService } from '../../services/concrete/PaymentService';
+import { WebhookHandlerService } from '../../services/concrete/webhookHandlerService';
+import { PaymentService } from '../../services/concrete/paymentService';
 
 /**
  * Processor for payment webhooks

@@ -41,7 +41,7 @@ interface SidebarProps {
 interface SidebarSection {
     title: string;
     icon: any;
-    items: { to: string; label: string; icon: any }[];
+    items: { to: string; label: string; icon: any; external?: boolean }[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
@@ -127,8 +127,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             items: [
                 { to: '/reviews', label: 'Reviews', icon: Star },
                 { to: '/coupons', label: 'Coupons', icon: Ticket },
-                { to: '/loyalty', label: 'Rewards Hub', icon: Coins },
-                { to: '/whatsapp', label: 'WhatsApp', icon: MessageSquare }
+                { to: '/loyalty', label: 'Rewards Hub', icon: Coins }
+            ]
+        },
+        {
+            title: 'WhatsApp',
+            icon: MessageSquare,
+            items: [
+                { to: '/whatsapp/dashboard', label: 'Dashboard', icon: BarChart3 },
+
+                { to: '/whatsapp/accounts', label: 'Accounts', icon: Users },
+                { to: '/whatsapp/queue', label: 'Queue', icon: Layers },
+                { to: '/whatsapp/contacts', label: 'Contacts', icon: Users },
+                { to: '/whatsapp/risk', label: 'Risk Monitor', icon: AlertTriangle },
+                { to: '/whatsapp/system', label: 'System', icon: Settings },
             ]
         },
         {
@@ -144,7 +156,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: Users,
             items: [
                 { to: '/users', label: 'Users', icon: Users },
-                { to: '/cron-hub', label: 'Cron Hub', icon: Cpu }
+                { to: '/cron-hub', label: 'Cron Hub', icon: Cpu },
+                {
+                    to: `${(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/admin').replace(/\/$/, '')}/queues-dashboard?token=${localStorage.getItem('ACCESS_TOKEN')}`,
+                    label: 'Queue Dashboard',
+                    icon: Activity,
+                    external: true
+                }
             ]
         }
     ];
@@ -195,6 +213,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                     <div className="space-y-1 pl-2">
                                         {section.items.map((item) => {
                                             const ItemIcon = item.icon;
+
+                                            if (item.external) {
+                                                return (
+                                                    <a
+                                                        key={item.to}
+                                                        href={item.to}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                                    >
+                                                        <ItemIcon size={18} />
+                                                        <span>{item.label}</span>
+                                                    </a>
+                                                );
+                                            }
+
                                             return (
                                                 <NavLink
                                                     key={item.to}

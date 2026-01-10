@@ -1,5 +1,10 @@
 export * from './user';
-export * from './whatsAppSession';
+
+export * from './whatsAppAccount';
+export * from './whatsAppContact';
+export * from './whatsAppMessage';
+export * from './whatsAppRiskEvent';
+export * from './whatsAppTemplate';
 export * from './wishlist';
 export * from './shipment';
 export * from './rto';
@@ -21,4 +26,4 @@ export * from './cart';
 export * from './wishlist';
 export * from './review';
 export * from './address';
-export * from './coupon';
+export * from './coupon';export * from './order';

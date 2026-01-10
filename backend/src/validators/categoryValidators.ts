@@ -27,7 +27,7 @@ const categoryCreateSchema = z.object({
 
 const categoryUpdateSchema = categoryCreateSchema.partial();
 
-export default class CategoryValidator {
+export class CategoryValidator {
   getOne = validate(
     z.object({
       body: categoryFilterSchema.partial().optional(),
@@ -70,3 +70,5 @@ export default class CategoryValidator {
     })
   );
 }
+
+export const categoryValidator = new CategoryValidator();

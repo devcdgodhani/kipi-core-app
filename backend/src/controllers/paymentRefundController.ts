@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { PaymentRefundService } from '../services/concrete/PaymentRefundService';
+import { PaymentRefundService } from '../services/concrete/paymentRefundService';
 import { IApiResponse } from '../interfaces';
 import { PAYMENT_SUCCESS_MESSAGES } from '../constants/payment';
 
@@ -8,8 +8,10 @@ import { PAYMENT_SUCCESS_MESSAGES } from '../constants/payment';
  * Payment Refund Controller
  * Handles refund-related API endpoints
  */
-export default class PaymentRefundController {
-  private refundService = new PaymentRefundService();
+import { paymentRefundService } from '../services/concrete/paymentRefundService';
+
+export class PaymentRefundController {
+  private get refundService() { return paymentRefundService; }
 
   /**
    * Initiate refund for a payment
@@ -151,3 +153,5 @@ export default class PaymentRefundController {
     }
   };
 }
+
+export const paymentRefundController = new PaymentRefundController();

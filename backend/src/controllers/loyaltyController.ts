@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { LoyaltyService } from '../services/concrete/loyaltyService';
-import { UserService } from '../services/concrete/userService';
+import { loyaltyService } from '../services/concrete/loyaltyService';
+import { userService } from '../services/concrete/userService';
 import { HTTP_STATUS_CODE } from '../constants';
 import { IApiResponse, IPaginationData } from '../interfaces';
 
-export default class LoyaltyController {
-    private loyaltyService = new LoyaltyService();
-    private userService = new UserService();
+export class LoyaltyController {
+    private get loyaltyService() { return loyaltyService; }
+    private get userService() { return userService; }
 
     /**
      * Get current user balance and ledger (Customer)
@@ -14,6 +14,9 @@ export default class LoyaltyController {
     getUserLoyalty = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = req.user?._id;
+            if (!userId) {
+                throw new Error('User not found in request');
+            }
             const user = await this.userService.findById(userId.toString(), {
                 projection: 'loyaltyPoints totalEarnedPoints'
             } as any);
@@ -149,3 +152,5 @@ export default class LoyaltyController {
         }
     };
 }
+
+export const loyaltyController = new LoyaltyController();

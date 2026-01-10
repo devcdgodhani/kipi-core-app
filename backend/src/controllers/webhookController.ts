@@ -6,7 +6,9 @@ import { logisticsQueues } from '../jobs/queues/logisticsQueues';
 import { paymentQueues } from '../jobs/queues/paymentQueues';
 import { JOB_NAMES } from '../jobs/types';
 import { PAYMENT_GATEWAY } from '../constants/payment';
-import { WebhookHandlerService } from '../services/concrete/WebhookHandlerService';
+import { WebhookHandlerService } from '../services/concrete/webhookHandlerService';
+
+import { webhookHandlerService } from '../services/concrete/webhookHandlerService';
 
 export class WebhookController {
   
@@ -54,9 +56,8 @@ export class WebhookController {
   handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const signature = req.headers['x-razorpay-signature'] as string;
-      const handlerService = new WebhookHandlerService();
 
-      const { isValid, logId } = await handlerService.validateAndLog(
+      const { isValid, logId } = await webhookHandlerService.validateAndLog(
         PAYMENT_GATEWAY.RAZORPAY,
         req.body,
         req.headers as any,
@@ -87,7 +88,6 @@ export class WebhookController {
   handlePhonePeWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const signature = (req.headers['x-verify'] || req.headers['authorization']) as string;
-      const handlerService = new WebhookHandlerService();
 
       let payload = req.body;
       if (req.body.response) {
@@ -95,7 +95,7 @@ export class WebhookController {
         payload = JSON.parse(decoded);
       }
 
-      const { isValid, logId } = await handlerService.validateAndLog(
+      const { isValid, logId } = await webhookHandlerService.validateAndLog(
         PAYMENT_GATEWAY.PHONEPE,
         payload,
         req.headers as any,
@@ -125,12 +125,10 @@ export class WebhookController {
    */
   handlePaytmWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const handlerService = new WebhookHandlerService();
-
       const payload = req.body;
       const signature = payload.CHECKSUMHASH || '';
 
-      const { isValid, logId } = await handlerService.validateAndLog(
+      const { isValid, logId } = await webhookHandlerService.validateAndLog(
         PAYMENT_GATEWAY.PAYTM,
         payload,
         req.headers as any,
@@ -160,21 +158,21 @@ export class WebhookController {
    */
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
-      const handlerService = new WebhookHandlerService();
+      const reqData = { ...req.query as any, ...req.body };
       
-      const { filter, options } = handlerService.generateFilter({
+      const { filter, options } = webhookHandlerService.generateFilter({
         filters: reqData,
       });
 
-      const logs = await handlerService.findAllWithPagination(filter, options);
+      const logs = await webhookHandlerService.findAllWithPagination(filter, options);
 
-      return res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: 'Webhook logs fetched successfully (paginated)',
         data: logs
-      });
+      };
+      return res.status(response.status).json(response);
     } catch (err: any) {
       return next(err);
     }
@@ -186,17 +184,20 @@ export class WebhookController {
   retryWebhook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const handlerService = new WebhookHandlerService();
 
-      const result = await handlerService.retryWebhook(id);
+      const result = await webhookHandlerService.retryWebhook(id);
 
-      return res.status(result.success ? 200 : 400).json({
+      const response: IApiResponse = {
         status: result.success ? HTTP_STATUS_CODE.OK.STATUS : HTTP_STATUS_CODE.BAD_REQUEST.STATUS,
         code: result.success ? HTTP_STATUS_CODE.OK.CODE : HTTP_STATUS_CODE.BAD_REQUEST.CODE,
         message: result.message
-      });
+      };
+
+      return res.status(response.status).json(response);
     } catch (err: any) {
       return next(err);
     }
   };
 }
+
+export const webhookController = new WebhookController();

@@ -1,11 +1,8 @@
 import { Router } from 'express';
-import { jwtAuth } from '../../middlewares/jwtAuth';
-import AttributeController from '../../controllers/attributeController';
-import AttributeValidator from '../../validators/attributeValidators';
+import { attributeController } from '../../controllers/attributeController';
+import { attributeValidator } from '../../validators/attributeValidators';
 
 const router = Router();
-const attributeController = new AttributeController();
-const attributeValidator = new AttributeValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

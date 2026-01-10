@@ -9,6 +9,8 @@ import { validate } from '../helpers/zodValidator';
 // Get Enabled Gateways Validator (public endpoint)
 const getEnabledGatewaysSchema = z.object({});
 
-export default class CommonPaymentValidators {
+export class CommonPaymentValidators {
   getEnabledGateways = validate(getEnabledGatewaysSchema);
 }
+
+export const commonPaymentValidator = new CommonPaymentValidators();

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { WishlistService } from '../services/concrete/wishlistService';
+import { wishlistService } from '../services/concrete/wishlistService';
 import { IApiResponse, IPaginationData, IWishlistAttributes } from '../interfaces';
 
 const WISHLIST_SUCCESS_MESSAGES = {
@@ -10,10 +10,8 @@ const WISHLIST_SUCCESS_MESSAGES = {
   DELETE_SUCCESS: 'Wishlist deleted successfully',
 };
 
-export default class WishlistController {
-  wishlistService = new WishlistService();
-
-  constructor() {}
+export class WishlistController {
+  private get wishlistService() { return wishlistService; }
 
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -101,7 +99,7 @@ export default class WishlistController {
     try {
       const { id } = req.params;
       const updateData = req.body;
-      await this.wishlistService.updateOne({ _id: id }, updateData, { userId: req.user._id });
+      await this.wishlistService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -118,7 +116,7 @@ export default class WishlistController {
     try {
       const reqData = req.body;
       const { filter } = this.wishlistService.generateFilter({ filters: reqData });
-      await this.wishlistService.softDelete(filter, { userId: req.user._id });
+      await this.wishlistService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -131,3 +129,5 @@ export default class WishlistController {
     }
   };
 }
+
+export const wishlistController = new WishlistController();

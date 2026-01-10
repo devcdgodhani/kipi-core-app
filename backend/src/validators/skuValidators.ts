@@ -42,7 +42,7 @@ const skuCreateSchema = z.object({
 
 const skuUpdateSchema = skuCreateSchema.partial();
 
-export default class SkuValidator {
+export class SkuValidator {
   getOne = validate(
     z.object({
       body: skuFilterSchema.partial().optional(),
@@ -85,3 +85,5 @@ export default class SkuValidator {
     })
   );
 }
+
+export const skuValidator = new SkuValidator();

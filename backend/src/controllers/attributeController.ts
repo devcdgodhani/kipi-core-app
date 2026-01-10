@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, ATTRIBUTE_SUCCESS_MESSAGES } from '../constants';
-import { AttributeService } from '../services/concrete/attributeService';
-import { IApiResponse, IPaginationData, IAttributeAttributes } from '../interfaces';
+import { attributeService } from '../services/concrete/attributeService';
+import { IApiResponse, IPaginationData } from '../interfaces';
+import { IAttributeAttributes } from '../interfaces/attribute';
 import slugify from 'slugify';
 
-export default class AttributeController {
-  attributeService = new AttributeService();
-
-  constructor() {}
+export class AttributeController {
+  private get attributeService() { return attributeService; }
 
   /*********** Fetch attributes ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -110,7 +109,7 @@ export default class AttributeController {
         updateData.slug = slugify(updateData.name, { lower: true });
       }
 
-      await this.attributeService.updateOne({ _id: id }, updateData, { userId: req.user._id });
+      await this.attributeService.updateOne({ _id: id }, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -131,7 +130,7 @@ export default class AttributeController {
         filters: reqData,
       });
 
-      await this.attributeService.softDelete(filter, { userId: req.user._id });
+      await this.attributeService.softDelete(filter, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -144,3 +143,5 @@ export default class AttributeController {
     }
   };
 }
+
+export const attributeController = new AttributeController();

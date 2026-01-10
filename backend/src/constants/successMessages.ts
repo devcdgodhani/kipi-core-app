@@ -20,12 +20,12 @@ export enum AUTH_SUCCESS_MESSAGES {
 }
 
 export enum WHATSAPP_SUCCESS_MESSAGES {
-  CREATE_SUCCESS = 'Session created and initializing',
-  GET_SUCCESS = 'Session fetched successfully',
-  UPDATE_SUCCESS = 'Session updated successfully',
-  DELETE_SUCCESS = 'Session deleted successfully',
-  INITIALIZE_SUCCESS = 'Session initialization started',
-  LOGOUT_SUCCESS = 'Session logged out',
+  CREATE_SUCCESS = 'Account created and initializing',
+  GET_SUCCESS = 'Account fetched successfully',
+  UPDATE_SUCCESS = 'Account updated successfully',
+  DELETE_SUCCESS = 'Account deleted successfully',
+  INITIALIZE_SUCCESS = 'Account initialization started',
+  LOGOUT_SUCCESS = 'Account logged out',
   MESSAGE_SENT = 'Message sent successfully',
   BULK_MESSAGE_SENT = 'Bulk message process completed',
 }
@@ -57,4 +57,11 @@ export enum FILE_STORAGE_SUCCESS_MESSAGES {
   UPDATE_SUCCESS = 'File details updated successfully',
   DELETE_SUCCESS = 'File deleted successfully',
   BULK_UPLOAD_SUCCESS = 'Files uploaded successfully',
+}
+
+export enum PRODUCT_SUCCESS_MESSAGES {
+  CREATE_SUCCESS = 'Product created successfully',
+  GET_SUCCESS = 'Product details retrieved successfully',
+  UPDATE_SUCCESS = 'Product details updated successfully',
+  DELETE_SUCCESS = 'Product deleted successfully',
 }

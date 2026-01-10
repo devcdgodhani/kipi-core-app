@@ -8,16 +8,16 @@ import { ENV_VARIABLE } from '../../configs/env';
 import * as s3Uploader from '../../helpers/s3Uploader';
 import * as cloudinaryUploader from '../../helpers/cloudinaryUploader';
 import path from 'path';
-import { FileDirectoryService } from './fileDirectoryService';
-import { PresignedUrlService } from './presignedUrlService';
+import { fileDirectoryService } from './fileDirectoryService';
+import { presignedUrlService } from './presignedUrlService';
  
 export class FileStorageService
   extends MongooseCommonService<IFileStorageAttributes, IFileStorageDocument>
   implements IFileStorageService
 {
-  private fileDirectoryService = new FileDirectoryService();
-  private presignedUrlService = new PresignedUrlService();
- 
+  private get fileDirectoryService() { return fileDirectoryService; }
+  private get presignedUrlService() { return presignedUrlService; }
+  
   constructor() {
     super(FileStorageModel as any);
   }
@@ -470,3 +470,6 @@ export class FileStorageService
       return { acknowledged: true, modifiedCount: 0, upsertedId: null, upsertedCount: 0, matchedCount: 0 };
   }
 }
+
+export const fileStorageService = new FileStorageService();
+

@@ -24,7 +24,7 @@ const filterSchema = z.object({
   isDeleted: z.boolean().optional(),
 });
 
-export default class CouponValidator {
+export class CouponValidator {
   create = validate(
     z.object({
       body: couponCreateSchema,
@@ -78,3 +78,5 @@ export default class CouponValidator {
     })
   );
 }
+
+export const couponValidator = new CouponValidator();

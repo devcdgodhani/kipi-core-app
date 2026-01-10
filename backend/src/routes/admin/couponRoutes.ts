@@ -1,29 +1,27 @@
 import { Router } from 'express';
-import CouponController from '../../controllers/couponController';
-import CouponValidator from '../../validators/couponValidators';
+import { couponController } from '../../controllers/couponController';
+import { couponValidator } from '../../validators/couponValidators';
 
 const router = Router();
-const controller = new CouponController();
-const validator = new CouponValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')
-  .get(validator.getOne, controller.getOne)
-  .post(validator.getOne, controller.getOne);
+  .get(couponValidator.getOne, couponController.getOne)
+  .post(couponValidator.getOne, couponController.getOne);
 
 router.route('/getAll')
-  .get(validator.getAll, controller.getAll)
-  .post(validator.getAll, controller.getAll);
+  .get(couponValidator.getAll, couponController.getAll)
+  .post(couponValidator.getAll, couponController.getAll);
 
 router.route('/getWithPagination')
-  .get(validator.getWithPagination, controller.getWithPagination)
-  .post(validator.getWithPagination, controller.getWithPagination);
+  .get(couponValidator.getWithPagination, couponController.getWithPagination)
+  .post(couponValidator.getWithPagination, couponController.getWithPagination);
 
-router.put('/:id', validator.updateById, controller.updateById);
+router.put('/:id', couponValidator.updateById, couponController.updateById);
 
-router.post('/', validator.create, controller.create);
+router.post('/', couponValidator.create, couponController.create);
 
-router.delete('/deleteByFilter', validator.deleteByFilter, controller.deleteByFilter);
+router.delete('/deleteByFilter', couponValidator.deleteByFilter, couponController.deleteByFilter);
 
 /****************************************************** */
 

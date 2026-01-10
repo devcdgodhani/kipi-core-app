@@ -1,7 +1,7 @@
 import { encryptObject } from '../../../helpers/encryptionHelper';
 import { PAYMENT_GATEWAY, GATEWAY_ENVIRONMENT, PAYMENT_GATEWAY_DEFAULTS } from '../../../constants/payment';
 import { ENV_VARIABLE } from '../../../configs/env';
-import { paymentGatewayService } from '../../../services/concrete/PaymentGatewayService';
+import { paymentGatewayService } from '../../../services/concrete/paymentGatewayService';
 import mongoose from 'mongoose';
 import { connectMongoDb } from '../index';
 

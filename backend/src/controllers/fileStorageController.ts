@@ -1,18 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE, FILE_STORAGE_SUCCESS_MESSAGES } from '../constants';
-import { FileStorageService } from '../services/concrete/fileStorageService';
+import { fileStorageService } from '../services/concrete/fileStorageService';
 import { IApiResponse, IPaginationData, IFileStorageAttributes, IFileDirectoryAttributes } from '../interfaces';
-import { FileStorageModel, FileDirectoryModel, PresignedUrlModel } from '../db/mongodb';
 
-export default class FileStorageController {
-  fileStorageService = new FileStorageService();
+export class FileStorageController {
+  private get fileStorageService() { return fileStorageService; }
 
   constructor() {}
 
   /*********** Fetch files ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.fileStorageService.generateFilter({
         filters: reqData,
       });
@@ -34,7 +33,7 @@ export default class FileStorageController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.fileStorageService.generateFilter({
         filters: reqData,
         searchFields: ['originalFileName', 'storageFileName'],
@@ -56,7 +55,7 @@ export default class FileStorageController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData = { ...req.query, ...req.body };
+      const reqData = { ...req.query as any, ...req.body };
       const { filter, options } = this.fileStorageService.generateFilter({
         filters: reqData,
         searchFields: ['originalFileName', 'storageFileName'],
@@ -103,7 +102,7 @@ export default class FileStorageController {
       const { id } = req.params;
       const updateData = req.body;
 
-      await this.fileStorageService.updateOne({ _id: id }, updateData, { userId: req.user?._id });
+      await this.fileStorageService.updateOne({ _id: id } as any, updateData, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -142,7 +141,7 @@ export default class FileStorageController {
     try {
       const { name, storageDirPath } = req.body;
       const folder = await this.fileStorageService.createFolder(name, storageDirPath);
-      const response: IApiResponse<IFileStorageAttributes> = {
+      const response: IApiResponse<IFileStorageAttributes | any> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
         message: FILE_STORAGE_SUCCESS_MESSAGES.UPLOAD_SUCCESS,
@@ -171,3 +170,5 @@ export default class FileStorageController {
     }
   };
 }
+
+export const fileStorageController = new FileStorageController();

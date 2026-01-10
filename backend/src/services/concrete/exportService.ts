@@ -4,6 +4,9 @@ import { analyticsService } from './analyticsService';
 import { IExportService } from '../contracts/exportServiceInterface';
 
 export class ExportService implements IExportService {
+  private get analyticsService() { return analyticsService; }
+
+  constructor() {}
   /**
    * Export Sales Analytics to Excel or CSV
    */

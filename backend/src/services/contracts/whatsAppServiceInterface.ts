@@ -1,12 +1,20 @@
-import { IWhatsAppSessionAttributes, IWhatsAppSessionDocument } from '../../interfaces';
 import { IMongooseCommonService } from './mongooseCommonServiceInterface';
+import { IWhatsAppAccountAttributes, IWhatsAppAccountDocument } from '../../interfaces';
 
-export interface IWhatsAppService extends IMongooseCommonService<IWhatsAppSessionAttributes, IWhatsAppSessionDocument> {
-  initializeAllSessions(): Promise<void>;
-  startClient(session: IWhatsAppSessionAttributes): Promise<void>;
-  logoutSession(sessionId: string): Promise<void>;
-  sendMessage(sessionId: string, to: string, message: string): Promise<any>;
-  sendBulkMessage(sessionId: string, numbers: string[], message: string): Promise<any>;
-  deleteSessionWithClient(sessionId: string): Promise<any>;
+export interface IWhatsAppService extends IMongooseCommonService<IWhatsAppAccountAttributes, IWhatsAppAccountDocument> {
+  initializeAllAccounts(): Promise<void>;
+  startClient(account: IWhatsAppAccountAttributes): Promise<void>;
+  logoutAccount(accountId: string): Promise<void>;
+  sendMessage(accountId: string, to: string, message: string): Promise<any>;
+  enqueueMessage(
+    mobile: string,
+    message: string,
+    options?: { templateId?: string; delay?: number }
+  ): Promise<string>;
+  enqueueMessages(
+    recipients: Array<{ mobile: string; message: string }>,
+    options?: { templateId?: string }
+  ): Promise<string[]>;
+  sendAutomatedMessage(mobile: string, message: string): Promise<void>;
   sendOtpViaWhatsApp(mobile: string, otp: string): Promise<void>;
 }

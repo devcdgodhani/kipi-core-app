@@ -3,9 +3,12 @@ import app from './server';
 import { ENV_VARIABLE } from './configs';
 import { connectMongoDb } from './db/mongodb';
 import { initWorkers } from './jobs';
-import { WhatsAppService } from './services/concrete/whatsAppService';
+import { WhatsAppAccountService } from './services/concrete/whatsAppAccountService';
 import { cronJobService } from './services/concrete/cronJobService';
-import { PaymentGatewayService } from './services/concrete/PaymentGatewayService';
+import { PaymentGatewayService } from './services/concrete/paymentGatewayService';
+import { initWhatsAppCronJobs } from './jobs/cron/whatsAppCronJobs';
+import { logger } from './configs/logger';
+import { Request, Response } from 'express';
 
 const server = createServer(app);
 
@@ -14,35 +17,36 @@ const startServer = (): void => {
     await assertDatabaseConnection();
     // Initialize Background Workers
     initWorkers();
-    console.log(`Server running on port ${ENV_VARIABLE.PORT}...`);
+    logger.info(`Server running on port ${ENV_VARIABLE.PORT}...`);
   });
 };
 
 export const assertDatabaseConnection = async (): Promise<void> => {
   try {
     /***** MongoDB Database Authentication *****/
-    console.log();
     await connectMongoDb({
       connectionUrl: ENV_VARIABLE.MONGO_DB_CONNECTION_URL as string,
       dbName: ENV_VARIABLE.MONGO_DB_NAME as string,
     });
-    console.log('MongoDB database connection has been established successfully.');
+    logger.info('MongoDB database connection has been established successfully.');
     
-    /***** WhatsApp Initializations *****/
-    const whatsAppService = new WhatsAppService();
-    await whatsAppService.initializeAllSessions();
+    const whatsAppAccountService = new WhatsAppAccountService();
+
+    // Initialize WhatsApp Accounts
+    whatsAppAccountService.initializeAllAccounts();
 
     /***** Cron Job Initializations *****/
     await cronJobService.init();
+    initWhatsAppCronJobs(); // Initialize WhatsApp cron jobs
 
     /***** Payment Gateway Seeding *****/
     const paymentGatewayService = new PaymentGatewayService();
     await paymentGatewayService.seedGateways();
 
     /***** Redis  Authentication *****/
-    // console.log('Redis connection has been established successfully.');
+    // logger.info('Redis connection has been established successfully.');
   } catch (err) {
-    console.log(err);
+    logger.info(err);
   }
 };
 

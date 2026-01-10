@@ -1,13 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import { ProductService } from '../services/concrete/productService';
-import { SkuService } from '../services/concrete/skuService';
-import { HTTP_STATUS_CODE } from '../constants';
-import { FileStorageService } from '../services/concrete/fileStorageService';
+import { productService } from '../services/concrete/productService';
+import { skuService } from '../services/concrete/skuService';
+import { HTTP_STATUS_CODE, PRODUCT_SUCCESS_MESSAGES } from '../constants';
+import { fileStorageService } from '../services/concrete/fileStorageService';
+import { IApiResponse, IPaginationData } from '../interfaces';
+import { IProductAttributes } from '../interfaces/product';
+import { TProductListPaginationRes, TProductListRes, TProductRes } from '../types/product';
 
-export default class ProductController {
-  private productService = new ProductService();
-  private skuService = new SkuService();
-  private fileStorageService = new FileStorageService();
+export class ProductController {
+  private get productService() { return productService; }
+  private get skuService() { return skuService; }
+  private get fileStorageService() { return fileStorageService; }
 
   private async enrichProductWithPresignedUrls(product: any) {
     if (!product) return;
@@ -57,11 +60,14 @@ export default class ProductController {
         await Promise.all(response.map(p => this.enrichProductWithPresignedUrls(p)));
       }
 
-      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const apiResponse: TProductListRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product listing fetched successfully',
+        message: PRODUCT_SUCCESS_MESSAGES.GET_SUCCESS,
         data: response,
-      });
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
@@ -77,9 +83,9 @@ export default class ProductController {
         { path: 'mainImage' }
       ]);
       
-      if (response && response._id) {
+      if (response && (response as any)._id) {
           const skus = await this.skuService.findAll(
-            { productId: response._id } as any,
+            { productId: (response as any)._id } as any,
             {},
             [{ path: 'media.fileStorageId' }]
           );
@@ -88,11 +94,14 @@ export default class ProductController {
 
       await this.enrichProductWithPresignedUrls(response);
 
-      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const apiResponse: TProductRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product fetched successfully',
+        message: PRODUCT_SUCCESS_MESSAGES.GET_SUCCESS,
         data: response,
-      });
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
@@ -125,11 +134,14 @@ export default class ProductController {
         await Promise.all(response.recordList.map(p => this.enrichProductWithPresignedUrls(p)));
       }
 
-      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const apiResponse: TProductListPaginationRes = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product listing fetched successfully',
+        message: PRODUCT_SUCCESS_MESSAGES.GET_SUCCESS,
         data: response,
-      });
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
@@ -144,16 +156,14 @@ export default class ProductController {
           await this.productService.syncSkus(response, skus, req.user?._id);
       }
 
-      // Re-fetch to return full structure with URLs?
-      // Optimization: For now just return as is (usually ID). 
-      // User flow usually redirects to listing or details which fetches again.
-      // Or manually enrich if needed. Leaving as is to minimize complexity unless requested.
-
-      res.status(HTTP_STATUS_CODE.CREATED.STATUS).json({
+      const apiResponse: TProductRes = {
+        status: HTTP_STATUS_CODE.CREATED.STATUS,
         code: HTTP_STATUS_CODE.CREATED.CODE,
-        message: 'Product created successfully',
+        message: PRODUCT_SUCCESS_MESSAGES.CREATE_SUCCESS,
         data: response,
-      });
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
@@ -168,11 +178,13 @@ export default class ProductController {
           await this.productService.syncSkus({ _id: req.params.id }, skus, req.user?._id);
       }
 
-      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const apiResponse: IApiResponse = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product updated successfully',
-        data: response,
-      });
+        message: PRODUCT_SUCCESS_MESSAGES.UPDATE_SUCCESS,
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
@@ -184,13 +196,17 @@ export default class ProductController {
         filters: req.body,
       });
       const response = await this.productService.delete(filter);
-      res.status(HTTP_STATUS_CODE.OK.STATUS).json({
+      const apiResponse: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
-        message: 'Product deleted successfully',
+        message: PRODUCT_SUCCESS_MESSAGES.DELETE_SUCCESS,
         data: response,
-      });
+      };
+      res.status(apiResponse.status).json(apiResponse);
     } catch (err) {
       next(err);
     }
   };
 }
+
+export const productController = new ProductController();

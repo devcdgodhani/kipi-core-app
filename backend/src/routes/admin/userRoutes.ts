@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middlewares/jwtAuth';
-import UserController from '../../controllers/userController';
-import UserValidator from '../../validators/userValidators';
+import { userController } from '../../controllers/userController';
+import { userValidator } from '../../validators/userValidators';
 
 const router = Router();
-const userController = new UserController();
-const userValidator = new UserValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

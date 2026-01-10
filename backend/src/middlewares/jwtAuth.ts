@@ -32,9 +32,16 @@ export const jwtAuth =
         );
       }
 
+      let cookieToken;
+      const cookieHeader = req.headers.cookie;
+      if (cookieHeader) {
+        const match = cookieHeader.match(/admin_token=([^;]+)/);
+        if (match) cookieToken = match[1];
+      }
+
       const token = authorization?.startsWith('Bearer ')
         ? authorization.split(' ')[1]
-        : (bodyData.token as string | undefined);
+        : (bodyData.token as string | undefined) || cookieToken;
 
       if (!token) {
         throw new ApiError(

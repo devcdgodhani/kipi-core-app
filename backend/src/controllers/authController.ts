@@ -12,10 +12,10 @@ import {
   OTP_TYPE,
 } from '../constants';
 import { ApiError } from '../helpers';
-import { UserService } from '../services/concrete/userService';
-import { AuthTokenService } from '../services/concrete/authTokenService';
-import { AuthService } from '../services/concrete/authService';
-import { OtpService } from '../services/concrete/otpService';
+import { userService } from '../services/concrete/userService';
+import { authTokenService } from '../services/concrete/authTokenService';
+import { authService } from '../services/concrete/authService';
+import { otpService } from '../services/concrete/otpService';
 import {
   TAuthRefreshTokenRes,
   TAuthSignInRes,
@@ -27,11 +27,11 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IApiResponse, IAuthTokenAttributes, IUserAttributes } from '../interfaces';
 import { getTime } from 'date-fns';
 
-export default class AuthController {
-  private userService = new UserService();
-  private authTokenService = new AuthTokenService();
-  private authService = new AuthService();
-  private otpService = new OtpService();
+export class AuthController {
+  private get userService() { return userService; }
+  private get authTokenService() { return authTokenService; }
+  private get authService() { return authService; }
+  private get otpService() { return otpService; }
 
   constructor() {}
 
@@ -136,7 +136,7 @@ export default class AuthController {
       const existAccessToken = await this.authTokenService.findOne({
         token: accessToken,
         type: TOKEN_TYPE.ACCESS_TOKEN,
-        userId: decoded.sub,
+        userId: (decoded as JwtPayload).sub,
       });
 
       if (!existAccessToken || !existAccessToken.referenceTokenId) {
@@ -150,7 +150,7 @@ export default class AuthController {
       const existRefreshToken = await this.authTokenService.findOne({
         token: bodyData.refreshToken,
         type: TOKEN_TYPE.REFRESH_TOKEN,
-        userId: decoded.sub,
+        userId: (decoded as JwtPayload).sub,
         id: existAccessToken.referenceTokenId,
       });
 
@@ -224,11 +224,11 @@ export default class AuthController {
 
       await this.authTokenService.delete({
         id: { $nin: [existAccessToken?._id, existAccessToken?.referenceTokenId] },
-        userId: req.user._id,
+        userId: req.user?._id,
       });
 
       const user = await this.userService.findOne({
-        _id: req.user._id,
+        _id: req.user?._id,
       });
 
       if (!user) {
@@ -252,9 +252,9 @@ export default class AuthController {
       }
       const newPassword = await this.authService.generateHashPassword(bodyData.newPassword);
       await this.userService.updateOne(
-        { _id: user._id },
+        { _id: user._id } as any,
         { password: newPassword },
-        { userId: req.user._id }
+        { userId: req.user?._id }
       );
 
       const response: IApiResponse = {
@@ -312,7 +312,7 @@ export default class AuthController {
       const reqData = req.body;
 
       const otp = await this.otpService.findOne({
-        userId: req.user._id,
+        userId: req.user?._id,
         code: reqData.otp,
         type: req.token.otpType,
         expiredAt: { $gt: getTime(new Date()) },
@@ -333,11 +333,11 @@ export default class AuthController {
       } else {
         updateData.isMobileVerified = true;
       }
-      await this.userService.updateOne({ _id: req.user._id }, updateData, { userId: req.user._id });
+      await this.userService.updateOne({ _id: req.user?._id } as any, updateData, { userId: req.user?._id });
       await this.otpService.updateOne(
-        { _id: otp._id },
+        { _id: otp._id } as any,
         { usesCount: (otp.usesCount || 0) + 1 },
-        { userId: req.user._id }
+        { userId: req.user?._id }
       );
 
       const response: TAuthVerifyOtpRes = {
@@ -353,7 +353,7 @@ export default class AuthController {
         let refreshToken: IAuthTokenAttributes | null = null;
         if (otp.generateTokens.includes(TOKEN_TYPE.REFRESH_TOKEN)) {
           refreshToken = await this.authService.generateUserTokens({
-            userId: req.user._id,
+            userId: req.user?._id,
             tokenType: TOKEN_TYPE.REFRESH_TOKEN,
             expiredAt: AUTH_TOKEN_EXPIRATION_IN_MINUTES.REFRESH_TOKEN,
           });
@@ -363,7 +363,7 @@ export default class AuthController {
             .filter((tokenType: TOKEN_TYPE) => tokenType !== TOKEN_TYPE.REFRESH_TOKEN)
             .map((tokenType: TOKEN_TYPE) => {
               const newToken: TGenerateTokenParams = {
-                userId: req.user._id,
+                userId: req.user?._id,
                 tokenType,
                 expiredAt: AUTH_TOKEN_EXPIRATION_IN_MINUTES[tokenType],
               };
@@ -392,9 +392,9 @@ export default class AuthController {
 
       const newPassword = await this.authService.generateHashPassword(reqData.newPassword);
       await this.userService.updateOne(
-        { _id: req.user._id },
+        { _id: req.user?._id } as any,
         { password: newPassword },
-        { userId: req.user._id }
+        { userId: req.user?._id }
       );
 
       const response: IApiResponse = {
@@ -425,3 +425,5 @@ export default class AuthController {
   };
 
 }
+
+export const authController = new AuthController();

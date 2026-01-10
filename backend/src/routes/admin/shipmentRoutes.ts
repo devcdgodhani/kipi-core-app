@@ -1,11 +1,9 @@
 import express from 'express';
-import { ShipmentController } from '../../controllers/shipmentController';
-import ShipmentValidator from '../../validators/shipmentValidators';
+import { shipmentController } from '../../controllers/shipmentController';
+import { shipmentValidator } from '../../validators/shipmentValidators';
 import { jwtAuth } from '../../middlewares';
 
 const router = express.Router();
-const shipmentController = new ShipmentController();
-const shipmentValidator = new ShipmentValidator();
 
 /***************** base crud structure*******************/
 router.route('/getOne')

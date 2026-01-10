@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Request, Response, NextFunction } from 'express';
 import { validate } from '../helpers/zodValidator';
 import { 
   baseFilterSchema, 
@@ -16,7 +17,7 @@ const fileStorageFilterSchema = baseFilterSchema.extend({
   storageFileName: stringFilter,
   storageDirPath: stringFilter,
   fileExtension: stringFilter,
-    storageDir: stringFilter,
+  storageDir: stringFilter,
   isInUsed: booleanFilter,
   _id: mongoIdFilter,
 });
@@ -26,7 +27,7 @@ const fileStorageUpdateSchema = z.object({
   status: z.string().optional(),
 }).strict();
 
-export default class FileStorageValidator {
+export class FileStorageValidator {
   getOne = validate(
     z.object({
       body: fileStorageFilterSchema.partial().optional(),
@@ -91,3 +92,5 @@ export default class FileStorageValidator {
     })
   );
 }
+
+export const fileStorageValidator = new FileStorageValidator();

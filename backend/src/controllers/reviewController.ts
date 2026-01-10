@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
-import { ReviewService } from '../services/concrete/reviewService';
+import { reviewService } from '../services/concrete/reviewService';
 import { IApiResponse, IPaginationData, IReviewAttributes } from '../interfaces';
 
 const REVIEW_SUCCESS_MESSAGES = {
@@ -11,10 +11,8 @@ const REVIEW_SUCCESS_MESSAGES = {
   MODERATION_SUCCESS: 'Review status updated successfully'
 };
 
-export default class ReviewController {
-  reviewService = new ReviewService();
-
-  constructor() {}
+export class ReviewController {
+  private get reviewService() { return reviewService; }
 
   /**
    * Submit a review (Customer)
@@ -23,6 +21,9 @@ export default class ReviewController {
     try {
       const reviewData = req.body;
       const userId = req.user?._id;
+      if (!userId) {
+        throw new Error('User not found in request');
+      }
       
       const newReview = await this.reviewService.createReview(userId.toString(), reviewData);
 
@@ -95,7 +96,7 @@ export default class ReviewController {
         { path: 'productId', select: 'name' },
         { path: 'images' }
       ];
-
+ 
       const reviewList = await this.reviewService.findAllWithPagination(filter, options, populate);
 
       const response: IApiResponse<IPaginationData<IReviewAttributes>> = {
@@ -134,7 +135,7 @@ export default class ReviewController {
   deleteById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      await this.reviewService.softDelete({ _id: id }, { userId: req.user._id });
+      await this.reviewService.softDelete({ _id: id } as any, { userId: req.user?._id });
 
       const response: IApiResponse = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -147,3 +148,5 @@ export default class ReviewController {
     }
   };
 }
+
+export const reviewController = new ReviewController();

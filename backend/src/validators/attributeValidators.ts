@@ -54,7 +54,7 @@ const attributeCreateSchema = z.object({
 
 const attributeUpdateSchema = attributeCreateSchema.partial();
 
-export default class AttributeValidator {
+export class AttributeValidator {
   getOne = validate(
     z.object({
       body: attributeFilterSchema.partial().optional(),
@@ -97,3 +97,5 @@ export default class AttributeValidator {
     })
   );
 }
+
+export const attributeValidator = new AttributeValidator();

@@ -51,7 +51,12 @@ export * from './models/authActionHistoryModel';
 export * from './models/authTokenModel';
 export * from './models/otpModel';
 export * from './models/userModel';
-export * from './models/whatsAppSessionModel';
+
+export * from './models/whatsAppAccountModel';
+export * from './models/whatsAppContactModel';
+export * from './models/whatsAppMessageModel';
+export * from './models/whatsAppRiskEventModel';
+export * from './models/whatsAppTemplateModel';
 export * from './models/lotModel';
 export * from './models/categoryModel';
 export * from './models/attributeModel';

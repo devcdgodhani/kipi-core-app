@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import LoyaltyController from '../../controllers/loyaltyController';
+import { loyaltyController } from '../../controllers/loyaltyController';
 import { jwtAuth } from '../../middlewares/jwtAuth';
 
 const router = Router();
-const loyaltyController = new LoyaltyController();
 
 // Customer Endpoints
 router.post('/my-balance', jwtAuth(), loyaltyController.getUserLoyalty);
@@ -25,8 +24,5 @@ router.route('/getWithPagination')
   .post(loyaltyController.getWithPagination);
 
 router.delete('/deleteByFilter', loyaltyController.deleteByFilter);
-
-// Legacy/Compatibility
-router.post('/ledger', loyaltyController.getWithPagination);
 
 export default router;

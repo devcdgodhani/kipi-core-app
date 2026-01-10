@@ -11,3 +11,5 @@ export class AuthActionHistoryService
     super(AuthActionHistoryModel);
   }
 }
+
+export const authActionHistoryService = new AuthActionHistoryService();

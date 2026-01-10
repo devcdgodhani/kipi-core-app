@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { OTP_TYPE, USER_TYPE } from '../constants';
 import { validate } from '../helpers/zodValidator';
 
-export default class AuthValidator {
+export class AuthValidator {
   /*********************** register ***********************/
   registerValidator = validate(
     z.object({
@@ -81,3 +81,5 @@ export default class AuthValidator {
   );
 
 }
+
+export const authValidator = new AuthValidator();
