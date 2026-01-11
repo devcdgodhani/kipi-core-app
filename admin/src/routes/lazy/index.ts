@@ -63,3 +63,12 @@ export const CronJobHubLazy = lazy(() => import('../../pages/CronJob/CronJobHub'
 export const PaymentGatewayListLazy = lazy(() => import('../../pages/Payment/PaymentGatewayList'));
 export const GatewayConfigFormLazy = lazy(() => import('../../pages/Payment/GatewayConfigForm'));
 export const WebhookLogListLazy = lazy(() => import('../../pages/Payment/WebhookLogList'));
+
+// Marketing & Communication
+export const NotificationListLazy = lazy(() => import('../../pages/Notification/NotificationList'));
+export const NotificationFormLazy = lazy(() => import('../../pages/Notification/NotificationForm'));
+export const BannerListLazy = lazy(() => import('../../pages/Banner/BannerList'));
+export const BannerFormLazy = lazy(() => import('../../pages/Banner/BannerForm'));
+export const FlashDealListLazy = lazy(() => import('../../pages/FlashDeal/FlashDealList'));
+export const FlashDealFormLazy = lazy(() => import('../../pages/FlashDeal/FlashDealForm'));
+export const SearchQueryListLazy = lazy(() => import('../../pages/SearchQuery/SearchQueryList'));

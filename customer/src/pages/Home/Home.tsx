@@ -5,6 +5,10 @@ import { productService } from '../../services/product.service';
 import type { Product } from '../../types/product.types';
 import { ROUTES } from '../../routes/routeConfig';
 import { toast } from 'react-hot-toast';
+import BannerSlider from '../../components/Banner/BannerSlider';
+import RecentlyViewed from '../../components/Product/RecentlyViewed';
+import RecommendationSection from '../../components/Product/RecommendationSection';
+
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
@@ -40,47 +44,9 @@ const Home: React.FC = () => {
 
     return (
         <div className="space-y-24 pb-12">
-            {/* Hero Section */}
-            <section className="relative h-[85vh] min-h-[600px] w-full bg-gray-900 overflow-hidden flex items-center">
-                {/* Background Image - Using a high-quality fashion placeholder */}
-                <div className="absolute inset-0 z-0">
-                    <img
-                        src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop"
-                        alt="Hero"
-                        className="w-full h-full object-cover opacity-60"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
-                </div>
+            {/* Hero Section - Replaced with dynamic Banner Slider */}
+            <BannerSlider />
 
-                <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full">
-                    <div className="max-w-2xl space-y-8 animate-in slide-in-from-bottom-10 duration-1000 fade-in">
-                        <span className="inline-block px-4 py-1 border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-[0.2em] backdrop-blur-md">
-                            New Collection 2026
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-black text-white leading-tight uppercase tracking-tight">
-                            Redefine <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">Your Style</span>
-                        </h1>
-                        <p className="text-lg text-gray-300 leading-relaxed max-w-lg">
-                            Discover the new era of fashion with our sustainable, premium crafted collection designed for the modern individual.
-                        </p>
-                        <div className="flex gap-4 pt-4">
-                            <button
-                                onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}
-                                className="px-8 py-4 bg-white text-gray-900 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-colors"
-                            >
-                                Shop Collection
-                            </button>
-                            <button
-                                onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}
-                                className="px-8 py-4 bg-transparent border border-white text-white text-sm font-black uppercase tracking-widest hover:bg-white/10 transition-colors backdrop-blur-sm"
-                            >
-                                View Lookbook
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
             {/* Features / Value Props */}
             <section className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -185,57 +151,16 @@ const Home: React.FC = () => {
                 )}
             </section>
 
-            {/* Categories Grid (Static for visuals) */}
-            <section className="bg-gray-50 py-24">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
-                    <div className="text-center max-w-2xl mx-auto">
-                        <span className="text-xs font-bold text-accent uppercase tracking-widest mb-2 block">Curated For You</span>
-                        <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mb-4">Shop By Category</h2>
-                        <p className="text-gray-500">Explore our finest selections categorized for your convenience.</p>
-                    </div>
+            {/* Recently Viewed */}
+            <RecentlyViewed />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[600px]">
-                        <div className="relative group overflow-hidden cursor-pointer h-full" onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}>
-                            <img
-                                src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1887&auto=format&fit=crop"
-                                alt="Men"
-                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                            <div className="absolute bottom-12 left-12 text-white">
-                                <h3 className="text-4xl font-black uppercase tracking-tight mb-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">Men</h3>
-                                <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                                    Shop Now <ArrowRight size={16} />
-                                </span>
-                            </div>
-                        </div>
-                        <div className="grid grid-rows-2 gap-4 h-full">
-                            <div className="relative group overflow-hidden cursor-pointer h-full" onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}>
-                                <img
-                                    src="https://images.unsplash.com/photo-1549570652-c2aeb37a9f8f?q=80&w=1974&auto=format&fit=crop"
-                                    alt="Women"
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                                <div className="absolute bottom-8 left-8 text-white">
-                                    <h3 className="text-3xl font-black uppercase tracking-tight mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">Women</h3>
-                                </div>
-                            </div>
-                            <div className="relative group overflow-hidden cursor-pointer h-full" onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}>
-                                <img
-                                    src="https://images.unsplash.com/photo-1596704017254-9b121068fb31?q=80&w=2070&auto=format&fit=crop"
-                                    alt="Accessories"
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                                <div className="absolute bottom-8 left-8 text-white">
-                                    <h3 className="text-3xl font-black uppercase tracking-tight mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">Accessories</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* Personalized Recommendations */}
+            <RecommendationSection
+                type="recommended"
+                title="Recommended for You"
+                subtitle="Based on your style"
+                limit={4}
+            />
         </div>
     );
 };

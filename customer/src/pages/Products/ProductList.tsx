@@ -6,6 +6,7 @@ import ProductFilters from '../../components/Product/ProductFilters';
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Drawer } from '../../components/common/Drawer';
+import { searchService } from '../../services/search.service';
 
 const ProductList: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -67,6 +68,11 @@ const ProductList: React.FC = () => {
             const response = await productService.getWithPagination(filters);
             setProducts(response.data);
             setTotalPages(response.pagination.totalPages);
+
+            // Track search query
+            if (filters.search && filters.page === 1) {
+                searchService.trackSearch(filters.search, response.pagination.total).catch(console.error);
+            }
 
         } catch (error) {
             console.error('Failed to load products:', error);

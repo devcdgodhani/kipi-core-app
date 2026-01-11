@@ -7,6 +7,11 @@ import ProductReviews from '../../components/Review/ProductReviews';
 import { Loader2, ShoppingCart, Minus, Plus } from 'lucide-react';
 import RatingStars from '../../components/Review/RatingStars';
 import WishlistButton from '../../components/Wishlist/WishlistButton';
+import RecentlyViewed from '../../components/Product/RecentlyViewed';
+import ETAChecker from '../../components/Product/ETAChecker';
+import RecommendationSection from '../../components/Product/RecommendationSection';
+import { recentlyViewedService } from '../../services/recentlyViewed.service';
+
 
 const ProductDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // This 'id' is actually the slug based on our routing
@@ -55,6 +60,13 @@ const ProductDetails: React.FC = () => {
                 // Load SKUs
                 const skusData = await productService.getProductSKUs(productData._id);
                 setSkus(skusData);
+
+                // Track View
+                try {
+                    await recentlyViewedService.trackView(productData._id);
+                } catch (error) {
+                    console.error('Failed to track view', error);
+                }
 
                 // Select default SKU (e.g. first one or base product if no variants)
                 // If skus exist, select first one
@@ -272,13 +284,42 @@ const ProductDetails: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* ETA Checker */}
+                        <div className="pt-6 border-t border-gray-100">
+                            <ETAChecker />
+                        </div>
+
                     </div>
+
                 </div>
 
                 {/* Reviews Section */}
                 <div className="border-t border-gray-200 pt-16">
                     <ProductReviews productId={product._id} />
                 </div>
+
+                {/* Recently Viewed */}
+                <div className="mt-16">
+                    <RecentlyViewed />
+                </div>
+
+                {/* Similar Products */}
+                <RecommendationSection
+                    type="similar"
+                    productId={product._id}
+                    title="Similar Products"
+                    subtitle="Customers also bought"
+                />
+
+                {/* Frequently Bought Together */}
+                <RecommendationSection
+                    type="frequentlyBought"
+                    productId={product._id}
+                    title="Frequently Bought Together"
+                    subtitle="Complete the set"
+                    limit={4}
+                />
+
 
             </div>
         </div>

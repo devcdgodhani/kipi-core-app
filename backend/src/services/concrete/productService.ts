@@ -142,8 +142,8 @@ export class ProductService
         .populate('productId')
         .lean();
 
-      const viewedProducts = recentViews.map((v: any) => v.productId).filter(Boolean);
-      categoryIds = viewedProducts.flatMap((p: any) => p.categoryIds || []);
+      const viewedProducts = recentViews.map((v: any) => v.productId).filter((p: any) => p && Array.isArray(p.categoryIds));
+      categoryIds = viewedProducts.flatMap((p: any) => p.categoryIds);
     }
 
     // Build query
@@ -192,7 +192,7 @@ export class ProductService
     const OrderModel = (await import('../../db/mongodb')).OrderModel;
     const orders = await OrderModel.find({
       'items.productId': productId,
-      status: { $nin: ['CANCELLED', 'FAILED'] },
+      orderStatus: { $nin: ['CANCELLED', 'FAILED'] },
     })
       .select('items')
       .limit(100) // Limit orders to analyze

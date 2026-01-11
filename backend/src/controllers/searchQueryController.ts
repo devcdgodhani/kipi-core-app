@@ -132,7 +132,7 @@ export class SearchQueryController {
 
   getSuggestions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const query = req.query.q as string || '';
+      const query = (req.query.query || req.query.q) as string || '';
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
       const suggestions = await this.searchQueryService.getSuggestions(query, limit);
 

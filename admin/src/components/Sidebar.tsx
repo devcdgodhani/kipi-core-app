@@ -28,10 +28,15 @@ import {
     Award,
     Cpu,
     CreditCard,
-    Webhook
+    Webhook,
+    Bell,
+    Image as ImageIcon,
+    Zap,
+    Search,
+    type LucideIcon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -40,24 +45,37 @@ interface SidebarProps {
 
 interface SidebarSection {
     title: string;
-    icon: any;
-    items: { to: string; label: string; icon: any; external?: boolean }[];
+    icon: LucideIcon;
+    items: { to: string; label: string; icon: LucideIcon; external?: boolean }[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     const { currentTheme } = useTheme();
-    const [expandedSections, setExpandedSections] = useState<string[]>([]);
-
-    // Load expanded sections from localStorage
-    useEffect(() => {
+    const [expandedSections, setExpandedSections] = useState<string[]>(() => {
         const saved = localStorage.getItem('sidebar-expanded');
         if (saved) {
-            setExpandedSections(JSON.parse(saved));
-        } else {
-            // Default: expand all sections
-            setExpandedSections(['Dashboard', 'Catalog', 'Operations', 'Intelligence', 'Engagement', 'Payment', 'Settings']);
+            const parsed = JSON.parse(saved);
+            // Auto-expand new sections for existing users
+            const newSections = ['Intelligence', 'Engagement'];
+            let shouldUpdate = false;
+            const updated = [...parsed];
+
+            newSections.forEach(section => {
+                if (!parsed.includes(section) && !localStorage.getItem(`sidebar-seen-${section}`)) {
+                    updated.push(section);
+                    localStorage.setItem(`sidebar-seen-${section}`, 'true');
+                    shouldUpdate = true;
+                }
+            });
+
+            if (shouldUpdate) {
+                localStorage.setItem('sidebar-expanded', JSON.stringify(updated));
+                return updated;
+            }
+            return parsed;
         }
-    }, []);
+        return ['Dashboard', 'Catalog', 'Operations', 'Intelligence', 'Engagement', 'Payment', 'Settings'];
+    });
 
     // Save expanded sections to localStorage
     const toggleSection = (title: string) => {
@@ -118,7 +136,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { to: '/intelligence/financial', label: 'Financial Reports', icon: Receipt },
                 { to: '/intelligence/lots', label: 'Lot Intelligence', icon: Activity },
                 { to: '/intelligence/logistics', label: 'Logistics Intel', icon: Truck },
-                { to: '/intelligence/couriers', label: 'Courier Benchmarking', icon: Award }
+                { to: '/intelligence/couriers', label: 'Courier Benchmarking', icon: Award },
+                { to: '/search-queries', label: 'Search Analytics', icon: Search }
             ]
         },
         {
@@ -127,7 +146,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             items: [
                 { to: '/reviews', label: 'Reviews', icon: Star },
                 { to: '/coupons', label: 'Coupons', icon: Ticket },
-                { to: '/loyalty', label: 'Rewards Hub', icon: Coins }
+                { to: '/loyalty', label: 'Rewards Hub', icon: Coins },
+                { to: '/banners', label: 'Banners', icon: ImageIcon },
+                { to: '/flash-deals', label: 'Flash Deals', icon: Zap },
+                { to: '/notifications', label: 'Notifications', icon: Bell }
             ]
         },
         {

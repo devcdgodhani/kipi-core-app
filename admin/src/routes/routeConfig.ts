@@ -70,6 +70,18 @@ export const ROUTES = {
         PAYMENT_GATEWAY_CREATE: 'payment-gateways/new',
         PAYMENT_GATEWAY_EDIT: 'payment-gateways/:name',
         WEBHOOK_LOGS: 'webhook-logs',
+
+        // Marketing & Communication
+        NOTIFICATIONS: 'notifications',
+        NOTIFICATIONS_CREATE: 'notifications/create',
+        NOTIFICATIONS_EDIT: 'notifications/edit/:id',
+        BANNERS: 'banners',
+        BANNERS_CREATE: 'banners/create',
+        BANNERS_EDIT: 'banners/edit/:id',
+        FLASH_DEALS: 'flash-deals',
+        FLASH_DEALS_CREATE: 'flash-deals/create',
+        FLASH_DEALS_EDIT: 'flash-deals/edit/:id',
+        SEARCH_QUERIES: 'search-queries',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',

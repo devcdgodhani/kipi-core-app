@@ -11,7 +11,7 @@ export class SearchQueryService
     super(SearchQueryModel as any);
   }
 
-  async getTrending(limit: number = 10): Promise<{ query: string; count: number }[]> {
+  async getTrending(limit: number = 10): Promise<string[]> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -43,7 +43,7 @@ export class SearchQueryService
       },
     ]);
 
-    return trending;
+    return trending.map((t: any) => t.query);
   }
 
   async getSuggestions(query: string, limit: number = 5): Promise<string[]> {

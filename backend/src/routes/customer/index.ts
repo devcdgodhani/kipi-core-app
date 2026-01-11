@@ -21,6 +21,8 @@ import notificationRoutes from './notificationRoutes';
 import flashDealRoutes from './flashDealRoutes';
 import searchQueryRoutes from './searchQueryRoutes';
 import recentlyViewedRoutes from './recentlyViewedRoutes';
+import pushNotificationRoutes from './pushNotificationRoutes';
+
 
 const router = Router();
 
@@ -46,6 +48,8 @@ router.use('/notification', notificationRoutes);
 router.use('/flash-deal', flashDealRoutes);
 router.use('/search', searchQueryRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
+router.use('/push-notification', pushNotificationRoutes);
+
 
 
 export default router;

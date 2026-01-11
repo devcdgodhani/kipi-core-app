@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy, NotificationListLazy, NotificationFormLazy, BannerListLazy, BannerFormLazy, FlashDealListLazy, FlashDealFormLazy, SearchQueryListLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -251,6 +251,48 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.WEBHOOK_LOGS,
                     element: <WebhookLogListLazy />,
+                },
+
+                // Marketing & Communication
+                {
+                    path: ROUTES.DASHBOARD.NOTIFICATIONS,
+                    element: <NotificationListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.NOTIFICATIONS_CREATE,
+                    element: <NotificationFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.NOTIFICATIONS_EDIT,
+                    element: <NotificationFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.BANNERS,
+                    element: <BannerListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.BANNERS_CREATE,
+                    element: <BannerFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.BANNERS_EDIT,
+                    element: <BannerFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FLASH_DEALS,
+                    element: <FlashDealListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FLASH_DEALS_CREATE,
+                    element: <FlashDealFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FLASH_DEALS_EDIT,
+                    element: <FlashDealFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.SEARCH_QUERIES,
+                    element: <SearchQueryListLazy />,
                 },
 
                 {

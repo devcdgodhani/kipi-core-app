@@ -3,6 +3,7 @@ import { recentlyViewedService } from '../services/concrete/recentlyViewedServic
 import { HTTP_STATUS_CODE, RECENTLY_VIEWED_SUCCESS_MESSAGES } from '../constants';
 import { IApiResponse } from '../interfaces';
 import { TRecentlyViewedProductsRes } from '../types/recentlyViewed';
+import { ApiError } from '../helpers';
 
 export class RecentlyViewedController {
   private get recentlyViewedService() { return recentlyViewedService; }
@@ -13,7 +14,11 @@ export class RecentlyViewedController {
       const userId = req.user?._id?.toString();
 
       if (!userId) {
-        throw new Error('User not authenticated');
+        throw new ApiError(
+          HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
+          HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
+          'User not authenticated'
+        );
       }
 
       await this.recentlyViewedService.trackView(userId, productId);
@@ -36,7 +41,11 @@ export class RecentlyViewedController {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
       if (!userId) {
-        throw new Error('User not authenticated');
+        throw new ApiError(
+          HTTP_STATUS_CODE.UNAUTHORIZED.CODE,
+          HTTP_STATUS_CODE.UNAUTHORIZED.STATUS,
+          'User not authenticated'
+        );
       }
 
       const products = await this.recentlyViewedService.getRecentlyViewed(userId, limit);

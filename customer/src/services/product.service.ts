@@ -77,6 +77,24 @@ export const productService = {
     });
     return response.data;
   },
+
+  // Get recommended products
+  getRecommended: async (limit: number = 10): Promise<Product[]> => {
+    const response: any = await http.get(`${PRODUCT_BASE_URL}/getRecommended`, { params: { limit } });
+    return response.data;
+  },
+
+  // Get similar products
+  getSimilar: async (productId: string, limit: number = 10): Promise<Product[]> => {
+    const response: any = await http.get(`${PRODUCT_BASE_URL}/getSimilar/${productId}`, { params: { limit } });
+    return response.data;
+  },
+
+  // Get frequently bought together products
+  getFrequentlyBoughtTogether: async (productId: string, limit: number = 10): Promise<Product[]> => {
+    const response: any = await http.get(`${PRODUCT_BASE_URL}/getFrequentlyBoughtTogether/${productId}`, { params: { limit } });
+    return response.data;
+  },
 };
 
 export const categoryService = {

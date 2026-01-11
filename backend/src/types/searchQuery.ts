@@ -4,5 +4,5 @@ import { ISearchQueryAttributes } from '../interfaces';
 export type TSearchQueryRes = IApiResponse<ISearchQueryAttributes>;
 export type TSearchQueryListRes = IApiResponse<ISearchQueryAttributes[]>;
 export type TSearchQueryListPaginationRes = IPaginationApiResponse<ISearchQueryAttributes>;
-export type TTrendingSearchRes = IApiResponse<{ query: string; count: number }[]>;
+export type TTrendingSearchRes = IApiResponse<string[]>;
 export type TSearchSuggestionsRes = IApiResponse<string[]>;

@@ -50,6 +50,7 @@ export interface IProductFilters {
   search?: string;
   status?: PRODUCT_STATUS | PRODUCT_STATUS[];
   categoryIds?: string | string[];
+  _id?: string | string[];
   page?: number;
   limit?: number;
   isPaginate?: boolean;

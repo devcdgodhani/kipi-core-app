@@ -21,6 +21,8 @@ export const ROUTES = {
     RESET_PASSWORD: '/reset-password',
     RETURNS: '/returns',
     LOYALTY: '/loyalty',
+    NOTIFICATIONS: '/notifications',
+    RECENTLY_VIEWED: '/recently-viewed',
     PAYMENT: {
         CHECKOUT: '/payment/checkout/:orderId',
         CALLBACK: '/payment/callback',
