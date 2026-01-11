@@ -19,11 +19,10 @@ export class PulseService implements IPulseService {
 
             const message = `Hi ${user.firstName || 'there'}! 👋\n\nYour order #${order.orderNumber} from ${APP_DETAILS.APP_NAME} has been delivered! 📦\n\nWe'd love to hear your thoughts. Could you take a moment to leave a review?\n\nRate here: ${APP_DETAILS.CUSTOMER_URL}/orders/${order._id}\n\nThank you for shopping with us! ✨`;
             
-            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
-                type: 'WHATSAPP',
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
-                template: 'FEEDBACK_REQUEST',
-                data: { body: message }
+                message: message,
+                templateId: 'FEEDBACK_REQUEST'
             });
         } catch (err) {
             console.error('PulseService: Error triggering feedback request', err);
@@ -40,11 +39,10 @@ export class PulseService implements IPulseService {
 
             const message = `Woohoo! 🥳\n\nYou've earned ${points} Kipi Points from your order #${orderNumber}!\n\nYour new loyalty balance is ${user.loyaltyPoints} points. ✨\n\nKeep shopping and save more on your next order! 🛍️`;
             
-            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
-                type: 'WHATSAPP',
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
-                template: 'LOYALTY_POINTS_EARNED',
-                data: { body: message }
+                message: message,
+                templateId: 'LOYALTY_POINTS_EARNED'
             });
         } catch (err) {
             console.error('PulseService: Error triggering loyalty pulse', err);
@@ -65,11 +63,10 @@ export class PulseService implements IPulseService {
             );
             
             const message = `Happy Birthday, ${user.firstName}! 🎂🥳\n\nWe have a special gift for you! We've added 500 Kipi Points to your account as a birthday reward. ✨\n\nTreat yourself today! 🛍️\n\nShop now: ${APP_DETAILS.CUSTOMER_URL}`;
-            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
-                type: 'WHATSAPP',
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
-                template: 'BIRTHDAY_REWARD',
-                data: { body: message }
+                message: message,
+                templateId: 'BIRTHDAY_REWARD'
             });
             console.log(`Birthday pulse offloaded to queue for user: ${user.firstName}`);
         } catch (err) {
@@ -86,11 +83,10 @@ export class PulseService implements IPulseService {
 
             const message = `Don't let your rewards go to waste! ⏳\n\nYour ${points} Kipi Points are expiring in ${daysRemaining} days. 😱\n\nUse them now to save on your favorite products! 🛍️\n\nShop here: ${APP_DETAILS.CUSTOMER_URL}/cart`;
             
-            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
-                type: 'WHATSAPP',
+            await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
-                template: 'POINTS_EXPIRY_WARNING',
-                data: { body: message }
+                message: message,
+                templateId: 'POINTS_EXPIRY_WARNING'
             });
         } catch (err) {
             console.error('PulseService: Error triggering expiry warning', err);

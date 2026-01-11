@@ -5,6 +5,9 @@ import { IEmailJobPayload, IWhatsAppJobPayload } from '../types';
 import { sendEmail } from '../../helpers/sendEmail';
 import { WhatsAppAccountService } from '../../services/concrete/whatsAppAccountService';
 import { whatsAppContactService } from '../../services/concrete/whatsAppContactService';
+import { pushNotificationService } from '../../services/concrete/pushNotificationService';
+import { PushNotificationModel } from '../../db/mongodb/models/pushNotificationModel';
+import { PUSH_NOTIFICATION_STATUS } from '../../constants/pushNotification';
 
 /**
  * Email Job Processor
@@ -39,30 +42,80 @@ const processEmailJob = async (job: Job<IEmailJobPayload>) => {
  * Handles WhatsApp message delivery with failover support
  */
 const processWhatsAppJob = async (job: Job<IWhatsAppJobPayload>) => {
-  const { accountId, contactId, message, templateId } = job.data;
+  const { accountId, contactId, recipient, message, templateId } = job.data;
   const whatsAppAccountService = new WhatsAppAccountService();
 
-  console.log(`[Notification Worker] Processing WhatsApp job ${job.id} for contact ${contactId}`);
+  console.log(`[Notification Worker] Processing WhatsApp job ${job.id} for ${recipient || contactId}`);
 
   try {
-    // Get contact to retrieve mobile number
-    const contact = await whatsAppContactService.findById(contactId);
-    
-    if (!contact) {
-      throw new Error(`Contact ${contactId} not found`);
+    let mobile = recipient;
+
+    // Use contactId if recipient is missing
+    if (!mobile && contactId) {
+      const contact = await whatsAppContactService.findById(contactId);
+      if (!contact) {
+        throw new Error(`Contact ${contactId} not found`);
+      }
+      mobile = contact.mobile;
     }
 
-    // Use the existing WhatsApp service logic with mobile number
-    await whatsAppAccountService.enqueueBestEffortMessage(
-      contact.mobile, 
-      message, 
-      { templateId }
-    );
+    if (!mobile) {
+      throw new Error('Mobile number (recipient or contactId) is required for WhatsApp job');
+    }
 
-    console.log(`[Notification Worker] WhatsApp message enqueued successfully for ${contact.mobile}`);
+    // Use account-specific send if accountId provided, otherwise best-effort
+    if (accountId) {
+      await whatsAppAccountService.sendMessage(accountId, mobile, message);
+    } else {
+      await whatsAppAccountService.enqueueBestEffortMessage(
+        mobile, 
+        message, 
+        { templateId }
+      );
+    }
+
+    console.log(`[Notification Worker] WhatsApp message sent/enqueued successfully for ${mobile}`);
     return { success: true, jobId: job.id };
   } catch (error: any) {
-    console.error(`[Notification Worker] WhatsApp failed for contact ${contactId}:`, error);
+    console.error(`[Notification Worker] WhatsApp failed for ${recipient || contactId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Push Campaign Job Processor
+ * Handles sending multicast push notifications and updating campaign stats
+ */
+const processPushCampaignJob = async (job: Job<{ campaignId: string, tokens: string[], payload: any }>) => {
+  const { campaignId, tokens, payload } = job.data;
+  
+  console.log(`[Notification Worker] Processing push campaign ${campaignId} for ${tokens.length} tokens`);
+
+  try {
+    const result: any = await pushNotificationService.sendMulticast(tokens, payload);
+    
+    // Update campaign with latest stats
+    await PushNotificationModel.updateOne(
+        { _id: campaignId },
+        { 
+            $set: { status: PUSH_NOTIFICATION_STATUS.COMPLETED },
+            $inc: { 
+                'stats.sentCount': result.successCount || tokens.length,
+                'stats.failureCount': result.failureCount || 0
+            }
+        }
+    );
+
+    console.log(`[Notification Worker] Push campaign ${campaignId} completed. Success: ${result.successCount}, Failure: ${result.failureCount}`);
+    return { success: true, ...result };
+  } catch (error: any) {
+    console.error(`[Notification Worker] Push campaign ${campaignId} failed:`, error);
+    
+    await PushNotificationModel.updateOne(
+        { _id: campaignId },
+        { $set: { status: PUSH_NOTIFICATION_STATUS.FAILED } }
+    );
+    
     throw error;
   }
 };
@@ -80,6 +133,9 @@ const notificationProcessor = async (job: Job<IEmailJobPayload | IWhatsAppJobPay
     
     case BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP:
       return processWhatsAppJob(job as Job<IWhatsAppJobPayload>);
+    
+    case BULL_QUEUES.NOTIFICATION.JOBS.SEND_PUSH_CAMPAIGN:
+      return processPushCampaignJob(job as Job<any>);
     
     default:
       console.error(`[Notification Worker] Unknown job type: ${job.name}`);

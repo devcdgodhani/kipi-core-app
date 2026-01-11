@@ -60,8 +60,9 @@ export interface IEmailJobPayload {
  * Payload for sending WhatsApp messages
  */
 export interface IWhatsAppJobPayload {
-  accountId: string;
-  contactId: string;
+  accountId?: string;
+  contactId?: string;
+  recipient?: string;
   message: string;
   templateId?: string;
   metadata?: Record<string, any>;

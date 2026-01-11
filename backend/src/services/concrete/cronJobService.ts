@@ -22,6 +22,9 @@ import { CART_STATUS } from '../../constants/cart';
 import { PushNotificationModel } from '../../db/mongodb/models/pushNotificationModel';
 import { PUSH_NOTIFICATION_STATUS } from '../../constants/pushNotification';
 import { pushNotificationService } from './pushNotificationService';
+import { logisticsQueue } from '../../jobs/logistics/queue';
+import { ShipmentModel } from '../../db/mongodb/models/shipmentModel';
+import { SHIPMENT_STATUS } from '../../constants/shipment';
 
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
@@ -52,6 +55,7 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         this.handlers.set('FLASH_DEAL_CLEANUP', this.processFlashDealCleanup.bind(this));
         this.handlers.set('ABANDONED_CART', this.processAbandonedCarts.bind(this));
         this.handlers.set('PUSH_CAMPAIGN_SCHEDULER', this.processScheduledPushCampaigns.bind(this));
+        this.handlers.set('LOGISTICS_TRACKING_SYNC', this.processLogisticsTrackingSync.bind(this));
     }
 
     async init() {
@@ -151,6 +155,12 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 identifier: 'PUSH_CAMPAIGN_SCHEDULER',
                 expression: '*/15 * * * *', // Every 15 mins
                 description: 'Triggers scheduled push notification campaigns'
+            },
+            {
+                name: 'Logistics Tracking Sync',
+                identifier: 'LOGISTICS_TRACKING_SYNC',
+                expression: '0 */4 * * *', // Every 4 hours
+                description: 'Syncs tracking status for all active shipments'
             }
         ];
 
@@ -491,16 +501,21 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                      tokens = users.flatMap(u => u.fcmTokens || []).filter((t): t is string => !!t);
                 }
                 
-                // Trigger Send
+                // Trigger Send via Queue
                 if (tokens.length > 0) {
-                     await pushNotificationService.sendMulticast(tokens, {
-                        title: campaign.title,
-                        body: campaign.body,
-                        imageUrl: campaign.imageUrl,
-                        data: campaign.data
+                     // Adding to notification queue for professional retry and tracking
+                     await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_PUSH_CAMPAIGN, {
+                        campaignId: campaign._id.toString(),
+                        tokens: tokens,
+                        payload: {
+                            title: campaign.title,
+                            body: campaign.body,
+                            imageUrl: campaign.imageUrl,
+                            data: campaign.data
+                        }
                      });
                      
-                     // Update stats (simplified)
+                     // Update status to COMPLETED (meaning queued for delivery)
                      await PushNotificationModel.updateOne(
                         { _id: campaign._id },
                         { 
@@ -525,6 +540,25 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         }
 
         console.log(`CronJobService: Processed ${scheduledCampaigns.length} scheduled campaigns.`);
+    }
+
+    async processLogisticsTrackingSync() {
+        console.log('CronJobService: Running logistics tracking sync...');
+        
+        // Find shipments that are not delivered or cancelled
+        const activeShipments = await ShipmentModel.find({
+            status: { $in: [SHIPMENT_STATUS.CREATED, SHIPMENT_STATUS.PICKED_UP, SHIPMENT_STATUS.IN_TRANSIT, SHIPMENT_STATUS.OUT_FOR_DELIVERY] },
+            awb: { $exists: true, $ne: null }
+        }).limit(200);
+
+        console.log(`CronJobService: Enqueueing sync for ${activeShipments.length} shipments`);
+
+        for (const shipment of activeShipments) {
+            await logisticsQueue.queue.add(BULL_QUEUES.LOGISTICS.JOBS.SYNC_TRACKING, {
+                shipmentId: (shipment as any)._id.toString(),
+                awb: (shipment as any).awb
+            });
+        }
     }
 }
 

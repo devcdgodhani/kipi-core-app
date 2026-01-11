@@ -187,24 +187,19 @@ export class AuthService implements IAuthService {
       });
       // Offload to queue
       await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_EMAIL, {
-        type: 'EMAIL',
         recipient: user.email!,
-        template: 'OTP_VERIFICATION',
-        data: {
-          subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
-          html,
-        },
+        subject: EMAIL_SUBJECT_MESSAGE.ACCOUNT_VERIFICATION,
+        body: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}`,
+        html: html,
+        template: 'OTP_VERIFICATION'
       });
     }
     if (user.mobile) {
       // Offload to queue
       await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
-        type: 'WHATSAPP',
         recipient: (user.countryCode || '+91') + user.mobile!,
-        template: 'OTP_VERIFICATION',
-        data: {
-          message: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}. It expires in ${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes.`,
-        },
+        message: `Your OTP for ${APP_DETAILS.APP_NAME} is ${newOtp}. It expires in ${AUTH_TOKEN_EXPIRATION_IN_MINUTES.OTP_TOKEN} minutes.`,
+        templateId: 'OTP_VERIFICATION'
       });
     } 
     return token;

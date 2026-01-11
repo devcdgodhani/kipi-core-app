@@ -23,6 +23,9 @@ import { IOrderService } from '../contracts/orderServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
 import { paymentRefundService } from './paymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
+import { orderQueue } from '../../jobs/order/queue';
+import { logisticsQueue } from '../../jobs/logistics/queue';
+import { BULL_QUEUES } from '../../constants/bullQueue';
 
 export class OrderService extends MongooseCommonService<IOrderAttributes, IOrderDocument> implements IOrderService {
   private get couponService() { return couponService; }
@@ -213,6 +216,12 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
         );
     }
 
+    // 9. Enqueue Post-Order Actions
+    await orderQueue.queue.add(BULL_QUEUES.ORDER.JOBS.PROCESS_ORDER_PLACED, {
+        orderId: (newOrder as any)._id.toString(),
+        userId: userId.toString()
+    });
+
     return newOrder;
   };
   
@@ -273,26 +282,24 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       }
     }
 
-    // 1.5 Notification on Confirmation
+    // 1.5 Notification & Invoice on Confirmation
     if (status === 'CONFIRMED' && currentStatus === 'PENDING') {
       await logisticsNotificationService.notifyOrderConfirmed(order);
+      
+      // Enqueue Invoice Generation
+      await orderQueue.queue.add(BULL_QUEUES.ORDER.JOBS.GENERATE_INVOICE, {
+        orderId: orderId.toString()
+      });
     }
 
     // 2. Logistics Integration on Shipping
     if (status === 'SHIPPED' && currentStatus === 'PROCESSING') {
-      try {
-        const shipment = await logisticsService.createShipment((order as any)._id.toString());
-        updateData.shippingProvider = shipment.carrier;
-        updateData.trackingId = shipment.trackingId;
-        updateData.estimatedDelivery = shipment.estimatedDelivery;
-        updateData.shippingLabelUrl = shipment.labelUrl;
-
-        // Notification on Shipping
-        await logisticsNotificationService.notifyOrderShipped(order, shipment);
-      } catch (err) {
-        console.error('Logistics service failure:', err);
-        // We continue with status update but log the error
-      }
+      // Offload to background queue
+      await logisticsQueue.queue.add(BULL_QUEUES.LOGISTICS.JOBS.PUSH_TO_LOGISTICS, {
+        orderId: orderId.toString()
+      });
+      
+      console.log(`[OrderService] Offloaded PUSH_TO_LOGISTICS for Order #${order.orderNumber}`);
     }
 
     // 3. Stock Reversal on Cancellation
