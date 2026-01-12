@@ -470,7 +470,11 @@ const ProductForm: React.FC = () => {
             const cleanSkus = [...productSkus, ...generatedSkus].map(sku => ({
                 ...sku,
                 skuCode: sku.skuCode?.trim(),
-                lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null)
+                lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null),
+                variantAttributes: sku.variantAttributes?.map((attr: any) => ({
+                    ...attr,
+                    attributeId: (attr.attributeId && typeof attr.attributeId === 'object') ? attr.attributeId._id : attr.attributeId
+                }))
             }));
 
             // Validate SKU Code uniqueness within the local list

@@ -10,7 +10,8 @@ import {
     Tag,
     IndianRupee,
     Box,
-    LayoutGrid
+    LayoutGrid,
+    Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/product.service';
@@ -203,11 +204,17 @@ const ProductList: React.FC = () => {
             render: (product) => (
                 <div className="flex flex-wrap gap-1.5 max-w-[200px]">
                     {Array.isArray(product.categoryIds) && product.categoryIds.length > 0 ? (
-                        product.categoryIds.map((cat: any) => (
-                            <span key={typeof cat === 'string' ? cat : cat._id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-primary/5 text-[9px] font-black text-primary uppercase tracking-widest border border-primary/10 shadow-xs">
-                                {typeof cat === 'string' ? cat : cat.name}
-                            </span>
-                        ))
+                        product.categoryIds.map((cat: any) => {
+                            const categoryId = typeof cat === 'string' ? cat : cat._id;
+                            const categoryName = typeof cat === 'string'
+                                ? (categories.find((c) => c._id === cat)?.name || cat)
+                                : cat.name;
+                            return (
+                                <span key={categoryId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-primary/5 text-[9px] font-black text-primary uppercase tracking-widest border border-primary/10 shadow-xs">
+                                    {categoryName}
+                                </span>
+                            );
+                        })
                     ) : (
                         <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest italic opacity-50">Uncategorized</span>
                     )}
@@ -276,6 +283,13 @@ const ProductList: React.FC = () => {
             align: 'right' as const,
             render: (product) => (
                 <div className="flex items-center justify-end gap-2">
+                    <button
+                        onClick={() => navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', product._id))}
+                        className="p-3 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all border border-transparent hover:border-blue-100 group"
+                        title="View Product"
+                    >
+                        <Eye size={18} className="group-hover:scale-110 transition-transform" />
+                    </button>
                     <button
                         onClick={() => navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', product._id))}
                         className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
@@ -403,7 +417,6 @@ const ProductList: React.FC = () => {
                 isLoading={loading}
                 keyExtractor={(product) => product._id}
                 emptyMessage="No strategic products discovered in this sector"
-                onRowClick={(product) => navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', product._id))}
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
