@@ -38,7 +38,7 @@ export const ManageCouponsLazy = lazy(() => import('../../pages/Coupon/CouponLis
 export const ManageCouponFormLazy = lazy(() => import('../../pages/Coupon/CouponForm'));
 export const FileManagerLazy = lazy(() => import('../../pages/FileStorage/FileManager').then(module => ({ default: module.FileManager })));
 export const ManageStockLedgerLazy = lazy(() => import('../../pages/Inventory/StockLedgerList'));
-export const ManageLoyaltyLazy = lazy(() => import('../../pages/Loyalty/LoyaltyAuditList'));
+// export const ManageLoyaltyLazy = lazy(() => import('../../pages/Loyalty/LoyaltyAuditList'));
 
 // Intelligence Section - Split Analytics Pages
 export const SalesAnalyticsLazy = lazy(() => import('../../pages/Analytics/SalesAnalytics'));
@@ -72,3 +72,9 @@ export const BannerFormLazy = lazy(() => import('../../pages/Banner/BannerForm')
 export const FlashDealListLazy = lazy(() => import('../../pages/FlashDeal/FlashDealList'));
 export const FlashDealFormLazy = lazy(() => import('../../pages/FlashDeal/FlashDealForm'));
 export const SearchQueryListLazy = lazy(() => import('../../pages/SearchQuery/SearchQueryList'));
+
+// Wallet
+export const WalletDashboardLazy = lazy(() => import('../../pages/Wallet/WalletDashboard'));
+export const WalletRuleListLazy = lazy(() => import('../../pages/Wallet/WalletRuleList'));
+export const WalletRuleFormLazy = lazy(() => import('../../pages/Wallet/WalletRuleForm'));
+export const WalletTransactionListLazy = lazy(() => import('../../pages/Wallet/WalletTransactionList'));

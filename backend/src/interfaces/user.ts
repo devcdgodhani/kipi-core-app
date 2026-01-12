@@ -17,10 +17,7 @@ export interface IUserAttributes extends IDefaultAttributes {
   signUpType?: SIGN_UP_TYPE;
   isVerified: boolean;
   status: USER_STATUS;
-  loyaltyPoints: number;
-  totalEarnedPoints: number;
   dob?: Date;
-  pointsExpiryDate?: Date;
   fcmTokens?: string[];
   metrics?: {
     totalOrders: number;
@@ -29,6 +26,9 @@ export interface IUserAttributes extends IDefaultAttributes {
     deliveredCount: number;
     cancelledCount: number;
   };
+  wallet?: any;
+  referralCode?: string;
+  referredBy?: ObjectId;
 }
 
 export interface IUserDocument extends Omit<IUserAttributes, '_id'>, Document {}

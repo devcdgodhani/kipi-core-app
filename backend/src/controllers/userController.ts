@@ -11,7 +11,11 @@ export class UserController {
   /*********** Fetch users ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.params;
       const reqData = { ...req.query as any, ...req.body };
+      if (id) {
+        reqData.id = id;
+      }
       const { filter, options } = this.userService.generateFilter({
         filters: reqData,
       });
@@ -34,8 +38,16 @@ export class UserController {
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query as any, ...req.body };
+      
+      // Merge top-level params into filter, letting nested filter take precedence
+      const filters = {
+        ...reqData,
+        ...(reqData.filter || {})
+      };
+      delete (filters as any).filter;
+
       const { filter, options } = this.userService.generateFilter({
-        filters: reqData,
+        filters
       });
 
       const userList = await this.userService.findAll(filter, options);
@@ -55,8 +67,16 @@ export class UserController {
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query as any, ...req.body };
+      
+      // Merge top-level params into filter, letting nested filter take precedence
+      const filters = {
+        ...reqData,
+        ...(reqData.filter || {})
+      };
+      delete (filters as any).filter;
+
       const { filter, options } = this.userService.generateFilter({
-        filters: reqData,
+        filters
       });
 
       const userList = await this.userService.findAllWithPagination(filter, options);

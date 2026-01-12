@@ -4,7 +4,7 @@ import type { CheckoutState, CouponInfo } from '../types/checkout.types';
 import type { CreateOrderRequest } from '../types/order.types';
 import { orderService } from '../services/order.service';
 import { couponService } from '../services/coupon.service';
-import { loyaltyService } from '../services/loyalty.service';
+import { walletService } from '../services/wallet.service';
 import { useCart } from './CartContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -15,9 +15,8 @@ interface CheckoutContextType extends CheckoutState {
     setPaymentMethod: (method: 'COD' | 'ONLINE') => void;
     applyCoupon: (code: string) => Promise<void>;
     removeCoupon: () => void;
-    toggleLoyaltyPoints: (use: boolean, points?: number) => void;
+    toggleWallet: (use: boolean) => void;
     placeOrder: () => Promise<void>;
-    availablePoints: number;
     loading: boolean;
 }
 
@@ -38,14 +37,14 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             tax: 0,
             shipping: 0,
             discount: 0,
-            pointsDiscount: 0,
+            walletDiscount: 0,
             total: 0
         },
-        loyaltyPoints: {
-            usePoints: false,
-            pointsToUse: 0
+        wallet: {
+            useWallet: false,
+            amountToUse: 0
         },
-        availablePoints: 0
+        walletBalance: 0
     });
 
     const calculateTotal = () => {
@@ -62,15 +61,19 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     useEffect(() => {
-        const fetchPoints = async () => {
+        const fetchWallet = async () => {
             try {
-                const res = await loyaltyService.getStatus({ options: { limit: 1 } });
-                setState(prev => ({ ...prev, availablePoints: res.balance }));
+                const res = await walletService.getMyWallet();
+                // If res has .data, use it (single unwrap), otherwise use res itself (double unwrap)
+                const walletData = res?.data || res;
+                if (walletData) {
+                    setState(prev => ({ ...prev, walletBalance: walletData.availableBalance || 0 }));
+                }
             } catch (err) {
-                console.error("Failed to fetch loyalty points", err);
+                console.error("Failed to fetch wallet", err);
             }
         };
-        fetchPoints();
+        fetchWallet();
     }, []);
 
     useEffect(() => {
@@ -87,18 +90,25 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
         }
 
-        let pointsDiscount = 0;
-        if (state.loyaltyPoints.usePoints) {
-            pointsDiscount = state.loyaltyPoints.pointsToUse; // 1 point = 1 INR
+        // Wallet Logic: Limit usage to min(balance, remaining total)
+        // Ensure discount doesn't exceed total
+        const totalBeforeWallet = subTotal + tax + shipping - discount;
+        let walletDiscount = 0;
+        if (state.wallet.useWallet) {
+            walletDiscount = Math.min(state.walletBalance, Math.max(0, totalBeforeWallet));
         }
 
-        const total = subTotal + tax + shipping - discount - pointsDiscount;
+        const total = Math.max(0, totalBeforeWallet - walletDiscount);
 
         setState(prev => ({
             ...prev,
-            orderSummary: { subTotal, tax, shipping, discount, pointsDiscount, total }
+            wallet: {
+                ...prev.wallet,
+                amountToUse: walletDiscount
+            },
+            orderSummary: { subTotal, tax, shipping, discount, walletDiscount, total }
         }));
-    }, [cart, state.appliedCoupon, state.loyaltyPoints.usePoints, state.loyaltyPoints.pointsToUse]);
+    }, [cart, state.appliedCoupon, state.wallet.useWallet, state.walletBalance]);
 
     const setStep = (step: CheckoutState['step']) => {
         setState(prev => ({ ...prev, step }));
@@ -140,12 +150,12 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         toast.success("Coupon removed");
     };
 
-    const toggleLoyaltyPoints = (use: boolean, points: number = 0) => {
+    const toggleWallet = (use: boolean) => {
         setState(prev => ({
             ...prev,
-            loyaltyPoints: {
-                usePoints: use,
-                pointsToUse: points
+            wallet: {
+                ...prev.wallet,
+                useWallet: use
             }
         }));
     };
@@ -210,7 +220,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 subTotal: state.orderSummary.subTotal,
                 tax: state.orderSummary.tax,
                 shippingCost: state.orderSummary.shipping,
-                pointsUsed: state.loyaltyPoints.usePoints ? state.loyaltyPoints.pointsToUse : 0,
+                walletAmountUsed: state.wallet.useWallet ? state.wallet.amountToUse : 0,
                 totalAmount: state.orderSummary.total
             };
 
@@ -218,7 +228,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             toast.success("Order placed successfully!");
 
-            if (state.paymentMethod === 'ONLINE') {
+            // If full amount paid by wallet, order might be confirmed directly or pending if backend handles it
+            if (state.paymentMethod === 'ONLINE' && state.orderSummary.total > 0) {
                 navigate(`/payment/checkout/${order._id}`);
             } else {
                 navigate(`/order/success/${order._id}`);
@@ -243,9 +254,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setPaymentMethod,
             applyCoupon,
             removeCoupon,
-            toggleLoyaltyPoints,
+            toggleWallet,
             placeOrder,
-            availablePoints: state.availablePoints,
             loading
         }}>
             {children}

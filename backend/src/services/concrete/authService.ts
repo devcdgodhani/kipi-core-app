@@ -204,6 +204,19 @@ export class AuthService implements IAuthService {
     } 
     return token;
   };
+
+  generateUniqueReferralCode = async (): Promise<string> => {
+    let referralCode = '';
+    let isUnique = false;
+    while (!isUnique) {
+      referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const existUser = await this.userService.findOne({ referralCode });
+      if (!existUser) {
+        isUnique = true;
+      }
+    }
+    return referralCode;
+  };
 }
 
 export const authService = new AuthService();

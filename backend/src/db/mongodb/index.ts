@@ -70,7 +70,7 @@ export * from './models/stockLedgerModel';
 export * from './models/returnModel';
 export * from './models/exchangeModel';
 export * from './models/reviewModel';
-export * from './models/loyaltyTransactionModel';
+// export * from './models/loyaltyTransactionModel';
 export * from './models/walletModel';
 export * from './models/walletTransactionModel';
 export * from './models/walletRuleModel';

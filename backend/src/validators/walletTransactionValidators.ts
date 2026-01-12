@@ -6,6 +6,7 @@ import {
   WALLET_TRANSACTION_STATUS, 
   WALLET_CREATED_BY 
 } from '../constants/walletTransaction';
+import { paginationSchema } from './validatorCommon';
 
 // Filter schema for transaction queries
 const transactionFilterSchema = z.object({
@@ -87,7 +88,13 @@ export class WalletTransactionValidator {
         page: z.string().optional(),
         limit: z.string().optional(),
       }).optional(),
-      body: transactionFilterSchema.optional(),
+      body: transactionFilterSchema.extend({
+        filter: z.record(z.string(), z.any()).optional(),
+        page: z.number().optional(),
+        limit: z.number().optional(),
+        sort: z.record(z.string(), z.number()).optional(),
+        order: z.record(z.string(), z.number()).optional(),
+      }).optional(),
     })
   );
 
@@ -128,11 +135,8 @@ export class WalletTransactionValidator {
   // Customer validators
   getMyTransactions = validate(
     z.object({
-      query: z.object({
-        page: z.string().optional(),
-        limit: z.string().optional(),
-      }).optional(),
-      body: z.object({}).optional(),
+      query: paginationSchema.partial().optional(),
+      body: paginationSchema.partial().optional(),
     })
   );
 

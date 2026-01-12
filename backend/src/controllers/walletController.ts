@@ -99,8 +99,16 @@ export class WalletController {
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query as any, ...req.body };
+      
+      // Merge top-level params into filter, letting nested filter take precedence
+      const filters = {
+        ...reqData,
+        ...(reqData.filter || {})
+      };
+      delete (filters as any).filter;
+
       const { filter, options } = this.walletService.generateFilter({
-        filters: reqData
+        filters
       });
 
       const walletList = await this.walletService.findAll(filter, options);
@@ -124,8 +132,16 @@ export class WalletController {
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query as any, ...req.body };
+      
+      // Merge top-level params into filter, letting nested filter take precedence
+      const filters = {
+        ...reqData,
+        ...(reqData.filter || {})
+      };
+      delete (filters as any).filter;
+
       const { filter, options } = this.walletService.generateFilter({
-        filters: reqData
+        filters
       });
 
       const walletList = await this.walletService.findAllWithPagination(filter, options);

@@ -12,6 +12,9 @@ import { IReturnService } from '../contracts/returnServiceInterface';
 import { logisticsNotificationService } from './logisticsNotificationService';
 import { paymentRefundService } from './paymentRefundService';
 import { REFUND_REASON } from '../../constants/payment';
+import { walletService } from './walletService';
+import { walletTransactionService } from './walletTransactionService';
+import { WALLET_SOURCE_TYPE, WALLET_TRANSACTION_TYPE } from '../../constants/walletTransaction';
 
 export class ReturnService extends MongooseCommonService<IReturn, IReturn> implements IReturnService {
     private get refundService() { return paymentRefundService; }
@@ -124,20 +127,52 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
 
             // 1.1 Automatic Refund for Online Payments
             const order = await this.orderService.findById(returnRequest.orderId as any);
-            if (order && (order as any).paymentMethod !== 'COD') {
-                const payment = await this.paymentService.findOne({ orderId: (order as any)._id, status: 'SUCCESS' } as any);
-                if (payment) {
-                    try {
-                        await this.refundService.initiateRefund(
-                            payment._id.toString(),
-                            returnRequest.totalRefundAmount,
-                            REFUND_REASON.RETURN,
-                            `Refund for Return #${returnRequest.returnNumber}`,
-                            'SYSTEM' // Or admin ID if we had it here
-                        );
-                        console.log(`✅ Auto-refund initiated for Return #${returnRequest.returnNumber}`);
-                    } catch (refundError) {
-                        console.error(`❌ Auto-refund failed for Return #${returnRequest.returnNumber}:`, refundError);
+            if (order) {
+                // --- CASHBACK REVOCATION LOGIC ---
+                let adjustedRefundAmount = returnRequest.totalRefundAmount;
+                const awardedCashback = await walletTransactionService.getTransactionsBySource(
+                    (order as any)._id.toString(),
+                    WALLET_SOURCE_TYPE.ORDER_CASHBACK
+                );
+
+                const totalConfirmedCashback = awardedCashback
+                    .filter(tx => tx.status === 'CONFIRMED' && tx.transactionType === WALLET_TRANSACTION_TYPE.CREDIT)
+                    .reduce((sum, tx) => sum + tx.amount, 0);
+
+                if (totalConfirmedCashback > 0) {
+                    console.log(`[ReturnService] Revoking ₹${totalConfirmedCashback} cashback for Order #${(order as any).orderNumber}`);
+                    
+                    const shortfall = await walletService.revokeCashback(
+                        (order as any).userId.toString(),
+                        totalConfirmedCashback,
+                        {
+                            orderId: (order as any)._id,
+                            orderNumber: (order as any).orderNumber,
+                            description: `Revocation for Return #${returnRequest.returnNumber}`
+                        }
+                    );
+
+                    if (shortfall > 0) {
+                        console.log(`[ReturnService] Cashback shortfall of ₹${shortfall} detected. Deducting from refund.`);
+                        adjustedRefundAmount = Math.max(0, adjustedRefundAmount - shortfall);
+                    }
+                }
+
+                if ((order as any).paymentMethod !== 'COD') {
+                    const payment = await this.paymentService.findOne({ orderId: (order as any)._id, status: 'SUCCESS' } as any);
+                    if (payment) {
+                        try {
+                            await this.refundService.initiateRefund(
+                                payment._id.toString(),
+                                adjustedRefundAmount,
+                                REFUND_REASON.RETURN,
+                                `Refund for Return #${returnRequest.returnNumber}${adjustedRefundAmount !== returnRequest.totalRefundAmount ? ' (Adjusted for cashback)' : ''}`,
+                                'SYSTEM'
+                            );
+                            console.log(`✅ Auto-refund initiated for Return #${returnRequest.returnNumber} with amount ₹${adjustedRefundAmount}`);
+                        } catch (refundError) {
+                            console.error(`❌ Auto-refund failed for Return #${returnRequest.returnNumber}:`, refundError);
+                        }
                     }
                 }
             }

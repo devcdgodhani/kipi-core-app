@@ -1,22 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { authService } from '../../services/auth.service';
+import { walletService } from '../../services/wallet.service';
 import { useAppSelector } from '../../features/hooks';
-import { Mail, Phone, User, Loader2, Cake, Coins, Calendar } from 'lucide-react';
+import { Mail, Phone, User, Loader2, Cake, Wallet, ChevronRight } from 'lucide-react';
 
 const Profile: React.FC = () => {
     const { user: storedUser } = useAppSelector(state => state.auth);
     const [user, setUser] = useState<any>(storedUser || null);
+    const [wallet, setWallet] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await authService.getMe();
-                if (response?.data?.data) {
-                    setUser(response.data.data);
+                const [profileRes, walletRes] = await Promise.all([
+                    authService.getMe(),
+                    walletService.getMyWallet()
+                ]);
+
+                // profileRes is root JSON { success: true, data: { ...user } }
+                if (profileRes?.data) {
+                    setUser(profileRes.data);
+                } else if (profileRes) {
+                    setUser(profileRes);
                 }
+
+                // walletRes is already unwrapped wallet object because getMyWallet returns response.data
+                setWallet(walletRes);
             } catch (error) {
-                console.error('Failed to fetch profile', error);
+                console.error('Failed to fetch profile/wallet', error);
             } finally {
                 setLoading(false);
             }
@@ -110,21 +122,22 @@ const Profile: React.FC = () => {
                     <div className="space-y-6">
                         <h3 className="text-lg font-bold text-gray-700 border-b border-gray-100 pb-2">Status & Rewards</h3>
 
-                        <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                        <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10 group hover:bg-primary/10 transition-colors duration-300">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-amber-500 shadow-sm">
-                                    <Coins size={18} />
+                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary shadow-sm">
+                                    <Wallet size={18} />
                                 </div>
-                                <span className="font-bold text-amber-700">Kipi Rewards</span>
+                                <span className="font-bold text-gray-700">Digital Wallet</span>
                             </div>
-                            <p className="text-3xl font-black text-amber-900 tracking-tighter">{user.loyaltyPoints || 0}</p>
-                            <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest leading-none mb-3">Available Points</p>
+                            <p className="text-3xl font-black text-gray-900 tracking-tighter">₹{wallet?.availableBalance || 0}</p>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-3">Available Balance</p>
 
-                            {user.pointsExpiryDate && (
-                                <p className="text-[10px] text-amber-700/60 font-bold uppercase tracking-widest flex items-center gap-1 bg-white/50 w-fit px-2 py-1 rounded-lg">
-                                    <Calendar size={10} /> Expiry: {new Date(user.pointsExpiryDate).toLocaleDateString()}
-                                </p>
-                            )}
+                            <button
+                                onClick={() => window.location.href = '/wallet'}
+                                className="text-[10px] text-primary/60 font-bold uppercase tracking-widest flex items-center gap-1 bg-white/50 w-fit px-2 py-1 rounded-lg hover:bg-white hover:text-primary transition-colors"
+                            >
+                                View Transactions <ChevronRight size={10} />
+                            </button>
                         </div>
 
                         <div className="p-6 bg-green-50 rounded-2xl border border-green-100">
@@ -133,6 +146,25 @@ const Profile: React.FC = () => {
                                 <span className="font-bold text-green-700 uppercase text-xs tracking-widest">Account Status: Active</span>
                             </div>
                             <p className="text-xs text-green-600/80 font-medium leading-relaxed">Your account is fully verified and active. You have full access to all features.</p>
+                        </div>
+
+                        <div className="p-6 bg-purple-50 rounded-2xl border border-purple-100">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="font-bold text-purple-700 uppercase text-xs tracking-widest">Your Referral Code</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 bg-white p-3 rounded-xl border border-purple-200">
+                                <span className="font-mono text-xl font-black text-purple-700 tracking-wider uppercase">{user.referralCode}</span>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(user.referralCode);
+                                        // Optional: add a toast or simple feedback
+                                    }}
+                                    className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-purple-700 transition-colors"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                            <p className="mt-4 text-[10px] text-purple-600 font-bold uppercase tracking-widest">Share this code with friends to earn rewards!</p>
                         </div>
                     </div>
                 </div>

@@ -69,21 +69,7 @@ export const UserSchema = new Schema<IUserDocument>(
       enum: Object.values(USER_STATUS),
       default: USER_STATUS.ACTIVE,
     },
-    loyaltyPoints: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    totalEarnedPoints: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
     dob: {
-      type: Date,
-      required: false
-    },
-    pointsExpiryDate: {
       type: Date,
       required: false
     },
@@ -93,6 +79,17 @@ export const UserSchema = new Schema<IUserDocument>(
       returnCount: { type: Number, default: 0 },
       deliveredCount: { type: Number, default: 0 },
       cancelledCount: { type: Number, default: 0 }
+    },
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      required: false,
     }
   },
   {

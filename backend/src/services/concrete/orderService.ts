@@ -1,5 +1,5 @@
 import { MongooseCommonService } from './mongooseCommonService';
-import { OrderModel } from '../../db/mongodb';
+import { OrderModel } from '../../db/mongodb/models/orderModel';
 import { TOrderCreateReq } from '../../types/order';
 import { IOrderAttributes, IOrderDocument } from '../../interfaces';
 import { couponService } from './couponService';
@@ -417,6 +417,13 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
             );
 
             console.log(`✅ Cashback of ₹${transaction.amount} confirmed for Order #${order.orderNumber}`);
+
+            // Notify user about cashback
+            await this.pulseService.triggerWalletCreditPulse(
+                order.userId.toString(),
+                transaction.amount,
+                order.orderNumber
+            );
           }
         }
         

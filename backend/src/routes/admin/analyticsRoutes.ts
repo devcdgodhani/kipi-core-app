@@ -47,6 +47,12 @@ router.get(
 );
 
 router.get(
+  '/wallet',
+  jwtAuth(),
+  analyticsController.getWalletAnalytics
+);
+
+router.get(
   '/export',
   jwtAuth(),
   analyticsController.exportAnalytics

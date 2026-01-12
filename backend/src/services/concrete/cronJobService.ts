@@ -44,7 +44,7 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
     private registerHandlers() {
         // Transferring handlers from EngagementCronService
         this.handlers.set('BIRTHDAY_REWARDS', this.processBirthdayRewards.bind(this));
-        this.handlers.set('POINTS_EXPIRY_WARNING', this.processPointsExpiryWarnings.bind(this));
+        this.handlers.set('WALLET_EXPIRY_WARNING', this.processWalletExpiryWarnings.bind(this));
         this.handlers.set('PAYMENT_STATUS_SYNC', this.processPaymentStatusSync.bind(this));
         
         // WhatsApp Handlers
@@ -102,10 +102,10 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 description: 'Sends rewards to users on their birthdays'
             },
             {
-                name: 'Points Expiry Warnings',
-                identifier: 'POINTS_EXPIRY_WARNING',
+                name: 'Wallet Expiry Warnings',
+                identifier: 'WALLET_EXPIRY_WARNING',
                 expression: '0 10 * * *',
-                description: 'Notifies users 30 days before points expire'
+                description: 'Notifies users 7 days before wallet credits expire'
             },
             {
                 name: 'Payment Status Sync',
@@ -288,19 +288,45 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
 
     // --- Specific Handlers (Transferred from EngagementCronService) ---
 
-    async processPointsExpiryWarnings() {
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-        const startOfDay = new Date(thirtyDaysFromNow.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(thirtyDaysFromNow.setHours(23, 59, 59, 999));
+    async processWalletExpiryWarnings() {
+        console.log('CronJobService: Running wallet expiry warnings...');
+        const warningDays = 7; // Warn 7 days in advance
+        const expiryThreshold = new Date();
+        expiryThreshold.setDate(expiryThreshold.getDate() + warningDays);
+        const startOfDay = new Date(expiryThreshold.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(expiryThreshold.setHours(23, 59, 59, 999));
 
-        const users = await this.userService.findAll({
-            pointsExpiryDate: { $gte: startOfDay, $lte: endOfDay },
-            loyaltyPoints: { $gt: 0 }
+        // Find transactions expiring on that day
+        const expiringTxns = await walletTransactionService.findAll({
+            status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+            expiryDate: { $gte: startOfDay, $lte: endOfDay }
         } as any);
 
-        for (const user of users) {
-            await pulseService.triggerPointsExpiryWarning(user as any, (user as any).loyaltyPoints as number, 30);
+        console.log(`CronJobService: Found ${expiringTxns.length} transactions expiring in ${warningDays} days`);
+
+        // Group by User
+        const userMap: { [key: string]: number } = {};
+        for (const txn of expiringTxns) {
+            const uid = (txn as any).userId.toString();
+            // userMap[uid] = (userMap[uid] || 0) + txn.availableBalance; // Removed incorrect property access 
+            // WalletTransaction doesn't track remaining balance per transaction in this simple model usually.
+            // But if we want to warn, we warn about 'amount' or check wallet?
+            // "Your ₹500 Wallet credits are expiring".
+            // Since we implemented simple ledger, we don't strictly link consumption to transaction (FIFO/LIFO).
+            // But 'processWalletExpiry' (Line 577) assumes `transaction.amount` is the expiry amount capped by wallet balance.
+            // So we should warn about `txn.amount`.
+            userMap[uid] = (userMap[uid] || 0) + txn.amount;
+        }
+
+        for (const userId of Object.keys(userMap)) {
+            try {
+                const user = await this.userService.findById(userId);
+                if (user) {
+                     await pulseService.triggerWalletExpiryWarning(user, userMap[userId], warningDays);
+                }
+            } catch (error) {
+                console.error(`CronJobService: Error sending expiry warning to user ${userId}`, error);
+            }
         }
     }
 
@@ -314,7 +340,6 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 $project: {
                     firstName: 1,
                     mobile: 1,
-                    loyaltyPoints: 1,
                     day: { $dayOfMonth: '$dob' },
                     month: { $month: '$dob' }
                 }
@@ -572,7 +597,7 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
             });
         }
         }
-    }
+
 
     async processWalletExpiry() {
         console.log('CronJobService: Running wallet expiry check...');

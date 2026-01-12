@@ -42,7 +42,11 @@ export const ROUTES = {
         ATTRIBUTES_EDIT: 'attributes/edit/:id',
         FILE_MANAGER: 'file-manager',
         STOCK_LEDGER: 'stock-ledger',
-        LOYALTY: 'loyalty',
+        WALLET_DASHBOARD: 'wallet',
+        WALLET_RULES: 'wallet/rules',
+        WALLET_RULES_CREATE: 'wallet/rules/create',
+        WALLET_RULES_EDIT: 'wallet/rules/edit/:id',
+        WALLET_TRANSACTIONS: 'wallet/transactions',
         
         // Logistics
         SHIPMENTS: 'shipments',

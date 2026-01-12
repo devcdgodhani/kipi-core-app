@@ -47,6 +47,19 @@ export class AuthController {
         );
       }
       reqData.password = await this.authService.generateHashPassword(reqData.password);
+      
+      // Generate unique referral code for the user
+      reqData.referralCode = await this.authService.generateUniqueReferralCode();
+
+      // Check for referral code usage
+      let referringUser = null;
+      if (reqData.usedReferralCode) {
+        referringUser = await this.userService.findOne({ referralCode: reqData.usedReferralCode });
+        if (referringUser) {
+          reqData.referredBy = referringUser._id;
+        }
+      }
+
       const user = await this.userService.create(reqData);
       if (!user) {
         throw new ApiError(
@@ -55,6 +68,39 @@ export class AuthController {
           AUTH_ERROR_MESSAGES.ACCOUNT_CREATE_FAILED
         );
       }
+
+      // Create wallet immediately
+      const { walletService } = await import('../services/concrete/walletService');
+      const wallet = await walletService.getOrCreateWallet(user._id.toString());
+
+      // Apply bonuses
+      const { walletRuleService } = await import('../services/concrete/walletRuleService');
+      const { WALLET_RULE_TYPE } = await import('../constants/walletRule');
+      const { WALLET_SOURCE_TYPE } = await import('../constants/walletTransaction');
+
+      // 1. Referee (New User) always gets SIGNUP_BONUS
+      const signupBonusRule = await walletRuleService.getActiveRuleForType(WALLET_RULE_TYPE.SIGNUP_BONUS);
+      if (signupBonusRule && signupBonusRule.value > 0) {
+        await walletService.creditWallet(user._id.toString(), signupBonusRule.value, {
+          description: 'Signup bonus',
+          ruleId: signupBonusRule._id,
+          sourceType: WALLET_SOURCE_TYPE.SIGNUP_BONUS
+        });
+      }
+
+      // 2. Referrer receives REFERRAL_BONUS if code was used
+      if (referringUser) {
+        const referralBonusRule = await walletRuleService.getActiveRuleForType(WALLET_RULE_TYPE.REFERRAL_BONUS);
+        if (referralBonusRule && referralBonusRule.value > 0) {
+          await walletService.creditWallet(referringUser._id.toString(), referralBonusRule.value, {
+            description: `Referral bonus for inviting ${user.firstName}`,
+            ruleId: referralBonusRule._id,
+            sourceType: WALLET_SOURCE_TYPE.REFERRAL_BONUS,
+            refereeId: user._id
+          });
+        }
+      }
+
       const otpToken = await this.authService.sendOtpAndGetOtpToken(user, OTP_TYPE.ACCOUNT_CREATE);
 
       const response: TAuthSignUpRes = {
@@ -76,6 +122,10 @@ export class AuthController {
       const bodyData = req.body;
 
       const loggedInUser = await this.authService.userLogin(bodyData);
+
+      // Ensure wallet exists for existing users
+      const { walletService } = await import('../services/concrete/walletService');
+      await walletService.getOrCreateWallet(loggedInUser._id.toString());
 
       const refreshToken = await this.authService.generateUserTokens({
         userId: loggedInUser._id,

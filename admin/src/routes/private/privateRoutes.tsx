@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, ManageLoyaltyLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy, NotificationListLazy, NotificationFormLazy, BannerListLazy, BannerFormLazy, FlashDealListLazy, FlashDealFormLazy, SearchQueryListLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy, NotificationListLazy, NotificationFormLazy, BannerListLazy, BannerFormLazy, FlashDealListLazy, FlashDealFormLazy, SearchQueryListLazy, WalletDashboardLazy, WalletRuleListLazy, WalletRuleFormLazy, WalletTransactionListLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -163,9 +163,26 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.STOCK_LEDGER,
                     element: <ManageStockLedgerLazy />,
                 },
+                // Loyalty route removed
                 {
-                    path: ROUTES.DASHBOARD.LOYALTY,
-                    element: <ManageLoyaltyLazy />,
+                    path: ROUTES.DASHBOARD.WALLET_DASHBOARD,
+                    element: <WalletDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WALLET_RULES,
+                    element: <WalletRuleListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WALLET_RULES_CREATE,
+                    element: <WalletRuleFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WALLET_RULES_EDIT,
+                    element: <WalletRuleFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.WALLET_TRANSACTIONS,
+                    element: <WalletTransactionListLazy />,
                 },
                 // Logistics
                 {

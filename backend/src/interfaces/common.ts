@@ -38,12 +38,6 @@ export interface IEnvVariables {
   NODE_ENV: 'local' | 'development' | 'production' | 'test';
   PORT: number;
 
-  PG_DB_HOST: string;
-  PG_DB_PORT: number;
-  PG_DB_USER: string;
-  PG_DB_PASSWORD: string;
-  PG_DB_NAME: string;
-
   MONGO_DB_CONNECTION_URL: string;
   MONGO_DB_NAME?: string;
 
@@ -68,10 +62,9 @@ export interface IEnvVariables {
   APPLE_KEY_ID: string;
   APPLE_PRIVATE_KEY: string;
 
-  SERVER_URL: string;
-  WEB_SERVER_URL: string;
-  BACKEND_API_URL?: string;
-  CUSTOMER_APP_URL?: string;
+  ADMIN_APP_URL:string
+  BACKEND_API_URL: string;
+  CUSTOMER_APP_URL: string;
 
   AWS_BUCKET_NAME: string;
   AWS_ACCESS_KEY_ID: string;

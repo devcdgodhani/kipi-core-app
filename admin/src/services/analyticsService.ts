@@ -78,6 +78,20 @@ export interface ILogisticsAnalytics {
   rtoReasons: { reason: string; count: number }[];
 }
 
+export interface IWalletAnalytics {
+  totalBalance: number;
+  blockedBalance: number;
+  pendingCashback: {
+    count: number;
+    amount: number;
+  };
+  expiringSoon: {
+    count: number;
+    amount: number;
+  };
+  totalWallets: number;
+}
+
 export interface ICourierPerformance {
   courierId: string;
   courierName: string;
@@ -135,6 +149,15 @@ export const analyticsService = {
       endDate: endDate?.toISOString(),
     }, { addQueryPrefix: true });
     const response = await axiosInstance.get<any, { data: ICourierPerformance[] }>(`/analytics/couriers${query}`);
+    return response.data;
+  },
+
+  getWalletAnalytics: async (startDate?: Date, endDate?: Date): Promise<IWalletAnalytics> => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    }, { addQueryPrefix: true });
+    const response = await axiosInstance.get<any, { data: IWalletAnalytics }>(`/analytics/wallet${query}`);
     return response.data;
   },
   

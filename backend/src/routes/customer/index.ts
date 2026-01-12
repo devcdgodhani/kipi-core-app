@@ -9,7 +9,7 @@ import addressRoutes from './addressRoutes';
 import couponRoutes from './couponRoutes';
 import skuRoutes from './skuRoutes';
 import orderRoutes from './orderRoutes';
-import loyaltyRoutes from './loyaltyRoutes';
+// loyaltyRoutes removed
 import walletRoutes from './walletRoutes';
 import walletTransactionRoutes from './walletTransactionRoutes';
 import returnRoutes from './returnRoutes';
@@ -38,7 +38,7 @@ router.use('/address', addressRoutes);
 router.use('/coupon', couponRoutes);
 router.use('/sku', skuRoutes);
 router.use('/order', orderRoutes);
-router.use('/loyalty', loyaltyRoutes);
+// loyaltyRoutes removed
 router.use('/wallet', walletRoutes);
 router.use('/wallet-transaction', walletTransactionRoutes);
 router.use('/return', returnRoutes);

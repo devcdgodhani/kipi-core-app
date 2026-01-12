@@ -72,6 +72,20 @@ export interface ICourierPerformance {
   totalShipments: number;
 }
 
+export interface IWalletAnalytics {
+  totalBalance: number;
+  blockedBalance: number;
+  pendingCashback: {
+    count: number;
+    amount: number;
+  };
+  expiringSoon: {
+    count: number;
+    amount: number;
+  };
+  totalWallets: number;
+}
+
 export interface IAnalyticsService {
   getRevenueAnalytics(startDate: Date, endDate: Date): Promise<IRevenueAnalytics>;
   getProductPerformance(startDate: Date, endDate: Date): Promise<IProductAnalytics>;
@@ -79,4 +93,5 @@ export interface IAnalyticsService {
   getLotAnalytics(startDate: Date, endDate: Date): Promise<ILotAnalytics>;
   getLogisticsAnalytics(startDate: Date, endDate: Date): Promise<ILogisticsAnalytics>;
   getCourierPerformance(startDate: Date, endDate: Date): Promise<ICourierPerformance[]>;
+  getWalletAnalytics(startDate: Date, endDate: Date): Promise<IWalletAnalytics>;
 }

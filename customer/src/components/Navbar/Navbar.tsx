@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingBag, User, Heart, LogOut, ChevronDown, Package, MapPin, Settings, Undo2, Coins, Bell } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, Heart, LogOut, ChevronDown, Package, MapPin, Settings, Undo2, Wallet, Bell } from 'lucide-react';
 
 import { useAppSelector, useAppDispatch } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
                 { to: ROUTES.ORDERS, label: 'My Orders', icon: Package },
                 { to: ROUTES.RETURNS, label: 'Returns', icon: Undo2 },
                 { to: ROUTES.WISHLIST, label: 'Wishlist', icon: Heart },
-                { to: ROUTES.LOYALTY, label: 'Loyalty Points', icon: Coins },
+                { to: ROUTES.WALLET, label: 'My Wallet', icon: Wallet },
             ]
         }
     ];

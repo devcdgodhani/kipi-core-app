@@ -21,7 +21,7 @@ export const CartLazy = lazy(() => import('../../pages/Cart/CartPage'));
 export const NotFoundLazy = lazy(() => import('../../pages/NotFound'));
 export const ProfileLayoutLazy = lazy(() => import('../../pages/Profile/ProfileLayout'));
 export const ReturnHistoryLazy = lazy(() => import('../../pages/Profile/ReturnHistoryPage'));
-export const LoyaltyPointsLazy = lazy(() => import('../../pages/Profile/LoyaltyPointsPage'));
+// Loyalty removed
 export const CheckoutPaymentLazy = lazy(() => {
     console.log('Lazy loading CheckoutPayment...');
     return import('../../pages/CheckoutPayment').then(module => ({ default: module.CheckoutPayment }));
@@ -32,3 +32,6 @@ export const PaymentCallbackLazy = lazy(() => import('../../pages/PaymentCallbac
 export const NotificationsLazy = lazy(() => import('../../pages/Notifications/NotificationPage'));
 
 
+
+// Wallet
+export const MyWalletLazy = lazy(() => import('../../pages/Wallet/MyWallet'));

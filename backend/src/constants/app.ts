@@ -14,7 +14,7 @@ export const EJS_TEMPLATES = {
   ACCOUNT_VERIFICATION: path.join(TEMPLATES, 'ejs', 'verification-otp.ejs'),
 };
 
-export const API_BASE_URL = path.join(ENV_VARIABLE.SERVER_URL, 'api/v1');
+export const API_BASE_URL = path.join(ENV_VARIABLE.BACKEND_API_URL, '/api/v1');
 
 export const OPEN_API = {
   ACCOUNT_VERIFICATION: path.join(API_BASE_URL, 'auth', 'verifyOtp'),
@@ -27,7 +27,7 @@ export enum EMAIL_SUBJECT_MESSAGE {
 export const APP_DETAILS = {
   SUPPORT_EMAIL: 'support@myapp.com',
   APP_NAME: 'Kipi.shop',
-  CUSTOMER_URL: ENV_VARIABLE.WEB_SERVER_URL,
+  CUSTOMER_URL: ENV_VARIABLE.CUSTOMER_APP_URL,
 };
 
 export const MASTER_OTP = '55555555';

@@ -1,4 +1,4 @@
-import { WalletModel } from '../../db/mongodb';
+import { WalletModel } from '../../db/mongodb/models/walletModel';
 import { IWalletAttributes, IWalletDocument } from '../../interfaces/wallet';
 import { IWalletService } from '../contracts/walletServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
@@ -53,7 +53,7 @@ export class WalletService
 
   /**
    * Credit wallet (add money)
-   * This method should be called by WalletTransactionService
+   * This method should be called by WalletTransactionService or for manual credits
    */
   async creditWallet(userId: string, amount: number, metadata: any): Promise<IWalletAttributes> {
     if (amount <= 0) {
@@ -85,12 +85,31 @@ export class WalletService
       }
     );
 
+    // Record transaction
+    const { walletTransactionService } = await import('./walletTransactionService');
+    const { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_TRANSACTION_STATUS, WALLET_CREATED_BY } = await import('../../constants/walletTransaction');
+    
+    await walletTransactionService.create({
+      walletId: (wallet as any)._id,
+      userId,
+      transactionType: WALLET_TRANSACTION_TYPE.CREDIT,
+      sourceType: WALLET_SOURCE_TYPE.MANUAL_CREDIT,
+      amount,
+      balanceBefore: wallet.availableBalance,
+      balanceAfter: wallet.availableBalance + amount,
+      description: metadata.description || 'Manual credit by admin',
+      status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+      metadata: { ...metadata, processedAt: new Date() },
+      createdByType: WALLET_CREATED_BY.ADMIN,
+      adminUserId: metadata.adminUserId
+    } as any);
+
     return updatedWallet!;
   }
 
   /**
    * Debit wallet (deduct money)
-   * This method should be called by WalletTransactionService
+   * This method should be called by WalletTransactionService or for manual debits
    */
   async debitWallet(userId: string, amount: number, metadata: any): Promise<IWalletAttributes> {
     if (amount <= 0) {
@@ -129,6 +148,25 @@ export class WalletService
         lastCalculatedAt: new Date()
       }
     );
+
+    // Record transaction
+    const { walletTransactionService } = await import('./walletTransactionService');
+    const { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_TRANSACTION_STATUS, WALLET_CREATED_BY } = await import('../../constants/walletTransaction');
+    
+    await walletTransactionService.create({
+      walletId: (wallet as any)._id,
+      userId,
+      transactionType: WALLET_TRANSACTION_TYPE.DEBIT,
+      sourceType: WALLET_SOURCE_TYPE.ADMIN_ADJUSTMENT,
+      amount,
+      balanceBefore: wallet.availableBalance,
+      balanceAfter: wallet.availableBalance - amount,
+      description: metadata.description || 'Manual debit by admin',
+      status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+      metadata: { ...metadata, processedAt: new Date() },
+      createdByType: WALLET_CREATED_BY.ADMIN,
+      adminUserId: metadata.adminUserId
+    } as any);
 
     return updatedWallet!;
   }
@@ -257,6 +295,56 @@ export class WalletService
     }
 
     return updatedWallet;
+  }
+
+  /**
+   * Revoke previously awarded cashback
+   * Returns shortfall if available balance is less than revocation amount
+   */
+  async revokeCashback(userId: string, amount: number, metadata: any): Promise<number> {
+    const wallet = await this.getOrCreateWallet(userId);
+    let shortfall = 0;
+    let actualDeduction = amount;
+
+    if (wallet.availableBalance < amount) {
+      shortfall = amount - wallet.availableBalance;
+      actualDeduction = wallet.availableBalance;
+    }
+
+    if (actualDeduction > 0) {
+      await this.findOneAndUpdate(
+        { _id: (wallet as any)._id },
+        {
+          $inc: { 
+            availableBalance: -actualDeduction,
+            totalSpent: actualDeduction 
+          },
+          lastCalculatedAt: new Date()
+        }
+      );
+    }
+
+    // Record transaction
+    const { walletTransactionService } = await import('./walletTransactionService');
+    const { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_TRANSACTION_STATUS, WALLET_CREATED_BY } = await import('../../constants/walletTransaction');
+    
+    // We use direct create to set status to CONFIRMED immediately
+    await walletTransactionService.create({
+      walletId: (wallet as any)._id,
+      userId,
+      transactionType: WALLET_TRANSACTION_TYPE.REVERSAL,
+      sourceType: WALLET_SOURCE_TYPE.ORDER_CASHBACK,
+      sourceReferenceId: metadata.orderId,
+      amount,
+      balanceBefore: wallet.availableBalance,
+      balanceAfter: Math.max(0, wallet.availableBalance - amount),
+      description: metadata.description || `Cashback revocation for Order #${metadata.orderNumber || 'Unknown'}`,
+      status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+      metadata: { ...metadata, shortfall, revokedAmount: amount, processedAt: new Date() },
+      createdByType: WALLET_CREATED_BY.SYSTEM
+    } as any);
+
+    return shortfall;
   }
 }
 

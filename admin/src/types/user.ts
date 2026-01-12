@@ -36,6 +36,7 @@ export interface IUser {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  referralCode?: string;
 }
 
 export interface IUserFilters {

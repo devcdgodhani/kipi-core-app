@@ -15,22 +15,29 @@ export class WalletTransactionController {
    */
   getMyTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const reqData = { ...req.query as any, ...req.body };
       const userId = req.user?._id;
       if (!userId) {
         throw new Error('User not found in request');
       }
 
-      const reqData = { ...req.query, ...req.body };
-      const transactions = await this.walletTransactionService.getUserTransactions(
-        userId.toString(),
-        reqData
-      );
+      const filters = {
+        ...reqData,
+        userId
+      };
+      delete (filters as any).filter;
 
-      const response: IApiResponse<any> = {
+      const { filter, options } = this.walletTransactionService.generateFilter({
+        filters
+      });
+
+      const transactionList = await this.walletTransactionService.findAllWithPagination(filter, options);
+
+      const response: IApiResponse<IPaginationData<IWalletTransactionAttributes>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: WALLET_TRANSACTION_SUCCESS_MESSAGES.GET_SUCCESS,
-        data: transactions
+        data: transactionList
       };
 
       return res.status(response.status).json(response);
@@ -150,8 +157,16 @@ export class WalletTransactionController {
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const reqData = { ...req.query as any, ...req.body };
+
+      // Merge top-level params into filter, letting nested filter take precedence
+      const filters = {
+        ...reqData,
+        ...(reqData.filter || {})
+      };
+      delete (filters as any).filter;
+
       const { filter, options } = this.walletTransactionService.generateFilter({
-        filters: reqData
+        filters
       });
 
       const transactionList = await this.walletTransactionService.findAllWithPagination(filter, options);

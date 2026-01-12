@@ -33,6 +33,8 @@ export interface Order {
   subTotal: number;
   couponCode?: string;
   discountAmount?: number;
+  walletAmountUsed?: number;
+  cashbackAmount?: number;
   tax: number;
   shippingCost: number;
   totalAmount: number;

@@ -1,4 +1,4 @@
-import { WalletRuleModel } from '../../db/mongodb';
+import { WalletRuleModel } from '../../db/mongodb/models/walletRuleModel';
 import { IWalletRuleAttributes, IWalletRuleDocument } from '../../interfaces/walletRule';
 import { IWalletRuleService } from '../contracts/walletRuleServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
@@ -29,10 +29,9 @@ export class WalletRuleService
       {
         ruleType,
         status: WALLET_RULE_STATUS.ACTIVE,
-        $or: [
-          { startDate: { $lte: now }, endDate: { $gte: now } },
-          { startDate: { $lte: now }, endDate: null },
-          { startDate: null, endDate: null }
+        $and: [
+          { $or: [{ startDate: { $lte: now } }, { startDate: null }, { startDate: { $exists: false } }] },
+          { $or: [{ endDate: { $gte: now } }, { endDate: null }, { endDate: { $exists: false } }] }
         ]
       } as any,
       { sort: { priority: -1, createdAt: -1 } }

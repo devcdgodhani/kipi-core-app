@@ -42,6 +42,8 @@ export const paginationSchema = z.object({
     return val;
   }, z.boolean().optional()),
   order: z.record(z.string(), z.coerce.number().transform(v => (v === -1 ? -1 : 1))).optional(),
+  filter: z.record(z.string(), z.any()).optional(),
+  sort: z.record(z.string(), z.coerce.number()).optional(),
 });
 
 export const baseFilterSchema = z.object({

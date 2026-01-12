@@ -3,8 +3,9 @@ import { IPulseService } from '../contracts/pulseServiceInterface';
 import { UserService } from './userService';
 import { BULL_QUEUES } from '../../constants/bullQueue';
 import { notificationQueue } from '../../jobs/notification/queue';
-import { loyaltyService } from './loyaltyService';
-import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
+import { walletService } from './walletService';
+import { walletTransactionService } from './walletTransactionService';
+import { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_CREATED_BY } from '../../constants/walletTransaction';
 
 export class PulseService implements IPulseService {
     private userService = new UserService();
@@ -32,12 +33,12 @@ export class PulseService implements IPulseService {
     /**
      * Notify customer about earned loyalty points
      */
-    async triggerLoyaltyAccretionPulse(userId: string, points: number, orderNumber: string) {
+    async triggerWalletCreditPulse(userId: string, amount: number, orderNumber: string) {
         try {
             const user = await this.userService.findById(userId);
             if (!user || !user.mobile) return;
 
-            const message = `Woohoo! 🥳\n\nYou've earned ${points} Kipi Points from your order #${orderNumber}!\n\nYour new loyalty balance is ${user.loyaltyPoints} points. ✨\n\nKeep shopping and save more on your next order! 🛍️`;
+            const message = `Woohoo! 🥳\n\nYou've received ₹${amount} Cashback in your Wallet from order #${orderNumber}!\n\nCheck your balance to save on your next order! 🛍️\n\nShop here: ${APP_DETAILS.CUSTOMER_URL}`;
             
             await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
@@ -54,15 +55,29 @@ export class PulseService implements IPulseService {
      */
     async triggerBirthdayReward(user: any) {
         try {
-            const rewardPoints = 500; // Gift 500 points
-            await loyaltyService.updateBalance(
-                user._id.toString(),
-                rewardPoints,
-                LOYALTY_TRANSACTION_TYPE.EARNED,
-                `Happy Birthday! 🎂 Gift from ${APP_DETAILS.APP_NAME}`
-            );
+            const rewardAmount = 500; // Gift ₹500
             
-            const message = `Happy Birthday, ${user.firstName}! 🎂🥳\n\nWe have a special gift for you! We've added 500 Kipi Points to your account as a birthday reward. ✨\n\nTreat yourself today! 🛍️\n\nShop now: ${APP_DETAILS.CUSTOMER_URL}`;
+            // Credit Wallet
+            const wallet = await walletService.creditWallet(
+                user._id.toString(),
+                rewardAmount,
+                { description: `Birthday Reward` }
+            );
+
+            // Create Transaction
+            await walletTransactionService.createTransaction({
+                walletId: (wallet as any)._id.toString(),
+                userId: user._id.toString(),
+                transactionType: WALLET_TRANSACTION_TYPE.CREDIT,
+                sourceType: WALLET_SOURCE_TYPE.BIRTHDAY_REWARD,
+                amount: rewardAmount,
+                balanceBefore: wallet.availableBalance - rewardAmount,
+                balanceAfter: wallet.availableBalance,
+                description: `Happy Birthday! 🎂 Gift from ${APP_DETAILS.APP_NAME}`,
+                createdBy: WALLET_CREATED_BY.SYSTEM
+            });
+            
+            const message = `Happy Birthday, ${user.firstName}! 🎂🥳\n\nWe have a special gift for you! We've added ₹500 to your Wallet as a birthday reward. ✨\n\nTreat yourself today! 🛍️\n\nShop now: ${APP_DETAILS.CUSTOMER_URL}`;
             await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
                 message: message,
@@ -77,16 +92,16 @@ export class PulseService implements IPulseService {
     /**
      * Warning for points about to expire
      */
-    async triggerPointsExpiryWarning(user: any, points: number, daysRemaining: number) {
+    async triggerWalletExpiryWarning(user: any, amount: number, daysRemaining: number) {
         try {
             if (!user.mobile) return;
 
-            const message = `Don't let your rewards go to waste! ⏳\n\nYour ${points} Kipi Points are expiring in ${daysRemaining} days. 😱\n\nUse them now to save on your favorite products! 🛍️\n\nShop here: ${APP_DETAILS.CUSTOMER_URL}/cart`;
+            const message = `Don't let your rewards go to waste! ⏳\n\nYour ₹${amount} Wallet credits are expiring in ${daysRemaining} days. 😱\n\nUse them now to save on your favorite products! 🛍️\n\nShop here: ${APP_DETAILS.CUSTOMER_URL}/cart`;
             
             await notificationQueue.queue.add(BULL_QUEUES.NOTIFICATION.JOBS.SEND_WHATSAPP, {
                 recipient: user.mobile,
                 message: message,
-                templateId: 'POINTS_EXPIRY_WARNING'
+                templateId: 'POINTS_EXPIRY_WARNING' // Consider renaming template too if possible, but keeping id for compatibility
             });
         } catch (err) {
             console.error('PulseService: Error triggering expiry warning', err);

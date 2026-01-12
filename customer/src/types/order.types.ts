@@ -41,6 +41,8 @@ export interface Order {
   }[];
   couponCode?: string;
   discountAmount?: number;
+  walletAmountUsed?: number;
+  cashbackAmount?: number;
   awb?: string;
   trackingId?: string;
   estimatedDelivery?: string;
@@ -59,7 +61,7 @@ export interface CreateOrderRequest {
   shippingCost: number;
   totalAmount: number;
   couponCode?: string;
-  pointsUsed?: number;
+  walletAmountUsed?: number;
   notes?: string;
 }
 

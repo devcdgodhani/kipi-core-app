@@ -13,7 +13,7 @@ router.use(jwtAuth());
  * @desc    Get current user's transactions with pagination
  * @access  Private
  */
-router.post('/my-transactions', walletTransactionValidator.getMyTransactions, walletTransactionController.getMyTransactions);
+router.post('/getWithPagination', walletTransactionValidator.getMyTransactions, walletTransactionController.getMyTransactions);
 
 /**
  * @route   POST /api/customer/wallet-transaction/pending

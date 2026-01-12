@@ -15,7 +15,8 @@ import {
     History as HistoryIcon,
     ArrowLeft,
     IndianRupee,
-    RefreshCw
+    RefreshCw,
+    Wallet
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Order } from '../../types/order.types';
@@ -264,16 +265,14 @@ export const OrderDetails: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Loyalty Points */}
-                            {(order as any).pointsRedeemed && (order as any).pointsRedeemed > 0 && (
+                            {/* Wallet Usage */}
+                            {(order as any).walletAmountUsed && (order as any).walletAmountUsed > 0 && (
                                 <div className="flex justify-between text-xs font-medium uppercase tracking-widest bg-amber-50 -mx-2 px-2 py-2 rounded-lg border border-amber-100">
                                     <span className="text-amber-700 flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Points ({(order as any).pointsUsed || 0} pts)
+                                        <Wallet size={16} />
+                                        Wallet Credit Used
                                     </span>
-                                    <span className="text-amber-600 font-bold">-₹{(order as any).pointsRedeemed.toLocaleString()}</span>
+                                    <span className="text-amber-600 font-bold">-₹{(order as any).walletAmountUsed.toLocaleString()}</span>
                                 </div>
                             )}
 
@@ -303,12 +302,12 @@ export const OrderDetails: React.FC = () => {
                             </div>
 
                             {/* Savings Highlight */}
-                            {((order.discountAmount && order.discountAmount > 0) || ((order as any).pointsRedeemed && (order as any).pointsRedeemed > 0)) && (
+                            {((order.discountAmount && order.discountAmount > 0) || ((order as any).walletAmountUsed && (order as any).walletAmountUsed > 0)) && (
                                 <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Customer Savings</span>
                                         <span className="text-lg font-black text-emerald-600">
-                                            ₹{((order.discountAmount || 0) + ((order as any).pointsRedeemed || 0)).toLocaleString()}
+                                            ₹{((order.discountAmount || 0) + ((order as any).walletAmountUsed || 0)).toLocaleString()}
                                         </span>
                                     </div>
                                 </div>

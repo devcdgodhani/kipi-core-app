@@ -15,7 +15,6 @@ import {
     Ticket,
     CornerUpLeft,
     Activity,
-    Coins,
     BarChart3,
     DollarSign,
     Receipt,
@@ -33,6 +32,7 @@ import {
     Image as ImageIcon,
     Zap,
     Search,
+    Wallet,
     type LucideIcon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -46,7 +46,7 @@ interface SidebarProps {
 interface SidebarSection {
     title: string;
     icon: LucideIcon;
-    items: { to: string; label: string; icon: LucideIcon; external?: boolean }[];
+    items: { to: string; label: string; icon: LucideIcon; external?: boolean; end?: boolean }[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             title: 'Dashboard',
             icon: LayoutDashboard,
             items: [
-                { to: '/dashboard', label: 'Overview', icon: LayoutDashboard }
+                { to: '/dashboard', label: 'Overview', icon: LayoutDashboard, end: true }
             ]
         },
         {
@@ -146,10 +146,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             items: [
                 { to: '/reviews', label: 'Reviews', icon: Star },
                 { to: '/coupons', label: 'Coupons', icon: Ticket },
-                { to: '/loyalty', label: 'Rewards Hub', icon: Coins },
                 { to: '/banners', label: 'Banners', icon: ImageIcon },
                 { to: '/flash-deals', label: 'Flash Deals', icon: Zap },
                 { to: '/notifications', label: 'Notifications', icon: Bell }
+            ]
+        },
+        {
+            title: 'Wallet',
+            icon: Wallet,
+            items: [
+                { to: '/wallet', label: 'Overview', icon: LayoutDashboard, end: true },
+                { to: '/wallet/transactions', label: 'Transactions', icon: Activity },
+                { to: '/wallet/rules', label: 'Rules', icon: Sliders },
             ]
         },
         {
@@ -255,6 +263,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                                 <NavLink
                                                     key={item.to}
                                                     to={item.to}
+                                                    end={item.end}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) onClose();
                                                     }}

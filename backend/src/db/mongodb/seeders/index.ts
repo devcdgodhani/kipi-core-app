@@ -9,10 +9,11 @@ import { seedReviews } from './reviewSeeder';
 import { seedReturns } from './returnSeeder';
 import { seedWishlist } from './wishlistSeeder';
 import { seedCart } from './cartSeeder';
-import { seedLoyalty } from './loyaltySeeder';
+// import { seedLoyalty } from './loyaltySeeder';
 import { seedInventoryAudit } from './inventoryAuditSeeder';
 import { seedCouriers } from './courierSeeder';
 import { seedPaymentGateways } from './paymentGatewaySeeder';
+import { seedWalletRules } from './walletRuleSeeder';
 
 export const runSeeders = async () => {
   try {
@@ -29,8 +30,9 @@ export const runSeeders = async () => {
     await seedProducts();
     await seedLots();
     
-    // Level 3: Rules & Ops (Coupons)
+    // Level 3: Rules & Ops (Coupons, Wallet Rules)
     await seedCoupons();
+    await seedWalletRules();
     
     // Level 4: Transactions (Orders -> Reviews, Returns)
     await seedOrders();
@@ -40,7 +42,7 @@ export const runSeeders = async () => {
     // Level 5: User Engagement & Audit
     await seedWishlist();
     await seedCart();
-    await seedLoyalty();
+    // await seedLoyalty();
     await seedInventoryAudit();
     
     console.log('✅ All seeders executed successfully.');

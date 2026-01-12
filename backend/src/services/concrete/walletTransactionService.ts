@@ -1,4 +1,4 @@
-import { WalletTransactionModel } from '../../db/mongodb';
+import { WalletTransactionModel } from '../../db/mongodb/models/walletTransactionModel';
 import { IWalletTransactionAttributes, IWalletTransactionDocument } from '../../interfaces/walletTransaction';
 import { IWalletTransactionService } from '../contracts/walletTransactionServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
@@ -25,6 +25,59 @@ export class WalletTransactionService
    */
   async getUserTransactions(userId: string, options: any): Promise<any> {
     return this.findAllWithPagination({ userId } as any, options);
+  }
+
+  async findAllWithPagination(
+    filter: any,
+    options: any = {}
+  ): Promise<any> {
+    const { order, page = 1, limit = 10 } = options;
+
+    const sort = order || { createdAt: -1 };
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const skip = (safePage - 1) * safeLimit;
+
+    const pipeline: any[] = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $addFields: {
+          user: { $arrayElemAt: ['$user', 0] }
+        }
+      },
+      {
+        $facet: {
+          metadata: [{ $count: 'totalRecords' }],
+          data: [
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: safeLimit }
+          ]
+        }
+      }
+    ];
+
+    const result = await this.model.aggregate(pipeline).exec();
+    const totalRecords = result[0]?.metadata[0]?.totalRecords || 0;
+    const recordList = result[0]?.data || [];
+
+    return {
+      limit: safeLimit,
+      totalRecords,
+      totalPages: Math.ceil(totalRecords / safeLimit),
+      hasPreviousPage: safePage > 1,
+      currentPage: safePage,
+      hasNextPage: safePage < Math.ceil(totalRecords / safeLimit),
+      recordList,
+    };
   }
 
   /**

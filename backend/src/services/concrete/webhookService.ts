@@ -4,9 +4,10 @@ import { logisticsNotificationService } from './logisticsNotificationService';
 import { IWebhookJobPayload } from '../../jobs/types';
 import { inventoryService } from './inventoryService';
 import { codLedgerService } from './codLedgerService';
-import { loyaltyService } from './loyaltyService';
 import { couponService } from './couponService';
-import { LOYALTY_TRANSACTION_TYPE } from '../../constants/loyalty';
+import { walletService } from './walletService';
+import { walletTransactionService } from './walletTransactionService';
+import { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_CREATED_BY } from '../../constants/walletTransaction';
 import { webhookLogService } from './webhookLogService';
 import { shipmentService } from './shipmentService';
 import { trackingEventService } from './trackingEventService';
@@ -103,15 +104,30 @@ export class WebhookService implements IWebhookService {
             if (order) {
               await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.rtoCount': 1 } } as any);
               
-              // 1. Loyalty Point Reversal for RTO
-              if ((order as any).pointsUsed && (order as any).pointsUsed > 0) {
-                await loyaltyService.updateBalance(
+              // 1. Wallet Refund for RTO
+              if ((order as any).walletAmountUsed && (order as any).walletAmountUsed > 0) {
+                const refundAmount = (order as any).walletAmountUsed;
+                
+                // Credit Wallet
+                const updatedWallet = await walletService.creditWallet(
                   (order as any).userId.toString(),
-                  (order as any).pointsUsed,
-                  LOYALTY_TRANSACTION_TYPE.REFUNDED,
-                  `Refunded from RTO Order #${(order as any).orderNumber}`,
-                  (order as any)._id.toString()
+                  refundAmount,
+                  { description: `Refund from RTO Order #${(order as any).orderNumber}` }
                 );
+
+                // Create Transaction
+                await walletTransactionService.createTransaction({
+                    walletId: (updatedWallet as any)._id.toString(),
+                    userId: (order as any).userId.toString(),
+                    transactionType: WALLET_TRANSACTION_TYPE.CREDIT,
+                    sourceType: WALLET_SOURCE_TYPE.ORDER_REFUND,
+                    amount: refundAmount,
+                    balanceBefore: updatedWallet.availableBalance - refundAmount,
+                    balanceAfter: updatedWallet.availableBalance,
+                    description: `Refund from RTO Order #${(order as any).orderNumber}`,
+                    sourceReferenceId: (order as any)._id.toString(),
+                    createdBy: WALLET_CREATED_BY.SYSTEM
+                });
               }
  
               // 2. Coupon Reversal for RTO

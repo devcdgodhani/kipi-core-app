@@ -28,14 +28,14 @@ export interface CheckoutState {
       tax: number;
       shipping: number;
       discount: number;
-      pointsDiscount: number;
+      walletDiscount: number;
       total: number;
   };
-  loyaltyPoints: {
-      usePoints: boolean;
-      pointsToUse: number;
+  wallet: {
+      useWallet: boolean;
+      amountToUse: number;
   };
-  availablePoints: number;
+  walletBalance: number;
 }
 
 
@@ -45,8 +45,8 @@ export interface CreateOrderRequest {
     paymentMethod: 'COD' | 'ONLINE';
     selectedGateway?: string;
     couponCode?: string;
-    useLoyaltyPoints?: boolean;
-    pointsToUse?: number;
+    useWallet?: boolean;
+    walletAmount?: number;
 }
 
 export interface OrderResponse {

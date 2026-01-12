@@ -20,7 +20,8 @@ export const ROUTES = {
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
     RETURNS: '/returns',
-    LOYALTY: '/loyalty',
+    // Loyalty removed
+    WALLET: '/wallet',
     NOTIFICATIONS: '/notifications',
     RECENTLY_VIEWED: '/recently-viewed',
     PAYMENT: {

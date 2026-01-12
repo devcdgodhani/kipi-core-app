@@ -9,12 +9,6 @@ const envSchema = z
     NODE_ENV: z.enum(['local', 'development', 'production', 'test']),
     PORT: z.coerce.number().default(3000),
 
-    PG_DB_PORT: z.coerce.number().default(5432),
-    PG_DB_HOST: z.string(),
-    PG_DB_USER: z.string(),
-    PG_DB_PASSWORD: z.string(),
-    PG_DB_NAME: z.string(),
-
     MONGO_DB_CONNECTION_URL: z.string(),
     MONGO_DB_NAME: z.string().optional(),
 
@@ -39,8 +33,7 @@ const envSchema = z
     APPLE_KEY_ID: z.string(),
     APPLE_PRIVATE_KEY: z.string(),
 
-    SERVER_URL: z.string(),
-    WEB_SERVER_URL: z.string(),
+    ADMIN_APP_URL: z.string().optional(),
     BACKEND_API_URL: z.string().optional(),
     CUSTOMER_APP_URL: z.string().optional(),
 
@@ -106,12 +99,6 @@ export const ENV_VARIABLE: IEnvVariables = {
   NODE_ENV: value.NODE_ENV,
   PORT: value.PORT,
 
-  PG_DB_HOST: value.PG_DB_HOST,
-  PG_DB_PORT: value.PG_DB_PORT,
-  PG_DB_USER: value.PG_DB_USER,
-  PG_DB_PASSWORD: value.PG_DB_PASSWORD,
-  PG_DB_NAME: value.PG_DB_NAME,
-
   MONGO_DB_CONNECTION_URL: value.MONGO_DB_CONNECTION_URL,
   MONGO_DB_NAME: value.MONGO_DB_NAME as string,
 
@@ -136,10 +123,9 @@ export const ENV_VARIABLE: IEnvVariables = {
   APPLE_KEY_ID: value.APPLE_KEY_ID,
   APPLE_PRIVATE_KEY: value.APPLE_PRIVATE_KEY,
 
-  SERVER_URL: value.SERVER_URL,
-  WEB_SERVER_URL: value.WEB_SERVER_URL,
-  BACKEND_API_URL: value.BACKEND_API_URL,
-  CUSTOMER_APP_URL: value.CUSTOMER_APP_URL,
+  ADMIN_APP_URL: value.ADMIN_APP_URL as string,
+  BACKEND_API_URL: value.BACKEND_API_URL as string,
+  CUSTOMER_APP_URL: value.CUSTOMER_APP_URL as string,
 
   AWS_BUCKET_NAME: value.AWS_BUCKET_NAME,
   AWS_ACCESS_KEY_ID: value.AWS_ACCESS_KEY_ID,

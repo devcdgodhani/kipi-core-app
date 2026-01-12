@@ -14,4 +14,6 @@ export const USER_DEFAULT_ATTRIBUTES = [
   'updatedAt',
   '_id',
   'gender',
+  'referralCode',
+  'referredBy',
 ];

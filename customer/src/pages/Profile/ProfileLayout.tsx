@@ -10,7 +10,8 @@ import {
     LayoutDashboard,
     Undo2,
     Coins,
-    ShoppingBag
+    ShoppingBag,
+    Wallet
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
@@ -44,7 +45,7 @@ const ProfileLayout: React.FC = () => {
                 { label: 'My Orders', icon: Package, path: ROUTES.ORDERS },
                 { label: 'My Returns', icon: Undo2, path: ROUTES.RETURNS },
                 { label: 'Wishlist', icon: Heart, path: ROUTES.WISHLIST },
-                { label: 'Loyalty Points', icon: Coins, path: ROUTES.LOYALTY },
+                { label: 'My Wallet', icon: Wallet, path: ROUTES.WALLET },
             ]
         }
     ];

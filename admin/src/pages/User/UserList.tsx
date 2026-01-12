@@ -7,8 +7,6 @@ import {
     Trash2,
     ShieldCheck,
     ShieldAlert,
-    Mail,
-    Phone,
     RotateCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -213,7 +211,7 @@ const UserList: React.FC = () => {
                     <div className="flex flex-col">
                         <span className="font-bold text-gray-900 leading-tight">{user.firstName} {user.lastName}</span>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className="px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-black text-gray-500 uppercase tracking-tighter border border-gray-200">ID: {user._id.slice(-6)}</span>
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate max-w-[200px]">{user.email}</span>
                             <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter border ${user.type === USER_TYPE.ADMIN ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
                                 user.type === USER_TYPE.SUPPLIER ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                     'bg-slate-50 text-slate-600 border-slate-100'
@@ -226,20 +224,22 @@ const UserList: React.FC = () => {
             )
         },
         {
-            header: 'Credentials',
-            key: 'credentials',
-            render: (user) => (
-                <div className="flex flex-col gap-1.5 py-1">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/20 transition-colors">
-                        <Mail size={12} className="text-primary/40 group-hover:text-primary/70 transition-colors" />
-                        <span className="text-xs font-semibold text-gray-600 truncate max-w-[180px]">{user.email}</span>
-                        {user.isEmailVerified ? <ShieldCheck size={14} className="text-green-500 ml-auto" /> : <ShieldAlert size={14} className="text-amber-400 ml-auto" />}
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/20 transition-colors">
-                        <Phone size={12} className="text-primary/40 group-hover:text-primary/70 transition-colors" />
-                        <span className="text-xs font-semibold text-gray-600">{user.countryCode} {user.mobile}</span>
-                        {user.isMobileVerified ? <ShieldCheck size={14} className="text-green-500 ml-auto" /> : <ShieldAlert size={14} className="text-amber-400 ml-auto" />}
-                    </div>
+            header: 'Wallet Balance',
+            key: 'wallet',
+            render: (user: any) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-black text-primary">₹{(user.wallet?.availableBalance || 0).toFixed(2)}</span>
+                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Available Credit</span>
+                </div>
+            )
+        },
+        {
+            header: 'Total Assets',
+            key: 'total_assets',
+            render: (user: any) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-black text-gray-900">₹{((user.wallet?.availableBalance || 0) + (user.wallet?.blockedBalance || 0)).toFixed(2)}</span>
+                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">System Total</span>
                 </div>
             )
         },
@@ -410,6 +410,7 @@ const UserList: React.FC = () => {
                 isLoading={loading}
                 keyExtractor={(user) => user._id}
                 emptyMessage="No users found"
+                onRowClick={(user) => navigate('/' + ROUTES.DASHBOARD.USERS_EDIT.replace(':id', user._id))}
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,

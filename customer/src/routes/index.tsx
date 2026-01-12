@@ -3,7 +3,7 @@ import { publicRoutes } from './public/publicRoutes';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { Suspense } from 'react';
 import MainRoutes from './layouts/MainRoutes';
-import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy, ProfileLayoutLazy, ReturnHistoryLazy, LoyaltyPointsLazy, CheckoutPaymentLazy, PaymentHistoryLazy, RefundHistoryLazy, PaymentCallbackLazy, NotificationsLazy } from './lazy';
+import { HomeLazy, ProductDetailsLazy, ProductListLazy, NotFoundLazy, WishlistLazy, AddressesLazy, CheckoutLazy, OrdersLazy, OrderDetailsLazy, InvoiceLazy, OrderSuccessLazy, CartLazy, ProfileLazy, ChangePasswordLazy, ProfileLayoutLazy, ReturnHistoryLazy, CheckoutPaymentLazy, PaymentHistoryLazy, RefundHistoryLazy, PaymentCallbackLazy, NotificationsLazy, MyWalletLazy } from './lazy';
 
 import { ROUTES } from './routeConfig';
 
@@ -73,9 +73,10 @@ const router = createBrowserRouter([
                                 path: ROUTES.RETURNS,
                                 element: <ReturnHistoryLazy />,
                             },
+                            // Loyalty route removed
                             {
-                                path: ROUTES.LOYALTY,
-                                element: <LoyaltyPointsLazy />,
+                                path: ROUTES.WALLET,
+                                element: <MyWalletLazy />,
                             },
                             {
                                 path: ROUTES.NOTIFICATIONS,

@@ -4,8 +4,11 @@ import { lotService } from './lotService';
 import { shipmentService } from './shipmentService';
 import { rtoService } from './rtoService';
 import { ndrService } from './ndrService';
+import { walletService } from './walletService';
+import { walletTransactionService } from './walletTransactionService';
+import { WALLET_TRANSACTION_STATUS } from '../../constants';
 
-import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance } from '../contracts/analyticsServiceInterface';
+import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance, IWalletAnalytics } from '../contracts/analyticsServiceInterface';
 
 export class AnalyticsService implements IAnalyticsService {
   private get orderService() { return orderService; }
@@ -13,6 +16,8 @@ export class AnalyticsService implements IAnalyticsService {
   private get shipmentService() { return shipmentService; }
   private get rtoService() { return rtoService; }
   private get ndrService() { return ndrService; }
+  private get walletService() { return walletService; }
+  private get walletTransactionService() { return walletTransactionService; }
 
   constructor() {}
 
@@ -444,6 +449,79 @@ export class AnalyticsService implements IAnalyticsService {
     ];
 
     return await this.shipmentService.aggregate(pipeline as any) as any[];
+  }
+
+  /**
+   * Get wallet analytics (System totals, pending, expiring)
+   */
+  async getWalletAnalytics(startDate: Date, endDate: Date): Promise<IWalletAnalytics> {
+    const walletStats = await this.walletService.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: '$availableBalance' },
+          blockedBalance: { $sum: '$blockedBalance' },
+          totalWallets: { $sum: 1 }
+        }
+      }
+    ]) as any[];
+
+    const stats = walletStats[0] || { totalBalance: 0, blockedBalance: 0, totalWallets: 0 };
+
+    // Pending Cashback from transactions
+    const pendingStats = await this.walletTransactionService.aggregate([
+      {
+        $match: {
+          status: WALLET_TRANSACTION_STATUS.PENDING,
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          amount: { $sum: '$amount' }
+        }
+      }
+    ]) as any[];
+
+    const pending = pendingStats[0] || { count: 0, amount: 0 };
+
+    // Expiring soon (Next 7 days)
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const expiringStats = await this.walletTransactionService.aggregate([
+      {
+        $match: {
+          status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+          expiryDate: { $gte: new Date(), $lte: sevenDaysFromNow }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          amount: { $sum: '$amount' }
+        }
+      }
+    ]) as any[];
+
+    const expiring = expiringStats[0] || { count: 0, amount: 0 };
+
+    return {
+      totalBalance: stats.totalBalance,
+      blockedBalance: stats.blockedBalance,
+      totalWallets: stats.totalWallets,
+      pendingCashback: {
+        count: pending.count,
+        amount: pending.amount
+      },
+      expiringSoon: {
+        count: expiring.count,
+        amount: expiring.amount
+      }
+    };
   }
 }
 

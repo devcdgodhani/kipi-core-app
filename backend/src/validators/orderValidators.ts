@@ -33,7 +33,8 @@ const createOrderSchema = z.object({
   shippingCost: z.number().default(0),
   totalAmount: z.number().min(0),
   couponCode: z.string().optional(),
-  pointsUsed: z.number().min(0).optional(),
+  walletAmountUsed: z.number().min(0).optional(),
+  cashbackAmount: z.number().min(0).optional(),
   notes: z.string().optional()
 });
 

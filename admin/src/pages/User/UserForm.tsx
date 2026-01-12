@@ -6,6 +6,7 @@ import { USER_STATUS, USER_TYPE, GENDER } from '../../types/user';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
 import { ROUTES } from '../../routes/routeConfig';
+import CustomerWalletPanel from '../Wallet/components/CustomerWalletPanel';
 
 const UserForm: React.FC = () => {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ const UserForm: React.FC = () => {
         isEmailVerified: boolean;
         isMobileVerified: boolean;
         isVerified: boolean;
+        referralCode: string;
     }>({
         firstName: '',
         lastName: '',
@@ -38,6 +40,7 @@ const UserForm: React.FC = () => {
         isEmailVerified: false,
         isMobileVerified: false,
         isVerified: false,
+        referralCode: '',
     });
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(false);
@@ -64,6 +67,7 @@ const UserForm: React.FC = () => {
                         isEmailVerified: user.isEmailVerified,
                         isMobileVerified: user.isMobileVerified,
                         isVerified: user.isVerified,
+                        referralCode: user.referralCode || '',
                     });
                 }
             } catch (err: any) {
@@ -135,9 +139,16 @@ const UserForm: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <CustomInput label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required />
-                        <CustomInput label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required />
+                    <div className="grid grid-cols-3 gap-6">
+                        <div className="col-span-1">
+                            <CustomInput label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required />
+                        </div>
+                        <div className="col-span-1">
+                            <CustomInput label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required />
+                        </div>
+                        <div className="col-span-1">
+                            <CustomInput label="Referral Code" name="referralCode" value={formData.referralCode} onChange={handleChange} placeholder="REF-CODE" disabled />
+                        </div>
                     </div>
 
                     <CustomInput label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="john.doe@example.com" required />
@@ -221,6 +232,12 @@ const UserForm: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+                    )}
+
+
+                    {isEdit && id && (
+                        // @ts-ignore
+                        <CustomerWalletPanel userId={id} />
                     )}
 
                     <div className="flex gap-4 pt-6 border-t border-gray-100">

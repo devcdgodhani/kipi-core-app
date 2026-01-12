@@ -7,6 +7,7 @@ interface RegisterData {
     password: string;
     mobile?: string;
     countryCode?: string;
+    usedReferralCode?: string;
     type: string;
 }
 

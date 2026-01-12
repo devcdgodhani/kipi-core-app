@@ -14,6 +14,7 @@ const Register: React.FC = () => {
         password: '',
         mobile: '',
         countryCode: '+91',
+        usedReferralCode: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -40,6 +41,7 @@ const Register: React.FC = () => {
                 password: formData.password,
                 mobile: formData.mobile || undefined,
                 countryCode: formData.mobile ? formData.countryCode : undefined,
+                usedReferralCode: formData.usedReferralCode || undefined,
                 type: 'CUSTOMER', // Customer type for customer app
             });
 
@@ -135,6 +137,15 @@ const Register: React.FC = () => {
                             <Eye size={18} />
                         </button>
                     </div>
+
+                    <CustomInput
+                        label="Referral Code (Optional)"
+                        name="usedReferralCode"
+                        placeholder="Enter referral code"
+                        icon={<User size={18} />}
+                        value={formData.usedReferralCode}
+                        onChange={handleChange}
+                    />
 
                     <CustomButton fullWidth type="submit" disabled={loading}>
                         {loading ? 'Creating Account...' : 'Sign Up'}

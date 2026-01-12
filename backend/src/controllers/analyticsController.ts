@@ -161,6 +161,28 @@ export class AnalyticsController {
     }
   };
 
+  getWalletAnalytics = async (req: IRequest, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query as any;
+
+      const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate as string) : new Date();
+
+      const analytics = await analyticsService.getWalletAnalytics(start, end);
+
+      const response: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Wallet analytics fetched successfully',
+        data: analytics,
+      };
+
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
   exportAnalytics = async (req: IRequest, res: Response, next: NextFunction) => {
     try {
       const { type, startDate, endDate } = req.query as any;

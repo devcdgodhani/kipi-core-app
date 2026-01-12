@@ -17,7 +17,7 @@ import {
 } from 'mongoose';
 import { IMongooseCommonService } from '../contracts/mongooseCommonServiceInterface';
 import { IPaginationData } from '../../interfaces';
-import { Schema } from 'mongoose';
+import { Schema, Types, isValidObjectId } from 'mongoose';
 
 export class MongooseCommonService<T, TDoc extends Document>
   implements IMongooseCommonService<T, TDoc>
@@ -62,7 +62,7 @@ export class MongooseCommonService<T, TDoc extends Document>
     // 🎯 Handle other filters
     for (const [field, value] of Object.entries(filters)) {
       if (['page', 'limit', 'isPaginate', 'search', 'order', 'sort', 'isTree', 'populate'].includes(field)) continue;
-      const actualField = field === 'id' ? '_id' : field;
+      const actualField = (field === 'id' || field === '_id') ? '_id' : field;
       const schemaType = schemaPaths[actualField];
       if (!schemaType || value === undefined || value === null || value === '') continue;
 
@@ -123,8 +123,14 @@ export class MongooseCommonService<T, TDoc extends Document>
 
         default:
           // Handle ObjectId / Reference
-          if (schemaType?.options?.ref || fieldType === 'ObjectId') {
-            filter[actualField] = Array.isArray(value) ? { $in: value } : value;
+          if (schemaType?.options?.ref || fieldType === 'ObjectId' || fieldType === 'ObjectID') {
+            const toObjectId = (v: any) => {
+              if (isValidObjectId(v) && typeof v === 'string') {
+                return new Types.ObjectId(v);
+              }
+              return v;
+            };
+            filter[actualField] = Array.isArray(value) ? { $in: value.map(toObjectId) } : toObjectId(value);
           } else {
             filter[actualField] = value;
           }

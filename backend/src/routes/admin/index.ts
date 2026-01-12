@@ -19,7 +19,7 @@ import orderRoutes from './orderRoutes';
 import returnRoutes from './returnRoutes';
 import exchangeRoutes from './exchangeRoutes';
 import stockLedgerRoutes from './stockLedgerRoutes';
-import loyaltyRoutes from './loyaltyRoutes';
+// loyaltyRoutes removed
 import walletRoutes from './walletRoutes';
 import walletTransactionRoutes from './walletTransactionRoutes';
 import walletRuleRoutes from './walletRuleRoutes';
@@ -78,7 +78,7 @@ router.use('/order', jwtAuth(), orderRoutes);
 router.use('/return', jwtAuth(), returnRoutes);
 router.use('/exchange', jwtAuth(), exchangeRoutes);
 router.use('/stock-ledger', jwtAuth(), stockLedgerRoutes);
-router.use('/loyalty', jwtAuth(), loyaltyRoutes);
+// loyaltyRoutes removed
 router.use('/wallet', jwtAuth(), walletRoutes);
 router.use('/wallet-transaction', jwtAuth(), walletTransactionRoutes);
 router.use('/wallet-rule', jwtAuth(), walletRuleRoutes);
