@@ -4,14 +4,17 @@ import { TOrderCreateReq } from '../../types/order';
 import { IOrderAttributes, IOrderDocument } from '../../interfaces';
 import { couponService } from './couponService';
 import { logisticsService } from './logisticsService';
-import { loyaltyService } from './loyaltyService';
+import { walletService } from './walletService';
+import { walletRuleService } from './walletRuleService';
+import { walletTransactionService } from './walletTransactionService';
 import { pulseService } from './pulseService';
 import { skuService } from './skuService';
 import { productService } from './productService';
 import { userService } from './userService';
 import { paymentService } from './paymentService';
 import { COUPON_TYPE } from '../../constants/coupon';
-import { LOYALTY_TRANSACTION_TYPE, LOYALTY_CONFIG } from '../../constants/loyalty';
+import { WALLET_TRANSACTION_TYPE, WALLET_SOURCE_TYPE, WALLET_CREATED_BY } from '../../constants/walletTransaction';
+import { WALLET_RULE_TYPE } from '../../constants/walletRule';
 import { rtoScoreService } from './rtoScoreService';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
@@ -29,7 +32,9 @@ import { BULL_QUEUES } from '../../constants/bullQueue';
 
 export class OrderService extends MongooseCommonService<IOrderAttributes, IOrderDocument> implements IOrderService {
   private get couponService() { return couponService; }
-  private get loyaltyService() { return loyaltyService; }
+  private get walletService() { return walletService; }
+  private get walletRuleService() { return walletRuleService; }
+  private get walletTransactionService() { return walletTransactionService; }
   private get pulseService() { return pulseService; }
   private get skuService() { return skuService; }
   private get productService() { return productService; }
@@ -126,41 +131,62 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
     // 3. Generate Order Number
     const orderNumber = this.generateOrderNumber();
 
-    // 4. Handle Loyalty Points
-    let pointsUsed = orderData.pointsUsed || 0;
-    let pointsAmount = 0;
+    // 4. Handle Wallet Balance Deduction
+    let walletAmountUsed = orderData.walletAmountUsed || 0;
 
-    if (pointsUsed > 0) {
-      if (pointsUsed < LOYALTY_CONFIG.MIN_REDEMPTION_POINTS) {
-         throw new ApiError(HTTP_STATUS_CODE.BAD_REQUEST.CODE, HTTP_STATUS_CODE.BAD_REQUEST.STATUS, `Minimum ${LOYALTY_CONFIG.MIN_REDEMPTION_POINTS} points required for redemption`);
-      }
-      pointsAmount = pointsUsed * LOYALTY_CONFIG.POINTS_PER_RUPEE;
+    if (walletAmountUsed > 0) {
+      const userWallet = await this.walletService.getOrCreateWallet(userId.toString());
       
-      // Points cannot exceed subtotal (usually)
-      if (pointsAmount > (subTotal - discountAmount)) {
-          pointsAmount = subTotal - discountAmount;
-          pointsUsed = Math.ceil(pointsAmount / LOYALTY_CONFIG.POINTS_PER_RUPEE);
+      if (userWallet.availableBalance < walletAmountUsed) {
+        throw new ApiError(
+          HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
+          HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
+          `Insufficient wallet balance. Available: ₹${userWallet.availableBalance}`
+        );
+      }
+      
+      // Wallet amount cannot exceed remaining payable amount
+      if (walletAmountUsed > (subTotal - discountAmount)) {
+        walletAmountUsed = subTotal - discountAmount;
       }
 
-      await this.loyaltyService.updateBalance(
+      // Deduct wallet balance
+      await this.walletService.debitWallet(
         userId.toString(), 
-        -pointsUsed, 
-        LOYALTY_TRANSACTION_TYPE.SPENT, 
-        `Applied to Order #${orderNumber}`
+        walletAmountUsed,
+        {
+          description: `Applied to Order #${orderNumber}`,
+          orderId: null, // Will be updated after order creation
+          createdByType: WALLET_CREATED_BY.USER
+        }
       );
+
+      // Create wallet transaction record
+      await this.walletTransactionService.createTransaction({
+        walletId: (userWallet as any)._id.toString(),
+        userId: userId.toString(),
+        transactionType: WALLET_TRANSACTION_TYPE.DEBIT,
+        sourceType: WALLET_SOURCE_TYPE.ORDER_PAYMENT,
+        amount: walletAmountUsed,
+        balanceBefore: userWallet.availableBalance,
+        balanceAfter: userWallet.availableBalance - walletAmountUsed,
+        description: `Payment for Order #${orderNumber}`,
+        sourceReferenceId: undefined, // Will be set after order creation
+        createdBy: WALLET_CREATED_BY.USER
+      });
     }
 
     // 5. Calculate Final Total
     const tax = 0; // Tax logic should be here
     const shippingCost = subTotal > 499 ? 0 : 40;
-    const finalCalculatedTotal = subTotal + tax + shippingCost - discountAmount - pointsAmount;
+    const finalCalculatedTotal = subTotal + tax + shippingCost - discountAmount - walletAmountUsed;
 
     // SECURITY CHECK: Verify if frontend's perceived total matches backend's calculated total
     if (Math.abs(finalCalculatedTotal - orderData.totalAmount) > 0.01) {
       throw new ApiError(
         HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
         HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
-        `Payment Integrity Error: State[ST:${subTotal}, TX:${tax}, SH:${shippingCost}, DA:${discountAmount}, PA:${pointsAmount}, FT:${finalCalculatedTotal}, FE:${orderData.totalAmount}, IC:${orderData.items?.length}]`
+        `Payment Integrity Error: State[ST:${subTotal}, TX:${tax}, SH:${shippingCost}, DA:${discountAmount}, WA:${walletAmountUsed}, FT:${finalCalculatedTotal}, FE:${orderData.totalAmount}, IC:${orderData.items?.length}]`
       );
     }
 
@@ -180,15 +206,21 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       );
     }
 
-    // 6. Create Order
+    // 6. Calculate Cashback
+    const cashbackResult = await this.walletRuleService.calculateCashback(
+      finalCalculatedTotal,
+      WALLET_RULE_TYPE.ORDER_CASHBACK
+    );
+
+    // 7. Create Order
     const newOrder = await this.create({
       ...orderData,
       userId,
       orderNumber,
       subTotal,
       discountAmount,
-      pointsUsed,
-      pointsAmount,
+      walletAmountUsed,
+      cashbackAmount: cashbackResult.cashbackAmount,
       totalAmount: finalCalculatedTotal,
       orderStatus: (orderData.paymentMethod === 'COD' && rtoScore.suggestedAction === 'FLAG') ? 'PENDING' : 'CONFIRMED',
       paymentStatus: 'PENDING',
@@ -199,24 +231,42 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       }]
     } as any);
 
-    // 7. Save RTO Score linked to order
+    // 8. Save RTO Score linked to order
     rtoScore.orderId = (newOrder as any)._id;
     await rtoScoreService.saveRiskScore(rtoScore);
 
-    // 8. Update User Metrics
+    // 9. Update User Metrics
     await this.userService.updateOne({ _id: userId } as any, {
       $inc: { 'metrics.totalOrders': 1 }
     } as any);
 
-    // Update the transaction with the orderId now that we have it
-    if (pointsUsed > 0) {
-        await this.loyaltyService.updateOne(
-            { userId, orderId: { $exists: false }, type: LOYALTY_TRANSACTION_TYPE.SPENT } as any,
-            { orderId: (newOrder as any)._id } as any
-        );
+    // 10. Create Pending Cashback Transaction (if applicable)
+    if (cashbackResult.cashbackAmount > 0) {
+      const userWallet = await this.walletService.getOrCreateWallet(userId.toString());
+      
+      await this.walletTransactionService.createTransaction({
+        walletId: (userWallet as any)._id.toString(),
+        userId: userId.toString(),
+        transactionType: WALLET_TRANSACTION_TYPE.CREDIT,
+        sourceType: WALLET_SOURCE_TYPE.ORDER_CASHBACK,
+        sourceReferenceId: (newOrder as any)._id.toString(),
+        amount: cashbackResult.cashbackAmount,
+        balanceBefore: userWallet.availableBalance,
+        balanceAfter: userWallet.availableBalance, // Not credited yet, still PENDING
+        description: `Cashback for Order #${orderNumber} (Pending Delivery)`,
+        expiryDate: cashbackResult.expiryDate || undefined,
+        createdBy: WALLET_CREATED_BY.SYSTEM,
+        metadata: {
+          ruleId: cashbackResult.appliedRule ? (cashbackResult.appliedRule as any)._id : null,
+          orderAmount: finalCalculatedTotal
+        }
+      });
+
+      // Block the cashback amount
+      await this.walletService.blockBalance(userId.toString(), cashbackResult.cashbackAmount);
     }
 
-    // 9. Enqueue Post-Order Actions
+    // 11. Enqueue Post-Order Actions
     await orderQueue.queue.add(BULL_QUEUES.ORDER.JOBS.PROCESS_ORDER_PLACED, {
         orderId: (newOrder as any)._id.toString(),
         userId: userId.toString()
@@ -347,35 +397,89 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       await this.userService.updateOne({ _id: (order as any).userId } as any, { $inc: { 'metrics.cancelledCount': 1 } } as any);
     }
 
-    // 4. Loyalty Point Accretion on Delivery
+    // 4. Confirm Cashback on Delivery
     if (status === 'DELIVERED' && currentStatus !== 'DELIVERED') {
-        const points = this.loyaltyService.calculateEarnedPoints(order.totalAmount);
-        if (points > 0) {
-            await this.loyaltyService.updateBalance(
-                order.userId.toString(),
-                points,
-                LOYALTY_TRANSACTION_TYPE.EARNED,
-                `Earned from Order #${order.orderNumber}`,
-                orderId
+        // Find pending cashback transaction for this order
+        const pendingTransactions = await this.walletTransactionService.getTransactionsBySource(
+          orderId.toString(),
+          WALLET_SOURCE_TYPE.ORDER_CASHBACK
+        );
+
+        for (const transaction of pendingTransactions) {
+          if ((transaction as any).status === 'PENDING') {
+            // Confirm the transaction
+            await this.walletTransactionService.confirmTransaction((transaction as any)._id.toString());
+            
+            // Release blocked balance and credit to available
+            await this.walletService.releaseBlockedBalance(
+              order.userId.toString(),
+              transaction.amount
             );
+
+            console.log(`✅ Cashback of ₹${transaction.amount} confirmed for Order #${order.orderNumber}`);
+          }
         }
         
-        // Pulse Engagement: Feedback request & Points Notification
+        // Pulse Engagement: Feedback request
         await this.pulseService.triggerFeedbackRequest(order);
-        if (points > 0) {
-            await this.pulseService.triggerLoyaltyAccretionPulse(order.userId.toString(), points, order.orderNumber);
-        }
     }
 
-    // 5. Loyalty Point Reversal on Cancellation
-    if (status === 'CANCELLED' && order.pointsUsed && order.pointsUsed > 0) {
-        await this.loyaltyService.updateBalance(
-            order.userId.toString(),
-            order.pointsUsed,
-            LOYALTY_TRANSACTION_TYPE.REFUNDED,
-            `Refunded from Cancelled Order #${order.orderNumber}`,
-            orderId
+    // 5. Reverse Cashback on Cancellation
+    if (status === 'CANCELLED') {
+      // Reverse any pending cashback
+      const pendingTransactions = await this.walletTransactionService.getTransactionsBySource(
+        orderId.toString(),
+        WALLET_SOURCE_TYPE.ORDER_CASHBACK
+      );
+
+      for (const transaction of pendingTransactions) {
+        if ((transaction as any).status === 'PENDING') {
+          // Reverse the transaction
+          await this.walletTransactionService.reverseTransaction(
+            (transaction as any)._id.toString(),
+            `Order #${order.orderNumber} cancelled`
+          );
+          
+          // Release blocked balance (without crediting)
+          const userWallet = await this.walletService.getWalletByUserId(order.userId.toString());
+          if (userWallet && userWallet.blockedBalance >= transaction.amount) {
+            await this.walletService.findOneAndUpdate(
+              { _id: (userWallet as any)._id },
+              { $inc: { blockedBalance: -transaction.amount } }
+            );
+          }
+
+          console.log(`❌ Cashback of ₹${transaction.amount} reversed for Order #${order.orderNumber}`);
+        }
+      }
+
+      // Refund wallet amount if used
+      if ((order as any).walletAmountUsed && (order as any).walletAmountUsed > 0) {
+        await this.walletService.creditWallet(
+          order.userId.toString(),
+          (order as any).walletAmountUsed,
+          {
+            description: `Refund for cancelled Order #${order.orderNumber}`,
+            orderId: orderId.toString(),
+            createdByType: WALLET_CREATED_BY.SYSTEM
+          }
         );
+
+        await this.walletTransactionService.createTransaction({
+          walletId: (await this.walletService.getWalletByUserId(order.userId.toString()) as any)._id.toString(),
+          userId: order.userId.toString(),
+          transactionType: WALLET_TRANSACTION_TYPE.CREDIT,
+          sourceType: WALLET_SOURCE_TYPE.REFUND,
+          sourceReferenceId: orderId.toString(),
+          amount: (order as any).walletAmountUsed,
+          balanceBefore: 0, // Will be calculated
+          balanceAfter: 0, // Will be calculated
+          description: `Wallet refund for cancelled Order #${order.orderNumber}`,
+          createdBy: WALLET_CREATED_BY.SYSTEM
+        });
+
+        console.log(`💰 Wallet amount of ₹${(order as any).walletAmountUsed} refunded for Order #${order.orderNumber}`);
+      }
     }
 
     return this.findOneAndUpdate(

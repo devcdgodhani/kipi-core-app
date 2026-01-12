@@ -20,6 +20,9 @@ import returnRoutes from './returnRoutes';
 import exchangeRoutes from './exchangeRoutes';
 import stockLedgerRoutes from './stockLedgerRoutes';
 import loyaltyRoutes from './loyaltyRoutes';
+import walletRoutes from './walletRoutes';
+import walletTransactionRoutes from './walletTransactionRoutes';
+import walletRuleRoutes from './walletRuleRoutes';
 import { analyticsRoutes } from './analyticsRoutes';
 import couponRoutes from './couponRoutes';
 import courierRoutes from './courierRoutes';
@@ -76,6 +79,9 @@ router.use('/return', jwtAuth(), returnRoutes);
 router.use('/exchange', jwtAuth(), exchangeRoutes);
 router.use('/stock-ledger', jwtAuth(), stockLedgerRoutes);
 router.use('/loyalty', jwtAuth(), loyaltyRoutes);
+router.use('/wallet', jwtAuth(), walletRoutes);
+router.use('/wallet-transaction', jwtAuth(), walletTransactionRoutes);
+router.use('/wallet-rule', jwtAuth(), walletRuleRoutes);
 router.use('/shipment', jwtAuth(), shipmentRoutes); // Mount Shipment Routes
 router.use('/rto', rtoScoreRoutes); // NEW: RTO Routes
 router.use('/eta', etaRoutes); // NEW: ETA Routes

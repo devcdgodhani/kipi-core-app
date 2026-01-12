@@ -25,6 +25,9 @@ import { pushNotificationService } from './pushNotificationService';
 import { logisticsQueue } from '../../jobs/logistics/queue';
 import { ShipmentModel } from '../../db/mongodb/models/shipmentModel';
 import { SHIPMENT_STATUS } from '../../constants/shipment';
+import { walletService } from './walletService';
+import { walletTransactionService } from './walletTransactionService';
+import { WALLET_TRANSACTION_STATUS } from '../../constants/walletTransaction';
 
 export class CronJobService extends MongooseCommonService<ICronJobAttributes, ICronJobDocument> implements ICronJobService {
     private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
@@ -56,6 +59,9 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
         this.handlers.set('ABANDONED_CART', this.processAbandonedCarts.bind(this));
         this.handlers.set('PUSH_CAMPAIGN_SCHEDULER', this.processScheduledPushCampaigns.bind(this));
         this.handlers.set('LOGISTICS_TRACKING_SYNC', this.processLogisticsTrackingSync.bind(this));
+
+        // Wallet Handlers
+        this.handlers.set('WALLET_EXPIRY_CHECK', this.processWalletExpiry.bind(this));
     }
 
     async init() {
@@ -161,6 +167,12 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 identifier: 'LOGISTICS_TRACKING_SYNC',
                 expression: '0 */4 * * *', // Every 4 hours
                 description: 'Syncs tracking status for all active shipments'
+            },
+            {
+                name: 'Wallet Expiry Check',
+                identifier: 'WALLET_EXPIRY_CHECK',
+                expression: '0 1 * * *', // Daily at 1 AM
+                description: 'Expires wallet transactions tailored to expiry date'
             }
         ];
 
@@ -558,6 +570,73 @@ export class CronJobService extends MongooseCommonService<ICronJobAttributes, IC
                 shipmentId: (shipment as any)._id.toString(),
                 awb: (shipment as any).awb
             });
+        }
+        }
+    }
+
+    async processWalletExpiry() {
+        console.log('CronJobService: Running wallet expiry check...');
+        const now = new Date();
+
+        // 1. Find confirm transactions that have expired
+        const expiredTransactions = await walletTransactionService.findAll({
+            status: WALLET_TRANSACTION_STATUS.CONFIRMED,
+            expiryDate: { $lte: now }
+        } as any);
+
+        console.log(`CronJobService: Found ${expiredTransactions.length} expired wallet transactions.`);
+
+        for (const transaction of expiredTransactions) {
+            try {
+                // Check if the user still has balance to expire
+                const wallet = await walletService.getOrCreateWallet((transaction as any).userId.toString());
+                
+                // We can only expire what's remaining in the wallet or the transaction amount, whichever is lower
+                // However, in a simple ledger, we just debit the amount if available.
+                // A more complex logic might check if this specific transaction was already spent (FIFO).
+                // For this implementation, we assume if points are in the wallet, they can expire.
+                
+                let amountToExpire = transaction.amount;
+                if (wallet.availableBalance < amountToExpire) {
+                    amountToExpire = wallet.availableBalance;
+                }
+
+                if (amountToExpire > 0) {
+                    await walletService.debitWallet(
+                        (transaction as any).userId.toString(),
+                        amountToExpire,
+                        {
+                            description: `Expiry of transaction #${(transaction as any)._id}`,
+                            orderId: null,
+                            createdByType: 'SYSTEM' as any
+                        }
+                    );
+
+                     // Mark transaction as EXPIRED (or create a new DEBIT transaction with type EXPIRY)
+                     // Here we create a new debit transaction for the expiry
+                     await walletTransactionService.createTransaction({
+                        walletId: (wallet as any)._id.toString(),
+                        userId: (transaction as any).userId.toString(),
+                        transactionType: 'DEBIT' as any, // Using string literal to avoid import cycle if needed, or import type
+                        sourceType: 'EXPIRY' as any,
+                        amount: amountToExpire,
+                        balanceBefore: wallet.availableBalance,
+                        balanceAfter: wallet.availableBalance - amountToExpire,
+                        description: `Expired: ${(transaction as any).description}`,
+                        sourceReferenceId: (transaction as any)._id.toString(),
+                        // createdBy: 'SYSTEM'
+                    } as any);
+                }
+
+                // Update the original transaction status to EXPIRED to prevent re-processing
+                await walletTransactionService.updateOne(
+                    { _id: (transaction as any)._id } as any,
+                    { status: WALLET_TRANSACTION_STATUS.EXPIRED }
+                );
+
+            } catch (error) {
+                console.error(`CronJobService: Error expiring transaction ${(transaction as any)._id}:`, error);
+            }
         }
     }
 }

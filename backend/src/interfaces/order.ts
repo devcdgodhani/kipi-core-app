@@ -43,8 +43,8 @@ export interface IOrderAttributes extends IDefaultAttributes {
   couponId?: string | ObjectId;
   couponCode?: string;
   discountAmount?: number;
-  pointsUsed?: number;
-  pointsAmount?: number;
+  walletAmountUsed?: number;
+  cashbackAmount?: number;
   tax: number;
   shippingCost: number;
   shippingProvider?: string;
