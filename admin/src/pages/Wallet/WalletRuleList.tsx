@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -88,9 +89,9 @@ const WalletRuleList = () => {
 
     const getStatusStyles = (status: string) => {
         switch (status) {
-            case 'ACTIVE': return 'bg-green-50 text-green-600 border-green-100';
+            case 'ACTIVE': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'INACTIVE': return 'bg-gray-50 text-gray-500 border-gray-100';
-            case 'EXPIRED': return 'bg-red-50 text-red-600 border-red-100';
+            case 'EXPIRED': return 'bg-rose-50 text-rose-500 border-rose-100';
             case 'SCHEDULED': return 'bg-amber-50 text-amber-600 border-amber-100';
             default: return 'bg-gray-50 text-gray-500 border-gray-100';
         }
@@ -100,7 +101,7 @@ const WalletRuleList = () => {
         {
             header: 'Rule Info',
             render: (rule) => (
-                <div className="flex flex-col">
+                <div className="flex flex-col py-1">
                     <span className="font-bold text-gray-900">{rule.name}</span>
                     <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5 truncate max-w-[200px]">
                         {rule.description || 'No description'}
@@ -111,7 +112,7 @@ const WalletRuleList = () => {
         {
             header: 'Type',
             render: (rule) => (
-                <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-gray-200">
+                <span className="px-3 py-1 bg-gray-50 text-gray-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-gray-100">
                     {rule.ruleType}
                 </span>
             )
@@ -179,7 +180,7 @@ const WalletRuleList = () => {
                     ) : (
                         <button
                             onClick={(e) => handleActivate(rule._id, e)}
-                            className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors border border-green-100"
+                            className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-100"
                             title="Activate"
                         >
                             <Play size={16} fill="currentColor" />
@@ -205,21 +206,24 @@ const WalletRuleList = () => {
     ];
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">Wallet Rules</h1>
-                    <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-2 flex items-center gap-2">
-                        <CheckCircle2 size={14} className="text-primary" />
-                        Manage rewards and cashback policies
-                    </p>
+        <div className="p-6 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
+                <div className="relative z-10 flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                        <CheckCircle2 size={32} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Wallet Rules</h1>
+                        <p className="text-sm text-gray-500 font-medium">Manage rewards and cashback policies</p>
+                    </div>
                 </div>
                 <Button
                     onClick={() => navigate('/wallet/rules/create')}
-                    className="h-14 px-8 rounded-2xl bg-gray-900 hover:bg-black text-white shadow-2xl shadow-gray-200 transition-all flex items-center gap-3"
+                    className="rounded-2xl shadow-xl shadow-primary/20 h-14 px-8 relative z-10"
                 >
-                    <Plus size={20} />
-                    <span className="font-black uppercase tracking-widest text-xs">Create Rule</span>
+                    <Plus size={20} className="mr-2" />
+                    <span>Create Rule</span>
                 </Button>
             </div>
 
@@ -229,7 +233,8 @@ const WalletRuleList = () => {
                 isLoading={loading}
                 keyExtractor={(item) => item._id}
                 onRowClick={(item) => navigate(`/wallet/rules/edit/${item._id}`)}
-                pagination={{
+                emptyMessage="No wallet rules defined"
+                pagination={totalRecords > 0 ? {
                     currentPage: page,
                     totalPages: Math.ceil(totalRecords / rowsPerPage),
                     totalRecords: totalRecords,
@@ -237,7 +242,7 @@ const WalletRuleList = () => {
                     onPageChange: setPage,
                     hasPreviousPage: page > 1,
                     hasNextPage: page < Math.ceil(totalRecords / rowsPerPage)
-                }}
+                } : undefined}
             />
         </div>
     );

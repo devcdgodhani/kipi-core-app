@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -11,8 +11,11 @@ import {
     Users,
     Calendar,
     Eye,
-    EyeOff
+    EyeOff,
+    Upload,
+    FolderOpen
 } from 'lucide-react';
+import { fileStorageService } from '../../services/fileStorage.service';
 import { bannerService } from '../../services/banner.service';
 import { BANNER_STATUS, BANNER_LINK_TYPE, BANNER_TARGET_AUDIENCE } from '../../types/banner.types';
 import type { Banner } from '../../types/banner.types';
@@ -49,6 +52,35 @@ const BannerForm: React.FC = () => {
     const [isMobileImageSelectorOpen, setIsMobileImageSelectorOpen] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
+
+    const desktopInputRef = useRef<HTMLInputElement>(null);
+    const mobileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>, isMobile: boolean) => {
+        if (!e.target.files?.length) return;
+
+        try {
+            setUploadingImage(true);
+            const res = await fileStorageService.upload(
+                Array.from(e.target.files),
+                'banner', // storageDirPath
+                'banner'  // storageDir
+            );
+
+            if (res.data && Array.isArray(res.data) && res.data[0]) {
+                const file = res.data[0];
+                handleImageSelect(file, isMobile);
+            }
+        } catch (err) {
+            console.error('Failed to upload banner image', err);
+            toast.error('Failed to upload image');
+        } finally {
+            setUploadingImage(false);
+            if (isMobile && mobileInputRef.current) mobileInputRef.current.value = '';
+            else if (!isMobile && desktopInputRef.current) desktopInputRef.current.value = '';
+        }
+    };
 
     useEffect(() => {
         if (isEdit) {
@@ -220,45 +252,67 @@ const BannerForm: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Desktop Hero *</label>
-                                <div
-                                    onClick={() => setIsImageSelectorOpen(true)}
-                                    className="w-full aspect-video rounded-[2rem] bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-primary/20 transition-all overflow-hidden relative group"
-                                >
+                                <div className="relative group w-full aspect-video rounded-[2rem] bg-gray-50 border-2 border-dashed border-gray-200 overflow-hidden">
                                     {imagePreview ? (
-                                        <>
-                                            <img src={imagePreview} alt="Desktop Preview" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Change Media</span>
-                                            </div>
-                                        </>
+                                        <img src={imagePreview} alt="Desktop Preview" className="w-full h-full object-cover" />
                                     ) : (
-                                        <>
+                                        <div className="w-full h-full flex flex-col items-center justify-center">
                                             <ImageIcon size={32} className="text-gray-300 mb-2" />
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Image</span>
-                                        </>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</span>
+                                        </div>
                                     )}
+
+                                    <div className={`absolute inset-0 bg-black/40 ${imagePreview ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'} transition-opacity flex items-center justify-center gap-3`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => desktopInputRef.current?.click()}
+                                            disabled={uploadingImage}
+                                            className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+                                        >
+                                            <Upload size={14} /> {uploadingImage ? '...' : 'Upload'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsImageSelectorOpen(true)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg"
+                                        >
+                                            <FolderOpen size={14} /> Library
+                                        </button>
+                                    </div>
+                                    <input type="file" ref={desktopInputRef} onChange={(e) => handleDirectUpload(e, false)} className="hidden" accept="image/*" />
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Mobile Optimize</label>
-                                <div
-                                    onClick={() => setIsMobileImageSelectorOpen(true)}
-                                    className="w-full aspect-video rounded-[2rem] bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-primary/20 transition-all overflow-hidden relative group"
-                                >
+                                <div className="relative group w-full aspect-video rounded-[2rem] bg-gray-50 border-2 border-dashed border-gray-200 overflow-hidden">
                                     {mobileImagePreview ? (
-                                        <>
-                                            <img src={mobileImagePreview} alt="Mobile Preview" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Change Media</span>
-                                            </div>
-                                        </>
+                                        <img src={mobileImagePreview} alt="Mobile Preview" className="w-full h-full object-cover" />
                                     ) : (
-                                        <>
+                                        <div className="w-full h-full flex flex-col items-center justify-center">
                                             <ImageIcon size={32} className="text-gray-300 mb-2" />
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Image</span>
-                                        </>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</span>
+                                        </div>
                                     )}
+
+                                    <div className={`absolute inset-0 bg-black/40 ${mobileImagePreview ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'} transition-opacity flex items-center justify-center gap-3`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => mobileInputRef.current?.click()}
+                                            disabled={uploadingImage}
+                                            className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+                                        >
+                                            <Upload size={14} /> {uploadingImage ? '...' : 'Upload'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMobileImageSelectorOpen(true)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg"
+                                        >
+                                            <FolderOpen size={14} /> Library
+                                        </button>
+                                    </div>
+                                    <input type="file" ref={mobileInputRef} onChange={(e) => handleDirectUpload(e, true)} className="hidden" accept="image/*" />
                                 </div>
                             </div>
                         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import CustomInput from '../../components/common/Input';
 import CustomButton from '../../components/common/Button';
@@ -97,7 +98,7 @@ const VerifyOTP: React.FC = () => {
             setCanResend(false);
             setError('');
             // Show success message
-            alert('OTP has been resent to your email!');
+            toast.success('OTP has been resent to your email!');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.');
         } finally {

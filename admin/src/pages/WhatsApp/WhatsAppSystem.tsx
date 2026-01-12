@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { whatsappSystemService } from '../../services/whatsappSystemService';
 import {
@@ -10,13 +11,19 @@ import {
     RefreshCw,
     Activity,
     Settings,
-    Shield
+    Shield,
+    Database,
+    Cpu,
+    Radio
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { PopupModal } from '../../components/common/PopupModal';
 
 const WhatsAppSystem: React.FC = () => {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [queueStatus, setQueueStatus] = useState<any>(null);
+    const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+    const [purgeType, setPurgeType] = useState<'completed' | 'failed'>('completed');
 
     const fetchStatus = async () => {
         setActionLoading('fetch');
@@ -49,137 +56,150 @@ const WhatsAppSystem: React.FC = () => {
         }
     };
 
-    const isPaused = queueStatus?.paused > 0 || false; // This is a heuristic, real global pause state isn't in queue counts alone easily
+    const confirmPurge = async () => {
+        if (purgeType === 'completed') {
+            await handleAction('cleanCompleted', () => whatsappSystemService.cleanQueue('completed'), 'Completed buffers purged');
+        } else {
+            // clearQueue clears failed jobs in this service context
+            await handleAction('clearQueue', whatsappSystemService.clearQueue, 'Failed buffers purged');
+        }
+        setIsPurgeModalOpen(false);
+    };
+
+    const isPaused = queueStatus?.paused > 0;
 
     return (
-        <div className="p-6 space-y-8 bg-gray-50/50 min-h-screen animate-in fade-in duration-500">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-                <div className="relative z-10 flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
-                        <Settings size={32} />
+        <div className="p-6 space-y-8 animate-in fade-in duration-500 overflow-y-auto">
+            {/* Premium Hero Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-10 rounded-[3rem] border border-primary/5 shadow-2xl shadow-gray-200/50 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[80px] group-hover:bg-indigo-500/10 transition-all duration-1000" />
+                <div className="relative z-10 flex items-center gap-8">
+                    <div className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/30 transform group-hover:rotate-12 transition-transform">
+                        <Settings size={40} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase font-mono">System Control</h1>
-                        <p className="text-sm text-gray-500 font-medium">Global infrastructure management and emergency overrides</p>
+                        <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase font-mono">Control Authority</h1>
+                        <p className="text-base text-gray-500 font-medium">Global infrastructure overrides and emergency protocols</p>
                     </div>
                 </div>
                 <button
                     onClick={fetchStatus}
-                    className="relative z-10 bg-white text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 shadow-sm border border-gray-200 h-12 w-12 rounded-xl flex items-center justify-center transition-all active:scale-95"
+                    className="relative z-10 bg-white text-gray-400 hover:text-indigo-600 border-2 border-primary/5 h-16 w-16 rounded-[2rem] flex items-center justify-center transition-all active:scale-95 shadow-xl shadow-gray-100/50 hover:bg-indigo-50 hover:border-indigo-100"
                 >
-                    <RefreshCw size={20} className={actionLoading === 'fetch' ? 'animate-spin' : ''} />
+                    <RefreshCw size={24} className={actionLoading === 'fetch' ? 'animate-spin' : ''} />
                 </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Primary Controls */}
+                {/* Protocol Interaction Layer */}
                 <div className="lg:col-span-8 space-y-8">
-                    {/* Emergency Controls Card */}
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-8 border-b border-gray-50 bg-gray-50/30">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-rose-100 rounded-2xl text-rose-600">
-                                    <Zap size={24} />
+                    {/* Emergency Kill Switches */}
+                    <div className="bg-white rounded-[3.5rem] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8">
+                            <Zap className="text-rose-100" size={120} />
+                        </div>
+                        <div className="p-12 border-b border-gray-50 relative z-10">
+                            <div className="flex items-center gap-6">
+                                <div className="p-5 bg-rose-50 rounded-3xl text-rose-600 border border-rose-100/50 shadow-sm">
+                                    <Radio size={32} className="animate-pulse" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black uppercase tracking-tight text-gray-900">Emergency Controls</h2>
-                                    <p className="text-sm text-gray-500 font-medium">Instantly pause or resume the entire message processor</p>
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Emergency Protocol</h2>
+                                    <p className="text-sm text-gray-500 font-medium">Global suspension of all transmission nodes</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-12 grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                             <button
-                                onClick={() => handleAction('pause', whatsappSystemService.pause, 'System paused successfully')}
+                                onClick={() => handleAction('pause', whatsappSystemService.pause, 'System authority suspended')}
                                 disabled={actionLoading === 'pause'}
-                                className="group relative flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-rose-200 hover:border-rose-500 hover:bg-rose-50/50 transition-all duration-300 disabled:opacity-50"
+                                className="group relative flex flex-col items-center justify-center p-10 rounded-[3rem] border-2 border-dashed border-rose-100 hover:border-rose-500 hover:bg-rose-50/50 transition-all duration-500 disabled:opacity-50"
                             >
-                                <div className="w-16 h-16 rounded-2xl bg-rose-500 text-white flex items-center justify-center mb-4 shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform">
-                                    <Pause size={32} />
+                                <div className="w-20 h-20 rounded-3xl bg-rose-500 text-white flex items-center justify-center mb-6 shadow-2xl shadow-rose-500/40 group-hover:scale-110 transition-transform">
+                                    <Pause size={40} fill="currentColor" />
                                 </div>
-                                <span className="text-lg font-black text-rose-600 uppercase tracking-widest">Pause System</span>
-                                <p className="text-xs text-rose-400 font-bold mt-2 text-center px-4">Stop all outgoing message queues immediately</p>
-                                {actionLoading === 'pause' && <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-[2rem]"><RefreshCw className="animate-spin text-rose-600" /></div>}
+                                <span className="text-xl font-black text-rose-600 uppercase tracking-widest">SUSPEND CORE</span>
+                                <p className="text-[10px] text-rose-400 font-black mt-4 text-center px-6 uppercase tracking-widest leading-relaxed">Instantly halt all active and waiting transmission queues</p>
+                                {actionLoading === 'pause' && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center rounded-[3rem]"><RefreshCw className="animate-spin text-rose-600" size={32} /></div>}
                             </button>
 
                             <button
-                                onClick={() => handleAction('resume', whatsappSystemService.resume, 'System resumed successfully')}
+                                onClick={() => handleAction('resume', whatsappSystemService.resume, 'System authority restored')}
                                 disabled={actionLoading === 'resume'}
-                                className="group relative flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 border-dashed border-emerald-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all duration-300 disabled:opacity-50"
+                                className="group relative flex flex-col items-center justify-center p-10 rounded-[3rem] border-2 border-dashed border-emerald-100 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all duration-500 disabled:opacity-50"
                             >
-                                <div className="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                                    <Play size={32} />
+                                <div className="w-20 h-20 rounded-3xl bg-emerald-500 text-white flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/40 group-hover:scale-110 transition-transform">
+                                    <Play size={40} fill="currentColor" />
                                 </div>
-                                <span className="text-lg font-black text-emerald-600 uppercase tracking-widest">Resume System</span>
-                                <p className="text-xs text-emerald-400 font-bold mt-2 text-center px-4">Begin processing messages from waiting queue</p>
-                                {actionLoading === 'resume' && <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-[2rem]"><RefreshCw className="animate-spin text-emerald-600" /></div>}
+                                <span className="text-xl font-black text-emerald-600 uppercase tracking-widest">RESTORE CORE</span>
+                                <p className="text-[10px] text-emerald-400 font-black mt-4 text-center px-6 uppercase tracking-widest leading-relaxed">Initiate handshake and resume asynchronous processing</p>
+                                {actionLoading === 'resume' && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center rounded-[3rem]"><RefreshCw className="animate-spin text-emerald-600" size={32} /></div>}
                             </button>
                         </div>
                     </div>
 
-                    {/* Maintenance Card */}
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-8 border-b border-gray-50 bg-gray-50/30">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
-                                    <Activity size={24} />
+                    {/* Maintenance Architecture */}
+                    <div className="bg-white rounded-[3.5rem] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden">
+                        <div className="p-12 border-b border-gray-50 bg-gray-50/30">
+                            <div className="flex items-center gap-6">
+                                <div className="p-5 bg-amber-50 rounded-3xl text-amber-600 border border-amber-100/50">
+                                    <Cpu size={32} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black uppercase tracking-tight text-gray-900">System Maintenance</h2>
-                                    <p className="text-sm text-gray-500 font-medium">Routine maintenance tasks and counter resets</p>
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Maintenance Matrix</h2>
+                                    <p className="text-sm text-gray-500 font-medium">Hardline resets and memory buffer purges</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-8">
-                            <div className="bg-amber-50 rounded-[2rem] border border-amber-100 p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-                                <div className="flex gap-6">
-                                    <div className="w-16 h-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
-                                        <RotateCcw size={32} />
+                        <div className="p-12 space-y-8">
+                            <div className="bg-amber-900 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl shadow-amber-900/20 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mt-32 blur-3xl group-hover:bg-white/10 transition-all duration-1000" />
+                                <div className="flex gap-8 relative z-10">
+                                    <div className="w-20 h-20 rounded-[2rem] bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-2xl shadow-amber-500/30 group-hover:rotate-12 transition-transform">
+                                        <RotateCcw size={40} />
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-amber-900">Reset Message Counters</h3>
-                                        <p className="text-sm text-amber-700 leading-relaxed mt-1">
-                                            Manually reset daily and hourly send limits for all accounts.
-                                            This is usually handled automatically at midnight and on the hour.
+                                    <div className="pr-12">
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-tight">Cycle Reset</h3>
+                                        <p className="text-sm text-amber-100/60 font-medium leading-relaxed mt-2 max-w-md">
+                                            Synchronize all origin terminals and hard-reset transmission counters. Required after emergency maintenance or manual block resolution.
                                         </p>
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleAction('resetCounters', whatsappSystemService.resetCounters, 'Counters reset successfully')}
+                                    onClick={() => handleAction('resetCounters', whatsappSystemService.resetCounters, 'Cycle synchronized')}
                                     disabled={actionLoading === 'resetCounters'}
-                                    className="bg-amber-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-amber-900/10 active:scale-95 whitespace-nowrap disabled:opacity-50"
+                                    className="bg-white text-gray-900 h-16 px-10 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-100 transition-all shadow-xl shadow-black/20 active:scale-95 whitespace-nowrap disabled:opacity-50 relative z-10"
                                 >
-                                    {actionLoading === 'resetCounters' ? 'Resetting...' : 'Reset Now'}
+                                    {actionLoading === 'resetCounters' ? 'HANDSHAKING...' : 'INITIATE SYNC'}
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <button
-                                    onClick={() => handleAction('cleanCompleted', () => whatsappSystemService.cleanQueue('completed'), 'Completed jobs cleaned')}
-                                    className="flex items-center gap-4 p-6 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-md transition-all text-left group"
+                                    onClick={() => { setPurgeType('completed'); setIsPurgeModalOpen(true); }}
+                                    className="flex items-center gap-6 p-8 rounded-[2.5rem] border-2 border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-2xl hover:shadow-gray-100/50 transition-all duration-500 text-left group"
                                 >
-                                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
-                                        <Trash2 size={20} />
+                                    <div className="p-5 bg-white text-emerald-500 rounded-3xl group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-sm border border-gray-100">
+                                        <Database size={28} />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-black text-gray-900 uppercase">Clean Completed</div>
-                                        <div className="text-xs text-gray-500 font-bold">Remove successfully processed logs</div>
+                                        <div className="text-sm font-black text-gray-900 uppercase tracking-widest">Saturate Buffers</div>
+                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Purge 200/OK history logs</div>
                                     </div>
                                 </button>
 
                                 <button
-                                    onClick={() => handleAction('retryFailed', whatsappSystemService.retryFailedJobs, 'Failed jobs queued for retry')}
-                                    className="flex items-center gap-4 p-6 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-md transition-all text-left group"
+                                    onClick={() => handleAction('retryFailed', whatsappSystemService.retryFailedJobs, 'Recovery cycle initiated')}
+                                    className="flex items-center gap-6 p-8 rounded-[2.5rem] border-2 border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-2xl hover:shadow-gray-100/50 transition-all duration-500 text-left group"
                                 >
-                                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-100 transition-colors">
-                                        <RotateCcw size={20} />
+                                    <div className="p-5 bg-white text-indigo-500 rounded-3xl group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-sm border border-gray-100">
+                                        <RotateCcw size={28} />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-black text-gray-900 uppercase">Retry All Failed</div>
-                                        <div className="text-xs text-gray-500 font-bold">Process again from failed jobs</div>
+                                        <div className="text-sm font-black text-gray-900 uppercase tracking-widest">Global Retry</div>
+                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Requeue all fault payloads</div>
                                     </div>
                                 </button>
                             </div>
@@ -187,77 +207,92 @@ const WhatsAppSystem: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Status & Policy */}
+                {/* Authority Context Layer */}
                 <div className="lg:col-span-4 space-y-8">
-                    {/* Status Tracker */}
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8">
-                        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <Activity size={14} /> Processor Status
+                    {/* Real-time Telemetry */}
+                    <div className="bg-gray-900 rounded-[3.5rem] shadow-2xl shadow-gray-900/40 p-10 text-white relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-1000" />
+
+                        <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                            <Activity size={14} className="text-indigo-400" /> Real-time Telemetry
                         </h3>
 
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span className="text-sm font-bold text-gray-600">Current State</span>
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isPaused ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'
-                                    }`}>
-                                    {isPaused ? 'PAUSED' : 'HEALTHY'}
+                        <div className="space-y-10 relative z-10">
+                            <div className="flex items-center justify-between p-6 rounded-[2rem] bg-white/5 border border-white/10">
+                                <span className="text-xs font-bold text-white/60">Core Authority</span>
+                                <span className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg ${isPaused ? 'bg-rose-500 text-white shadow-rose-500/20' : 'bg-emerald-500 text-white shadow-emerald-500/20 animate-pulse'}`}>
+                                    {isPaused ? 'SUSPENDED' : 'OPERATIONAL'}
                                 </span>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-gray-500">
-                                    <span>Workload</span>
-                                    <span>{(queueStatus?.waiting || 0) + (queueStatus?.active || 0)} Jobs</span>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-2">
+                                    <span>Core Workload Density</span>
+                                    <span className="text-indigo-400">{(queueStatus?.waiting || 0) + (queueStatus?.active || 0)} PAYLOADS</span>
                                 </div>
-                                <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden p-1 border border-white/5">
                                     <div
-                                        className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
-                                        style={{ width: `${Math.min(100, ((queueStatus?.active || 0) / (queueStatus?.waiting || 1)) * 100)}%` }}
+                                        className="h-full bg-gradient-to-r from-indigo-500 to-primary rounded-full transition-all duration-1000"
+                                        style={{ width: `${Math.min(100, (((queueStatus?.active || 0) + (queueStatus?.waiting || 0)) / 1000) * 100)}%` }}
                                     />
                                 </div>
+                                <p className="text-[9px] text-white/20 font-medium uppercase tracking-tighter text-center">Density based on 1000 payload threshold</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Auto-Guard Info Card */}
-                    <div className="bg-emerald-900 text-white rounded-[2.5rem] shadow-xl shadow-emerald-900/20 p-8 relative overflow-hidden">
-                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full -mb-16 -mr-16 blur-2xl" />
+                    {/* Security Governance */}
+                    <div className="bg-emerald-900/10 border-2 border-emerald-900/20 text-emerald-900 rounded-[3.5rem] p-10 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-900/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                         <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
-                                    <Shield size={20} />
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-900 text-white flex items-center justify-center shadow-xl shadow-emerald-900/20">
+                                    <Shield size={28} />
                                 </div>
-                                <h3 className="text-lg font-black uppercase tracking-tight">Auto-Guard</h3>
+                                <div>
+                                    <h3 className="text-xl font-black uppercase tracking-tight">Governance</h3>
+                                    <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mt-1">Autonomous Guard active</p>
+                                </div>
                             </div>
-                            <p className="text-sm text-emerald-100/80 leading-relaxed font-medium">
-                                The system automatically monitors global risk every 5 minutes.
-                            </p>
-                            <div className="mt-6 space-y-4">
-                                <div className="flex gap-4 items-start">
-                                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                                    <p className="text-xs font-bold text-emerald-50/70">Automatic PAUSE if average risk score &gt; 60</p>
+
+                            <div className="space-y-6">
+                                <div className="flex gap-5 items-start">
+                                    <div className="mt-1.5 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 shadow-lg shadow-emerald-500/40" />
+                                    <p className="text-xs font-bold leading-relaxed">Authority automatically suspends if Global Risk Density &gt; 60%</p>
                                 </div>
-                                <div className="flex gap-4 items-start">
-                                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                                    <p className="text-xs font-bold text-emerald-50/70">Automatic RESUME once risk score &lt; 50</p>
+                                <div className="flex gap-5 items-start">
+                                    <div className="mt-1.5 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 shadow-lg shadow-emerald-500/40" />
+                                    <p className="text-xs font-bold leading-relaxed">Authority restores automatically once Global Risk Density &lt; 50%</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Safety Alert */}
-                    <div className="bg-amber-50 rounded-[2.5rem] border border-amber-200 p-8 flex gap-4">
-                        <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                    {/* Operational Directive */}
+                    <div className="bg-white rounded-[3rem] border border-gray-100 p-10 flex gap-6 shadow-xl shadow-gray-200/50">
+                        <AlertCircle className="w-8 h-8 text-amber-500 flex-shrink-0 mt-1" />
                         <div>
-                            <h4 className="text-sm font-black text-amber-900 uppercase mb-2">Internal Policy</h4>
-                            <p className="text-xs text-amber-700 leading-relaxed font-bold">
-                                Manual overrides should only be used during detected anomalies or scheduled maintenance.
-                                Pausing the system does not stop currently active message sends but prevents new ones from starting.
+                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight mb-3">Operator Directive</h4>
+                            <p className="text-[10px] text-gray-400 font-bold leading-loose uppercase tracking-widest">
+                                Manual overrides bypass autonomous safety throttles. Proceed with extreme caution during peak traffic windows.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {isPurgeModalOpen && (
+                <PopupModal
+                    isOpen={isPurgeModalOpen}
+                    onClose={() => setIsPurgeModalOpen(false)}
+                    title={`PURGE ${purgeType.toUpperCase()} CACHE`}
+                    message={`Are you sure you want to permanently erase the ${purgeType} transmission history? This action is recorded in authority logs.`}
+                    type="confirm"
+                    onConfirm={confirmPurge}
+                    confirmLabel="PURGE BUFFER"
+                    cancelLabel="ABORT"
+                />
+            )}
         </div>
     );
 };

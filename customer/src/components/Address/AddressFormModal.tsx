@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { X, Loader2 } from 'lucide-react';
 import type { Address, CreateAddressRequest } from '../../types/address.types';
 import { useAddress } from '../../context/AddressContext';
@@ -78,7 +79,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Failed to save address');
+            toast.error('Failed to save address');
         } finally {
             setLoading(false);
         }
