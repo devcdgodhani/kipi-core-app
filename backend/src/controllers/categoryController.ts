@@ -11,11 +11,10 @@ import {
 } from '../types/category';
 import { IApiResponse } from '../interfaces';
 import slugify from 'slugify';
-import { fileStorageService } from '../services/concrete/fileStorageService';
+import { enrichCategoryWithPresignedUrls } from '../helpers';
 
 export class CategoryController {
   private get categoryService() { return categoryService; }
-  private get fileStorageService() { return fileStorageService; }
 
   /*********** Fetch Categories ***********/
   getOne = async (req: Request, res: Response, next: NextFunction) => {
@@ -30,7 +29,7 @@ export class CategoryController {
 
       if (category) {
           if (category.image === '') delete category.image;
-          if (category.image) await this.fileStorageService.ensurePresignedUrl(category.image);
+          await enrichCategoryWithPresignedUrls(category);
       }
 
       const response: TCategoryRes = {
@@ -66,9 +65,7 @@ export class CategoryController {
 
       let categories = await this.categoryService.findAll(filter, options, { path: 'image' });
       
-      await Promise.all(categories.map(async (c: any) => {
-          if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
-      }));
+      await Promise.all(categories.map(c => enrichCategoryWithPresignedUrls(c)));
 
       const response: TCategoryListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -98,9 +95,7 @@ export class CategoryController {
       const categoryList = await this.categoryService.findAllWithPagination(filter, options);
 
       if (categoryList && categoryList.recordList) {
-          await Promise.all(categoryList.recordList.map(async (c: any) => {
-              if (c.image) await this.fileStorageService.ensurePresignedUrl(c.image);
-          }));
+          await Promise.all(categoryList.recordList.map(c => enrichCategoryWithPresignedUrls(c)));
       }
 
       const response: TCategoryListPaginationRes = {

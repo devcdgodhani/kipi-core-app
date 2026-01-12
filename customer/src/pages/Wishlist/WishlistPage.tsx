@@ -92,7 +92,7 @@ const WishlistPage: React.FC = () => {
                                     onClick={() => navigate(`/products/${product.slug || product._id}`)}
                                 >
                                     <img
-                                        src={product.mainImage || '/placeholder-product.png'}
+                                        src={(product.mainImage as any)?.preSignedUrl || product.mainImage || '/placeholder-product.png'}
                                         alt={product.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />

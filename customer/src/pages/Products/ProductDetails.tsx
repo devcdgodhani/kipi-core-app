@@ -54,8 +54,9 @@ const ProductDetails: React.FC = () => {
             if (productData) {
                 setProduct(productData);
                 // Set default active image
-                const mainImg = productData.media.find(m => m.status === 'ACTIVE');
-                setActiveImage(mainImg?.url || '/placeholder-product.png');
+                const activeMedia = productData.media.find(m => m.status === 'ACTIVE');
+                const initialImageUrl = (activeMedia?.fileStorageId as any)?.preSignedUrl || activeMedia?.url || '/placeholder-product.png';
+                setActiveImage(initialImageUrl);
 
                 // Load SKUs
                 const skusData = await productService.getProductSKUs(productData._id);
@@ -171,7 +172,7 @@ const ProductDetails: React.FC = () => {
                                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${activeImage === media.url ? 'border-primary' : 'border-transparent hover:border-gray-200'
                                         }`}
                                 >
-                                    <img src={media.url} alt="" className="w-full h-full object-cover" />
+                                    <img src={(media.fileStorageId as any)?.preSignedUrl || media.url} alt="" className="w-full h-full object-cover" />
                                 </button>
                             ))}
                         </div>

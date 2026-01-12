@@ -22,7 +22,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         ? Math.round(((product.basePrice - displayPrice) / product.basePrice) * 100)
         : 0;
 
-    const mainImageUrl = product.mainImage || product.media.find(m => m.status === 'ACTIVE')?.url || '/placeholder-product.png';
+    const mainImageUrl = (product.mainImage as any)?.preSignedUrl || product.mainImage ||
+        product.media.find(m => m.status === 'ACTIVE')?.url ||
+        (product.media.find(m => m.status === 'ACTIVE')?.fileStorageId as any)?.preSignedUrl ||
+        '/placeholder-product.png';
 
     const handleClick = () => {
         navigate(`/products/${product.slug}`);

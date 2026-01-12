@@ -24,6 +24,21 @@ export class RtoScoreController {
     }
   };
 
+  getStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await rtoScoreService.getStats();
+      const response: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'RTO Stats fetched successfully',
+        data
+      };
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
   /*********** Standard CRUD ***********/
 
   getOne = async (req: Request, res: Response, next: NextFunction) => {

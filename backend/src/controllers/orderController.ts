@@ -5,6 +5,7 @@ import { PaymentService } from '../services/concrete/paymentService';
 import { PaymentRefundService } from '../services/concrete/paymentRefundService';
 import { TOrderCreateReq, TOrderRes, TOrderListPaginationRes } from '../types/order';
 import { IApiResponse, IPaginationData } from '../interfaces';
+import { enrichOrderWithPresignedUrls } from '../helpers';
 
 export default class OrderController {
   private orderService = new OrderService();
@@ -39,7 +40,18 @@ export default class OrderController {
         filters: reqData,
       });
 
+      if (!options.populate) {
+        options.populate = [
+          { path: 'items.productId', populate: { path: 'mainImage' } },
+          { path: 'items.skuId', populate: { path: 'media.fileStorageId' } }
+        ];
+      }
+
       const orderList = await this.orderService.getMyOrders(userId as any, filter, options);
+
+      if (orderList && (orderList as any).recordList) {
+        await Promise.all((orderList as any).recordList.map((o: any) => enrichOrderWithPresignedUrls(o)));
+      }
 
       const response: TOrderListPaginationRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -76,6 +88,10 @@ export default class OrderController {
           code: HTTP_STATUS_CODE.NOTFOUND.CODE,
           message: 'Order not found'
         });
+      }
+
+      if (order) {
+        await enrichOrderWithPresignedUrls(order);
       }
 
       const response: IApiResponse<any> = {
@@ -122,6 +138,10 @@ export default class OrderController {
       });
 
       const orderList = await this.orderService.findAllWithPagination(filter, options);
+
+      if (orderList && orderList.recordList) {
+        await Promise.all(orderList.recordList.map((o: any) => enrichOrderWithPresignedUrls(o)));
+      }
 
       const response: IApiResponse<IPaginationData<any>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,

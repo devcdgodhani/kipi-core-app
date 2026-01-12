@@ -62,7 +62,10 @@ export class WarehouseController {
 
   getOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.warehouseService.findById(req.params.id);
+      const { filter } = this.warehouseService.generateFilter({
+        filters: { ...req.params, ...req.query, ...req.body },
+      });
+      const data = await this.warehouseService.findOne(filter);
       if (!data) {
         const response: IApiResponse = {
           status: HTTP_STATUS_CODE.NOTFOUND.STATUS,

@@ -26,6 +26,8 @@ router.delete('/deleteByFilter', shipmentController.deleteByFilter);
 router.post('/check-serviceability', shipmentValidator.checkServiceability, shipmentController.checkServiceability);
 router.get('/track/:awb', shipmentValidator.track, shipmentController.track);
 router.post('/cancel/:id', shipmentValidator.cancel, shipmentController.cancel);
+router.post('/resolve-ndr/:id', shipmentController.resolveNDR);
+router.post('/generate-label/:id', shipmentController.generateLabel);
 router.get('/:id', shipmentController.getOne); // Alias for convenience
 
 export default router;

@@ -39,4 +39,6 @@ export interface IRtoStats {
   highRiskOrders: number;
   rtoRate: number;
   criticalRisks: number;
+  activeNdrs: number;
+  safeDeliveries: number;
 }

@@ -2,49 +2,14 @@ import { NextFunction, Request, Response } from 'express';
 import { productService } from '../services/concrete/productService';
 import { skuService } from '../services/concrete/skuService';
 import { HTTP_STATUS_CODE, PRODUCT_SUCCESS_MESSAGES } from '../constants';
-import { fileStorageService } from '../services/concrete/fileStorageService';
 import { IApiResponse, IPaginationData } from '../interfaces';
 import { IProductAttributes } from '../interfaces/product';
 import { TProductListPaginationRes, TProductListRes, TProductRes } from '../types/product';
+import { enrichProductWithPresignedUrls } from '../helpers';
 
 export class ProductController {
   private get productService() { return productService; }
   private get skuService() { return skuService; }
-  private get fileStorageService() { return fileStorageService; }
-
-  private async enrichProductWithPresignedUrls(product: any) {
-    if (!product) return;
-
-    // Enrich Main Image
-    if (product.mainImage && typeof product.mainImage === 'object') {
-      await this.fileStorageService.ensurePresignedUrl(product.mainImage);
-      product.mainImage = product.mainImage.preSignedUrl;
-    }
-
-    // Enrich Media
-    if (product.media && Array.isArray(product.media)) {
-      await Promise.all(product.media.map(async (m: any) => {
-        if (m.fileStorageId && typeof m.fileStorageId === 'object') {
-          await this.fileStorageService.ensurePresignedUrl(m.fileStorageId);
-          m.url = m.fileStorageId.preSignedUrl;
-        }
-      }));
-    }
-
-    // Enrich SKUs
-    if (product.skus && Array.isArray(product.skus)) {
-      await Promise.all(product.skus.map(async (sku: any) => {
-        if (sku.media && Array.isArray(sku.media)) {
-          await Promise.all(sku.media.map(async (m: any) => {
-            if (m.fileStorageId && typeof m.fileStorageId === 'object') {
-              await this.fileStorageService.ensurePresignedUrl(m.fileStorageId);
-              m.url = m.fileStorageId.preSignedUrl;
-            }
-          }));
-        }
-      }));
-    }
-  }
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -57,7 +22,7 @@ export class ProductController {
       ]);
       
       if (Array.isArray(response)) {
-        await Promise.all(response.map(p => this.enrichProductWithPresignedUrls(p)));
+        await Promise.all(response.map(p => enrichProductWithPresignedUrls(p)));
       }
 
       const apiResponse: TProductListRes = {
@@ -92,7 +57,7 @@ export class ProductController {
           (response as any).skus = skus;
       }
 
-      await this.enrichProductWithPresignedUrls(response);
+      await enrichProductWithPresignedUrls(response);
 
       const apiResponse: TProductRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -131,7 +96,7 @@ export class ProductController {
       );
 
       if (response.recordList && Array.isArray(response.recordList)) {
-        await Promise.all(response.recordList.map(p => this.enrichProductWithPresignedUrls(p)));
+        await Promise.all(response.recordList.map(p => enrichProductWithPresignedUrls(p)));
       }
 
       const apiResponse: TProductListPaginationRes = {
@@ -216,7 +181,7 @@ export class ProductController {
       const products = await this.productService.getRecommended(userId, limit);
 
       // Enrich with presigned URLs
-      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+      await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -239,7 +204,7 @@ export class ProductController {
       const products = await this.productService.getSimilar(productId, limit);
 
       // Enrich with presigned URLs
-      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+      await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -262,7 +227,7 @@ export class ProductController {
       const products = await this.productService.getFrequentlyBoughtTogether(productId, limit);
 
       // Enrich with presigned URLs
-      await Promise.all(products.map(p => this.enrichProductWithPresignedUrls(p)));
+      await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

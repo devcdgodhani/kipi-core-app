@@ -31,7 +31,7 @@ const bannerCreateSchema = z.object({
   isActive: z.boolean().optional(),
   targetAudience: z.string().optional(),
   status: z.string().optional(),
-}).strict();
+});
 
 const bannerUpdateSchema = z.object({
   title: z.string().optional(),
@@ -46,7 +46,7 @@ const bannerUpdateSchema = z.object({
   isActive: z.boolean().optional(),
   targetAudience: z.string().optional(),
   status: z.string().optional(),
-}).strict();
+});
 
 export class BannerValidator {
   getOne = validate(

@@ -4,9 +4,9 @@ import { RECENTLY_VIEWED_STATUS } from '../../../constants';
 
 const recentlyViewedSchema = new Schema<IRecentlyViewedDocument>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
-    viewedAt: { type: Date, default: Date.now, index: true },
+    viewedAt: { type: Date, default: Date.now },
     status: { 
       type: String, 
       enum: Object.values(RECENTLY_VIEWED_STATUS), 

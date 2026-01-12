@@ -12,4 +12,8 @@ export interface ILogisticsService {
   trackShipment(awb: string): Promise<any>;
 
   cancelShipment(shipmentId: string): Promise<boolean>;
+  
+  resolveNDR(shipmentId: string, resolution: 'RE-ATTEMPT' | 'RTO-CONFIRMED', notes?: string, userId?: string): Promise<any>;
+
+  generateLabel(shipmentId: string): Promise<{ labelUrl: string; manifestUrl?: string }>;
 }

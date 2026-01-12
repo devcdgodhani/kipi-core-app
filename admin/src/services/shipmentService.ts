@@ -1,6 +1,6 @@
 import http from './http';
+import type { IApiResponse, IPaginationData } from '../types/common';
 import type { IShipment, IShipmentFilters } from '../types/shipment.types';
-import type { IPaginationData } from '../types/common'; // Assuming common types exist, will check or strictly type
 
 class ShipmentService {
   async getWithPagination(filters: IShipmentFilters, page = 1, limit = 10): Promise<IPaginationData<IShipment>> {
@@ -28,8 +28,18 @@ class ShipmentService {
   }
 
   async cancel(id: string): Promise<boolean> {
-    await http.delete(`/shipment/${id}`);
+    await http.post(`/shipment/cancel/${id}`);
     return true;
+  }
+
+  async resolveNDR(id: string, resolution: 'RE-ATTEMPT' | 'RTO-CONFIRMED', notes?: string): Promise<boolean> {
+    await http.post(`/shipment/resolve-ndr/${id}`, { resolution, notes });
+    return true;
+  }
+
+  async generateLabel(id: string): Promise<{ labelUrl: string; manifestUrl?: string }> {
+    const response = await http.post<any, IApiResponse<{ labelUrl: string; manifestUrl?: string }>>(`/shipment/generate-label/${id}`);
+    return response.data;
   }
 }
 

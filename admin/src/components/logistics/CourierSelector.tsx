@@ -34,8 +34,8 @@ export const CourierSelector: React.FC<CourierSelectorProps> = ({
         setLoading(true);
         setError('');
         try {
-            const data = await etaService.calculate(pickupPincode, deliveryPincode, weight, cod);
-            setOptions(data);
+            const response = await etaService.calculate(pickupPincode, deliveryPincode, weight, cod);
+            setOptions(response.data);
         } catch (err) {
             setError('Failed to fetch courier options');
         } finally {

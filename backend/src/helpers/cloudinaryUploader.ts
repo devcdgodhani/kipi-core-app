@@ -14,15 +14,21 @@ export const uploadFile = async (
   _bucket?: string,
 ): Promise<string> => {
   try {
-    // Split key into folder and publicId if possible
-    const lastSlashIndex = key.lastIndexOf('/');
-    const folder = lastSlashIndex > -1 ? key.substring(0, lastSlashIndex) : 'uploads';
-    const publicId = lastSlashIndex > -1 ? key.substring(lastSlashIndex + 1) : key;
+    const lastSlashIndex = key.lastIndexOf('.');
+    const ext = lastSlashIndex > -1 ? key.substring(lastSlashIndex + 1) : undefined;
+    const baseKey = lastSlashIndex > -1 ? key.substring(0, lastSlashIndex) : key;
+
+    // Further split baseKey into folder and publicId for the uploader
+    const folderSlashIndex = baseKey.lastIndexOf('/');
+    const folder = folderSlashIndex > -1 ? baseKey.substring(0, folderSlashIndex) : undefined;
+    const publicId = folderSlashIndex > -1 ? baseKey.substring(folderSlashIndex + 1) : baseKey;
 
     const result = await cloudinary.uploader.upload(localFilePath, {
       folder: folder,
       public_id: publicId,
       resource_type: 'auto',
+      type: 'authenticated',
+      format: ext
     });
 
     // Delete local file after successful upload
@@ -44,7 +50,9 @@ export const createFolder = async (folderPath: string) => {
 };
 
 export const renameFile = async (fromPublicId: string, toPublicId: string) => {
-  await cloudinary.uploader.rename(fromPublicId, toPublicId);
+  await cloudinary.uploader.rename(fromPublicId, toPublicId, {
+    type: 'authenticated'
+  });
 };
 
 /**
@@ -58,6 +66,7 @@ export const deleteFile = async (
   try {
     await cloudinary.uploader.destroy(key, {
       resource_type: 'image', // Default to image, though auto would be better if we tracked it
+      type: 'authenticated'
     });
   } catch (err) {
     throw err;
@@ -73,11 +82,21 @@ export const deleteFile = async (
 export const getSignedUrl = async (
   key: string,
   _bucket?: string,
-  _expiresIn?: number
+  _expiresIn?: number,
+  resourceType: string = 'image'
 ): Promise<string> => {
-  return cloudinary.url(key, {
+  const lastDotIndex = key.lastIndexOf('.');
+  const publicId = lastDotIndex > -1 ? key.substring(0, lastDotIndex) : key;
+  const format = lastDotIndex > -1 ? key.substring(lastDotIndex + 1) : undefined;
+
+  const expiresAt = Math.floor(Date.now() / 1000) + (_expiresIn || 3600);
+
+  return cloudinary.url(publicId, {
     secure: true,
     sign_url: true,
-    type: 'authenticated'
+    type: 'authenticated',
+    resource_type: resourceType,
+    format: format,
+    expires_at: expiresAt
   });
 };

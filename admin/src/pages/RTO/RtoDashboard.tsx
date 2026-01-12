@@ -69,20 +69,20 @@ const RtoDashboard = () => {
                 suggestedAction: searchParams.get('suggestedAction')
             };
 
-            const response = await rtoService.getWithPagination(filters);
+            const [response, statsRes] = await Promise.all([
+                rtoService.getWithPagination(filters),
+                rtoService.getStats()
+            ]);
+
             if (response && response.data) {
                 setScores(response.data.recordList);
                 setTotalRecords(response.data.totalRecords);
                 setTotalPages(response.data.totalPages);
             }
 
-            // Mock stats for now or implement backend stats endpoint
-            setStats({
-                totalRtoConfigured: 4,
-                highRiskOrders: response?.data?.totalRecords || 0,
-                rtoRate: 12.4,
-                criticalRisks: 5
-            });
+            if (statsRes && statsRes.data) {
+                setStats(statsRes.data);
+            }
         } catch (err) {
             console.error('RTO Dashboard Error:', err);
             toast.error('Failed to sync RTO intelligence');
@@ -262,7 +262,7 @@ const RtoDashboard = () => {
                         </div>
                     </div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active NDRs</p>
-                    <h3 className="text-2xl font-black text-gray-900 mt-1 font-mono">18</h3>
+                    <h3 className="text-2xl font-black text-gray-900 mt-1 font-mono">{stats?.activeNdrs}</h3>
                 </div>
 
                 <div className="bg-white p-6 rounded-[2rem] border border-primary/5 shadow-sm">
@@ -272,7 +272,7 @@ const RtoDashboard = () => {
                         </div>
                     </div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Safe Deliveries</p>
-                    <h3 className="text-2xl font-black text-gray-900 mt-1 font-mono">142</h3>
+                    <h3 className="text-2xl font-black text-gray-900 mt-1 font-mono">{stats?.safeDeliveries}</h3>
                 </div>
             </div>
 

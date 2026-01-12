@@ -83,8 +83,8 @@ router.use('/wallet', jwtAuth(), walletRoutes);
 router.use('/wallet-transaction', jwtAuth(), walletTransactionRoutes);
 router.use('/wallet-rule', jwtAuth(), walletRuleRoutes);
 router.use('/shipment', jwtAuth(), shipmentRoutes); // Mount Shipment Routes
-router.use('/rto', rtoScoreRoutes); // NEW: RTO Routes
-router.use('/eta', etaRoutes); // NEW: ETA Routes
+router.use('/rto', jwtAuth(), rtoScoreRoutes); // NEW: RTO Routes
+router.use('/eta', jwtAuth(), etaRoutes); // NEW: ETA Routes
 router.use('/courier', jwtAuth(), courierRoutes); // NEW: Courier Routes
 router.use('/warehouse', jwtAuth(), warehouseRoutes);
 router.use('/ndr', jwtAuth(), ndrRoutes);

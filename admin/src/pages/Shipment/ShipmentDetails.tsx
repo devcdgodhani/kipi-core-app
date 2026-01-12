@@ -26,6 +26,7 @@ export const ShipmentDetails: React.FC = () => {
     const [shipment, setShipment] = useState<IShipment | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -43,6 +44,37 @@ export const ShipmentDetails: React.FC = () => {
             toast.error('Failed to retrieve shipment Intel');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResolveNDR = async (resolution: 'RE-ATTEMPT' | 'RTO-CONFIRMED') => {
+        if (!id) return;
+        try {
+            setActionLoading(true);
+            await shipmentService.resolveNDR(id, resolution, `Manual intervention via Logistics Hub`);
+            toast.success(`Intervention Protocol: ${resolution} initiated`);
+            loadShipment(id);
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Resolution Protocol Failed');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleGenerateLabel = async () => {
+        if (!id) return;
+        try {
+            setActionLoading(true);
+            const data = await shipmentService.generateLabel(id);
+            toast.success('Label Matrix Generated');
+            if (data.labelUrl) {
+                window.open(data.labelUrl, '_blank');
+            }
+            loadShipment(id);
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Label Synthesis Failed');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -123,17 +155,22 @@ export const ShipmentDetails: React.FC = () => {
 
                         <div className="flex flex-col sm:flex-row gap-3">
                             <CustomButton
-                                onClick={handleCreateLabel}
-                                disabled={!shipment.labelUrl}
+                                onClick={() => {
+                                    if (shipment.labelUrl) handleCreateLabel();
+                                    else handleGenerateLabel();
+                                }}
+                                loading={actionLoading}
                                 variant="secondary"
                                 className="h-14 px-8 rounded-2xl shadow-lg border-2 border-primary/5"
                             >
                                 <QrCode size={20} className="mr-2" />
-                                Manifest Label
+                                {shipment.labelUrl ? 'Manifest Label' : 'Generate Label'}
                             </CustomButton>
                             <CustomButton
-                                onClick={() => shipment.trackingUrl && window.open(shipment.trackingUrl, '_blank')}
-                                disabled={!shipment.trackingUrl}
+                                onClick={() => {
+                                    const url = shipment.trackingUrl || `https://shiprocket.co/tracking/${shipment.awb}`;
+                                    window.open(url, '_blank');
+                                }}
                                 className="h-14 px-8 rounded-2xl shadow-xl shadow-primary/20"
                             >
                                 <ExternalLink size={20} className="mr-2" />
@@ -240,11 +277,19 @@ export const ShipmentDetails: React.FC = () => {
                                 Terminal report indicates delivery failure. Manual override required to restore delivery lifecycle.
                             </p>
                             <div className="space-y-3 pt-2">
-                                <button className="w-full h-14 bg-white border-2 border-rose-100 text-rose-500 font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-rose-100 transition-all shadow-lg shadow-rose-100/50">
-                                    Request Pulse re-attempt
+                                <button
+                                    onClick={() => handleResolveNDR('RE-ATTEMPT')}
+                                    disabled={actionLoading}
+                                    className="w-full h-14 bg-white border-2 border-rose-100 text-rose-500 font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-rose-100 transition-all shadow-lg shadow-rose-100/50 disabled:opacity-50"
+                                >
+                                    {actionLoading ? 'Syncing...' : 'Request Pulse re-attempt'}
                                 </button>
-                                <button className="w-full h-14 bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20">
-                                    Finalize Terminal RTO
+                                <button
+                                    onClick={() => handleResolveNDR('RTO-CONFIRMED')}
+                                    disabled={actionLoading}
+                                    className="w-full h-14 bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20 disabled:opacity-50"
+                                >
+                                    {actionLoading ? 'Committing...' : 'Finalize Terminal RTO'}
                                 </button>
                             </div>
                         </div>

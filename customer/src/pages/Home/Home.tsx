@@ -103,7 +103,7 @@ const Home: React.FC = () => {
                                 <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
                                     {product.media?.[0]?.url ? (
                                         <img
-                                            src={product.media[0].url}
+                                            src={(product.media[0].fileStorageId as any)?.preSignedUrl || product.media[0].url}
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />

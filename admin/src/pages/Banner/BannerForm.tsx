@@ -89,17 +89,27 @@ const BannerForm: React.FC = () => {
                     const response = await bannerService.getOne(id);
                     if (response && response.data) {
                         const data = response.data;
+
+                        // Extract IDs if populated
+                        const desktopImageId = typeof data.imageId === 'object' ? (data.imageId as any)._id : data.imageId;
+                        const mobileImageIdValue = typeof data.mobileImageId === 'object' ? (data.mobileImageId as any)._id : data.mobileImageId;
+
                         setFormData({
                             ...data,
+                            imageId: desktopImageId,
+                            mobileImageId: mobileImageIdValue,
                             startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : '',
                             endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
                         });
 
+                        // Set Previews
                         if (data.imageId) {
-                            setImagePreview(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/admin').replace('/admin', '')}/public/uploads/${data.imageId}`);
+                            const img = data.imageId as any;
+                            setImagePreview(img.preSignedUrl || (typeof img === 'string' ? `${(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/admin').replace('/admin', '')}/public/uploads/${img}` : img.url));
                         }
                         if (data.mobileImageId) {
-                            setMobileImagePreview(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/admin').replace('/admin', '')}/public/uploads/${data.mobileImageId}`);
+                            const img = data.mobileImageId as any;
+                            setMobileImagePreview(img.preSignedUrl || (typeof img === 'string' ? `${(import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/admin').replace('/admin', '')}/public/uploads/${img}` : img.url));
                         }
                     }
                 } catch (error) {

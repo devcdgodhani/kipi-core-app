@@ -3,7 +3,7 @@ import { recentlyViewedService } from '../services/concrete/recentlyViewedServic
 import { HTTP_STATUS_CODE, RECENTLY_VIEWED_SUCCESS_MESSAGES } from '../constants';
 import { IApiResponse } from '../interfaces';
 import { TRecentlyViewedProductsRes } from '../types/recentlyViewed';
-import { ApiError } from '../helpers';
+import { ApiError, enrichProductWithPresignedUrls } from '../helpers';
 
 export class RecentlyViewedController {
   private get recentlyViewedService() { return recentlyViewedService; }
@@ -49,6 +49,10 @@ export class RecentlyViewedController {
       }
 
       const products = await this.recentlyViewedService.getRecentlyViewed(userId, limit);
+
+      if (Array.isArray(products)) {
+        await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
+      }
 
       const apiResponse: TRecentlyViewedProductsRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

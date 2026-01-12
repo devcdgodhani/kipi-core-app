@@ -15,7 +15,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
 
     const name = productRef?.name || 'Unknown Product';
-    const imageUrl = skuRef?.media?.[0]?.url || productRef?.mainImage || '/placeholder-product.png';
+    const imageUrl = (skuRef?.media?.[0]?.fileStorageId as any)?.preSignedUrl ||
+        skuRef?.media?.[0]?.url ||
+        (productRef?.mainImage as any)?.preSignedUrl ||
+        productRef?.mainImage ||
+        '/placeholder-product.png';
     const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
         productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
         item.salePrice || item.price || 0;

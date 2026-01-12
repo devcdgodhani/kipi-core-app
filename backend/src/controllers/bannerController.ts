@@ -4,6 +4,7 @@ import { HTTP_STATUS_CODE, BANNER_SUCCESS_MESSAGES } from '../constants';
 import { IApiResponse, IPaginationData } from '../interfaces';
 import { IBannerAttributes } from '../interfaces/banner';
 import { TBannerListPaginationRes, TBannerListRes, TBannerRes } from '../types/banner';
+import { enrichBannerWithPresignedUrls } from '../helpers';
 
 export class BannerController {
   private get bannerService() { return bannerService; }
@@ -17,6 +18,10 @@ export class BannerController {
         { path: 'imageId' },
         { path: 'mobileImageId' }
       ]);
+
+      if (Array.isArray(response)) {
+        await Promise.all(response.map(b => enrichBannerWithPresignedUrls(b)));
+      }
 
       const apiResponse: TBannerListRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -40,6 +45,8 @@ export class BannerController {
         { path: 'imageId' },
         { path: 'mobileImageId' }
       ]);
+
+      await enrichBannerWithPresignedUrls(response);
 
       const apiResponse: TBannerRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -69,6 +76,10 @@ export class BannerController {
           { path: 'mobileImageId' }
         ]
       );
+
+      if (response.recordList && Array.isArray(response.recordList)) {
+        await Promise.all(response.recordList.map(b => enrichBannerWithPresignedUrls(b)));
+      }
 
       const apiResponse: TBannerListPaginationRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,

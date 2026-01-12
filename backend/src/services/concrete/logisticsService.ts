@@ -202,6 +202,59 @@ export class LogisticsService implements ILogisticsService {
         throw error;
     }
   }
+
+  async resolveNDR(shipmentId: string, resolution: 'RE-ATTEMPT' | 'RTO-CONFIRMED', notes?: string, userId?: string): Promise<any> {
+    const shipment = await this.shipmentService.findById(shipmentId);
+    if (!shipment) throw new Error('Shipment not found');
+
+    const NDRModel = (await import('../../db/mongodb')).NDRModel;
+    const ndrService = (await import('./ndrService')).ndrService;
+    const { Types } = await import('mongoose');
+
+    const ndr = await NDRModel.findOne({ shipmentId: new Types.ObjectId(shipmentId), status: 'PENDING' });
+    if (!ndr) throw new Error('No pending NDR found for this shipment');
+
+    // 1. Update NDR record
+    await ndrService.resolveNDR(ndr._id.toString(), {
+      resolution,
+      customerAction: notes,
+      resolvedBy: userId
+    });
+
+    // 2. Update Shipment & Order Status
+    if (resolution === 'RTO-CONFIRMED') {
+        await this.shipmentService.updateStatus(shipmentId, SHIPMENT_STATUS.RTO_INITIATED, {
+            isRTO: true,
+            rtoInitiatedDate: new Date(),
+            rtoReason: ndr.ndrReason
+        });
+        await this.orderService.updateOne({ _id: (shipment as any).orderId }, { orderStatus: 'RTO_INITIATED' } as any);
+    } else if (resolution === 'RE-ATTEMPT') {
+        await this.shipmentService.updateStatus(shipmentId, SHIPMENT_STATUS.OUT_FOR_DELIVERY, {
+            hasNDR: false 
+        });
+    }
+
+    return { success: true };
+  }
+
+  async generateLabel(shipmentId: string): Promise<{ labelUrl: string; manifestUrl?: string }> {
+    const shipment = await this.shipmentService.findById(shipmentId);
+    if (!shipment) throw new Error('Shipment not found');
+
+    const provider = this.getProvider((shipment as any).courierCode);
+    const labelData = await provider.generateLabel((shipment as any).providerShipmentId);
+
+    await this.shipmentService.updateOne(
+      { _id: shipmentId },
+      { 
+        labelUrl: labelData.labelUrl,
+        manifestUrl: labelData.manifestUrl
+      }
+    );
+
+    return labelData;
+  }
 }
 
 export const logisticsService = new LogisticsService();

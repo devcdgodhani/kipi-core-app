@@ -3,10 +3,11 @@ import { orderService } from './orderService';
 import { lotService } from './lotService';
 import { shipmentService } from './shipmentService';
 import { rtoService } from './rtoService';
+import { returnService } from './returnService';
 import { ndrService } from './ndrService';
 import { walletService } from './walletService';
 import { walletTransactionService } from './walletTransactionService';
-import { WALLET_TRANSACTION_STATUS } from '../../constants';
+import { WALLET_TRANSACTION_STATUS, RETURN_STATUS } from '../../constants';
 
 import { IAnalyticsService, IRevenueAnalytics, IProductAnalytics, ICustomerAnalytics, ILotAnalytics, ILogisticsAnalytics, ICourierPerformance, IWalletAnalytics } from '../contracts/analyticsServiceInterface';
 
@@ -18,6 +19,7 @@ export class AnalyticsService implements IAnalyticsService {
   private get ndrService() { return ndrService; }
   private get walletService() { return walletService; }
   private get walletTransactionService() { return walletTransactionService; }
+  private get returnService() { return returnService; }
 
   constructor() {}
 
@@ -97,16 +99,44 @@ export class AnalyticsService implements IAnalyticsService {
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          orderStatus: ORDER_STATUS.RETURNED
+          status: { $nin: [RETURN_STATUS.CANCELLED, RETURN_STATUS.REJECTED] }
         }
       },
       { $unwind: '$items' },
+      // Join with SKU to get name and skuCode
+      {
+        $lookup: {
+          from: 'skus',
+          localField: 'items.skuId',
+          foreignField: '_id',
+          as: 'sku'
+        }
+      },
+      { $unwind: '$sku' },
       {
         $group: {
-          _id: '$items.productId',
-          name: { $first: '$items.name' },
-          skuCode: { $first: '$items.skuCode' },
+          _id: '$sku.productId',
+          name: { $first: '$sku.skuCode' }, // Fallback to skuCode if needed, but we prefer Product name
+          skuCode: { $first: '$sku.skuCode' },
           returnCount: { $sum: '$items.quantity' }
+        }
+      },
+      // Join with Product for accurate name
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          name: { $ifNull: ['$product.name', '$name'] },
+          skuCode: 1,
+          returnCount: 1
         }
       },
       { $sort: { returnCount: -1 } },
@@ -115,7 +145,7 @@ export class AnalyticsService implements IAnalyticsService {
 
     const [topProducts, topReturns] = await Promise.all([
       this.orderService.aggregate(salesPipeline as any) as Promise<any[]>,
-      this.orderService.aggregate(returnsPipeline as any) as Promise<any[]>
+      this.returnService.aggregate(returnsPipeline as any) as Promise<any[]>
     ]);
 
     return { topProducts, topReturns };
@@ -129,7 +159,7 @@ export class AnalyticsService implements IAnalyticsService {
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] }
+          orderStatus: { $in: [ORDER_STATUS.DELIVERED, ORDER_STATUS.SHIPPED, ORDER_STATUS.PROCESSING, ORDER_STATUS.CONFIRMED] }
         }
       },
       {
@@ -144,11 +174,17 @@ export class AnalyticsService implements IAnalyticsService {
       {
         $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' }
       },
-      { $unwind: '$user' },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
       {
         $project: {
-          name: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
-          email: '$user.email',
+          name: { 
+            $cond: [
+              { $and: ['$user.firstName', '$user.lastName'] },
+              { $concat: ['$user.firstName', ' ', '$user.lastName'] },
+              { $ifNull: ['$user.firstName', { $ifNull: ['$user.lastName', 'Valued Customer'] }] }
+            ]
+          },
+          email: { $ifNull: ['$user.email', 'N/A'] },
           totalSpend: 1,
           orderCount: 1
         }
@@ -168,18 +204,27 @@ export class AnalyticsService implements IAnalyticsService {
         }
       },
       {
-        $match: { lastOrderDate: { $lt: sixtyDaysAgo }, totalSpend: { $gt: 0 } }
+        $match: { 
+          lastOrderDate: { $lt: sixtyDaysAgo }, 
+          totalSpend: { $gt: 0 } 
+        }
       },
       { $sort: { totalSpend: -1 } },
       { $limit: 10 },
       {
         $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' }
       },
-      { $unwind: '$user' },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
       {
         $project: {
-          name: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
-          email: '$user.email',
+          name: { 
+            $cond: [
+              { $and: ['$user.firstName', '$user.lastName'] },
+              { $concat: ['$user.firstName', ' ', '$user.lastName'] },
+              { $ifNull: ['$user.firstName', { $ifNull: ['$user.lastName', 'Valued Customer'] }] }
+            ]
+          },
+          email: { $ifNull: ['$user.email', 'N/A'] },
           lastOrderDate: 1,
           totalSpend: 1
         }
@@ -193,14 +238,33 @@ export class AnalyticsService implements IAnalyticsService {
           orderStatus: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING] }
         }
       },
+      // Check if this is the user's first order
       {
-        $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' }
+        $lookup: {
+          from: 'orders',
+          let: { uId: '$userId', cAt: '$createdAt' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$userId', '$$uId'] },
+                    { $lt: ['$createdAt', '$$cAt'] },
+                    { $not: { $in: ['$orderStatus', [ORDER_STATUS.CANCELLED, ORDER_STATUS.PENDING]] } }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 },
+            { $project: { _id: 1 } }
+          ],
+          as: 'previousOrders'
+        }
       },
-      { $unwind: '$user' },
       {
         $project: {
           totalAmount: 1,
-          isNew: { $gte: ['$user.createdAt', startDate] }
+          isNew: { $eq: [{ $size: '$previousOrders' }, 0] }
         }
       },
       {

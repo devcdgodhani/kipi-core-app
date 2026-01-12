@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { wishlistService } from '../services/concrete/wishlistService';
 import { IApiResponse, IPaginationData, IWishlistAttributes } from '../interfaces';
+import { enrichProductWithPresignedUrls } from '../helpers';
 
 const WISHLIST_SUCCESS_MESSAGES = {
   GET_SUCCESS: 'Wishlist retrieved successfully',
@@ -20,10 +21,20 @@ export class WishlistController {
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
       
       const populate = [
-        { path: 'products.productId', select: 'name mainImage slug basePrice salePrice offerPrice status' }
+        { 
+          path: 'products.productId', 
+          select: 'name mainImage slug basePrice salePrice offerPrice status',
+          populate: { path: 'mainImage' }
+        }
       ];
       
       const wishlist = await this.wishlistService.findOne(filter, options, populate);
+
+      if (wishlist && wishlist.products) {
+        await Promise.all(wishlist.products.map(async (p: any) => {
+          if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+        }));
+      }
 
       const response: IApiResponse<IWishlistAttributes | null> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -43,10 +54,24 @@ export class WishlistController {
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
       
        const populate = [
-        { path: 'products.productId', select: 'name mainImage slug basePrice salePrice offerPrice status' }
+        { 
+          path: 'products.productId', 
+          select: 'name mainImage slug basePrice salePrice offerPrice status',
+          populate: { path: 'mainImage' }
+        }
       ];
 
       const wishlistList = await this.wishlistService.findAll(filter, options, populate);
+
+      if (Array.isArray(wishlistList)) {
+        await Promise.all(wishlistList.map(async (wishlist) => {
+          if (wishlist.products) {
+            await Promise.all(wishlist.products.map(async (p: any) => {
+              if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+            }));
+          }
+        }));
+      }
 
       const response: IApiResponse<IWishlistAttributes[]> = {
         status: HTTP_STATUS_CODE.OK.STATUS,
@@ -64,7 +89,24 @@ export class WishlistController {
     try {
       const reqData = { ...req.query, ...req.body };
       const { filter, options } = this.wishlistService.generateFilter({ filters: reqData });
-      const wishlistList = await this.wishlistService.findAllWithPagination(filter, options);
+      const populate = [
+        { 
+          path: 'products.productId', 
+          select: 'name mainImage slug basePrice salePrice offerPrice status',
+          populate: { path: 'mainImage' }
+        }
+      ];
+      const wishlistList = await this.wishlistService.findAllWithPagination(filter, options, populate);
+
+      if (wishlistList && wishlistList.recordList) {
+        await Promise.all(wishlistList.recordList.map(async (wishlist) => {
+          if (wishlist.products) {
+            await Promise.all(wishlist.products.map(async (p: any) => {
+              if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+            }));
+          }
+        }));
+      }
 
       const response: IApiResponse<IPaginationData<IWishlistAttributes>> = {
         status: HTTP_STATUS_CODE.OK.STATUS,

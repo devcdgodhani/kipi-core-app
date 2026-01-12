@@ -32,6 +32,15 @@ export class FileStorageService
     return FILE_TYPE.OTHER;
   }
 
+  private getCloudinaryResourceType(fileType: FILE_TYPE): string {
+    switch (fileType) {
+      case FILE_TYPE.IMAGE: return 'image';
+      case FILE_TYPE.VIDEO: return 'video';
+      case FILE_TYPE.AUDIO: return 'video'; // Cloudinary treats audio as video resource type
+      default: return 'raw';
+    }
+  }
+
   // Helper to get uploader based on env/cloud type
   private getUploader(cloudType: CLOUD_TYPE) {
     if (cloudType === CLOUD_TYPE.AWS_S3) return s3Uploader;
@@ -175,8 +184,12 @@ export class FileStorageService
     const key = file.storageDirPath 
       ? `${file.storageDirPath}/${file.storageFileName}`
       : file.storageFileName;
+    
+    const resourceType = file.cloudType === CLOUD_TYPE.CLOUDINARY 
+      ? this.getCloudinaryResourceType(file.fileType) 
+      : undefined;
 
-    const signedUrl = await uploader.getSignedUrl(key, undefined, expiryTime);
+    const signedUrl = await (uploader as any).getSignedUrl(key, undefined, expiryTime, resourceType);
 
     const expiresAt = new Date(Date.now() + expiryTime * 1000);
 

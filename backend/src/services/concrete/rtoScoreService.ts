@@ -1,4 +1,4 @@
-import { RtoScoreModel } from '../../db/mongodb';
+import { RtoScoreModel, OrderModel, NDRModel } from '../../db/mongodb';
 import { IRtoScoreAttributes, IRtoScoreDocument } from '../../interfaces/rto';
 import { IRtoScoreService } from '../contracts/rtoServiceInterface';
 import { RTO_RISK_LEVEL } from '../../constants/rto';
@@ -13,6 +13,34 @@ export class RtoScoreService extends MongooseCommonService<IRtoScoreAttributes, 
 
   constructor() {
     super(RtoScoreModel as any);
+  }
+
+  async getStats(): Promise<any> {
+    const [
+      highRiskCount,
+      criticalRiskCount,
+      totalOrders,
+      rtoOrders,
+      activeNdrs,
+      deliveredOrders
+    ] = await Promise.all([
+      this.model.countDocuments({ riskLevel: RTO_RISK_LEVEL.HIGH }),
+      this.model.countDocuments({ riskLevel: RTO_RISK_LEVEL.CRITICAL }),
+      OrderModel.countDocuments({}),
+      OrderModel.countDocuments({ isRTO: true }),
+      NDRModel.countDocuments({ status: { $ne: 'RESOLVED' } }),
+      OrderModel.countDocuments({ orderStatus: 'DELIVERED', isRTO: { $ne: true } })
+    ]);
+
+    const rtoRate = totalOrders > 0 ? (rtoOrders / totalOrders) * 100 : 0;
+
+    return {
+      rtoRate: parseFloat(rtoRate.toFixed(1)),
+      highRiskOrders: highRiskCount + criticalRiskCount,
+      activeNdrs,
+      safeDeliveries: deliveredOrders,
+      totalRtoConfigured: highRiskCount + criticalRiskCount // Keeping consistency with UI mock
+    };
   }
   
   /**

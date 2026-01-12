@@ -14,6 +14,8 @@ router.post(
   rtoScoreController.calculateScore
 );
 
+router.get('/stats', rtoScoreController.getStats);
+
 // Standard CRUD
 router.get('/getOne', rtoScoreController.getOne);
 router.get('/getOne/:id', rtoScoreController.getOne);

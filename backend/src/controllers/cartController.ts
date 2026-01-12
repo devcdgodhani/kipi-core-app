@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HTTP_STATUS_CODE } from '../constants';
 import { cartService } from '../services/concrete/cartService';
 import { IApiResponse, IPaginationData, ICartAttributes } from '../interfaces';
+import { enrichProductWithPresignedUrls } from '../helpers';
 
 const CART_SUCCESS_MESSAGES = {
   GET_SUCCESS: 'Cart retrieved successfully',
@@ -27,12 +28,27 @@ export class CartController {
       // Add default population for cart items
       if (!options.populate) {
         options.populate = [
-          { path: 'items.productId', select: 'name mainImage slug basePrice salePrice offerPrice' },
-          { path: 'items.skuId', select: 'skuCode basePrice salePrice offerPrice media' }
+          { 
+            path: 'items.productId', 
+            select: 'name mainImage slug basePrice salePrice offerPrice',
+            populate: { path: 'mainImage' }
+          },
+          { 
+            path: 'items.skuId', 
+            select: 'skuCode basePrice salePrice offerPrice media',
+            populate: { path: 'media.fileStorageId' }
+          }
         ];
       }
 
       const cart = await this.cartService.findOne(filter, options);
+
+      if (cart && cart.items) {
+        await Promise.all(cart.items.map(async (item: any) => {
+          if (item.productId) await enrichProductWithPresignedUrls(item.productId);
+          if (item.skuId) await enrichProductWithPresignedUrls(item.skuId);
+        }));
+      }
 
       const response: IApiResponse<ICartAttributes | null> = {
         status: HTTP_STATUS_CODE.OK.STATUS,

@@ -10,6 +10,13 @@ const BannerSlider: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [current, setCurrent] = useState(0);
     const navigate = useNavigate();
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchBanners = async () => {
@@ -34,6 +41,33 @@ const BannerSlider: React.FC = () => {
         }
     }, [banners]);
 
+    const handleNavigation = (banner: Banner) => {
+        if (!banner.linkValue || banner.linkType === 'NONE') return;
+
+        if (banner.linkType === 'EXTERNAL') {
+            if (banner.linkValue.startsWith('http')) {
+                window.open(banner.linkValue, '_blank');
+            } else {
+                window.open(`https://${banner.linkValue}`, '_blank');
+            }
+            return;
+        }
+
+        let path = banner.linkValue;
+        if (banner.linkType === 'PRODUCT' && !path.startsWith('/products')) {
+            path = `/products/${banner.linkValue}`;
+        } else if (banner.linkType === 'CATEGORY' && !path.startsWith('/products?category')) {
+            path = `/products?category=${banner.linkValue}`;
+        }
+
+        // Ensure internal path starts with /
+        if (!path.startsWith('/') && !path.startsWith('http')) {
+            path = `/${path}`;
+        }
+
+        navigate(path);
+    };
+
     if (loading || banners.length === 0) return null;
 
     const next = () => setCurrent((prev) => (prev + 1) % banners.length);
@@ -41,40 +75,54 @@ const BannerSlider: React.FC = () => {
 
     return (
         <section className="relative h-[70vh] min-h-[500px] w-full bg-gray-900 overflow-hidden group">
-            {banners.map((banner, index) => (
-                <div
-                    key={banner._id}
-                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                        }`}
-                >
-                    <img
-                        src={banner.imageId || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop'}
-                        alt={banner.title}
-                        className="w-full h-full object-cover opacity-60"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+            {banners.map((banner, index) => {
+                const getImageUrl = () => {
+                    const mobileImg = typeof banner.mobileImageId === 'object' ? banner.mobileImageId?.preSignedUrl : banner.mobileImageId;
+                    const desktopImg = typeof banner.imageId === 'object' ? banner.imageId?.preSignedUrl : banner.imageId;
 
-                    <div className="relative z-10 h-full max-w-7xl mx-auto px-4 md:px-8 flex items-center">
-                        <div className={`max-w-2xl space-y-8 transition-all duration-1000 ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                            }`}>
-                            <span className="inline-block px-4 py-1 border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-[0.2em] backdrop-blur-md">
-                                {banner.subtitle || 'Exclusive Collection'}
-                            </span>
-                            <h1 className="text-5xl md:text-7xl font-black text-white leading-tight uppercase tracking-tight">
-                                {banner.title}
-                            </h1>
-                            <div className="flex gap-4 pt-4">
-                                <button
-                                    onClick={() => banner.linkValue && navigate(banner.linkValue)}
-                                    className="px-8 py-4 bg-white text-gray-900 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-colors"
-                                >
-                                    Shop Now
-                                </button>
+                    if (isMobile && mobileImg) return mobileImg;
+                    return desktopImg || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
+                };
+
+                return (
+                    <div
+                        key={banner._id}
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                            } ${banner.linkValue && banner.linkType !== 'NONE' ? 'cursor-pointer' : ''}`}
+                        onClick={() => handleNavigation(banner)}
+                    >
+                        <img
+                            src={getImageUrl()}
+                            alt={banner.title}
+                            className="w-full h-full object-cover opacity-60 transition-all duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+
+                        <div className="relative z-10 h-full max-w-7xl mx-auto px-4 md:px-8 flex items-center">
+                            <div className={`max-w-2xl space-y-8 transition-all duration-1000 ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                                }`}>
+                                <span className="inline-block px-4 py-1 border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-[0.2em] backdrop-blur-md">
+                                    {banner.subtitle || 'Exclusive Collection'}
+                                </span>
+                                <h1 className="text-5xl md:text-7xl font-black text-white leading-tight uppercase tracking-tight">
+                                    {banner.title}
+                                </h1>
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleNavigation(banner);
+                                        }}
+                                        className="px-8 py-4 bg-white text-gray-900 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-colors"
+                                    >
+                                        Shop Now
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
 
             {banners.length > 1 && (
                 <>

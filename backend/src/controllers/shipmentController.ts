@@ -210,6 +210,47 @@ export class ShipmentController {
       return next(err);
     }
   };
+
+  /*********** NDR Resolution ***********/
+  resolveNDR = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { resolution, notes } = req.body;
+      const userId = (req as any).user?._id?.toString();
+      
+      const result = await logisticsService.resolveNDR(id, resolution, notes, userId);
+      
+      const response: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'NDR action processed successfully',
+        data: result
+      };
+      
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
+
+  /*********** Label Generation ***********/
+  generateLabel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const result = await logisticsService.generateLabel(id);
+      
+      const response: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Shipping label generated successfully',
+        data: result
+      };
+      
+      return res.status(response.status).json(response);
+    } catch (err) {
+      return next(err);
+    }
+  };
 }
 
 export const shipmentController = new ShipmentController();
