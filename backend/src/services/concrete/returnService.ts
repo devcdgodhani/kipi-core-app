@@ -175,6 +175,24 @@ export class ReturnService extends MongooseCommonService<IReturn, IReturn> imple
                         }
                     }
                 }
+
+                // Create Financial Expense Record for return
+                try {
+                    const { financialRecordService } = await import('./financialRecordService');
+                    const { EXPENSE_SUBTYPE } = await import('../../constants/financialRecord');
+                    
+                    await financialRecordService.createAutomaticExpenseRecord(
+                        EXPENSE_SUBTYPE.RETURN,
+                        id,
+                        adjustedRefundAmount,
+                        new Date(),
+                        'return'
+                    );
+                    console.log(`✅ Financial expense record created for Return #${returnRequest.returnNumber}`);
+                } catch (error) {
+                    console.error(`❌ Failed to create financial record for Return #${returnRequest.returnNumber}:`, error);
+                    // Don't fail the return processing if financial record fails
+                }
             }
         }
 

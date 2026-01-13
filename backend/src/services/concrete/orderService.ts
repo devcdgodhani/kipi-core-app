@@ -276,6 +276,20 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
         userId: userId.toString()
     });
 
+    // 12. Create Financial Income Record
+    try {
+      const { financialRecordService } = await import('./financialRecordService');
+      await financialRecordService.createAutomaticIncomeRecord(
+        (newOrder as any)._id.toString(),
+        finalCalculatedTotal,
+        new Date()
+      );
+      console.log(`✅ Financial income record created for Order #${orderNumber}`);
+    } catch (error) {
+      console.error(`❌ Failed to create financial record for Order #${orderNumber}:`, error);
+      // Don't fail the order creation if financial record fails
+    }
+
     return newOrder;
   };
   

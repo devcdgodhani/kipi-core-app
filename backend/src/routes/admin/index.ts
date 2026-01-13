@@ -42,6 +42,7 @@ import bannerRoutes from './bannerRoutes';
 import notificationRoutes from './notificationRoutes';
 import flashDealRoutes from './flashDealRoutes';
 import searchQueryRoutes from './searchQueryRoutes';
+import financialRecordRoutes from './financialRecordRoutes';
 
 const router = Router();
 
@@ -94,6 +95,7 @@ router.use('/banner', jwtAuth(), bannerRoutes);
 router.use('/notification', jwtAuth(), notificationRoutes);
 router.use('/flash-deal', jwtAuth(), flashDealRoutes);
 router.use('/search-query', jwtAuth(), searchQueryRoutes);
+router.use('/financial-record', jwtAuth(), financialRecordRoutes);
 
 router.use('/', paymentRoutes);
 

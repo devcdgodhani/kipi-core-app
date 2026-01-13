@@ -186,13 +186,31 @@ export class InventoryService {
       const { skuId, productId, quantity, reason, date } = params;
       let remainingToDeduct = quantity;
 
+      // Find Lot IDs via SKU relationship
+      let lotIds: any[] = [];
+      
+      if (skuId) {
+          const sku = await this.skuService.findById(skuId);
+          if (sku && (sku as any).lotId) {
+              lotIds = [(sku as any).lotId];
+          }
+      } else if (productId) {
+          const skus = await this.skuService.findAll({ productId } as any);
+          lotIds = skus
+              .map((s: any) => s.lotId)
+              .filter((id: any) => id != null);
+      }
+
+      if (lotIds.length === 0) {
+          console.warn(`[Inventory] Warning: No lots found for ${skuId ? 'SKU' : 'Product'}`);
+          return;
+      }
+
       const query: any = { 
+          _id: { $in: lotIds },
           status: LOT_STATUS.ACTIVE, 
           remainingQuantity: { $gt: 0 } 
       };
-
-      if (skuId) query.skuId = skuId;
-      else if (productId) query.productId = productId;
       
       // FIFO: Sort by creation date (or startDate)
       const lots = await LotModel.find(query).sort({ startDate: 1, createdAt: 1 });
@@ -232,11 +250,30 @@ export class InventoryService {
   }) {
       const { skuId, productId, quantity, reason, date } = params;
       
+      // Find Lot IDs via SKU relationship
+      let lotIds: any[] = [];
+      
+      if (skuId) {
+          const sku = await this.skuService.findById(skuId);
+          if (sku && (sku as any).lotId) {
+              lotIds = [(sku as any).lotId];
+          }
+      } else if (productId) {
+          const skus = await this.skuService.findAll({ productId } as any);
+          lotIds = skus
+              .map((s: any) => s.lotId)
+              .filter((id: any) => id != null);
+      }
+
+      if (lotIds.length === 0) {
+          console.warn(`[Inventory] Warning: No lots found for ${skuId ? 'SKU' : 'Product'} to restock`);
+          return;
+      }
+
       const query: any = { 
+          _id: { $in: lotIds },
           status: LOT_STATUS.ACTIVE 
       };
-      if (skuId) query.skuId = skuId;
-      else if (productId) query.productId = productId;
 
       // Find latest lot to restock (LIFOish) or just any active lot
       const lot = await LotModel.findOne(query).sort({ startDate: -1, createdAt: -1 });

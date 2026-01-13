@@ -25,3 +25,4 @@ export * from './recentlyViewed';
 export * from './wallet';
 export * from './walletTransaction';
 export * from './walletRule';
+export * from './financialRecord';

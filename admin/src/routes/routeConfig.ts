@@ -86,6 +86,17 @@ export const ROUTES = {
         FLASH_DEALS_CREATE: 'flash-deals/create',
         FLASH_DEALS_EDIT: 'flash-deals/edit/:id',
         SEARCH_QUERIES: 'search-queries',
+
+        // Financial Records
+        FINANCIAL_RECORDS: 'financial-records',
+        FINANCIAL_RECORDS_CREATE: 'financial-records/create',
+        FINANCIAL_RECORDS_EDIT: 'financial-records/edit/:id',
+        FINANCIAL_RECORDS_DETAIL: 'financial-records/:id',
+        FINANCIAL_ANALYTICS: 'financial-records/analytics',
+        REPORTS_TRENDS: 'financial-records/reports/trends',
+        REPORTS_CATEGORY: 'financial-records/reports/category',
+        REPORTS_LOTS: 'financial-records/reports/lots',
+        REPORTS_BANK: 'financial-records/reports/bank',
     },
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',

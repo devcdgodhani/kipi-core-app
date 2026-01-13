@@ -44,7 +44,6 @@ export const ManageStockLedgerLazy = lazy(() => import('../../pages/Inventory/St
 export const SalesAnalyticsLazy = lazy(() => import('../../pages/Analytics/SalesAnalytics'));
 export const ProductInsightsLazy = lazy(() => import('../../pages/Analytics/ProductInsights'));
 export const CustomerInsightsLazy = lazy(() => import('../../pages/Analytics/CustomerInsights'));
-export const FinancialReportsLazy = lazy(() => import('../../pages/Analytics/FinancialReports'));
 export const LotAnalyticsLazy = lazy(() => import('../../pages/Analytics/LotAnalytics'));
 export const LogisticsAnalyticsLazy = lazy(() => import('../../pages/Analytics/LogisticsAnalytics'));
 export const CourierAnalyticsLazy = lazy(() => import('../../pages/Analytics/CourierAnalytics'));
@@ -78,3 +77,13 @@ export const WalletDashboardLazy = lazy(() => import('../../pages/Wallet/WalletD
 export const WalletRuleListLazy = lazy(() => import('../../pages/Wallet/WalletRuleList'));
 export const WalletRuleFormLazy = lazy(() => import('../../pages/Wallet/WalletRuleForm'));
 export const WalletTransactionListLazy = lazy(() => import('../../pages/Wallet/WalletTransactionList'));
+
+// Financial Records
+export const FinancialRecordListLazy = lazy(() => import('../../pages/FinancialRecord/FinancialRecordList'));
+export const FinancialRecordDetailLazy = lazy(() => import('../../pages/FinancialRecord/FinancialRecordDetail'));
+export const FinancialRecordFormLazy = lazy(() => import('../../pages/FinancialRecord/FinancialRecordForm'));
+export const FinancialAnalyticsDashboardLazy = lazy(() => import('../../pages/FinancialRecord/FinancialAnalyticsDashboard'));
+export const DailyTrendsReportLazy = lazy(() => import('../../pages/FinancialRecord/Reports/DailyTrendsReport'));
+export const CategoryReportLazy = lazy(() => import('../../pages/FinancialRecord/Reports/CategoryReport'));
+export const LotProfitabilityReportLazy = lazy(() => import('../../pages/FinancialRecord/Reports/LotProfitabilityReport'));
+export const BankReportLazy = lazy(() => import('../../pages/FinancialRecord/Reports/BankReport'));

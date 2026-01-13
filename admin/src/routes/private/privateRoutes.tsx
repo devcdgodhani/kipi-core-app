@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthGuard from './AuthGuard';
 import DashboardRoutes from '../layouts/DashboardRoutes';
-import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, FinancialReportsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy, NotificationListLazy, NotificationFormLazy, BannerListLazy, BannerFormLazy, FlashDealListLazy, FlashDealFormLazy, SearchQueryListLazy, WalletDashboardLazy, WalletRuleListLazy, WalletRuleFormLazy, WalletTransactionListLazy } from '../lazy';
+import { DashboardLazy, ManageOrdersLazy, ManageOrderDetailsLazy, ManageProductsLazy, ManageProductFormLazy, ManageSkusLazy, ManageSkuFormLazy, ManageUsersLazy, ProfileLazy, ChangePasswordLazy, WhatsAppDashboardLazy, WhatsAppAccountsLazy, WhatsAppAccountDetailsLazy, WhatsAppQueueLazy, WhatsAppContactsLazy, WhatsAppRiskLazy, WhatsAppSystemLazy, ManageLotsLazy, ManageCategoriesLazy, ManageLotFormLazy, ManageCategoryFormLazy, ManageUserFormLazy, ManageAttributesLazy, ManageAttributeFormLazy, FileManagerLazy, ManageReviewsLazy, ManageReturnsLazy, ManageReturnDetailsLazy, ManageCouponsLazy, ManageCouponFormLazy, ManageStockLedgerLazy, SalesAnalyticsLazy, ProductInsightsLazy, CustomerInsightsLazy, LotAnalyticsLazy, LogisticsAnalyticsLazy, CourierAnalyticsLazy, ShipmentListLazy, ShipmentDetailsLazy, RtoDashboardLazy, CourierConfigLazy, WarehouseListLazy, WarehouseFormLazy, NdrDashboardLazy, CronJobHubLazy, PaymentGatewayListLazy, GatewayConfigFormLazy, WebhookLogListLazy, NotificationListLazy, NotificationFormLazy, BannerListLazy, BannerFormLazy, FlashDealListLazy, FlashDealFormLazy, SearchQueryListLazy, WalletDashboardLazy, WalletRuleListLazy, WalletRuleFormLazy, WalletTransactionListLazy, FinancialRecordListLazy, FinancialRecordDetailLazy, FinancialRecordFormLazy, FinancialAnalyticsDashboardLazy, DailyTrendsReportLazy, CategoryReportLazy, LotProfitabilityReportLazy, BankReportLazy } from '../lazy';
 
 import { ROUTES } from '../routeConfig';
 
@@ -235,10 +235,7 @@ export const privateRoutes: RouteObject = {
                     path: ROUTES.DASHBOARD.ANALYTICS_CUSTOMERS,
                     element: <CustomerInsightsLazy />,
                 },
-                {
-                    path: ROUTES.DASHBOARD.ANALYTICS_FINANCIAL,
-                    element: <FinancialReportsLazy />,
-                },
+
                 {
                     path: ROUTES.DASHBOARD.ANALYTICS_LOTS,
                     element: <LotAnalyticsLazy />,
@@ -310,6 +307,44 @@ export const privateRoutes: RouteObject = {
                 {
                     path: ROUTES.DASHBOARD.SEARCH_QUERIES,
                     element: <SearchQueryListLazy />,
+                },
+
+                // Financial Records
+                {
+                    path: ROUTES.DASHBOARD.FINANCIAL_RECORDS,
+                    element: <FinancialRecordListLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FINANCIAL_RECORDS_CREATE,
+                    element: <FinancialRecordFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FINANCIAL_RECORDS_EDIT,
+                    element: <FinancialRecordFormLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FINANCIAL_RECORDS_DETAIL,
+                    element: <FinancialRecordDetailLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.FINANCIAL_ANALYTICS,
+                    element: <FinancialAnalyticsDashboardLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.REPORTS_TRENDS,
+                    element: <DailyTrendsReportLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.REPORTS_CATEGORY,
+                    element: <CategoryReportLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.REPORTS_LOTS,
+                    element: <LotProfitabilityReportLazy />,
+                },
+                {
+                    path: ROUTES.DASHBOARD.REPORTS_BANK,
+                    element: <BankReportLazy />,
                 },
 
                 {

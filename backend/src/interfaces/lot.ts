@@ -14,8 +14,7 @@ export interface ILotAttributes extends IDefaultAttributes {
   lotNumber: string;
   type: LOT_TYPE;
   supplierId?: ObjectId; // Ref to User if type is SUPPLIER
-  skuId?: ObjectId; // Ref to SKU
-  productId?: ObjectId; // Ref to Product
+
   basePrice: number;
   quantity: number;
   remainingQuantity: number;

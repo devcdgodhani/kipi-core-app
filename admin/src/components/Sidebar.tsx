@@ -30,9 +30,11 @@ import {
     Webhook,
     Bell,
     Image as ImageIcon,
-    Zap,
     Search,
+    Zap,
     Wallet,
+    TrendingUp,
+    PieChart as PieChartIcon,
     type LucideIcon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -56,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         if (saved) {
             const parsed = JSON.parse(saved);
             // Auto-expand new sections for existing users
-            const newSections = ['Intelligence', 'Engagement'];
+            const newSections = ['Intelligence', 'Engagement', 'Financials'];
             let shouldUpdate = false;
             const updated = [...parsed];
 
@@ -113,6 +115,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { to: '/returns', label: 'Returns', icon: CornerUpLeft },
                 { to: '/stock-ledger', label: 'Stock Ledger', icon: Activity },
                 { to: '/file-manager', label: 'File Manager', icon: HardDrive }
+            ]
+        },
+        {
+            title: 'Financials',
+            icon: DollarSign,
+            items: [
+                { to: '/financial-records', label: 'All Records', icon: Receipt },
+                { to: '/financial-records/analytics', label: 'Analytics', icon: BarChart3 },
+                { to: '/financial-records/reports/trends', label: 'Trends', icon: TrendingUp },
+                { to: '/financial-records/reports/category', label: 'Source Review', icon: PieChartIcon },
+                { to: '/financial-records/reports/lots', label: 'Lot Profit', icon: Layers },
+                { to: '/financial-records/reports/bank', label: 'Bank Analysis', icon: Building2 }
             ]
         },
         {

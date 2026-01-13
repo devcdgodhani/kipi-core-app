@@ -31,6 +31,36 @@ export class LotService extends MongooseCommonService<ILotAttributes, ILotDocume
  
     return result;
   };
+
+  create = async (
+    data: Partial<ILotAttributes>,
+    options?: any
+  ): Promise<ILotAttributes> => {
+    // Create the lot first
+    const newLot = await super.create(data, options);
+
+    // Create Financial Expense Record for lot amount
+    try {
+      const { financialRecordService } = await import('./financialRecordService');
+      const { EXPENSE_SUBTYPE } = await import('../../constants/financialRecord');
+      
+      const lotAmount = (data.basePrice || 0) * (data.quantity || 0);
+      
+      await financialRecordService.createAutomaticExpenseRecord(
+        EXPENSE_SUBTYPE.LOT_AMOUNT,
+        (newLot as any)._id.toString(),
+        lotAmount,
+        new Date(),
+        'lot'
+      );
+      console.log(`✅ Financial expense record created for Lot #${data.lotNumber}`);
+    } catch (error) {
+      console.error(`❌ Failed to create financial record for Lot #${data.lotNumber}:`, error);
+      // Don't fail the lot creation if financial record fails
+    }
+
+    return newLot;
+  };
 }
  
 export const lotService = new LotService();
