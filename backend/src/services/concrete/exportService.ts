@@ -271,16 +271,18 @@ export class ExportService implements IExportService {
   async getTaxSummary(startDate: Date, endDate: Date) {
     const data = await analyticsService.getRevenueAnalytics(startDate, endDate);
     
-    // Assuming 18% GST (adjust as needed)
-    const taxRate = 0.18;
-    const totalTax = Math.round(data.revenue * taxRate);
+    // Use real collected tax
+    const totalTax = data.tax || 0;
     const netRevenue = data.revenue - totalTax;
+
+    // Calculate effective tax rate
+    const taxRate = netRevenue > 0 ? (totalTax / netRevenue) * 100 : 0;
 
     return {
       totalRevenue: data.revenue,
       taxCollected: totalTax,
       netRevenue,
-      taxRate: taxRate * 100,
+      taxRate: Math.round(taxRate * 100) / 100,
       orders: data.orders
     };
   }

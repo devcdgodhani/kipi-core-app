@@ -53,6 +53,12 @@ router.get(
 );
 
 router.get(
+  '/couriers',
+  jwtAuth(),
+  analyticsController.getCourierPerformance
+);
+
+router.get(
   '/export',
   jwtAuth(),
   analyticsController.exportAnalytics

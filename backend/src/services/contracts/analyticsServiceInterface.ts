@@ -2,10 +2,13 @@ export interface IRevenueAnalytics {
   revenue: number;
   orders: number;
   aov: number;
+  tax: number;
   timeline: {
     date: string;
     revenue: number;
     orders: number;
+    aov: number;
+    tax: number;
   }[];
 }
 

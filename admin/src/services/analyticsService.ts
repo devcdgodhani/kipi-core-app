@@ -160,6 +160,15 @@ export const analyticsService = {
     const response = await axiosInstance.get<any, { data: IWalletAnalytics }>(`/analytics/wallet${query}`);
     return response.data;
   },
+
+  getTaxSummary: async (startDate?: Date, endDate?: Date): Promise<any> => {
+    const query = qs.stringify({
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    }, { addQueryPrefix: true });
+    const response = await axiosInstance.get<any, { data: any }>(`/analytics/tax-summary${query}`);
+    return response.data;
+  },
   
   // Export functions (return blob or handle download)
   exportData: async (type: 'sales' | 'products' | 'customers' | 'logistics' | 'couriers', startDate?: Date, endDate?: Date, format: 'xlsx' | 'csv' = 'xlsx') => {

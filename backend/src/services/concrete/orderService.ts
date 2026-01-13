@@ -177,7 +177,10 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
     }
 
     // 5. Calculate Final Total
-    const tax = 0; // Tax logic should be here
+    // Assuming prices are inclusive of 18% GST (Tax component extraction)
+    const taxRate = 18;
+    const taxIncluded = Math.round((subTotal * taxRate) / (100 + taxRate));
+    const tax = 0; // No additional tax added to total
     const shippingCost = subTotal > 499 ? 0 : 40;
     const finalCalculatedTotal = subTotal + tax + shippingCost - discountAmount - walletAmountUsed;
 
@@ -221,6 +224,7 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       discountAmount,
       walletAmountUsed,
       cashbackAmount: cashbackResult.cashbackAmount,
+      tax: taxIncluded, // Save extracted tax component
       totalAmount: finalCalculatedTotal,
       orderStatus: (orderData.paymentMethod === 'COD' && rtoScore.suggestedAction === 'FLAG') ? 'PENDING' : 'CONFIRMED',
       paymentStatus: 'PENDING',

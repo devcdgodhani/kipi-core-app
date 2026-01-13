@@ -4,6 +4,7 @@ import {
     TrendingUp,
     FileText
 } from 'lucide-react';
+import { analyticsService } from '../../services/analyticsService';
 import { DateRangeFilter, type DateRange } from '../../components/common/DateRangeFilter';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -20,14 +21,13 @@ const FinancialReports: React.FC = () => {
     const fetchTaxData = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/v1/admin/analytics/tax-summary?startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            const result = await response.json();
-            setTaxData(result.data);
+            const data = await analyticsService.getTaxSummary(dateRange.startDate, dateRange.endDate);
+            if (data) {
+                setTaxData(data);
+            }
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load financial data');
+            // toast.error('Failed to load financial data'); // analyticsService/http interceptor might handle global errors or redirects
         } finally {
             setLoading(false);
         }

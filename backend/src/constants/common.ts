@@ -120,6 +120,7 @@ export enum ADJUST_QUANTITY_TYPE {
   USED = 'USED',
   OTHER = 'OTHER',
   RETURN = 'RETURN',
+  SALES = 'SALES',
 }
 
 export enum FILE_TYPE {

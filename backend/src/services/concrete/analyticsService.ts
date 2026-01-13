@@ -42,6 +42,7 @@ export class AnalyticsService implements IAnalyticsService {
         $group: {
           _id: { $dateToString: { format: groupByFormat, date: '$createdAt' } },
           revenue: { $sum: '$totalAmount' },
+          tax: { $sum: '$tax' },
           orders: { $sum: 1 }
         }
       },
@@ -51,20 +52,25 @@ export class AnalyticsService implements IAnalyticsService {
     const result = await this.orderService.aggregate(pipeline as any) as any[];
     let totalRevenue = 0;
     let totalOrders = 0;
+    let totalTax = 0;
 
     const timeline = result.map(item => {
       totalRevenue += item.revenue;
       totalOrders += item.orders;
+      totalTax += item.tax || 0;
       return {
         date: item._id,
         revenue: item.revenue,
-        orders: item.orders
+        orders: item.orders,
+        tax: item.tax || 0,
+        aov: item.orders > 0 ? Math.round(item.revenue / item.orders) : 0
       };
     });
 
     return {
       revenue: totalRevenue,
       orders: totalOrders,
+      tax: totalTax,
       aov: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
       timeline
     };
@@ -482,7 +488,7 @@ export class AnalyticsService implements IAnalyticsService {
           totalDeliveryTime: {
             $sum: {
               $cond: [
-                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $exists: ['$actualDeliveryDate'] }, { $exists: ['$pickupCompletedDate'] }] },
+                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $ne: ['$actualDeliveryDate', null] }, { $ne: ['$pickupCompletedDate', null] }] },
                 { $divide: [{ $subtract: ['$actualDeliveryDate', '$pickupCompletedDate'] }, 1000 * 60 * 60 * 24] },
                 0
               ]
@@ -491,7 +497,7 @@ export class AnalyticsService implements IAnalyticsService {
           onTimeDeliveries: {
             $sum: {
               $cond: [
-                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $exists: ['$actualDeliveryDate'] }, { $exists: ['$estimatedDeliveryDate'] }, { $lte: ['$actualDeliveryDate', '$estimatedDeliveryDate'] }] },
+                { $and: [{ $eq: ['$status', 'DELIVERED'] }, { $ne: ['$actualDeliveryDate', null] }, { $ne: ['$estimatedDeliveryDate', null] }, { $lte: ['$actualDeliveryDate', '$estimatedDeliveryDate'] }] },
                 1,
                 0
               ]

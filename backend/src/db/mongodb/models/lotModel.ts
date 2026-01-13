@@ -7,6 +7,8 @@ const lotSchema = new Schema<ILotDocument>(
     lotNumber: { type: String, required: true, unique: true },
     type: { type: String, enum: Object.values(LOT_TYPE), default: LOT_TYPE.SELF_MANUFACTURE },
     supplierId: { type: Schema.Types.ObjectId, ref: 'User' },
+    skuId: { type: Schema.Types.ObjectId, ref: 'Sku' },
+    productId: { type: Schema.Types.ObjectId, ref: 'Product' },
     basePrice: { type: Number, required: true, default: 0 },
     quantity: { type: Number, required: true, default: 0 },
     remainingQuantity: { type: Number, required: true, default: 0 },

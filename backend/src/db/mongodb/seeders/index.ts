@@ -5,6 +5,8 @@ import { seedProducts } from './productSeeder';
 import { seedLots } from './lotSeeder';
 import { seedCoupons } from './couponSeeder';
 import { seedOrders } from './orderSeeder';
+import { seedShipments } from './shipmentSeeder';
+import { seedRTOs } from './rtoSeeder';
 import { seedReviews } from './reviewSeeder';
 import { seedReturns } from './returnSeeder';
 import { seedWishlist } from './wishlistSeeder';
@@ -36,6 +38,8 @@ export const runSeeders = async () => {
     
     // Level 4: Transactions (Orders -> Reviews, Returns)
     await seedOrders();
+    await seedShipments();
+    await seedRTOs();
     await seedReviews();
     await seedReturns();
 

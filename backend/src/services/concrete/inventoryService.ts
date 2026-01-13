@@ -1,6 +1,8 @@
 import { SkuService } from './skuService';
 import { ProductService } from './productService';
 import { stockLedgerService } from './stockLedgerService';
+import { LotModel } from '../../db/mongodb/models/lotModel';
+import { ADJUST_QUANTITY_TYPE, LOT_STATUS } from '../../constants';
 import { ApiError } from '../../helpers/apiError';
 import { HTTP_STATUS_CODE } from '../../constants';
 
@@ -38,6 +40,14 @@ export class InventoryService {
       
       await this.skuService.updateOne({ _id: skuId }, { quantity: newQuantity });
 
+      // Deduct from Lots (FIFO)
+      await this.deductFromLots({
+        skuId,
+        quantity,
+        reason,
+        date: new Date()
+      });
+
       await stockLedgerService.logAdjustment({
         skuId,
         transactionType: 'ORDER_FULFILLMENT',
@@ -64,6 +74,14 @@ export class InventoryService {
       const newQuantity = previousQuantity - quantity;
 
       await this.productService.updateOne({ _id: productId }, { stock: newQuantity });
+
+      // Deduct from Lots (FIFO)
+      await this.deductFromLots({
+        productId,
+        quantity,
+        reason,
+        date: new Date()
+      });
 
       await stockLedgerService.logAdjustment({
         productId,
@@ -99,6 +117,14 @@ export class InventoryService {
         const newQuantity = previousQuantity + quantity;
         await this.skuService.updateOne({ _id: skuId }, { quantity: newQuantity });
 
+        // Restock to Lots
+        await this.restockLots({
+          skuId,
+          quantity,
+          reason,
+          date: new Date()
+        });
+
         let transactionType: any = 'ORDER_CANCEL';
         if (referenceType === 'RETURN') transactionType = 'RETURN_RESTOCK';
         if (referenceType === 'RTO') transactionType = 'RTO_RESTOCK';
@@ -121,6 +147,14 @@ export class InventoryService {
         const newQuantity = previousQuantity + quantity;
         await this.productService.updateOne({ _id: productId }, { stock: newQuantity });
 
+        // Restock to Lots
+        await this.restockLots({
+          productId,
+          quantity,
+          reason,
+          date: new Date()
+        });
+
         let transactionType: any = 'ORDER_CANCEL';
         if (referenceType === 'RETURN') transactionType = 'RETURN_RESTOCK';
         if (referenceType === 'RTO') transactionType = 'RTO_RESTOCK';
@@ -137,6 +171,94 @@ export class InventoryService {
         });
       }
     }
+  }
+  
+  /**
+   * Helper: Deduct stock from active Lots (FIFO)
+   */
+  private async deductFromLots(params: {
+      skuId?: string;
+      productId?: string;
+      quantity: number;
+      reason: string;
+      date: Date;
+  }) {
+      const { skuId, productId, quantity, reason, date } = params;
+      let remainingToDeduct = quantity;
+
+      const query: any = { 
+          status: LOT_STATUS.ACTIVE, 
+          remainingQuantity: { $gt: 0 } 
+      };
+
+      if (skuId) query.skuId = skuId;
+      else if (productId) query.productId = productId;
+      
+      // FIFO: Sort by creation date (or startDate)
+      const lots = await LotModel.find(query).sort({ startDate: 1, createdAt: 1 });
+
+      for (const lot of lots) {
+          if (remainingToDeduct <= 0) break;
+
+          const available = lot.remainingQuantity;
+          const deduct = Math.min(available, remainingToDeduct);
+          
+          lot.adjustQuantity = lot.adjustQuantity || [];
+          lot.adjustQuantity.push({
+              quantity: deduct,
+              type: ADJUST_QUANTITY_TYPE.SALES,
+              reason,
+              date
+          });
+          
+          await lot.save();
+          remainingToDeduct -= deduct;
+      }
+      
+      if (remainingToDeduct > 0) {
+          console.warn(`[Inventory] Warning: Could not deduct full quantity from Lots. Missing: ${remainingToDeduct}`);
+      }
+  }
+
+  /**
+   * Helper: Restock to Lots (LIFO or any active)
+   */
+  private async restockLots(params: {
+      skuId?: string;
+      productId?: string;
+      quantity: number;
+      reason: string;
+      date: Date;
+  }) {
+      const { skuId, productId, quantity, reason, date } = params;
+      
+      const query: any = { 
+          status: LOT_STATUS.ACTIVE 
+      };
+      if (skuId) query.skuId = skuId;
+      else if (productId) query.productId = productId;
+
+      // Find latest lot to restock (LIFOish) or just any active lot
+      const lot = await LotModel.findOne(query).sort({ startDate: -1, createdAt: -1 });
+
+      if (lot) {
+           // We add negative adjustment to increase remainingQuantity?
+           // No, remainingQuantity = quantity - adjustments. 
+           // So to INCREASE remainingQuantity, we must remove an adjustment or add a "negative" adjustment?
+           // Logic: remainingQuantity = quantity - sum(adjustments).
+           // If we Add new adjustment with negative quantity, sum decreases, remainingQuantity increases.
+           
+           lot.adjustQuantity = lot.adjustQuantity || [];
+           lot.adjustQuantity.push({
+               quantity: -quantity, // Negative quantity to restore stock
+               type: ADJUST_QUANTITY_TYPE.RETURN, 
+               reason,
+               date
+           });
+           await lot.save();
+      } else {
+          console.warn('[Inventory] Warning: No active lot found to restock items.');
+      }
   }
 }
 
