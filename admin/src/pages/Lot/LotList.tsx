@@ -163,7 +163,7 @@ const LotList: React.FC = () => {
 
     const columns: Column<ILot>[] = [
         {
-            header: 'Lot Identity',
+            header: 'Lot Info',
             key: 'details',
             render: (lot) => (
                 <div className="flex items-center gap-4 py-1">
@@ -182,7 +182,7 @@ const LotList: React.FC = () => {
             )
         },
         {
-            header: 'Strategic Partner',
+            header: 'Supplier',
             key: 'supplier',
             render: (lot) => (
                 <div className="flex flex-col gap-1 py-1">
@@ -198,7 +198,7 @@ const LotList: React.FC = () => {
             )
         },
         {
-            header: 'Stock Velocity',
+            header: 'Stock',
             key: 'inventory',
             render: (lot) => (
                 <div className="flex flex-col gap-2 py-1 min-w-[140px]">
@@ -216,7 +216,7 @@ const LotList: React.FC = () => {
             )
         },
         {
-            header: 'Financial Valuation',
+            header: 'Value',
             key: 'value',
             render: (lot) => (
                 <div className="flex items-center gap-2 text-emerald-600 font-black bg-emerald-50/50 px-4 py-2 rounded-2xl border border-emerald-100/50 shadow-sm w-fit">
@@ -226,7 +226,7 @@ const LotList: React.FC = () => {
             )
         },
         {
-            header: 'Lifecycle Timeline',
+            header: 'Timeline',
             key: 'timeline',
             render: (lot) => (
                 <div className="flex flex-col gap-1.5 py-1">
@@ -266,21 +266,21 @@ const LotList: React.FC = () => {
                     <button
                         onClick={() => { setSelectedLot(lot); setShowAdjustModal(true); }}
                         className="p-3 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-2xl transition-all border border-transparent hover:border-orange-100 group"
-                        title="Calibrate Stock"
+                        title="Adjust Stock"
                     >
                         <ClipboardList size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={() => navigate('/' + ROUTES.DASHBOARD.LOTS_EDIT.replace(':id', lot._id))}
                         className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
-                        title="Modify Strategic Specs"
+                        title="Edit Lot"
                     >
                         <Edit2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={() => handleDeleteLot(lot._id)}
                         className="p-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 group"
-                        title="Terminate Asset"
+                        title="Delete Lot"
                     >
                         <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
@@ -306,17 +306,17 @@ const LotList: React.FC = () => {
                         <Archive size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Lot Ecosystem</h1>
-                        <p className="text-sm text-gray-500 font-medium">Monitoring architectural supply chains & manufacturing cycles</p>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Lots</h1>
+                        <p className="text-sm text-gray-500 font-medium">Manage inventory lots</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 relative z-10">
                     <div className="bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10 flex flex-col items-center">
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Active Batches</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Total Lots</span>
                         <span className="text-2xl font-black text-primary">{pagination.totalRecords}</span>
                     </div>
                     <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.LOTS_CREATE)} className="rounded-[1.5rem] shadow-xl shadow-primary/20 h-16 px-8 text-sm uppercase tracking-widest font-black">
-                        <Plus size={20} className="mr-2" /> Initialize Lot
+                        <Plus size={20} className="mr-2" /> Add Lot
                     </CustomButton>
                 </div>
             </div>
@@ -327,7 +327,7 @@ const LotList: React.FC = () => {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Scan batch identities or supplier references..."
+                        placeholder="Search lots..."
                         value={filters.search}
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
                         className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 placeholder:text-gray-300"
@@ -343,7 +343,7 @@ const LotList: React.FC = () => {
                             }`}
                     >
                         <Filter size={18} />
-                        Supply Filters
+                        Filter
                         {activeFilterCount > 0 && (
                             <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-inner">
                                 {activeFilterCount}
@@ -366,7 +366,7 @@ const LotList: React.FC = () => {
                             className="px-6 py-4 rounded-[2rem] bg-rose-50 border-2 border-rose-100 text-rose-500 hover:bg-rose-100 transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-rose-100/50 h-16"
                         >
                             <RotateCcw size={16} />
-                            Reset System
+                            Reset
                         </button>
                     )}
 
@@ -399,7 +399,7 @@ const LotList: React.FC = () => {
                 columns={columns}
                 isLoading={loading}
                 keyExtractor={(lot) => lot._id}
-                emptyMessage="No strategic lots discovered in this supply chain"
+                emptyMessage="No lots found"
                 onRowClick={(lot) => navigate('/' + ROUTES.DASHBOARD.LOTS_EDIT.replace(':id', lot._id))}
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,

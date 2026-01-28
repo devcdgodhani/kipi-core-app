@@ -161,7 +161,7 @@ const FinancialRecordDetail: React.FC = () => {
                             className="h-12 px-6"
                         >
                             <Edit2 size={16} />
-                            Edit
+                            Update Financial Record
                         </CustomButton>
                         <CustomButton
                             variant="danger"

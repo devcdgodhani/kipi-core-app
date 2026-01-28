@@ -123,7 +123,7 @@ export const OrderDetails: React.FC = () => {
                         className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors group px-4 py-2 rounded-xl hover:bg-gray-50"
                     >
                         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Back to Ledger</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Back to Orders</span>
                     </button>
 
                     <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export const OrderDetails: React.FC = () => {
                     <div className="bg-white p-8 rounded-[2.5rem] border border-primary/5 shadow-sm space-y-6">
                         <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
                             <User size={20} className="text-primary" />
-                            <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Client Intelligence</h3>
+                            <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Customer Details</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
@@ -225,7 +225,7 @@ export const OrderDetails: React.FC = () => {
                         <div className="flex items-center justify-between pb-4 border-b border-gray-50">
                             <div className="flex items-center gap-3">
                                 <ShoppingBag size={20} className="text-primary" />
-                                <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Basket Contents</h3>
+                                <h3 className="font-black text-sm text-gray-900 uppercase tracking-widest">Order Items</h3>
                             </div>
                             <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">{order.items.length} Units</span>
                         </div>
@@ -419,8 +419,8 @@ export const OrderDetails: React.FC = () => {
                                     <ArrowLeftRight size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Decision Engine</p>
-                                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Next Workflow Step</h4>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</p>
+                                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Update Status</h4>
                                 </div>
                             </div>
 

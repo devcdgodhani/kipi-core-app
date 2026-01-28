@@ -166,7 +166,7 @@ const ProductList: React.FC = () => {
 
     const columns: Column<IProduct>[] = [
         {
-            header: 'Product Intel',
+            header: 'Product Info',
             key: 'info',
             render: (product) => (
                 <div className="flex items-center gap-4 py-1">
@@ -199,7 +199,7 @@ const ProductList: React.FC = () => {
             )
         },
         {
-            header: 'Hierarchy',
+            header: 'Categories',
             key: 'categories',
             render: (product) => (
                 <div className="flex flex-wrap gap-1.5 max-w-[200px]">
@@ -222,7 +222,7 @@ const ProductList: React.FC = () => {
             )
         },
         {
-            header: 'Financials',
+            header: 'Pricing',
             key: 'pricing',
             render: (product) => (
                 <div className="flex flex-col py-1">
@@ -261,7 +261,7 @@ const ProductList: React.FC = () => {
             )
         },
         {
-            header: 'Strategic Status',
+            header: 'Status',
             key: 'status',
             render: (product) => {
                 const colors: any = {
@@ -278,7 +278,7 @@ const ProductList: React.FC = () => {
             }
         },
         {
-            header: 'Action',
+            header: 'Actions',
             key: 'actions',
             align: 'right' as const,
             render: (product) => (
@@ -293,14 +293,14 @@ const ProductList: React.FC = () => {
                     <button
                         onClick={() => navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', product._id))}
                         className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
-                        title="Modify Specification"
+                        title="Update Product"
                     >
                         <Edit2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={() => handleDeleteProduct(product._id)}
                         className="p-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 group"
-                        title="Archive Product"
+                        title="Delete Product"
                     >
                         <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
@@ -325,17 +325,17 @@ const ProductList: React.FC = () => {
                         <LayoutGrid size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Product Inventory</h1>
-                        <p className="text-sm text-gray-500 font-medium">Engineering the digital storefront catalogue</p>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">Products</h1>
+                        <p className="text-sm text-gray-500 font-medium">Manage your product catalog</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 relative z-10">
                     <div className="bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10 flex flex-col items-center">
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Total Catalog</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Total Products</span>
                         <span className="text-2xl font-black text-primary">{pagination.totalRecords}</span>
                     </div>
                     <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.PRODUCTS_CREATE)} className="rounded-[1.5rem] shadow-xl shadow-primary/20 h-16 px-8 text-sm uppercase tracking-widest font-black">
-                        <Plus size={20} className="mr-2" /> New Architecture
+                        <Plus size={20} className="mr-2" /> Create Product
                     </CustomButton>
                 </div>
             </div>
@@ -346,7 +346,7 @@ const ProductList: React.FC = () => {
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Scan catalog by identity, slug or reference..."
+                        placeholder="Search products..."
                         value={filters.search}
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
                         className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-14 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 placeholder:text-gray-300"
@@ -362,7 +362,7 @@ const ProductList: React.FC = () => {
                             }`}
                     >
                         <Filter size={18} />
-                        Intelligence Filter
+                        Filter
                         {activeFilterCount > 0 && (
                             <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-inner">
                                 {activeFilterCount}

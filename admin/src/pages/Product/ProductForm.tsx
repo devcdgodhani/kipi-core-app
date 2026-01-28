@@ -160,7 +160,7 @@ const ProductForm: React.FC = () => {
             setPopup({
                 isOpen: true,
                 title: 'Operation Restricted',
-                message: 'Catalog protocols require a Product Code to be established before direct asset ingestion.',
+                message: 'Please create a Product Code first before uploading assets.',
                 type: 'alert',
                 onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
             });
@@ -240,7 +240,7 @@ const ProductForm: React.FC = () => {
         if (variants.length === 0) {
             setPopup({
                 isOpen: true,
-                title: 'Architecture Guard',
+                title: 'Alert',
                 message: 'Please select at least one value for variant attributes before building SKUs.',
                 type: 'alert',
                 onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
@@ -295,8 +295,8 @@ const ProductForm: React.FC = () => {
         if (newSkus.length === 0) {
             setPopup({
                 isOpen: true,
-                title: 'Synchronization Report',
-                message: 'All selected combinations already exist in the master catalog or prepared queue.',
+                title: 'Info',
+                message: 'All selected combinations already exist in the catalog or queue.',
                 type: 'alert',
                 onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
             });
@@ -481,7 +481,7 @@ const ProductForm: React.FC = () => {
             const codes = cleanSkus.map(s => s.skuCode);
             const duplicates = codes.filter((item, index) => codes.indexOf(item) !== index);
             if (duplicates.length > 0) {
-                setError(`Duplicate SKU Identity detected: ${duplicates[0]}. Each variant must have a unique code.`);
+                setError(`Duplicate SKU detected: ${duplicates[0]}. Each variant must have a unique code.`);
                 setLoading(false);
                 return;
             }
@@ -490,7 +490,7 @@ const ProductForm: React.FC = () => {
             const skuRegex = /^[a-zA-Z0-9](.*[a-zA-Z0-9])?$/;
             const invalidCodes = cleanSkus.filter(s => !skuRegex.test(s.skuCode));
             if (invalidCodes.length > 0) {
-                setError(`Architecture Violation: SKU "${invalidCodes[0].skuCode}" must start and end with a letter or number.`);
+                setError(`Error: SKU "${invalidCodes[0].skuCode}" must start and end with a letter or number.`);
                 setLoading(false);
                 return;
             }
@@ -510,12 +510,12 @@ const ProductForm: React.FC = () => {
 
             if (isEdit) {
                 await productService.update(id!, submitData);
-                setSuccess('Product architecture updated successfully!');
+                setSuccess('Product updated successfully!');
                 setGeneratedSkus([]); // Wipe local SKUs after successful update
                 await fetchInitialData(); // Reload new data
             } else {
                 const res = await productService.create(submitData);
-                setSuccess('New product established successfully!');
+                setSuccess('Product created successfully!');
                 setGeneratedSkus([]); // Wipe local SKUs
                 setTimeout(() => {
                     navigate('/' + ROUTES.DASHBOARD.PRODUCTS_EDIT.replace(':id', (res.data as any)._id));
@@ -538,7 +538,7 @@ const ProductForm: React.FC = () => {
                         <ChevronLeft size={24} className="text-gray-700" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">{isEdit ? 'Refine Product' : 'Establish Product'}</h1>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">{isEdit ? 'Update Product' : 'Create Product'}</h1>
                         <p className="text-sm text-gray-500 font-medium">Configure core details, attributes and variants</p>
                     </div>
                 </div>
@@ -699,7 +699,7 @@ const ProductForm: React.FC = () => {
                             <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-8">
                                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
                                     <div>
-                                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">SKU Architecture Engine</h3>
+                                        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">SKU Config</h3>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Configure variant permutations</p>
                                     </div>
                                     <div className="flex gap-3">
@@ -751,14 +751,14 @@ const ProductForm: React.FC = () => {
                                 {generatedSkus.length > 0 && (
                                     <div className="mt-8 space-y-4 pt-8 border-t border-gray-50">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">Locally Prepared SKUs ({generatedSkus.length})</h4>
+                                            <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.3em]">New SKUs ({generatedSkus.length})</h4>
                                             <button type="button" onClick={() => setGeneratedSkus([])} className="text-[10px] font-bold text-rose-500 hover:underline uppercase tracking-widest">Wipe Local Storage</button>
                                         </div>
                                         <div className="overflow-x-auto rounded-[1.5rem] border border-gray-100 shadow-sm">
                                             <table className="w-full text-left text-[11px]">
                                                 <thead className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 uppercase tracking-wider text-gray-400 font-black">
                                                     <tr>
-                                                        <th className="px-6 py-4">SKU Identity</th>
+                                                        <th className="px-6 py-4">SKU Code</th>
                                                         <th className="px-6 py-4 text-center">Base/Sale/Offer</th>
                                                         <th className="px-6 py-4 text-center">Allocated Lot</th>
                                                         <th className="px-6 py-4 text-center">Initial Inventory</th>

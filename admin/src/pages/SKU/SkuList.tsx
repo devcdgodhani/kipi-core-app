@@ -161,7 +161,7 @@ const SkuList: React.FC = () => {
 
     const columns: Column<ISku>[] = [
         {
-            header: 'Variant SKU',
+            header: 'SKU Code',
             key: 'skuCode',
             render: (sku) => (
                 <div className="flex items-center gap-4 py-1">
@@ -197,7 +197,7 @@ const SkuList: React.FC = () => {
             )
         },
         {
-            header: 'Market Valuation',
+            header: 'Price',
             key: 'price',
             render: (sku) => (
                 <div className="flex flex-col py-1">
@@ -212,7 +212,7 @@ const SkuList: React.FC = () => {
             )
         },
         {
-            header: 'Quantum Reserve',
+            header: 'Quantity',
             key: 'quantity',
             render: (sku) => (
                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest w-fit border shadow-sm ${sku.quantity > 50
@@ -227,7 +227,7 @@ const SkuList: React.FC = () => {
             )
         },
         {
-            header: 'Strategic State',
+            header: 'Status',
             key: 'status',
             render: (sku) => {
                 const colors: any = {
@@ -251,14 +251,14 @@ const SkuList: React.FC = () => {
                     <button
                         onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))}
                         className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-transparent hover:border-primary/10 group"
-                        title="Modulate Variant"
+                        title="Edit SKU"
                     >
                         <Edit2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={() => handleDeleteSku(sku._id)}
                         className="p-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 group"
-                        title="Decommission SKU"
+                        title="Delete SKU"
                     >
                         <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
                     </button>
@@ -284,17 +284,17 @@ const SkuList: React.FC = () => {
                         <Cpu size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">SKU Variants</h1>
-                        <p className="text-sm text-gray-500 font-medium">Fine-grained instance management for inventory control</p>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">SKUs</h1>
+                        <p className="text-sm text-gray-500 font-medium">Manage product variants</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 relative z-10">
                     <div className="bg-primary/5 px-6 py-3 rounded-2xl border border-primary/10 flex flex-col items-center">
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Variant Units</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest leading-none mb-1">Total SKUs</span>
                         <span className="text-2xl font-black text-primary">{pagination.totalRecords}</span>
                     </div>
                     <CustomButton onClick={() => navigate('/' + ROUTES.DASHBOARD.SKUS_CREATE)} className="rounded-[1.5rem] shadow-xl shadow-primary/20 h-16 px-8 text-sm uppercase tracking-widest font-black">
-                        <Plus size={20} className="mr-2" /> Establish SKU
+                        <Plus size={20} className="mr-2" /> Add SKU
                     </CustomButton>
                 </div>
             </div>
@@ -305,7 +305,7 @@ const SkuList: React.FC = () => {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Scan catalog by SKU Identity or Reference..."
+                        placeholder="Search SKUs..."
                         value={filters.search}
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
                         className="w-full bg-white border-2 border-primary/5 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-primary/20 transition-all font-bold text-gray-700 shadow-xl shadow-gray-100/50 placeholder:text-gray-300"
@@ -321,7 +321,7 @@ const SkuList: React.FC = () => {
                             }`}
                     >
                         <Filter size={18} />
-                        Intelligence filter
+                        Filter
                         {activeFilterCount > 0 && (
                             <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-inner">
                                 {activeFilterCount}
@@ -373,7 +373,7 @@ const SkuList: React.FC = () => {
                 columns={columns}
                 isLoading={loading}
                 keyExtractor={(sku) => sku._id}
-                emptyMessage="No strategic SKU units discovered in this sector"
+                emptyMessage="No SKUs found"
                 onRowClick={(sku) => navigate('/' + ROUTES.DASHBOARD.SKUS_EDIT.replace(':id', sku._id))}
                 pagination={pagination.totalRecords > 0 ? {
                     currentPage: pagination.currentPage,

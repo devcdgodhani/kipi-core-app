@@ -175,7 +175,7 @@ const LotForm: React.FC = () => {
                     <ChevronLeft size={24} className="text-gray-700" />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">{isEdit ? 'Edit Lot Details' : 'Create New Lot'}</h1>
+                    <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono">{isEdit ? 'Update Lot' : 'Create Lot'}</h1>
                     <p className="text-sm text-gray-500 font-medium">{isEdit ? 'Update existing lot information' : 'Register a new manufacturing or supplier lot'}</p>
                 </div>
             </div>
@@ -275,7 +275,7 @@ const LotForm: React.FC = () => {
                                 onClick={() => navigate(-1)}
                                 className="flex-1 py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all"
                             >
-                                Cancel
+                                Discard
                             </button>
                             <CustomButton type="submit" disabled={loading} className="flex-1 rounded-2xl h-14">
                                 {loading ? 'Processing...' : isEdit ? 'Update Lot' : 'Create Lot'}

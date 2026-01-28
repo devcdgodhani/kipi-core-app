@@ -174,7 +174,7 @@ const FinancialRecordList: React.FC = () => {
     const columns: Column<IFinancialRecordAttributes>[] = [
         {
             key: 'transactionType',
-            header: 'Type',
+            header: 'Transaction Class',
             render: (record) => (
                 <div className="flex items-center gap-2">
                     {record.transactionType === 'INCOME' ? (
@@ -194,7 +194,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'subtype',
-            header: 'Subtype',
+            header: 'Category Classification',
             render: (record) => (
                 <span className="text-xs font-bold text-gray-900 uppercase tracking-tight">
                     {record.subtype.replace('_', ' ')}
@@ -203,7 +203,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'amount',
-            header: 'Amount',
+            header: 'Monetary Value',
             render: (record) => (
                 <div className="flex items-center gap-2">
                     <DollarSign size={14} className="text-gray-400" />
@@ -215,7 +215,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'startDate',
-            header: 'Date',
+            header: 'Timestamp',
             render: (record) => (
                 <span className="text-xs text-gray-600 font-medium">
                     {format(new Date(record.startDate), 'MMM dd, yyyy')}
@@ -224,16 +224,16 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'isAutomatic',
-            header: 'Source',
+            header: 'Origin Protocol',
             render: (record) => (
                 <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${record.isAutomatic ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'}`}>
-                    {record.isAutomatic ? 'Auto' : 'Manual'}
+                    {record.isAutomatic ? 'SYSTEM' : 'MANUAL'}
                 </span>
             )
         },
         {
             key: 'platform',
-            header: 'Platform',
+            header: 'Channel Source',
             render: (record) => (
                 record.platform ? (
                     <span className="text-xs text-gray-600 font-medium">{record.platform}</span>
@@ -244,7 +244,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'status',
-            header: 'Status',
+            header: 'Record State',
             render: (record) => (
                 <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${record.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'}`}>
                     {record.status}
@@ -255,12 +255,12 @@ const FinancialRecordList: React.FC = () => {
 
     const actions = [
         {
-            label: 'View',
+            label: 'View Financial Record',
             icon: Eye,
             onClick: (record: IFinancialRecordAttributes) => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_RECORDS_DETAIL.replace(':id', record._id))
         },
         {
-            label: 'Edit',
+            label: 'Update Financial Record',
             icon: Edit2,
             onClick: (record: IFinancialRecordAttributes) => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_RECORDS_EDIT.replace(':id', record._id)),
             condition: (record: IFinancialRecordAttributes) => !record.isAutomatic
@@ -298,7 +298,7 @@ const FinancialRecordList: React.FC = () => {
                         className="h-12 px-6"
                     >
                         <Plus size={16} />
-                        Add Record
+                        Create Financial Record
                     </CustomButton>
                 </div>
             </div>
@@ -322,7 +322,7 @@ const FinancialRecordList: React.FC = () => {
                             className="h-14 px-6"
                         >
                             <Filter size={16} />
-                            Filters
+                            Filter
                         </CustomButton>
                     </div>
 

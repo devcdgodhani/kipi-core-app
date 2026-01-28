@@ -118,7 +118,7 @@ const ManageOrders: React.FC = () => {
             )
         },
         {
-            header: 'Settlement Delta',
+            header: 'Amount',
             key: 'amount',
             render: (order) => (
                 <div className="flex flex-col py-1">
@@ -141,7 +141,7 @@ const ManageOrders: React.FC = () => {
             )
         },
         {
-            header: 'Lifecycle State',
+            header: 'Status',
             key: 'orderStatus',
             render: (order) => {
                 const colors: any = {
@@ -160,7 +160,7 @@ const ManageOrders: React.FC = () => {
             }
         },
         {
-            header: 'Strategic Controls',
+            header: 'Actions',
             key: 'actions',
             align: 'right',
             render: (order) => {
@@ -227,7 +227,7 @@ const ManageOrders: React.FC = () => {
                         <button
                             onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order._id}`); }}
                             className="p-3 text-gray-400 hover:text-primary hover:bg-white hover:border-primary/10 hover:shadow-md rounded-2xl transition-all border border-transparent group active:scale-90 bg-gray-50/50"
-                            title="Intelligence View"
+                            title="View Order"
                         >
                             <Eye size={18} className="group-hover:scale-110 transition-transform" />
                         </button>
@@ -247,13 +247,13 @@ const ManageOrders: React.FC = () => {
                         <ShoppingBag size={32} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono truncate">Order Ecosystem</h1>
-                        <p className="text-sm text-gray-500 font-medium truncate">Monitoring and processing automated commerce lifecycles</p>
+                        <h1 className="text-3xl font-black text-primary tracking-tight uppercase font-mono truncate">Orders</h1>
+                        <p className="text-sm text-gray-500 font-medium truncate">Manage orders</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 relative z-10">
                     <div className="hidden lg:flex flex-col items-end mr-6 text-right border-r border-gray-100 pr-6">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Volume</span>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Orders</span>
                         <span className="text-2xl font-mono font-black text-primary leading-none">{pagination.totalRecords}</span>
                     </div>
                     <CustomButton
@@ -271,7 +271,7 @@ const ManageOrders: React.FC = () => {
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors duration-300" size={22} />
                     <input
                         type="text"
-                        placeholder="Scan ledger by ID or identity..."
+                        placeholder="Search orders..."
                         className="w-full pl-14 pr-6 py-4 bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-[1.5rem] outline-none transition-all font-bold text-gray-700 h-14"
                         value={search}
                         onChange={(e) => setSearchParams(prev => {
@@ -288,7 +288,7 @@ const ManageOrders: React.FC = () => {
                         className="flex items-center gap-2 px-6 h-14 bg-white text-gray-500 border-2 border-gray-100 hover:bg-gray-50 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all"
                     >
                         <Filter size={18} />
-                        Strategic Filter
+                        Filter
                     </button>
                 </div>
             </div>
@@ -300,7 +300,7 @@ const ManageOrders: React.FC = () => {
                     columns={columns as any}
                     isLoading={loading}
                     keyExtractor={(order) => order._id}
-                    emptyMessage="No strategic orders found for this criteria"
+                    emptyMessage="No orders found"
                     onRowClick={(order) => navigate(`/orders/${order._id}`)}
                     pagination={pagination.totalRecords > 0 ? {
                         currentPage: pagination.currentPage,

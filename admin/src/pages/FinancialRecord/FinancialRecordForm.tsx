@@ -139,7 +139,7 @@ const FinancialRecordForm: React.FC = () => {
                 </button>
                 <div>
                     <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">
-                        {isEditMode ? 'Edit' : 'Create'} Financial Record
+                        {isEditMode ? 'Update Financial Record' : 'Create Financial Record'}
                     </h1>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
                         {isEditMode ? 'Update existing record' : 'Add new income or expense'}
@@ -280,7 +280,7 @@ const FinancialRecordForm: React.FC = () => {
                         onClick={() => navigate('/financial-records')}
                         className="h-14 px-8"
                     >
-                        Cancel
+                        Discard
                     </CustomButton>
                     <CustomButton
                         type="submit"
@@ -289,7 +289,7 @@ const FinancialRecordForm: React.FC = () => {
                         className="h-14 px-8"
                     >
                         <Save size={16} />
-                        {loading ? 'Saving...' : isEditMode ? 'Update Record' : 'Create Record'}
+                        {loading ? 'Saving...' : isEditMode ? 'Update Financial Record' : 'Create Financial Record'}
                     </CustomButton>
                 </div>
             </form>

@@ -220,7 +220,7 @@ const SkuForm: React.FC = () => {
                         <ChevronLeft size={24} className="text-gray-400 group-hover:text-primary transition-colors" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase font-mono">{isEdit ? 'Refine SKU Architecture' : 'SKU Configuration'}</h1>
+                        <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase font-mono">{isEdit ? 'Update SKU' : 'Create SKU'}</h1>
                         <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">Variant Identity & Lifecycle Portal</p>
                     </div>
                 </div>
@@ -398,11 +398,11 @@ const SkuForm: React.FC = () => {
 
                     <div className="flex gap-4">
                         <button type="button" onClick={() => navigate(-1)} className="px-8 py-4 bg-white border border-gray-200 rounded-2xl text-[11px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">
-                            Abandon
+                            Discard
                         </button>
                         {isEdit ? (
                             <CustomButton type="submit" disabled={loading} className="rounded-2xl h-14 px-12 shadow-xl shadow-primary/20 text-[11px] font-black uppercase tracking-[0.2em]">
-                                <Save size={18} className="mr-3" /> {loading ? 'Synchronizing...' : 'Sync Variant Architecture'}
+                                <Save size={18} className="mr-3" /> {loading ? 'Synchronizing...' : 'Update SKU'}
                             </CustomButton>
                         ) : (
                             <div className="px-6 py-4 bg-amber-50 rounded-2xl border border-amber-100 text-[10px] font-black text-amber-600 uppercase tracking-widest">
