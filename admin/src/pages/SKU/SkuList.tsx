@@ -173,7 +173,7 @@ const SkuList: React.FC = () => {
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-black text-primary/40 flex items-center gap-1 uppercase tracking-widest leading-none">
                                 <Layers size={10} />
-                                {typeof sku.productId === 'object' ? (sku.productId as any).name : 'Linked Product'}
+                                {typeof sku.productId === 'object' && sku.productId ? (sku.productId as any).name : 'Linked Product'}
                             </span>
                         </div>
                     </div>

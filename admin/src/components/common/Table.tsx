@@ -24,7 +24,7 @@ interface TableProps<T> {
     data: T[];
     columns: Column<T>[];
     isLoading?: boolean;
-    keyExtractor: (item: T) => string | number;
+    keyExtractor?: (item: T, index: number) => string | number;
     pagination?: PaginationProps;
     emptyMessage?: string;
     onRowClick?: (item: T) => void;
@@ -34,7 +34,7 @@ export function Table<T>({
     data,
     columns,
     isLoading = false,
-    keyExtractor,
+    keyExtractor = (_item: T, index: number) => index,
     pagination,
     emptyMessage = "No items found",
     onRowClick
@@ -69,7 +69,7 @@ export function Table<T>({
                         {data.length > 0 ? (
                             data.map((item, itemIdx) => (
                                 <tr
-                                    key={keyExtractor(item)}
+                                    key={keyExtractor(item, itemIdx)}
                                     className={`group hover:bg-gray-50/50 transition-colors ${onRowClick ? 'cursor-pointer active:bg-gray-100' : ''}`}
                                     onClick={onRowClick ? () => onRowClick(item) : undefined}
                                 >

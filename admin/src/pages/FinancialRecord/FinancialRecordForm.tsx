@@ -94,7 +94,7 @@ const FinancialRecordForm: React.FC = () => {
             } else {
                 await financialRecordService.create(formData);
             }
-            navigate('/dashboard/financial-records');
+            navigate('/financial-records');
         } catch (error: any) {
             console.error('Error saving record:', error);
             setErrors({ submit: error.response?.data?.message || 'Failed to save record' });
@@ -132,7 +132,7 @@ const FinancialRecordForm: React.FC = () => {
         <div className="p-8 max-w-[1000px] mx-auto space-y-8">
             <div className="flex items-center gap-4">
                 <button
-                    onClick={() => navigate('/dashboard/financial-records')}
+                    onClick={() => navigate('/financial-records')}
                     className="w-12 h-12 rounded-2xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
                     <ArrowLeft size={20} />
@@ -277,7 +277,7 @@ const FinancialRecordForm: React.FC = () => {
                     <CustomButton
                         type="button"
                         variant="secondary"
-                        onClick={() => navigate('/dashboard/financial-records')}
+                        onClick={() => navigate('/financial-records')}
                         className="h-14 px-8"
                     >
                         Cancel

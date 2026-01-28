@@ -14,7 +14,6 @@ const FinancialRecordList: React.FC = () => {
     const navigate = useNavigate();
     const [records, setRecords] = useState<IFinancialRecordAttributes[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [popup, setPopup] = useState<{
         isOpen: boolean;
@@ -64,7 +63,7 @@ const FinancialRecordList: React.FC = () => {
                 });
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch financial records');
+            console.error('Failed to fetch financial records:', err);
         } finally {
             setLoading(false);
         }
@@ -79,10 +78,6 @@ const FinancialRecordList: React.FC = () => {
 
     const handleFilterChange = (updatedFilters: Record<string, any>) => {
         setFilters(prev => ({ ...prev, ...updatedFilters, page: 1 }));
-    };
-
-    const handleLimitChange = (newLimit: number) => {
-        setFilters(prev => ({ ...prev, limit: newLimit, page: 1 }));
     };
 
     const handleDeleteRecord = async (id: string) => {
@@ -179,7 +174,7 @@ const FinancialRecordList: React.FC = () => {
     const columns: Column<IFinancialRecordAttributes>[] = [
         {
             key: 'transactionType',
-            label: 'Type',
+            header: 'Type',
             render: (record) => (
                 <div className="flex items-center gap-2">
                     {record.transactionType === 'INCOME' ? (
@@ -199,7 +194,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'subtype',
-            label: 'Subtype',
+            header: 'Subtype',
             render: (record) => (
                 <span className="text-xs font-bold text-gray-900 uppercase tracking-tight">
                     {record.subtype.replace('_', ' ')}
@@ -208,7 +203,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'amount',
-            label: 'Amount',
+            header: 'Amount',
             render: (record) => (
                 <div className="flex items-center gap-2">
                     <DollarSign size={14} className="text-gray-400" />
@@ -220,7 +215,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'startDate',
-            label: 'Date',
+            header: 'Date',
             render: (record) => (
                 <span className="text-xs text-gray-600 font-medium">
                     {format(new Date(record.startDate), 'MMM dd, yyyy')}
@@ -229,7 +224,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'isAutomatic',
-            label: 'Source',
+            header: 'Source',
             render: (record) => (
                 <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${record.isAutomatic ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'}`}>
                     {record.isAutomatic ? 'Auto' : 'Manual'}
@@ -238,7 +233,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'platform',
-            label: 'Platform',
+            header: 'Platform',
             render: (record) => (
                 record.platform ? (
                     <span className="text-xs text-gray-600 font-medium">{record.platform}</span>
@@ -249,7 +244,7 @@ const FinancialRecordList: React.FC = () => {
         },
         {
             key: 'status',
-            label: 'Status',
+            header: 'Status',
             render: (record) => (
                 <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${record.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'}`}>
                     {record.status}
@@ -262,12 +257,12 @@ const FinancialRecordList: React.FC = () => {
         {
             label: 'View',
             icon: Eye,
-            onClick: (record: IFinancialRecordAttributes) => navigate(`/dashboard/${ROUTES.DASHBOARD.FINANCIAL_RECORDS_DETAIL.replace(':id', record._id)}`)
+            onClick: (record: IFinancialRecordAttributes) => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_RECORDS_DETAIL.replace(':id', record._id))
         },
         {
             label: 'Edit',
             icon: Edit2,
-            onClick: (record: IFinancialRecordAttributes) => navigate(`/dashboard/${ROUTES.DASHBOARD.FINANCIAL_RECORDS_EDIT.replace(':id', record._id)}`),
+            onClick: (record: IFinancialRecordAttributes) => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_RECORDS_EDIT.replace(':id', record._id)),
             condition: (record: IFinancialRecordAttributes) => !record.isAutomatic
         },
         {
@@ -291,7 +286,7 @@ const FinancialRecordList: React.FC = () => {
                 <div className="flex gap-3">
                     <CustomButton
                         variant="secondary"
-                        onClick={() => navigate(`/dashboard/${ROUTES.DASHBOARD.FINANCIAL_ANALYTICS}`)}
+                        onClick={() => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_ANALYTICS)}
                         className="h-12 px-6"
                     >
                         <DollarSign size={16} />
@@ -299,7 +294,7 @@ const FinancialRecordList: React.FC = () => {
                     </CustomButton>
                     <CustomButton
                         variant="primary"
-                        onClick={() => navigate(`/dashboard/${ROUTES.DASHBOARD.FINANCIAL_RECORDS_CREATE}`)}
+                        onClick={() => navigate('/' + ROUTES.DASHBOARD.FINANCIAL_RECORDS_CREATE)}
                         className="h-12 px-6"
                     >
                         <Plus size={16} />
@@ -331,28 +326,57 @@ const FinancialRecordList: React.FC = () => {
                         </CustomButton>
                     </div>
 
-                    {isFilterOpen && (
-                        <CommonFilter
-                            fields={filterFields}
-                            values={filters}
-                            onChange={handleFilterChange}
-                        />
-                    )}
+                    <CommonFilter
+                        isOpen={isFilterOpen}
+                        onClose={() => setIsFilterOpen(false)}
+                        fields={filterFields}
+                        onApply={handleFilterChange}
+                        currentFilters={filters}
+                    />
                 </div>
 
                 <Table
-                    columns={columns}
+                    columns={[
+                        ...columns,
+                        {
+                            header: 'Actions',
+                            key: 'actions',
+                            align: 'right' as const,
+                            render: (record) => (
+                                <div className="flex items-center justify-end gap-2">
+                                    {actions.filter(action => !action.condition || action.condition(record)).map((action, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                action.onClick(record);
+                                            }}
+                                            className={`p-2 rounded-xl transition-all ${action.variant === 'danger'
+                                                ? 'text-rose-400 hover:text-rose-600 hover:bg-rose-50'
+                                                : 'text-gray-400 hover:text-primary hover:bg-primary/5'
+                                                }`}
+                                            title={action.label}
+                                        >
+                                            <action.icon size={16} />
+                                        </button>
+                                    ))}
+                                </div>
+                            )
+                        }
+                    ]}
                     data={records}
-                    actions={actions}
-                    loading={loading}
-                    pagination={{
+                    keyExtractor={(record) => record._id}
+                    isLoading={loading}
+                    emptyMessage="No financial records found"
+                    pagination={pagination.totalRecords > 0 ? {
                         currentPage: pagination.currentPage,
                         totalPages: pagination.totalPages,
                         totalRecords: pagination.totalRecords,
+                        pageSize: filters.limit || 10,
                         onPageChange: (page) => setFilters(prev => ({ ...prev, page })),
-                        limit: filters.limit || 10,
-                        onLimitChange: handleLimitChange
-                    }}
+                        hasPreviousPage: pagination.currentPage > 1,
+                        hasNextPage: pagination.currentPage < pagination.totalPages
+                    } : undefined}
                 />
             </div>
 

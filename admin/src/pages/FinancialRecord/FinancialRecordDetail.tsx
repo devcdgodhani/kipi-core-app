@@ -55,7 +55,7 @@ const FinancialRecordDetail: React.FC = () => {
                 try {
                     setPopup(prev => ({ ...prev, loading: true }));
                     await financialRecordService.delete(id!);
-                    navigate('/dashboard/financial-records');
+                    navigate('/financial-records');
                 } catch (error: any) {
                     setPopup({
                         isOpen: true,
@@ -128,9 +128,9 @@ const FinancialRecordDetail: React.FC = () => {
             title: 'Linked References',
             icon: LinkIcon,
             items: [
-                ...(record.orderId ? [{ label: 'Order ID', value: record.orderId, link: `/dashboard/orders/${record.orderId}` }] : []),
-                ...(record.lotId ? [{ label: 'Lot ID', value: record.lotId, link: `/dashboard/lots/edit/${record.lotId}` }] : []),
-                ...(record.returnId ? [{ label: 'Return ID', value: record.returnId, link: `/dashboard/returns/${record.returnId}` }] : []),
+                ...(record.orderId ? [{ label: 'Order ID', value: record.orderId, link: `/orders/${record.orderId}` }] : []),
+                ...(record.lotId ? [{ label: 'Lot ID', value: record.lotId, link: `/lots/edit/${record.lotId}` }] : []),
+                ...(record.returnId ? [{ label: 'Return ID', value: record.returnId, link: `/returns/${record.returnId}` }] : []),
                 ...(record.walletTransactionId ? [{ label: 'Wallet Transaction ID', value: record.walletTransactionId }] : [])
             ]
         });
@@ -141,7 +141,7 @@ const FinancialRecordDetail: React.FC = () => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/dashboard/financial-records')}
+                        onClick={() => navigate('/financial-records')}
                         className="w-12 h-12 rounded-2xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                     >
                         <ArrowLeft size={20} />
@@ -157,7 +157,7 @@ const FinancialRecordDetail: React.FC = () => {
                     <div className="flex gap-3">
                         <CustomButton
                             variant="secondary"
-                            onClick={() => navigate(`/dashboard/financial-records/edit/${record._id}`)}
+                            onClick={() => navigate(`/financial-records/edit/${record._id}`)}
                             className="h-12 px-6"
                         >
                             <Edit2 size={16} />

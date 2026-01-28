@@ -74,7 +74,7 @@ const FinancialAnalyticsDashboard = () => {
                     </p>
                 </div>
                 <button
-                    onClick={() => navigate('/dashboard/financial-records')}
+                    onClick={() => navigate('/financial-records')}
                     className="h-12 px-6 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-[10px] hover:bg-primary/90 transition-all flex items-center gap-2"
                 >
                     View All Records <ChevronRight size={14} />
@@ -168,7 +168,7 @@ const FinancialAnalyticsDashboard = () => {
                         <div className="divide-y divide-gray-50">
                             {analytics.recentTransactions.map((tx) => (
                                 <div key={tx._id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group cursor-pointer"
-                                    onClick={() => navigate(`/dashboard/financial-records/${tx._id}`)}>
+                                    onClick={() => navigate(`/financial-records/${tx._id}`)}>
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.transactionType === 'INCOME' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
                                             {tx.transactionType === 'INCOME' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
