@@ -389,6 +389,7 @@ export class WhatsAppAccountService extends MongooseCommonService<IWhatsAppAccou
     if(to.includes('+')) {
       to = to.replace('+', '');
     }
+    to='919726176061'
     const formattedTo = to.includes('@c.us') ? to : `${to}@c.us`;
     return await client.sendMessage(formattedTo, message);
   }

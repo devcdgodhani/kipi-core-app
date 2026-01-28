@@ -32,6 +32,30 @@ const WishlistPage: React.FC = () => {
         }
     };
 
+    const buyNow = async (product: any) => {
+        const price = product.offerPrice || product.salePrice || product.basePrice || 0;
+        try {
+            await addItem({
+                productId: product._id,
+                skuId: product._id,
+                quantity: 1,
+                price: price,
+                product: product,
+                sku: {
+                    _id: product._id,
+                    basePrice: product.basePrice,
+                    salePrice: product.salePrice,
+                    offerPrice: product.offerPrice,
+                    price: price
+                } as any
+            });
+            removeFromWishlist(product._id);
+            navigate('/checkout');
+        } catch (error) {
+            console.error('Failed to buy now', error);
+        }
+    };
+
     if (loading && !wishlist) {
         return <div className="text-center py-20 text-gray-500">Loading wishlist...</div>
     }
@@ -118,12 +142,20 @@ const WishlistPage: React.FC = () => {
                                         ₹{price?.toLocaleString()}
                                     </p>
 
-                                    <button
-                                        onClick={() => moveToCart(product)}
-                                        className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <ShoppingBag size={14} /> Add to Cart
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => moveToCart(product)}
+                                            className="flex-1 py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <ShoppingBag size={14} /> Add to Cart
+                                        </button>
+                                        <button
+                                            onClick={() => buyNow(product)}
+                                            className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+                                        >
+                                            Buy Now
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         );

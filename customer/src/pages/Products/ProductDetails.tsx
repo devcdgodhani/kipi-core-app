@@ -108,6 +108,31 @@ const ProductDetails: React.FC = () => {
         }
     };
 
+    const handleBuyNow = async () => {
+        if (!product || !selectedSku) return;
+
+        setAddingToCart(true);
+        try {
+            await addItem({
+                productId: product._id,
+                skuId: selectedSku._id,
+                quantity,
+                price: selectedSku.price || selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice || 0,
+                product: product,
+                sku: {
+                    ...selectedSku,
+                    price: selectedSku.price || selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice || 0
+                } as any
+            });
+            // Navigate to checkout after adding to cart
+            navigate('/checkout');
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        } finally {
+            setAddingToCart(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -249,11 +274,18 @@ const ProductDetails: React.FC = () => {
                                     </button>
                                 </div>
 
-                                {/* Add to Cart */}
+                                {/* Wishlist */}
+                                <div className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center">
+                                    <WishlistButton productId={product._id} />
+                                </div>
+                            </div>
+
+                            {/* Add to Cart and Buy Now Buttons */}
+                            <div className="flex gap-3">
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={addingToCart || !selectedSku}
-                                    className="flex-1 py-3 px-6 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/25 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="flex-1 py-3 px-6 bg-white text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {addingToCart ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -265,10 +297,13 @@ const ProductDetails: React.FC = () => {
                                     )}
                                 </button>
 
-                                {/* Wishlist */}
-                                <div className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center">
-                                    <WishlistButton productId={product._id} />
-                                </div>
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={addingToCart || !selectedSku}
+                                    className="flex-1 py-3 px-6 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/25 hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    Buy Now
+                                </button>
                             </div>
                         </div>
 

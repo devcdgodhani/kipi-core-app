@@ -70,6 +70,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    // Helper to safely extract ID
+    const getId = (obj: any): string => {
+        if (!obj) return '';
+        if (typeof obj === 'string') return obj;
+        return obj._id || obj.id || '';
+    };
+
     const addItem = async (item: CartItem) => {
         console.log('CartContext: addItem called with', item);
         if (!userId) {
@@ -97,8 +104,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 console.log('CartContext: Updating existing cart', currentCart._id);
                 // Update existing cart
                 const existingItemIndex = currentCart.items.findIndex(i => {
-                    const iSkuId = typeof i.skuId === 'object' ? (i.skuId as any)?._id : i.skuId;
-                    const itemSkuId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
+                    const iSkuId = getId(i.skuId);
+                    const itemSkuId = getId(item.skuId);
                     return iSkuId === itemSkuId;
                 });
 
@@ -113,31 +120,45 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
 
                 // Sanitize items for backend: only send IDs and required fields
-                const payloadItems = updatedItems.map(i => {
-                    const pId = typeof i.productId === 'object' ? (i.productId as any)?._id : i.productId;
-                    const sId = typeof i.skuId === 'object' ? (i.skuId as any)?._id : i.skuId;
+                const payloadItems = updatedItems
+                    .map(i => {
+                        const pId = getId(i.productId) || getId((i as any).product);
+                        const sId = getId(i.skuId) || getId((i as any).sku);
 
-                    return {
-                        productId: pId,
-                        skuId: sId || (i as any).sku?._id || pId, // Fallback to sku object or product ID
-                        quantity: i.quantity,
-                        price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                        salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                        offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
-                    };
-                });
+                        // If we still don't have a productId, fallback to skuId if they are same (rare) or skip
+                        if (!pId) {
+                            console.warn('CartContext: Found item without productId, skipping', i);
+                            return null;
+                        }
+
+                        return {
+                            productId: pId,
+                            skuId: sId || pId, // Fallback to product ID if SKU ID missing
+                            quantity: i.quantity,
+                            price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
+                            salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
+                            offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                        };
+                    })
+                    .filter(i => i !== null) as any[];
 
                 console.log('CartContext: Sending update payload:', payloadItems);
+                if (payloadItems.length === 0) {
+                    console.error('CartContext: No valid items to update');
+                    throw new Error('Invalid cart state');
+                }
                 await cartService.update(currentCart._id, { items: payloadItems });
             } else {
                 console.log('CartContext: Creating new cart');
                 // Create new cart
-                const pId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
-                const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
+                const pId = getId(item.productId) || getId((item as any).product);
+                const sId = getId(item.skuId) || getId((item as any).sku);
+
+                if (!pId) throw new Error('Cannot add item: invalid product ID');
 
                 const newItem = {
                     productId: pId,
-                    skuId: sId || item.sku?._id || pId,
+                    skuId: sId || pId,
                     quantity: item.quantity,
                     price: item.sku?.basePrice || item.product?.basePrice || 0,
                     salePrice: item.sku?.salePrice || item.product?.salePrice,
@@ -163,32 +184,36 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!cart) return;
 
         // Extracts ID from either a string or a populated object (_id or id)
-        const targetId = typeof skuIdOrObj === 'object' ? (skuIdOrObj?._id || skuIdOrObj?.id) : skuIdOrObj;
+        const targetId = getId(skuIdOrObj);
 
         setLoading(true);
         try {
             const updatedItems = cart.items.filter(item => {
-                const itemSkuId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
-                const itemProductId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
+                const itemSkuId = getId(item.skuId);
+                const itemProductId = getId(item.productId);
 
                 // Use skuId for identification if it exists, otherwise fallback to productId
                 const currentItemKey = itemSkuId || itemProductId;
                 return currentItemKey !== targetId;
             });
 
-            const payloadItems = updatedItems.map(i => {
-                const pId = typeof i.productId === 'object' ? (i.productId as any)?._id : i.productId;
-                const sId = typeof i.skuId === 'object' ? (i.skuId as any)?._id : i.skuId;
+            const payloadItems = updatedItems
+                .map(i => {
+                    const pId = getId(i.productId) || getId((i as any).product);
+                    const sId = getId(i.skuId) || getId((i as any).sku);
 
-                return {
-                    productId: pId || '',
-                    skuId: sId || (i as any).sku?._id || pId || '',
-                    quantity: i.quantity,
-                    price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                    salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                    offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
-                }
-            });
+                    if (!pId) return null;
+
+                    return {
+                        productId: pId,
+                        skuId: sId || pId,
+                        quantity: i.quantity,
+                        price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
+                        salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
+                        offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                    };
+                })
+                .filter(i => i !== null) as any[];
 
             await cartService.update(cart._id, { items: payloadItems });
             await refreshCart();
@@ -205,7 +230,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateQuantity = async (skuIdOrObj: string | any, quantity: number) => {
         if (!cart) return;
 
-        const targetId = typeof skuIdOrObj === 'object' ? (skuIdOrObj?._id || skuIdOrObj?.id) : skuIdOrObj;
+        const targetId = getId(skuIdOrObj);
 
         setLoading(true);
         try {
@@ -215,26 +240,30 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             const updatedItems = cart.items.map(item => {
-                const itemSkuId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
-                const itemProductId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
+                const itemSkuId = getId(item.skuId);
+                const itemProductId = getId(item.productId);
                 const currentItemKey = itemSkuId || itemProductId;
 
                 return currentItemKey === targetId ? { ...item, quantity } : item;
             });
 
-            const payloadItems = updatedItems.map(i => {
-                const pId = typeof i.productId === 'object' ? (i.productId as any)?._id : i.productId;
-                const sId = typeof i.skuId === 'object' ? (i.skuId as any)?._id : i.skuId;
+            const payloadItems = updatedItems
+                .map(i => {
+                    const pId = getId(i.productId) || getId((i as any).product);
+                    const sId = getId(i.skuId) || getId((i as any).sku);
 
-                return {
-                    productId: pId || '',
-                    skuId: sId || (i as any).sku?._id || pId || '',
-                    quantity: i.quantity,
-                    price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                    salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                    offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
-                }
-            });
+                    if (!pId) return null;
+
+                    return {
+                        productId: pId,
+                        skuId: sId || pId,
+                        quantity: i.quantity,
+                        price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
+                        salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
+                        offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                    };
+                })
+                .filter(i => i !== null) as any[];
 
             await cartService.update(cart._id, { items: payloadItems });
             await refreshCart();

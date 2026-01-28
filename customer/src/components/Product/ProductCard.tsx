@@ -48,6 +48,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         }
     };
 
+    const handleBuyNow = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setAdding(true);
+        try {
+            await addItem({
+                productId: product._id,
+                skuId: product._id,
+                quantity: 1,
+                price: displayPrice
+            } as any);
+            // Navigate to checkout after adding to cart
+            navigate('/checkout');
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        } finally {
+            setAdding(false);
+        }
+    };
+
+
 
     return (
         <div
@@ -112,21 +132,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </p>
                 )}
 
-                {/* Add to Cart Button */}
-                <button
-                    onClick={handleAddToCart}
-                    disabled={product.stock === 0 || adding}
-                    className="w-full mt-3 py-2.5 px-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
-                >
-                    {adding ? (
-                        <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                        <>
-                            <CartIcon size={16} />
-                            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                        </>
-                    )}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-3">
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={product.stock === 0 || adding}
+                        className="flex-1 py-2.5 px-4 bg-white text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md"
+                    >
+                        {adding ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <>
+                                <CartIcon size={16} />
+                                Cart
+                            </>
+                        )}
+                    </button>
+                    <button
+                        onClick={handleBuyNow}
+                        disabled={product.stock === 0 || adding}
+                        className="flex-1 py-2.5 px-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
+                    >
+                        {product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+                    </button>
+                </div>
             </div>
 
         </div>
