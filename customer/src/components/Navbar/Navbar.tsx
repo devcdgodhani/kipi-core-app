@@ -11,11 +11,20 @@ import { categoryService } from '../../services/product.service';
 import { notificationService } from '../../services/notification.service';
 import type { Category } from '../../types/product.types';
 import SearchBar from '../Product/SearchBar';
+import { useCustomerAppSettings } from '../../context/CustomerAppSettingsContext';
 
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
+    const { settings } = useCustomerAppSettings(); // Add context hook
     const { cart } = useCart();
+    // ... existing hooks
+
+    // ... Inside JSX
+    {/* Left: Logo */ }
+    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+        <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">{settings?.appName || 'KIPI'}</h1>
+    </div>
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
     const [isMenuOpen, setIsMenuOpen] = useState(false);

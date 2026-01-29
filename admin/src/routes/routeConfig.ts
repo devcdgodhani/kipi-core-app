@@ -60,6 +60,7 @@ export const ROUTES = {
         ETA_TEST: 'eta-test',
         CRON_HUB: 'cron-hub',
         THEME_SETTINGS: 'settings/theme',
+        CUSTOMER_APP_SETTINGS: 'settings/customer-app',
 
         // Intelligence Section
         ANALYTICS_SALES: 'intelligence/sales',

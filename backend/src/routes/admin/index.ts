@@ -45,6 +45,7 @@ import searchQueryRoutes from './searchQueryRoutes';
 import financialRecordRoutes from './financialRecordRoutes';
 import themeRoutes from './themeRoutes';
 import pushNotificationRoutes from './pushNotificationRoutes';
+import customerAppSettingsRoutes from './customerAppSettingsRoutes';
 
 const router = Router();
 
@@ -100,6 +101,7 @@ router.use('/search-query', jwtAuth(), searchQueryRoutes);
 router.use('/financial-record', jwtAuth(), financialRecordRoutes);
 router.use('/themes', themeRoutes); // Auth middleware is in themeRoutes
 router.use('/push-notification', jwtAuth(), pushNotificationRoutes);
+router.use('/customer-app-settings', jwtAuth(), customerAppSettingsRoutes);
 
 router.use('/', paymentRoutes);
 

@@ -101,3 +101,7 @@ export * from './models/recentlyViewedModel';
 export * from './models/paymentGatewayModel';
 export * from './models/paymentModel';
 export * from './models/paymentRefundModel';
+export * from './models/financialRecordModel';
+export * from './models/themeModel';
+export * from './models/pushNotificationModel';
+export * from './models/customerAppSettingsModel';

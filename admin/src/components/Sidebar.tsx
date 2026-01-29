@@ -201,6 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: Users,
             items: [
                 { to: '/settings/theme', label: 'Theme Settings', icon: Palette },
+                { to: '/settings/customer-app', label: 'Customer App Settings', icon: Settings },
                 { to: '/users', label: 'Users', icon: Users },
                 { to: '/cron-hub', label: 'Cron Hub', icon: Cpu },
                 {

@@ -16,6 +16,7 @@ import { seedInventoryAudit } from './inventoryAuditSeeder';
 import { seedCouriers } from './courierSeeder';
 import { seedPaymentGateways } from './paymentGatewaySeeder';
 import { seedWalletRules } from './walletRuleSeeder';
+import { seedCustomerAppSettings } from './customerAppSettingsSeeder';
 
 export const runSeeders = async () => {
   try {
@@ -27,6 +28,7 @@ export const runSeeders = async () => {
     await seedUsers();
     await seedCouriers();
     await seedPaymentGateways();
+    await seedCustomerAppSettings();
     
     // Level 2: Inventory & Catalog (Products -> SKUs -> Lots)
     await seedProducts();

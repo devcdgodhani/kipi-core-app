@@ -25,6 +25,7 @@ import searchQueryRoutes from './searchQueryRoutes';
 import recentlyViewedRoutes from './recentlyViewedRoutes';
 import pushNotificationRoutes from './pushNotificationRoutes';
 import themeRoutes from './themeRoutes';
+import customerAppSettingsRoutes from './customerAppSettingsRoutes';
 
 
 const router = Router();
@@ -55,6 +56,7 @@ router.use('/search', searchQueryRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/push-notification', pushNotificationRoutes);
 router.use('/themes', themeRoutes);
+router.use('/app-settings', customerAppSettingsRoutes);
 
 
 

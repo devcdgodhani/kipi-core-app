@@ -7,7 +7,12 @@ import type { Product } from '../../types/product.types';
 import ProductCard from './ProductCard';
 import { ROUTES } from '../../routes/routeConfig';
 
-const FlashDealSection: React.FC = () => {
+interface FlashDealSectionProps {
+    title?: string;
+    subtitle?: string;
+}
+
+const FlashDealSection: React.FC<FlashDealSectionProps> = ({ title, subtitle }) => {
     const navigate = useNavigate();
     const [deals, setDeals] = useState<FlashDeal[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,10 +96,10 @@ const FlashDealSection: React.FC = () => {
                     <div>
                         <div className="flex items-center gap-2 text-red-600 mb-2">
                             <Zap size={20} fill="currentColor" />
-                            <span className="text-xs font-bold uppercase tracking-widest">Limited Time Offers</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">{subtitle || 'Limited Time Offers'}</span>
                         </div>
                         <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-3">
-                            Flash Deals
+                            {title || 'Flash Deals'}
                         </h2>
                     </div>
 
