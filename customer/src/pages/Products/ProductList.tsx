@@ -157,17 +157,6 @@ const ProductList: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Header / Banner */}
-            <div className="bg-gray-50 py-12 md:py-16 border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 text-center space-y-4">
-                    <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-gray-900">
-                        {filters.search ? `Results for "${filters.search}"` : 'The Collection'}
-                    </h1>
-                    <p className="text-gray-500 max-w-lg mx-auto">
-                        Explore our precisely curated selection of premium essentials.
-                    </p>
-                </div>
-            </div>
 
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
                 {/* Toolbar */}
