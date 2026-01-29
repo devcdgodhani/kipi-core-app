@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import BannerSlider from '../../components/Banner/BannerSlider';
 import RecentlyViewed from '../../components/Product/RecentlyViewed';
 import RecommendationSection from '../../components/Product/RecommendationSection';
+import FlashDealSection from '../../components/Product/FlashDealSection';
 
 
 const Home: React.FC = () => {
@@ -47,6 +48,7 @@ const Home: React.FC = () => {
             {/* Hero Section - Replaced with dynamic Banner Slider */}
             <BannerSlider />
 
+            <FlashDealSection />
 
             {/* Features / Value Props */}
             <section className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">

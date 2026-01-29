@@ -1,9 +1,10 @@
+import type { Product } from './product.types';
 
 export interface FlashDeal {
     _id: string;
     name: string;
     description?: string;
-    productIds: string[];
+    productIds: string[] | Product[];
     discountType: 'PERCENTAGE' | 'FIXED';
     discountValue: number;
     startTime: string | Date;
