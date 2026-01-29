@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { themeService } from '../services/theme.service';
+import { toast } from 'react-hot-toast';
 
 export type ThemeColors = {
     background: string;
@@ -8,7 +10,7 @@ export type ThemeColors = {
 };
 
 export type Theme = {
-    id: string;
+    id: string; // Used for identifying predefined vs custom
     name: string;
     colors: ThemeColors;
 };
@@ -24,137 +26,67 @@ export const PREDEFINED_THEMES: Theme[] = [
             accent: '#94a3b8',     // Slate 400
         },
     },
-    {
-        id: 'soft-sky',
-        name: 'Soft Sky',
-        colors: {
-            background: '#f0f9ff', // Sky 50
-            primary: '#0369a1',    // Sky 700
-            secondary: '#38bdf8',  // Sky 400
-            accent: '#7dd3fc',     // Sky 300
-        },
-    },
-    {
-        id: 'calm-teal',
-        name: 'Calm Teal',
-        colors: {
-            background: '#f0fdfa', // Teal 50
-            primary: '#0f766e',    // Teal 700
-            secondary: '#2dd4bf',  // Teal 400
-            accent: '#5eead4',     // Teal 300
-        },
-    },
-    {
-        id: 'pale-violet',
-        name: 'Pale Violet',
-        colors: {
-            background: '#f5f3ff', // Violet 50
-            primary: '#6d28d9',    // Violet 700
-            secondary: '#a78bfa',  // Violet 400
-            accent: '#c4b5fd',     // Violet 300
-        },
-    },
-    {
-        id: 'muted-indigo',
-        name: 'Muted Indigo',
-        colors: {
-            background: '#eef2ff', // Indigo 50
-            primary: '#4338ca',    // Indigo 700
-            secondary: '#818cf8',  // Indigo 400
-            accent: '#a5b4fc',     // Indigo 300
-        },
-    },
-    {
-        id: 'fresh-mint',
-        name: 'Fresh Mint',
-        colors: {
-            background: '#f0fdf4', // Green 50
-            primary: '#15803d',    // Green 700
-            secondary: '#4ade80',  // Green 400
-            accent: '#86efac',     // Green 300
-        },
-    },
-    {
-        id: 'glacial-blue',
-        name: 'Glacial Blue',
-        colors: {
-            background: '#eff6ff', // Blue 50
-            primary: '#1d4ed8',    // Blue 700
-            secondary: '#60a5fa',  // Blue 400
-            accent: '#93c5fd',     // Blue 300
-        },
-    },
-    {
-        id: 'arctic-gray',
-        name: 'Arctic Gray',
-        colors: {
-            background: '#f9fafb', // Gray 50
-            primary: '#374151',    // Gray 700
-            secondary: '#9ca3af',  // Gray 400
-            accent: '#d1d5db',     // Gray 300
-        },
-    },
-    {
-        id: 'soft-cyan',
-        name: 'Soft Cyan',
-        colors: {
-            background: '#ecfeff', // Cyan 50
-            primary: '#0e7490',    // Cyan 700
-            secondary: '#22d3ee',  // Cyan 400
-            accent: '#67e8f9',     // Cyan 300
-        },
-    },
-    {
-        id: 'lilac-mist',
-        name: 'Lilac Mist',
-        colors: {
-            background: '#faf5ff', // Purple 50
-            primary: '#7e22ce',    // Purple 700
-            secondary: '#c084fc',  // Purple 400
-            accent: '#d8b4fe',     // Purple 300
-        },
-    },
-    {
-        id: 'cloud-white',
-        name: 'Cloud White',
-        colors: {
-            background: '#fafafa', // Neutral 50
-            primary: '#404040',    // Neutral 700
-            secondary: '#a3a3a3',  // Neutral 400
-            accent: '#d4d4d4',     // Neutral 300
-        },
-    },
-    {
-        id: 'azure-dream',
-        name: 'Azure Dream',
-        colors: {
-            background: '#f0f9ff', // Sky 50
-            primary: '#0284c7',    // Sky 600
-            secondary: '#38bdf8',  // Sky 400
-            accent: '#7dd3fc',     // Sky 300
-        },
-    },
+    // ... we can keep other predefined themes for quick switcher if needed, 
+    // or rely purely on dynamic theme which comes from backend.
+    // For now keeping 'Serene Slate' as fallback default.
 ];
 
 interface ThemeContextType {
     currentTheme: Theme;
-    setTheme: (theme: Theme) => void;
+    setTheme: (theme: Theme, persist?: boolean) => void;
     availableThemes: Theme[];
+    refreshTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [currentTheme, setCurrentThemeState] = useState<Theme>(() => {
-        const savedThemeId = localStorage.getItem('app-theme-id');
-        const foundTheme = PREDEFINED_THEMES.find((t) => t.id === savedThemeId);
-        return foundTheme || PREDEFINED_THEMES[0];
-    });
+    const [currentTheme, setCurrentThemeState] = useState<Theme>(PREDEFINED_THEMES[0]);
 
-    const setTheme = (theme: Theme) => {
+    const setTheme = async (theme: Theme, persist = false) => {
+    // Optimistic update
         setCurrentThemeState(theme);
-        localStorage.setItem('app-theme-id', theme.id);
+
+        // If it's a dynamic backend update request
+        if (persist) {
+            try {
+                await themeService.updateByAppName('admin', {
+                    appName: 'admin',
+                    colors: theme.colors,
+                    name: theme.name
+                });
+                toast.success('Theme updated successfully');
+            } catch (error) {
+                console.error('Failed to update theme', error);
+                toast.error('Failed to update theme');
+            }
+        } else {
+            localStorage.setItem('app-theme-id', theme.id);
+        }
     };
+
+    const fetchBackendTheme = async () => {
+        try {
+            const res = await themeService.getByAppName('admin');
+            if (res.data) {
+                setCurrentThemeState({
+                    id: 'custom-backend',
+                    name: res.data.name || 'Custom Theme',
+                    colors: res.data.colors
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch theme', error);
+            // Fallback to local storage or default
+            const savedThemeId = localStorage.getItem('app-theme-id');
+            const foundTheme = PREDEFINED_THEMES.find((t) => t.id === savedThemeId);
+            if (foundTheme) setCurrentThemeState(foundTheme);
+        }
+    };
+
+    useEffect(() => {
+        fetchBackendTheme();
+    }, []);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -165,7 +97,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [currentTheme]);
 
     return (
-        <ThemeContext.Provider value={{ currentTheme, setTheme, availableThemes: PREDEFINED_THEMES }}>
+        <ThemeContext.Provider value={{
+            currentTheme,
+            setTheme,
+            availableThemes: PREDEFINED_THEMES,
+            refreshTheme: fetchBackendTheme
+        }}>
             {children}
         </ThemeContext.Provider>
     );
@@ -178,3 +115,4 @@ export const useTheme = () => {
     }
     return context;
 };
+

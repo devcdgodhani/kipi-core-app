@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { themeService } from '../services/theme.service';
 
 export type ThemeColors = {
     background: string;
@@ -140,21 +141,41 @@ interface ThemeContextType {
     currentTheme: Theme;
     setTheme: (theme: Theme) => void;
     availableThemes: Theme[];
+    refreshTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [currentTheme, setCurrentThemeState] = useState<Theme>(() => {
-        const savedThemeId = localStorage.getItem('app-theme-id');
-        const foundTheme = PREDEFINED_THEMES.find((t) => t.id === savedThemeId);
-        return foundTheme || PREDEFINED_THEMES[0];
-    });
+    const [currentTheme, setCurrentThemeState] = useState<Theme>(PREDEFINED_THEMES[0]);
 
     const setTheme = (theme: Theme) => {
         setCurrentThemeState(theme);
         localStorage.setItem('app-theme-id', theme.id);
     };
+
+    const fetchBackendTheme = async () => {
+        try {
+            const res = await themeService.getByAppName('customer');
+            if (res.data) {
+                setCurrentThemeState({
+                    id: 'custom-backend',
+                    name: res.data.name || 'Custom Theme',
+                    colors: res.data.colors
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch customer theme', error);
+            // Fallback to local storage or default
+            const savedThemeId = localStorage.getItem('app-theme-id');
+            const foundTheme = PREDEFINED_THEMES.find((t) => t.id === savedThemeId);
+            if (foundTheme) setCurrentThemeState(foundTheme);
+        }
+    };
+
+    useEffect(() => {
+        fetchBackendTheme();
+    }, []);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -165,7 +186,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [currentTheme]);
 
     return (
-        <ThemeContext.Provider value={{ currentTheme, setTheme, availableThemes: PREDEFINED_THEMES }}>
+        <ThemeContext.Provider value={{
+            currentTheme,
+            setTheme,
+            availableThemes: PREDEFINED_THEMES,
+            refreshTheme: fetchBackendTheme
+        }}>
             {children}
         </ThemeContext.Provider>
     );
@@ -178,3 +204,4 @@ export const useTheme = () => {
     }
     return context;
 };
+

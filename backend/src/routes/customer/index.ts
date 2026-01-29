@@ -24,6 +24,7 @@ import flashDealRoutes from './flashDealRoutes';
 import searchQueryRoutes from './searchQueryRoutes';
 import recentlyViewedRoutes from './recentlyViewedRoutes';
 import pushNotificationRoutes from './pushNotificationRoutes';
+import themeRoutes from './themeRoutes';
 
 
 const router = Router();
@@ -53,6 +54,7 @@ router.use('/flash-deal', flashDealRoutes);
 router.use('/search', searchQueryRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/push-notification', pushNotificationRoutes);
+router.use('/themes', themeRoutes);
 
 
 

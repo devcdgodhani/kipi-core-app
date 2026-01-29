@@ -59,6 +59,7 @@ export const ROUTES = {
         NDR_DASHBOARD: 'ndr-dashboard',
         ETA_TEST: 'eta-test',
         CRON_HUB: 'cron-hub',
+        THEME_SETTINGS: 'settings/theme',
 
         // Intelligence Section
         ANALYTICS_SALES: 'intelligence/sales',

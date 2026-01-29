@@ -35,6 +35,7 @@ import {
     Wallet,
     TrendingUp,
     PieChart as PieChartIcon,
+    Palette,
     type LucideIcon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -199,6 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             title: 'Settings',
             icon: Users,
             items: [
+                { to: '/settings/theme', label: 'Theme Settings', icon: Palette },
                 { to: '/users', label: 'Users', icon: Users },
                 { to: '/cron-hub', label: 'Cron Hub', icon: Cpu },
                 {

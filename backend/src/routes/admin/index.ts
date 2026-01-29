@@ -43,6 +43,8 @@ import notificationRoutes from './notificationRoutes';
 import flashDealRoutes from './flashDealRoutes';
 import searchQueryRoutes from './searchQueryRoutes';
 import financialRecordRoutes from './financialRecordRoutes';
+import themeRoutes from './themeRoutes';
+import pushNotificationRoutes from './pushNotificationRoutes';
 
 const router = Router();
 
@@ -96,6 +98,8 @@ router.use('/notification', jwtAuth(), notificationRoutes);
 router.use('/flash-deal', jwtAuth(), flashDealRoutes);
 router.use('/search-query', jwtAuth(), searchQueryRoutes);
 router.use('/financial-record', jwtAuth(), financialRecordRoutes);
+router.use('/themes', themeRoutes); // Auth middleware is in themeRoutes
+router.use('/push-notification', jwtAuth(), pushNotificationRoutes);
 
 router.use('/', paymentRoutes);
 
