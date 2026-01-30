@@ -1,0 +1,35 @@
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+import { store } from './src/store';
+import AppNavigator from './src/navigation/AppNavigator';
+import { CartProvider } from './src/context/CartContext';
+import { AddressProvider } from './src/context/AddressContext';
+import { WishlistProvider } from './src/context/WishlistContext';
+import { WalletProvider } from './src/context/WalletContext';
+import { NotificationProvider } from './src/context/NotificationContext';
+import { AuthProvider } from './src/context/AuthContext';
+import Toast from 'react-native-toast-message';
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Provider store={store}>
+        <CartProvider>
+          <AddressProvider>
+            <WishlistProvider>
+              <WalletProvider>
+                <NotificationProvider>
+                  <SafeAreaProvider>
+                    <AppNavigator />
+                    <Toast />
+                  </SafeAreaProvider>
+                </NotificationProvider>
+              </WalletProvider>
+            </WishlistProvider>
+          </AddressProvider>
+        </CartProvider>
+      </Provider>
+    </AuthProvider>
+  );
+}
