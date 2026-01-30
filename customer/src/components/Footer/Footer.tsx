@@ -31,10 +31,22 @@ const Footer: React.FC = () => {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">
-                                {brand.name.charAt(0)}
-                            </div>
-                            <span className="font-bold tracking-widest text-xs uppercase text-primary">{brand.name}</span>
+                            {useCustomerAppSettings().settings?.logo ? (
+                                <img
+                                    src={typeof useCustomerAppSettings().settings?.logo === 'string'
+                                        ? useCustomerAppSettings().settings?.logo as string
+                                        : (useCustomerAppSettings().settings?.logo as any)?.preSignedUrl}
+                                    alt={brand.name}
+                                    className="h-8 w-auto object-contain"
+                                />
+                            ) : (
+                                <>
+                                        <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">
+                                            {brand.name.charAt(0)}
+                                        </div>
+                                        <span className="font-bold tracking-widest text-xs uppercase text-primary">{brand.name}</span>
+                                </>
+                            )}
                         </div>
                         <p className="text-gray-500 text-sm leading-relaxed">
                             {brand.description}

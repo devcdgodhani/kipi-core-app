@@ -1,13 +1,14 @@
 import { Document, ObjectId } from 'mongoose';
 import { CUSTOMER_APP_SETTINGS_STATUS } from '../constants/customerAppSettings';
 import { IDefaultAttributes } from './common';
+import { IFileStorageAttributes } from './fileStorage';
 
 export interface ICustomerAppSettingsAttributes extends IDefaultAttributes {
   _id: ObjectId;
   
   // Home page sections configuration
   sections: Array<{
-    sectionId: string; // BANNER, FLASH_DEALS, FEATURES, NEW_ARRIVALS, RECENTLY_VIEWED, RECOMMENDATIONS
+    sectionId: string;
     isVisible: boolean;
     displayOrder: number;
     title?: string;
@@ -58,9 +59,9 @@ export interface ICustomerAppSettingsAttributes extends IDefaultAttributes {
   };
   
   // Branding
-  logo?: ObjectId; // FileStorage reference
+  logo?: ObjectId | IFileStorageAttributes;
   appName: string;
-  favicon?: ObjectId; // FileStorage reference
+  favicon?: ObjectId | IFileStorageAttributes;
   
   // System fields
   status: CUSTOMER_APP_SETTINGS_STATUS;

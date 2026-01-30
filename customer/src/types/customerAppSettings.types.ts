@@ -58,9 +58,9 @@ export interface CustomerAppSettings {
   sections: HomePageSection[];
   features: FeatureCard[];
   footer: FooterConfig;
-  logo?: string;
+  logo?: string | { _id: string; preSignedUrl: string };
   appName: string;
-  favicon?: string;
+  favicon?: string | { _id: string; preSignedUrl: string };
   status?: string;
   isDefault?: boolean;
 }

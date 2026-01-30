@@ -21,10 +21,6 @@ const Navbar: React.FC = () => {
     // ... existing hooks
 
     // ... Inside JSX
-    {/* Left: Logo */ }
-    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-        <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">{settings?.appName || 'KIPI'}</h1>
-    </div>
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -137,8 +133,18 @@ const Navbar: React.FC = () => {
         <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 transition-all duration-300 shadow-sm">
             <div className="h-20 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
                 {/* Left: Logo */}
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                    <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">KIPI</h1>
+                <div className="flex items-center gap-2 cursor-pointer h-full" onClick={() => navigate('/')}>
+                    {settings?.logo ? (
+                        <img
+                            src={typeof settings.logo === 'string' ? settings.logo : (settings.logo as any).preSignedUrl}
+                            alt={settings.appName || 'Logo'}
+                            className="h-10 w-auto object-contain"
+                        />
+                    ) : (
+                        <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">
+                            {settings?.appName || 'KIPI'}
+                        </h1>
+                    )}
                 </div>
 
                 {/* Center: Categories (Desktop) */}

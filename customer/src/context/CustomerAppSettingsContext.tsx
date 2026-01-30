@@ -30,8 +30,16 @@ export const CustomerAppSettingsProvider: React.FC<{ children: ReactNode }> = ({
           document.title = data.appName;
         }
 
-        // Set favicon if available (This logic might need adjustment depending on how favicon is stored/served)
-        // For now, assuming favicon is a URL or handle logic elsewhere if it's a file ID
+        if (data.favicon) {
+          const faviconUrl = typeof data.favicon === 'string' ? data.favicon : data.favicon.preSignedUrl;
+          let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+          }
+          link.href = faviconUrl;
+        }
       } catch (err) {
         console.error('Failed to fetch app settings:', err);
         setError('Failed to load application settings');

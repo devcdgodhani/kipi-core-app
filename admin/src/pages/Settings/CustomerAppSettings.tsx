@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { customerAppSettingsService } from '../../services/customerAppSettings.service';
 import type { CustomerAppSettings, HomePageSection, FeatureCard, FooterColumn, SocialLink } from '../../types/customerAppSettings.types';
 import { toast } from 'react-hot-toast';
-import { Save, RotateCcw, Loader2, Layout, Star, FileText, Palette, Plus, Trash2, GripVertical, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
+import { Save, RotateCcw, Loader2, Layout, Star, FileText, Palette, Plus, Trash2, GripVertical, Eye, EyeOff, Image as ImageIcon, Upload, FolderOpen } from 'lucide-react';
+import { fileStorageService } from '../../services/fileStorage.service';
+import { FileManagerSelector } from '../../components/common/FileManagerSelector';
 
 type TabType = 'layout' | 'features' | 'footer' | 'branding';
 
@@ -12,6 +14,12 @@ const CustomerAppSettings: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [settings, setSettings] = useState<CustomerAppSettings | null>(null);
     const [originalSettings, setOriginalSettings] = useState<CustomerAppSettings | null>(null);
+
+    // File Upload State
+    const [isFileManagerOpen, setIsFileManagerOpen] = useState(false);
+    const [activeImageField, setActiveImageField] = useState<'logo' | 'favicon' | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         fetchSettings();
@@ -38,8 +46,18 @@ const CustomerAppSettings: React.FC = () => {
 
         setIsSaving(true);
         try {
-            await customerAppSettingsService.updateSettings(settings);
+            // Create a payload where logo and favicon are reduced to IDs if they are objects
+            const payload = {
+                ...settings,
+                logo: typeof settings.logo === 'object' && settings.logo ? settings.logo._id : settings.logo,
+                favicon: typeof settings.favicon === 'object' && settings.favicon ? settings.favicon._id : settings.favicon
+            };
+
+            await customerAppSettingsService.updateSettings(payload as any);
             toast.success('Settings updated successfully');
+
+            // We keep the full objects in local state for preview, but update originalSettings
+            // We might need to refresh from backend to get the canonical state, but reusing current settings is faster for UI
             setOriginalSettings(JSON.parse(JSON.stringify(settings)));
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -164,6 +182,57 @@ const CustomerAppSettings: React.FC = () => {
                 socialLinks: [...settings.footer.socialLinks, newLink],
             },
         });
+    };
+
+    const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.length || !activeImageField || !settings) return;
+
+        try {
+            setUploading(true);
+            const res = await fileStorageService.upload(
+                Array.from(e.target.files),
+                'settings/branding',
+                'branding'
+            );
+
+            if (res.data && Array.isArray(res.data) && res.data[0]) {
+                const file = res.data[0];
+                const update = activeImageField === 'logo'
+                    ? { logo: { _id: file._id, preSignedUrl: file.preSignedUrl || '' } }
+                    : { favicon: { _id: file._id, preSignedUrl: file.preSignedUrl || '' } };
+
+                setSettings({ ...settings, ...update });
+            }
+        } catch (err) {
+            console.error('Failed to upload asset', err);
+            toast.error('Upload failed');
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            setActiveImageField(null);
+        }
+    };
+
+    const handleFileSelect = (file: any) => {
+        if (!activeImageField || !settings) return;
+
+        const update = activeImageField === 'logo'
+            ? { logo: { _id: file._id, preSignedUrl: file.preSignedUrl || '' } }
+            : { favicon: { _id: file._id, preSignedUrl: file.preSignedUrl || '' } };
+
+        setSettings({ ...settings, ...update });
+        setIsFileManagerOpen(false);
+        setActiveImageField(null);
+    };
+
+    const triggerUpload = (field: 'logo' | 'favicon') => {
+        setActiveImageField(field);
+        setTimeout(() => fileInputRef.current?.click(), 0);
+    };
+
+    const openGallery = (field: 'logo' | 'favicon') => {
+        setActiveImageField(field);
+        setIsFileManagerOpen(true);
     };
 
     if (isLoading) {
@@ -768,34 +837,84 @@ const CustomerAppSettings: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo</label>
-                                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-primary/30 transition-colors bg-gray-50/30 text-center">
-                                    <input
-                                        type="text"
-                                        value={settings.logo || ''}
-                                        onChange={(e) => setSettings({ ...settings, logo: e.target.value })}
-                                        className="w-full p-2 bg-transparent border-b border-gray-200 focus:border-primary outline-none text-center text-sm font-mono mb-4"
-                                        placeholder="File Storage ID"
-                                    />
-                                    <div className="w-32 h-32 bg-gray-100 rounded-xl mx-auto flex items-center justify-center text-gray-300">
-                                        <ImageIcon size={32} />
+                            <div className="space-y-4">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Logo</label>
+                                <div className="border border-gray-100 rounded-[2rem] p-6 bg-gray-50/30 flex flex-col items-center gap-6 group hover:border-primary/20 hover:shadow-lg transition-all h-full">
+                                    <div className="w-full aspect-video rounded-2xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shadow-sm relative">
+                                        {settings.logo ? (
+                                            <img
+                                                src={typeof settings.logo === 'string' ? settings.logo : settings.logo.preSignedUrl}
+                                                alt="Logo"
+                                                className="max-w-[80%] max-h-[80%] object-contain"
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2 text-gray-300">
+                                                <ImageIcon size={48} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">No Logo Set</span>
+                                            </div>
+                                        )}
+                                        {uploading && activeImageField === 'logo' && (
+                                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                                                <Loader2 size={32} className="animate-spin text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="w-full grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => triggerUpload('logo')}
+                                            disabled={uploading}
+                                            className="py-3 px-4 bg-white border border-gray-200 rounded-xl text-gray-700 font-bold text-xs hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2 shadow-sm"
+                                        >
+                                            <Upload size={14} /> Direct Upload
+                                        </button>
+                                        <button
+                                            onClick={() => openGallery('logo')}
+                                            disabled={uploading}
+                                            className="py-3 px-4 bg-primary text-white rounded-xl font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                                        >
+                                            <FolderOpen size={14} /> Gallery
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Favicon</label>
-                                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-primary/30 transition-colors bg-gray-50/30 text-center">
-                                    <input
-                                        type="text"
-                                        value={settings.favicon || ''}
-                                        onChange={(e) => setSettings({ ...settings, favicon: e.target.value })}
-                                        className="w-full p-2 bg-transparent border-b border-gray-200 focus:border-primary outline-none text-center text-sm font-mono mb-4"
-                                        placeholder="File Storage ID"
-                                    />
-                                    <div className="w-16 h-16 bg-gray-100 rounded-xl mx-auto flex items-center justify-center text-gray-300">
-                                        <ImageIcon size={20} />
+                            <div className="space-y-4">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Favicon</label>
+                                <div className="border border-gray-100 rounded-[2rem] p-6 bg-gray-50/30 flex flex-col items-center gap-6 group hover:border-primary/20 hover:shadow-lg transition-all h-full">
+                                    <div className="w-32 h-32 rounded-2xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shadow-sm relative">
+                                        {settings.favicon ? (
+                                            <img
+                                                src={typeof settings.favicon === 'string' ? settings.favicon : settings.favicon.preSignedUrl}
+                                                alt="Favicon"
+                                                className="w-16 h-16 object-contain"
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2 text-gray-300">
+                                                <ImageIcon size={32} />
+                                                <span className="text-[9px] font-black uppercase tracking-widest">Empty</span>
+                                            </div>
+                                        )}
+                                        {uploading && activeImageField === 'favicon' && (
+                                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                                                <Loader2 size={24} className="animate-spin text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="w-full grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => triggerUpload('favicon')}
+                                            disabled={uploading}
+                                            className="py-3 px-4 bg-white border border-gray-200 rounded-xl text-gray-700 font-bold text-xs hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2 shadow-sm"
+                                        >
+                                            <Upload size={14} /> Upload
+                                        </button>
+                                        <button
+                                            onClick={() => openGallery('favicon')}
+                                            disabled={uploading}
+                                            className="py-3 px-4 bg-primary text-white rounded-xl font-bold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                                        >
+                                            <FolderOpen size={14} /> Gallery
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -803,6 +922,21 @@ const CustomerAppSettings: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            <FileManagerSelector
+                isOpen={isFileManagerOpen}
+                onClose={() => setIsFileManagerOpen(false)}
+                onSelect={handleFileSelect}
+                title={`Select ${activeImageField === 'logo' ? 'App Logo' : 'Favicon'}`}
+            />
+
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleDirectUpload}
+            />
         </div>
     );
 };
