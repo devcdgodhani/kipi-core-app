@@ -60,7 +60,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12">
                 {loading ? (
                     [...Array(limit)].map((_, i) => (
                         <div key={i} className="animate-pulse space-y-4">

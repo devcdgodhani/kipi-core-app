@@ -244,7 +244,7 @@ const ProductList: React.FC = () => {
                     {/* Products */}
                     {!loading && products.length > 0 && (
                         <>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-8 sm:gap-y-10">
                                 {products.map((product) => (
                                     <ProductCard key={product._id} product={product} />
                                 ))}

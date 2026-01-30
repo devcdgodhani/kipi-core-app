@@ -110,7 +110,7 @@ const Home: React.FC = () => {
                         </div>
 
                         {isProductsLoading ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                                 {[1, 2, 3, 4].map(n => (
                                     <div key={n} className="space-y-4 animate-pulse">
                                         <div className="aspect-[3/4] bg-primary/5 w-full" />
@@ -120,7 +120,7 @@ const Home: React.FC = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12">
                                     {newArrivals.slice(0, section.limit || 8).map((product) => (
                                         <div
                                             key={product._id}

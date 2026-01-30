@@ -133,25 +133,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-2 mt-3">
+                <div className="flex flex-col sm:flex-row gap-2 mt-3">
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock === 0 || adding}
-                        className="flex-1 py-2.5 px-4 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:border-secondary/20 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md"
+                        className="flex-1 py-2.5 px-3 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:border-secondary/20 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md"
                     >
                         {adding ? (
-                            <Loader2 size={16} className="animate-spin" />
+                            <Loader2 size={14} className="animate-spin" />
                         ) : (
                             <>
-                                <CartIcon size={16} />
-                                Cart
+                                    <CartIcon size={14} />
+                                    <span className="sm:inline">Cart</span>
                             </>
                         )}
                     </button>
                     <button
                         onClick={handleBuyNow}
                         disabled={product.stock === 0 || adding}
-                        className="flex-1 py-2.5 px-4 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
+                        className="flex-1 py-2.5 px-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
                     >
                         {product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
                     </button>

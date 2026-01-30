@@ -74,8 +74,8 @@ const CartPage: React.FC = () => {
                                 const itemId = item.skuId || item.productId;
 
                                 return (
-                                    <div key={item.skuId || item.productId} className="bg-background p-6 rounded-[2rem] shadow-sm border border-primary/10 flex gap-6 group hover:border-primary/20 transition-all">
-                                        <div className="w-32 h-32 bg-primary/5 rounded-2xl overflow-hidden flex-shrink-0 border border-primary/5 group-hover:scale-95 transition-transform duration-500">
+                                    <div key={item.skuId || item.productId} className="bg-background p-4 sm:p-6 rounded-[2rem] shadow-sm border border-primary/10 flex flex-col sm:flex-row gap-4 sm:gap-6 group hover:border-primary/20 transition-all">
+                                        <div className="w-full sm:w-32 h-48 sm:h-32 bg-primary/5 rounded-2xl overflow-hidden flex-shrink-0 border border-primary/5 group-hover:scale-95 transition-transform duration-500">
                                             <img
                                                 src={image}
                                                 alt={productRef?.name || 'Product'}
@@ -145,7 +145,7 @@ const CartPage: React.FC = () => {
                                         <div className="border-t border-primary/10 pt-6 flex justify-between items-center">
                                         <div>
                                                 <p className="text-xs text-secondary font-black uppercase tracking-widest mb-1">Total Pay</p>
-                                            <p className="text-4xl font-black text-primary font-mono tracking-tighter">₹{total.toFixed(2)}</p>
+                                                <p className="text-3xl sm:text-4xl font-black text-primary font-mono tracking-tighter">₹{total.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </div>

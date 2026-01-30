@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingBag, User, Heart, LogOut, ChevronDown, Package, MapPin, Settings, Undo2, Wallet, Bell } from 'lucide-react';
+import { ShoppingBag, User, Heart, LogOut, ChevronDown, Package, MapPin, Settings, Undo2, Wallet, Bell } from 'lucide-react';
 
 import { useAppSelector, useAppDispatch } from '../../features/hooks';
 import { logout } from '../../features/auth/authSlice';
@@ -23,7 +23,6 @@ const Navbar: React.FC = () => {
     // ... Inside JSX
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
@@ -188,19 +187,13 @@ const Navbar: React.FC = () => {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center justify-end gap-2 md:gap-4">
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden p-2 hover:bg-primary/10 rounded-full transition-colors"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        <Menu size={20} />
-                    </button>
-
+                {/* Right: Actions */}
+                <div className="flex items-center justify-end gap-1 sm:gap-4 md:gap-4">
                     {/* Search */}
-                    <div className="hidden md:block w-64 lg:w-80">
+                    <div className="hidden sm:block w-48 md:w-64 lg:w-80">
                         <SearchBar />
                     </div>
+
 
                     {/* Wishlist */}
                     <button
@@ -241,11 +234,11 @@ const Navbar: React.FC = () => {
                     <div className="relative" ref={profileRef}>
                         <button
                             onClick={() => setIsProfileOpen(!isProfileOpen)}
-                            className="flex items-center gap-2 p-2 text-gray-600 hover:text-primary transition-colors"
+                            className="flex items-center gap-1 sm:gap-2 p-2 text-gray-600 hover:text-primary transition-colors"
                         >
                             <User size={20} />
-                            {user && <span className="hidden lg:block text-xs font-bold uppercase tracking-widest">{user.firstName}</span>}
-                            <ChevronDown size={14} className={`hidden lg:block transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                            {user && <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest">{user.firstName}</span>}
+                            <ChevronDown size={14} className={`hidden sm:block transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {/* Profile Dropdown */}
@@ -290,66 +283,6 @@ const Navbar: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Mobile Menu Overlay */}
-            {isMenuOpen && (
-                <div className="fixed inset-0 bg-background z-50 flex flex-col animate-in slide-in-from-left duration-300 md:hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-primary/10">
-                        <span className="text-lg font-black uppercase tracking-widest">Menu</span>
-                        <button onClick={() => setIsMenuOpen(false)} className="p-2">
-                            <X size={24} />
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                        {/* Categories */}
-                        <div className="space-y-4">
-                            <p className="text-xs font-bold text-secondary/50 uppercase tracking-widest">Categories</p>
-                            {categories.map(category => (
-                                <div key={category._id}>
-                                    <button
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate(`${ROUTES.PRODUCTS.ROOT}?category=${category._id}`);
-                                        }}
-                                        className="block text-lg font-bold text-secondary hover:text-primary"
-                                    >
-                                        {category.name}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* User Menu Sections */}
-                        {userMenuSections.map((section, idx) => (
-                            <div key={idx} className="space-y-3">
-                                <p className="text-xs font-bold text-secondary/50 uppercase tracking-widest">{section.title}</p>
-                                {section.items.map(item => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <button
-                                            key={item.to}
-                                            onClick={() => { setIsMenuOpen(false); navigate(item.to); }}
-                                            className="flex items-center gap-3 text-sm font-medium text-secondary hover:text-primary"
-                                        >
-                                            <Icon size={18} />
-                                            {item.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ))}
-
-                        <div className="border-t border-primary/10 pt-6">
-                            <button
-                                onClick={() => { setIsMenuOpen(false); handleLogout(); }}
-                                className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-sm"
-                            >
-                                <LogOut size={16} /> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 };

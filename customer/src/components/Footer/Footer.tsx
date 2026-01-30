@@ -25,9 +25,9 @@ const Footer: React.FC = () => {
     };
 
     return (
-        <footer className="bg-primary/5 pt-16 pb-8 border-t border-primary/10 mt-auto">
+        <footer className="bg-primary/5 pt-12 sm:pt-16 pb-8 border-t border-primary/10 mt-auto">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-16">
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2">
