@@ -38,7 +38,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold text-gray-900">
+                <h3 className="text-2xl font-bold text-primary">
                     Reviews ({Array.isArray(reviews) ? reviews.length : 0})
                 </h3>
                 <button
@@ -50,31 +50,31 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
             </div>
 
             {loading ? (
-                <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+                <div className="text-center py-8 text-secondary/50">Loading reviews...</div>
             ) : reviews.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-2xl">
-                    <p className="text-gray-500 mb-2">No reviews yet</p>
-                    <p className="text-sm text-gray-400">Be the first to share your thoughts!</p>
+                    <div className="text-center py-12 bg-primary/5 rounded-2xl">
+                        <p className="text-secondary mb-2">No reviews yet</p>
+                        <p className="text-sm text-secondary/50">Be the first to share your thoughts!</p>
                 </div>
             ) : (
                 <div className="space-y-4">
                     {reviews.map((review) => (
-                        <div key={review._id} className="bg-white p-6 rounded-xl border border-gray-100">
+                        <div key={review._id} className="bg-background p-6 rounded-xl border border-primary/10">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500">
+                                    <div className="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center font-bold text-secondary">
                                         U
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-gray-900">User</h4>
-                                        <p className="text-xs text-gray-500">
+                                        <h4 className="font-semibold text-primary">User</h4>
+                                        <p className="text-xs text-secondary/50">
                                             {format(new Date(review.createdAt), 'MMM d, yyyy')}
                                         </p>
                                     </div>
                                 </div>
                                 <RatingStars rating={review.rating} size={16} />
                             </div>
-                            <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+                            <p className="text-secondary leading-relaxed">{review.comment}</p>
                         </div>
                     ))}
                 </div>

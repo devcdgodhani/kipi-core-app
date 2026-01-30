@@ -130,7 +130,7 @@ const Navbar: React.FC = () => {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 transition-all duration-300 shadow-sm">
+        <nav className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm z-50 transition-all duration-300 shadow-sm">
             <div className="h-20 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
                 {/* Left: Logo */}
                 <div className="flex items-center gap-2 cursor-pointer h-full" onClick={() => navigate('/')}>
@@ -158,7 +158,7 @@ const Navbar: React.FC = () => {
                         >
                             <button
                                 onClick={() => navigate(`${ROUTES.PRODUCTS.ROOT}?category=${category._id}`)}
-                                className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.1em] text-gray-600 hover:text-primary transition-colors py-2"
+                                className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.1em] text-secondary hover:text-primary transition-colors py-2"
                             >
                                 {category.name}
                                 {subcategories[category._id] && subcategories[category._id].length > 0 && (
@@ -168,7 +168,7 @@ const Navbar: React.FC = () => {
 
                             {/* Subcategories Dropdown */}
                             {hoveredCategory === category._id && subcategories[category._id] && subcategories[category._id].length > 0 && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-background rounded-none shadow-2xl border border-primary/10 py-2 animate-in fade-in zoom-in-95 duration-200">
                                     {subcategories[category._id].map(subcat => (
                                         <button
                                             key={subcat._id}
@@ -176,7 +176,7 @@ const Navbar: React.FC = () => {
                                                 setHoveredCategory(null);
                                                 navigate(`${ROUTES.PRODUCTS.ROOT}?category=${subcat._id}`);
                                             }}
-                                            className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors"
+                                            className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-secondary hover:bg-primary/5 hover:text-primary transition-colors"
                                         >
                                             {subcat.name}
                                         </button>
@@ -191,7 +191,7 @@ const Navbar: React.FC = () => {
                 <div className="flex items-center justify-end gap-2 md:gap-4">
                     {/* Mobile Menu Button */}
                     <button
-                        className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        className="md:hidden p-2 hover:bg-primary/10 rounded-full transition-colors"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         <Menu size={20} />
@@ -205,7 +205,7 @@ const Navbar: React.FC = () => {
                     {/* Wishlist */}
                     <button
                         onClick={() => navigate(ROUTES.WISHLIST)}
-                        className="p-2 text-gray-600 hover:text-primary transition-colors"
+                        className="p-2 text-secondary hover:text-primary transition-colors"
                     >
                         <Heart size={20} />
                     </button>
@@ -250,23 +250,23 @@ const Navbar: React.FC = () => {
 
                         {/* Profile Dropdown */}
                         {isProfileOpen && (
-                            <div className="absolute right-0 mt-4 w-64 bg-white rounded-none shadow-2xl border border-gray-100 py-3 animate-in fade-in zoom-in-95 duration-200">
-                                <div className="px-5 py-3 border-b border-gray-50 mb-2">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Signed in as</p>
+                            <div className="absolute right-0 mt-4 w-64 bg-background rounded-none shadow-2xl border border-primary/10 py-3 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="px-5 py-3 border-b border-primary/5 mb-2">
+                                    <p className="text-xs font-bold text-secondary/50 uppercase tracking-widest">Signed in as</p>
                                     <p className="text-sm font-bold text-primary truncate">{user?.email}</p>
                                 </div>
 
                                 {userMenuSections.map((section, idx) => (
                                     <div key={idx}>
                                         <div className="px-5 py-2">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{section.title}</p>
+                                            <p className="text-[10px] font-bold text-secondary/50 uppercase tracking-widest">{section.title}</p>
                                         </div>
                                         {section.items.map(item => {
                                             const Icon = item.icon;
                                             return (
                                                 <button
                                                     key={item.to}
-                                                    className="w-full text-left px-5 py-2.5 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors flex items-center gap-3"
+                                                    className="w-full text-left px-5 py-2.5 text-xs font-medium text-secondary hover:bg-primary/5 hover:text-primary transition-colors flex items-center gap-3"
                                                     onClick={() => { setIsProfileOpen(false); navigate(item.to); }}
                                                 >
                                                     <Icon size={16} />
@@ -274,13 +274,13 @@ const Navbar: React.FC = () => {
                                                 </button>
                                             );
                                         })}
-                                        {idx < userMenuSections.length - 1 && <div className="h-px bg-gray-100 my-2"></div>}
+                                        {idx < userMenuSections.length - 1 && <div className="h-px bg-primary/10 my-2"></div>}
                                     </div>
                                 ))}
 
-                                <div className="h-px bg-gray-100 my-2"></div>
+                                <div className="h-px bg-primary/10 my-2"></div>
                                 <button
-                                    className="w-full text-left px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                    className="w-full text-left px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/5 transition-colors flex items-center gap-2"
                                     onClick={() => { setIsProfileOpen(false); handleLogout(); }}
                                 >
                                     <LogOut size={14} /> Sign Out
@@ -293,8 +293,8 @@ const Navbar: React.FC = () => {
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-left duration-300 md:hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                <div className="fixed inset-0 bg-background z-50 flex flex-col animate-in slide-in-from-left duration-300 md:hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-primary/10">
                         <span className="text-lg font-black uppercase tracking-widest">Menu</span>
                         <button onClick={() => setIsMenuOpen(false)} className="p-2">
                             <X size={24} />
@@ -303,7 +303,7 @@ const Navbar: React.FC = () => {
                     <div className="flex-1 overflow-y-auto p-6 space-y-6">
                         {/* Categories */}
                         <div className="space-y-4">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Categories</p>
+                            <p className="text-xs font-bold text-secondary/50 uppercase tracking-widest">Categories</p>
                             {categories.map(category => (
                                 <div key={category._id}>
                                     <button
@@ -311,7 +311,7 @@ const Navbar: React.FC = () => {
                                             setIsMenuOpen(false);
                                             navigate(`${ROUTES.PRODUCTS.ROOT}?category=${category._id}`);
                                         }}
-                                        className="block text-lg font-bold text-gray-600 hover:text-primary"
+                                        className="block text-lg font-bold text-secondary hover:text-primary"
                                     >
                                         {category.name}
                                     </button>
@@ -322,14 +322,14 @@ const Navbar: React.FC = () => {
                         {/* User Menu Sections */}
                         {userMenuSections.map((section, idx) => (
                             <div key={idx} className="space-y-3">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{section.title}</p>
+                                <p className="text-xs font-bold text-secondary/50 uppercase tracking-widest">{section.title}</p>
                                 {section.items.map(item => {
                                     const Icon = item.icon;
                                     return (
                                         <button
                                             key={item.to}
                                             onClick={() => { setIsMenuOpen(false); navigate(item.to); }}
-                                            className="flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-primary"
+                                            className="flex items-center gap-3 text-sm font-medium text-secondary hover:text-primary"
                                         >
                                             <Icon size={18} />
                                             {item.label}
@@ -339,7 +339,7 @@ const Navbar: React.FC = () => {
                             </div>
                         ))}
 
-                        <div className="border-t border-gray-100 pt-6">
+                        <div className="border-t border-primary/10 pt-6">
                             <button
                                 onClick={() => { setIsMenuOpen(false); handleLogout(); }}
                                 className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-sm"

@@ -82,19 +82,19 @@ export const CheckoutPayment: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-primary/5 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md mx-auto">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+                    className="flex items-center text-secondary hover:text-primary mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back to Order
                 </button>
 
-                <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                <div className="bg-background rounded-2xl shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-xl font-bold text-gray-900">Select Payment Method</h1>
+                        <h1 className="text-xl font-bold text-primary">Select Payment Method</h1>
                         <ShieldCheck className="w-6 h-6 text-green-600" />
                     </div>
 
@@ -117,16 +117,16 @@ export const CheckoutPayment: React.FC = () => {
                     onClick={handlePayment}
                     disabled={!selectedGateway || paymentInitiating}
                     className={`
-            w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all
+            w-full py-4 rounded-xl font-bold text-background shadow-lg transition-all
             ${!selectedGateway || paymentInitiating
-                            ? 'bg-gray-300 cursor-not-allowed transform-none'
+                        ? 'bg-secondary/20 cursor-not-allowed transform-none'
                             : 'bg-primary hover:bg-primary/90 hover:scale-[1.02] shadow-primary/30'
                         }
           `}
                 >
                     {paymentInitiating ? (
                         <div className="flex items-center justify-center gap-2">
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
                             Processing...
                         </div>
                     ) : (
@@ -134,7 +134,7 @@ export const CheckoutPayment: React.FC = () => {
                     )}
                 </button>
 
-                <p className="text-center text-xs text-gray-400 mt-6">
+                <p className="text-center text-xs text-secondary mt-6">
                     Your payment information is encrypted and secure.
                 </p>
             </div>

@@ -10,9 +10,9 @@ interface GatewaySelectorProps {
 }
 
 const GatewayIcons: Record<string, React.ReactNode> = {
-    RAZORPAY: <CreditCard className="w-6 h-6 text-blue-600" />,
-    PHONEPE: <Smartphone className="w-6 h-6 text-purple-600" />,
-    PAYTM: <Wallet className="w-6 h-6 text-cyan-600" />
+    RAZORPAY: <CreditCard className="w-6 h-6 text-blue-500" />,
+    PHONEPE: <Smartphone className="w-6 h-6 text-purple-500" />,
+    PAYTM: <Wallet className="w-6 h-6 text-cyan-500" />
 };
 
 export const GatewaySelector: React.FC<GatewaySelectorProps> = ({
@@ -31,22 +31,22 @@ export const GatewaySelector: React.FC<GatewaySelectorProps> = ({
             relative flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all
             ${selectedGateway === gateway.name
                             ? 'border-primary bg-primary/5 shadow-md'
-                            : 'border-gray-100 hover:border-gray-200 bg-white'
+                        : 'border-primary/10 hover:border-primary/20 bg-background'
                         }
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}
                 >
                     <div className="flex-shrink-0 mr-4">
-                        {GatewayIcons[gateway.name] || <CreditCard className="w-6 h-6 text-gray-500" />}
+                        {GatewayIcons[gateway.name] || <CreditCard className="w-6 h-6 text-secondary" />}
                     </div>
                     <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{gateway.displayName}</h3>
-                        <p className="text-xs text-gray-500">Secure payment via {gateway.displayName}</p>
+                        <h3 className="font-bold text-primary">{gateway.displayName}</h3>
+                        <p className="text-xs text-secondary">Secure payment via {gateway.displayName}</p>
                     </div>
                     <div className="ml-4">
                         <div className={`
               w-5 h-5 rounded-full border-2 flex items-center justify-center
-              ${selectedGateway === gateway.name ? 'border-primary' : 'border-gray-300'}
+              ${selectedGateway === gateway.name ? 'border-primary' : 'border-primary/20'}
             `}>
                             {selectedGateway === gateway.name && (
                                 <div className="w-2.5 h-2.5 rounded-full bg-primary" />
@@ -57,7 +57,7 @@ export const GatewaySelector: React.FC<GatewaySelectorProps> = ({
             ))}
 
             {gateways.length === 0 && (
-                <div className="text-center p-6 bg-gray-50 rounded-xl text-gray-500 text-sm">
+                <div className="text-center p-6 bg-primary/5 rounded-xl text-secondary text-sm">
                     No payment gateways available at the moment.
                 </div>
             )}

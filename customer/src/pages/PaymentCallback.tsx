@@ -75,8 +75,8 @@ const PaymentCallback: React.FC = () => {
     }, [orderId]);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100">
+        <div className="min-h-screen bg-background/50 flex items-center justify-center px-4">
+            <div className="max-w-md w-full bg-background rounded-3xl shadow-xl p-8 text-center border border-primary/10">
                 {status === 'LOADING' && (
                     <div className="space-y-6">
                         <div className="relative w-20 h-20 mx-auto">
@@ -84,31 +84,31 @@ const PaymentCallback: React.FC = () => {
                             <Loader2 className="w-20 h-20 text-primary animate-spin" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Checking Status</h2>
-                            <p className="text-gray-500 mt-2">{message}</p>
+                            <h2 className="text-2xl font-bold text-primary">Checking Status</h2>
+                            <p className="text-secondary/50 mt-2">{message}</p>
                         </div>
                     </div>
                 )}
 
                 {status === 'SUCCESS' && (
                     <div className="space-y-6 animate-in fade-in zoom-in duration-500">
-                        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600">
+                        <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-600">
                             <CheckCircle2 size={48} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Payment Success!</h2>
-                            <p className="text-gray-500 mt-2 leading-relaxed">{message}</p>
+                            <h2 className="text-2xl font-bold text-primary">Payment Success!</h2>
+                            <p className="text-secondary/50 mt-2 leading-relaxed">{message}</p>
                         </div>
                         <div className="space-y-3 pt-4">
                             <button
                                 onClick={() => navigate(ROUTES.ORDERS)}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+                                className="w-full py-4 bg-primary text-background rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                             >
                                 View Order <ArrowRight size={20} />
                             </button>
                             <button
                                 onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}
-                                className="w-full py-4 bg-gray-100 text-gray-900 rounded-2xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-4 bg-primary/5 text-primary rounded-2xl font-bold hover:bg-primary/10 transition-all flex items-center justify-center gap-2 border border-primary/10"
                             >
                                 <ShoppingBag size={20} /> Continue Shopping
                             </button>
@@ -118,23 +118,23 @@ const PaymentCallback: React.FC = () => {
 
                 {status === 'FAILED' && (
                     <div className="space-y-6 animate-in fade-in zoom-in duration-500">
-                        <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600">
+                        <div className="w-24 h-24 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto text-rose-600">
                             <XCircle size={48} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Payment Failed</h2>
-                            <p className="text-gray-500 mt-2 leading-relaxed">{message}</p>
+                            <h2 className="text-2xl font-bold text-primary">Payment Failed</h2>
+                            <p className="text-secondary/50 mt-2 leading-relaxed">{message}</p>
                         </div>
                         <div className="space-y-3 pt-4">
                             <button
                                 onClick={() => navigate(`${ROUTES.PAYMENT.CHECKOUT.replace(':orderId', orderId!)}`)}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                                className="w-full py-4 bg-primary text-background rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
                             >
                                 Try Again
                             </button>
                             <button
                                 onClick={() => navigate(ROUTES.ROOT)}
-                                className="w-full py-4 bg-gray-100 text-gray-900 rounded-2xl font-bold hover:bg-gray-200 transition-all"
+                                className="w-full py-4 bg-primary/5 text-primary rounded-2xl font-bold hover:bg-primary/10 transition-all border border-primary/10"
                             >
                                 Back to Home
                             </button>

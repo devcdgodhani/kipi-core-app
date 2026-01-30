@@ -73,9 +73,9 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
     return (
         <div className="flex flex-col md:flex-row h-full">
             {/* Sidebar Tabs (Horizontal on mobile, Vertical on desktop) */}
-            <div className="w-full md:w-[280px] bg-white border-b md:border-b-0 md:border-r border-gray-100 flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto py-2 md:py-6 gap-2 md:gap-0 px-4 md:px-0 shrink-0 scrollbar-hide">
+            <div className="w-full md:w-[280px] bg-background border-b md:border-b-0 md:border-r border-primary/10 flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto py-2 md:py-6 gap-2 md:gap-0 px-4 md:px-0 shrink-0 scrollbar-hide">
                 <div className="hidden md:block px-6 mb-4">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Filter By</h3>
+                    <h3 className="text-xs font-black text-secondary/50 uppercase tracking-widest">Filter By</h3>
                 </div>
                 <div className="flex flex-row md:flex-col md:flex-1 md:overflow-y-auto gap-2 md:gap-0">
                     {[
@@ -93,50 +93,50 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`min-w-fit md:w-full text-left px-4 md:px-5 py-3 md:py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-between md:mt-1 group border md:border-0 ${activeTab === tab.id
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-100 border-primary'
-                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 border-gray-100'
+                                ? 'bg-primary text-background shadow-lg shadow-primary/20 scale-100 border-primary'
+                                : 'text-secondary hover:bg-primary/5 hover:text-primary border-primary/10'
                                 }`}
                         >
                             <span className="flex items-center gap-2">
                                 {tab.label}
                                 {tab.count > 0 && (
                                     <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[9px] ${activeTab === tab.id
-                                        ? 'bg-white text-primary'
-                                        : 'bg-primary text-white'
+                                        ? 'bg-background text-primary'
+                                        : 'bg-primary text-background'
                                         }`}>
                                         {tab.count}
                                     </span>
                                 )}
                             </span>
-                            {activeTab === tab.id && <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white" />}
+                            {activeTab === tab.id && <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-background" />}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-6 overflow-y-auto bg-white">
+            <div className="flex-1 p-6 overflow-y-auto bg-background">
                 {activeTab === 'category' && (
                     <div className="space-y-4 animate-in fade-in duration-300">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-900 uppercase tracking-wide text-sm">Select Categories</h3>
-                            <span className="text-xs text-gray-400">{categories.length} Found</span>
+                            <h3 className="font-bold text-primary uppercase tracking-wide text-sm">Select Categories</h3>
+                            <span className="text-xs text-secondary/50">{categories.length} Found</span>
                         </div>
                         <div className="space-y-3">
                             {categories.map((category) => (
                                 <label
                                     key={category._id}
                                     className={`flex items-center justify-between p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 group ${filters.categoryIds?.includes(category._id)
-                                        ? 'bg-white border-primary shadow-xl shadow-gray-100'
-                                        : 'bg-white border-transparent hover:border-gray-200 shadow-sm'
+                                        ? 'bg-background border-primary shadow-xl shadow-primary/5'
+                                        : 'bg-background border-transparent hover:border-primary/20 shadow-sm'
                                         }`}
                                 >
-                                    <span className={`text-sm font-bold uppercase tracking-wide transition-colors ${filters.categoryIds?.includes(category._id) ? 'text-primary' : 'text-gray-500'
+                                    <span className={`text-sm font-bold uppercase tracking-wide transition-colors ${filters.categoryIds?.includes(category._id) ? 'text-primary' : 'text-secondary'
                                         }`}>{category.name}</span>
 
                                     <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${filters.categoryIds?.includes(category._id)
                                         ? 'bg-primary border-primary'
-                                        : 'border-gray-200 bg-gray-50'
+                                        : 'border-primary/20 bg-primary/5'
                                         }`}>
                                         <input
                                             type="checkbox"
@@ -145,7 +145,7 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                             className="hidden"
                                         />
                                         {filters.categoryIds?.includes(category._id) && (
-                                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <svg className="w-3.5 h-3.5 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                             </svg>
                                         )}
@@ -162,7 +162,7 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
 
                         {/* Visual Progress Bar Slider Simulation */}
                         <div className="px-2">
-                            <div className="relative h-2 bg-gray-100 rounded-full mb-6">
+                            <div className="relative h-2 bg-primary/10 rounded-full mb-6">
                                 <div
                                     className="absolute h-full bg-primary rounded-full transition-all"
                                     style={{
@@ -177,28 +177,28 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Min Price</label>
+                                <label className="text-xs font-bold text-secondary uppercase">Min Price</label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/50 font-bold">$</span>
                                     <input
                                         type="number"
                                         placeholder="0"
                                         value={filters.minPrice || ''}
                                         onChange={(e) => handlePriceChange(Number(e.target.value) || undefined, filters.maxPrice)}
-                                        className="w-full pl-8 pr-4 py-3 bg-gray-50 border-gray-200 rounded-xl text-sm font-bold focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                        className="w-full pl-8 pr-4 py-3 bg-primary/5 border-primary/10 text-primary rounded-xl text-sm font-bold focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Max Price</label>
+                                <label className="text-xs font-bold text-secondary uppercase">Max Price</label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/50 font-bold">$</span>
                                     <input
                                         type="number"
                                         placeholder="Any"
                                         value={filters.maxPrice || ''}
                                         onChange={(e) => handlePriceChange(filters.minPrice, Number(e.target.value) || undefined)}
-                                        className="w-full pl-8 pr-4 py-3 bg-gray-50 border-gray-200 rounded-xl text-sm font-bold focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                        className="w-full pl-8 pr-4 py-3 bg-primary/5 border-primary/10 text-primary rounded-xl text-sm font-bold focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>
@@ -212,8 +212,8 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                     return (
                         <div className="space-y-4 animate-in fade-in duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-gray-900 uppercase tracking-wide text-sm">{attr.name}</h3>
-                                <span className="text-xs text-gray-400">{attr.options.length} Options</span>
+                                <h3 className="font-bold text-primary uppercase tracking-wide text-sm">{attr.name}</h3>
+                                <span className="text-xs text-secondary/50">{attr.options.length} Options</span>
                             </div>
 
                             {/* Color Grid or List */}
@@ -225,13 +225,13 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                             onClick={() => handleAttributeToggle(attr._id, option.value)}
                                             className={`aspect-square rounded-full border-2 flex items-center justify-center transition-all ${filters.attributes?.[attr._id]?.includes(option.value)
                                                 ? 'border-primary ring-2 ring-primary ring-offset-2'
-                                                : 'border-transparent hover:border-gray-200'
+                                                : 'border-transparent hover:border-primary/20'
                                                 }`}
                                             title={option.label}
                                             style={{ backgroundColor: option.color || option.value }}
                                         >
                                             {filters.attributes?.[attr._id]?.includes(option.value) && (
-                                                <svg className="w-4 h-4 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <svg className="w-4 h-4 text-background drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
@@ -244,16 +244,16 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                         <label
                                             key={option.value}
                                             className={`flex items-center justify-between p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 group ${filters.attributes?.[attr._id]?.includes(option.value)
-                                                ? 'bg-white border-primary shadow-xl shadow-gray-100'
-                                                : 'bg-white border-transparent hover:border-gray-200 shadow-sm'
+                                                ? 'bg-background border-primary shadow-xl shadow-primary/5'
+                                                : 'bg-background border-transparent hover:border-primary/20 shadow-sm'
                                                 }`}
                                         >
-                                            <span className={`text-sm font-bold uppercase tracking-wide transition-colors ${filters.attributes?.[attr._id]?.includes(option.value) ? 'text-primary' : 'text-gray-500'
+                                            <span className={`text-sm font-bold uppercase tracking-wide transition-colors ${filters.attributes?.[attr._id]?.includes(option.value) ? 'text-primary' : 'text-secondary'
                                                 }`}>{option.label}</span>
 
                                             <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${filters.attributes?.[attr._id]?.includes(option.value)
                                                 ? 'bg-primary border-primary'
-                                                : 'border-gray-200 bg-gray-50'
+                                                : 'border-primary/20 bg-primary/5'
                                                 }`}>
                                                 <input
                                                     type="checkbox"
@@ -262,7 +262,7 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                                     className="hidden"
                                                 />
                                                 {filters.attributes?.[attr._id]?.includes(option.value) && (
-                                                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                    <svg className="w-3.5 h-3.5 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 )}
@@ -277,11 +277,11 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
 
                 {activeTab === 'status' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        <h3 className="font-bold text-gray-900 uppercase tracking-wide text-sm">Availability</h3>
-                        <label className="flex items-center gap-3 cursor-pointer group p-3 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors">
+                        <h3 className="font-bold text-primary uppercase tracking-wide text-sm">Availability</h3>
+                        <label className="flex items-center gap-3 cursor-pointer group p-3 border border-primary/10 rounded-xl hover:border-primary/20 transition-colors">
                             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${filters.inStock
-                                ? 'bg-primary border-primary text-white'
-                                : 'border-gray-200 group-hover:border-primary'
+                                ? 'bg-primary border-primary text-background'
+                                : 'border-primary/20 group-hover:border-primary'
                                 }`}>
                                 {filters.inStock && (
                                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -295,14 +295,14 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                 onChange={(e) => onFilterChange({ ...filters, inStock: e.target.checked })}
                                 className="hidden"
                             />
-                            <span className="text-sm font-bold text-gray-700">In Stock Only</span>
+                            <span className="text-sm font-bold text-secondary">In Stock Only</span>
                         </label>
                     </div>
                 )}
 
                 {activeTab === 'sort' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        <h3 className="font-bold text-gray-900 uppercase tracking-wide text-sm">Sort Preference</h3>
+                        <h3 className="font-bold text-primary uppercase tracking-wide text-sm">Sort Preference</h3>
                         <div className="space-y-2">
                             {[
                                 { value: 'createdAt-desc', label: 'Newest First' },
@@ -319,8 +319,8 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                                         handleSortChange(sortBy, sortOrder as 'asc' | 'desc');
                                     }}
                                     className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${`${filters.sortBy || 'createdAt'}-${filters.sortOrder || 'desc'}` === option.value
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                        ? 'bg-primary text-background shadow-lg shadow-primary/20'
+                                        : 'bg-primary/5 text-secondary hover:bg-primary/10'
                                         }`}
                                 >
                                     {option.label}

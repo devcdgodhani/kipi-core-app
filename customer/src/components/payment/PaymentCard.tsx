@@ -30,18 +30,18 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onClick }) =>
         <div
             onClick={() => onClick && onClick(payment)}
             className={`
-        bg-white p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all
+        bg-background p-4 rounded-xl border border-primary/10 hover:border-primary/20 hover:shadow-sm transition-all
         ${onClick ? 'cursor-pointer group' : ''}
       `}
         >
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-gray-500" />
+                    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-secondary" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-gray-900 uppercase">{payment.gatewayName}</p>
-                        <p className="text-xs text-gray-500">{formatDate(payment.createdAt)}</p>
+                        <p className="text-sm font-medium text-primary uppercase">{payment.gatewayName}</p>
+                        <p className="text-xs text-secondary">{formatDate(payment.createdAt)}</p>
                     </div>
                 </div>
                 <PaymentStatusBadge status={payment.status} size="sm" />
@@ -49,13 +49,13 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ payment, onClick }) =>
 
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Amount</p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-xs text-secondary uppercase tracking-wider mb-0.5">Amount</p>
+                    <p className="text-lg font-bold text-primary">
                         {formatCurrency(payment.amount, payment.currency)}
                     </p>
                 </div>
                 {onClick && (
-                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-secondary/30 group-hover:text-primary transition-colors" />
                 )}
             </div>
         </div>

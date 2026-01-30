@@ -35,7 +35,7 @@ const RatingStars: React.FC<RatingStarsProps> = ({
                 ) : isHalf ? (
                     <StarHalf size={size} className="fill-yellow-400 text-yellow-400" />
                 ) : (
-                    <Star size={size} className="text-gray-300" />
+                            <Star size={size} className="text-secondary/30" />
                 )}
             </button>
         );

@@ -75,7 +75,7 @@ const Register: React.FC = () => {
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 rounded-lg text-sm">
                         {error}
                     </div>
                 )}

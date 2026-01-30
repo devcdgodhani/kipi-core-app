@@ -53,20 +53,20 @@ export const PaymentHistory: React.FC = () => {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 pt-6 px-4">
+        <div className="min-h-screen bg-background/50 pb-20 pt-6 px-4">
             <div className="max-w-2xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
                         <History className="w-6 h-6" />
                         Payment History
                     </h1>
 
                     <div className="relative">
-                        <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary/50" />
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="pl-9 pr-8 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-primary appearance-none"
+                            className="pl-9 pr-8 py-2 bg-background border border-primary/10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary appearance-none text-primary"
                         >
                             <option value="ALL">All Status</option>
                             <option value="SUCCESS">Success</option>
@@ -80,13 +80,13 @@ export const PaymentHistory: React.FC = () => {
                 {loading ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-white h-24 rounded-xl animate-pulse" />
+                            <div key={i} className="bg-primary/5 h-24 rounded-xl animate-pulse" />
                         ))}
                     </div>
                 ) : filteredPayments.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 font-medium">No payments found</p>
+                        <div className="text-center py-12 bg-background rounded-2xl shadow-sm border border-primary/10">
+                            <Search className="w-12 h-12 text-secondary/20 mx-auto mb-4" />
+                            <p className="text-secondary/50 font-medium">No payments found</p>
                     </div>
                 ) : (
                     <div className="space-y-4">

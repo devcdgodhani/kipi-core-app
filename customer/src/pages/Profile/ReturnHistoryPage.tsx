@@ -52,26 +52,26 @@ const ReturnHistoryPage: React.FC = () => {
                     <RotateCcw size={24} />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Return Protocols</h1>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-0.5">Track your reversal requests</p>
+                    <h1 className="text-2xl font-black text-primary uppercase tracking-tight">Return Protocols</h1>
+                    <p className="text-secondary text-xs font-bold uppercase tracking-widest mt-0.5">Track your reversal requests</p>
                 </div>
             </div>
 
             {returns.length === 0 ? (
-                <div className="bg-gray-50/50 rounded-[2rem] p-12 text-center border-2 border-dashed border-gray-100">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <Package className="w-10 h-10 text-gray-200" />
+                <div className="bg-primary/5 rounded-[2rem] p-12 text-center border-2 border-dashed border-primary/10">
+                    <div className="w-20 h-20 bg-background rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Package className="w-10 h-10 text-secondary/30" />
                     </div>
-                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">No Active Reversals</h2>
-                    <p className="text-gray-500 text-sm font-medium mb-8 max-w-xs mx-auto">You haven't initiated any return requests yet. All your future returns will be tracked here.</p>
+                    <h2 className="text-xl font-black text-primary uppercase tracking-tight mb-2">No Active Reversals</h2>
+                    <p className="text-secondary text-sm font-medium mb-8 max-w-xs mx-auto">You haven't initiated any return requests yet. All your future returns will be tracked here.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
                     {returns.map((item) => (
-                        <div key={item._id} className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+                        <div key={item._id} className="bg-background rounded-[2rem] p-6 border border-primary/10 shadow-sm hover:shadow-md transition-all duration-300 group">
                             <div className="flex flex-col md:flex-row justify-between gap-6">
                                 <div className="flex gap-6">
-                                    <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                    <div className="w-20 h-20 bg-primary/5 rounded-2xl overflow-hidden flex-shrink-0 border border-primary/10">
                                         <img
                                             src={item.productId?.mainImage || '/placeholder-product.png'}
                                             alt="Product"
@@ -80,12 +80,12 @@ const ReturnHistoryPage: React.FC = () => {
                                     </div>
                                     <div className="flex flex-col justify-center">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">#{item.orderId?.orderNumber || 'ORDER'}</span>
-                                            <span className="w-1 h-1 bg-gray-200 rounded-full" />
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{format(new Date(item.createdAt), 'MMM d, yyyy')}</span>
+                                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">#{item.orderId?.orderNumber || 'ORDER'}</span>
+                                            <span className="w-1 h-1 bg-secondary/30 rounded-full" />
+                                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{format(new Date(item.createdAt), 'MMM d, yyyy')}</span>
                                         </div>
-                                        <h3 className="font-bold text-gray-900 line-clamp-1">{item.productId?.name || 'Product'}</h3>
-                                        <p className="text-xs text-gray-500 font-medium mt-1">Reason: {item.reason}</p>
+                                        <h3 className="font-bold text-primary line-clamp-1">{item.productId?.name || 'Product'}</h3>
+                                        <p className="text-xs text-secondary font-medium mt-1">Reason: {item.reason}</p>
                                         {item.awb && (
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Pickup Tracking: {item.awb}</span>

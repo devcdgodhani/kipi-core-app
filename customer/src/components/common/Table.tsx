@@ -14,7 +14,7 @@ interface TableProps<T> {
 
 export function Table<T>({ data, columns, keyExtractor }: TableProps<T>) {
     return (
-        <div className="bg-white rounded-2xl border border-primary/10 overflow-hidden shadow-sm">
+        <div className="bg-background rounded-2xl border border-primary/10 overflow-hidden shadow-sm">
             <table className="w-full text-left">
                 <thead className="bg-primary text-white">
                     <tr>

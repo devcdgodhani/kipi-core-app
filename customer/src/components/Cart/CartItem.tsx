@@ -31,9 +31,9 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     }).format(price);
 
     return (
-        <div className="flex gap-4 py-4 border-b border-gray-100 last:border-0">
+        <div className="flex gap-4 py-4 border-b border-primary/10 last:border-0">
             {/* Image */}
-            <div className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+            <div className="w-20 h-20 bg-primary/5 rounded-lg overflow-hidden flex-shrink-0 border border-primary/10">
                 <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
             </div>
 
@@ -41,32 +41,32 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             <div className="flex-1 flex flex-col justify-between">
                 <div>
                     <div className="flex justify-between items-start">
-                        <h4 className="font-semibold text-gray-900 line-clamp-1">{name}</h4>
+                        <h4 className="font-semibold text-primary line-clamp-1">{name}</h4>
                         <button
                             onClick={() => removeItem(item.skuId || item.productId)}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                            className="text-secondary/50 hover:text-red-500 transition-colors p-1"
                         >
                             <Trash2 size={16} />
                         </button>
                     </div>
                     {skuRef?.skuCode && (
-                        <p className="text-xs text-gray-500">SKU: {skuRef.skuCode}</p>
+                        <p className="text-xs text-secondary">SKU: {skuRef.skuCode}</p>
                     )}
                 </div>
 
                 <div className="flex justify-between items-end">
-                    <div className="flex items-center border border-gray-200 rounded-lg bg-white">
+                    <div className="flex items-center border border-primary/10 rounded-lg bg-background">
                         <button
                             onClick={() => updateQuantity(item.skuId || item.productId, Math.max(1, item.quantity - 1))}
-                            className="p-1 px-2 hover:bg-gray-50 text-gray-600 disabled:opacity-50"
+                            className="p-1 px-2 hover:bg-primary/5 text-secondary disabled:opacity-50"
                             disabled={item.quantity <= 1}
                         >
                             <Minus size={14} />
                         </button>
-                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                        <span className="w-8 text-center text-sm font-medium text-primary">{item.quantity}</span>
                         <button
                             onClick={() => updateQuantity(item.skuId || item.productId, item.quantity + 1)}
-                            className="p-1 px-2 hover:bg-gray-50 text-gray-600"
+                            className="p-1 px-2 hover:bg-primary/5 text-secondary"
                         >
                             <Plus size={14} />
                         </button>

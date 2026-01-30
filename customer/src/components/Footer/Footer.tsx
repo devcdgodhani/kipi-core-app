@@ -25,7 +25,7 @@ const Footer: React.FC = () => {
     };
 
     return (
-        <footer className="bg-gray-50 pt-16 pb-8 border-t border-gray-100 mt-auto">
+        <footer className="bg-primary/5 pt-16 pb-8 border-t border-primary/10 mt-auto">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Brand Column */}
@@ -48,10 +48,10 @@ const Footer: React.FC = () => {
                                 </>
                             )}
                         </div>
-                        <p className="text-gray-500 text-sm leading-relaxed">
+                        <p className="text-secondary text-sm leading-relaxed">
                             {brand.description}
                         </p>
-                        <div className="flex items-center gap-4 text-gray-400">
+                        <div className="flex items-center gap-4 text-secondary/50">
                             {footer.socialLinks.filter(l => l.isActive).map((link, idx) => (
                                 <a
                                     key={idx}
@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
                     {footer.columns.sort((a, b) => a.displayOrder - b.displayOrder).map((column, idx) => (
                         <div key={idx}>
                             <h4 className="font-bold text-primary mb-6 uppercase text-xs tracking-widest">{column.title}</h4>
-                            <ul className="space-y-4 text-sm text-gray-500">
+                            <ul className="space-y-4 text-sm text-secondary">
                                 {column.links.filter(l => l.isActive).map((link, linkIdx) => (
                                     <li key={linkIdx}>
                                         <a href={link.url} className="hover:text-primary transition-colors">
@@ -87,7 +87,7 @@ const Footer: React.FC = () => {
                     {(footer.columns.length < 3) && (
                         <div>
                             <h4 className="font-bold text-primary mb-6 uppercase text-xs tracking-widest">Contact</h4>
-                            <ul className="space-y-4 text-sm text-gray-500">
+                            <ul className="space-y-4 text-sm text-secondary">
                                 {contact.address && (
                                     <li className="flex items-center gap-2">
                                         <LucideIcons.MapPin size={16} className="text-primary shrink-0" />
@@ -111,9 +111,9 @@ const Footer: React.FC = () => {
                     )}
                 </div>
 
-                <div className="pt-8 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-xs text-gray-400">{footer.copyright}</p>
-                    <div className="flex items-center gap-6 text-xs text-gray-400">
+                <div className="pt-8 border-t border-primary/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p className="text-xs text-secondary/50">{footer.copyright}</p>
+                    <div className="flex items-center gap-6 text-xs text-secondary/50">
                         <span className="flex items-center gap-2"><LucideIcons.Globe size={14} /> {footer.language}</span>
                         <span>{footer.currency}</span>
                     </div>

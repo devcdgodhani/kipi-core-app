@@ -156,21 +156,21 @@ const ProductList: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-background">
 
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
                 {/* Toolbar */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-gray-100 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-primary/10 gap-4">
                     {/* Left: Filter & Count */}
                     <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
                         <button
                             onClick={() => setIsFilterModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 relative"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-background text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 relative"
                         >
                             <SlidersHorizontal size={16} />
                             Filters
                             {appliedFilterCount > 0 && (
-                                <span className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white text-primary text-[10px] font-black">
+                                <span className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-background text-primary text-[10px] font-black">
                                     {appliedFilterCount}
                                 </span>
                             )}
@@ -194,10 +194,10 @@ const ProductList: React.FC = () => {
 
 
                         <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Sort By</span>
+                            <span className="text-xs font-bold text-secondary uppercase tracking-widest whitespace-nowrap">Sort By</span>
                             <div className="relative flex-1 sm:flex-none">
                                 <select
-                                    className="w-full sm:w-auto appearance-none bg-transparent pl-2 pr-8 py-1 text-sm font-bold text-gray-900 focus:outline-none cursor-pointer uppercase tracking-wide"
+                                    className="w-full sm:w-auto appearance-none bg-transparent pl-2 pr-8 py-1 text-sm font-bold text-primary focus:outline-none cursor-pointer uppercase tracking-wide"
                                     onChange={handleSortChange}
                                     value={`${filters.sortBy}-${filters.sortOrder}`}
                                 >
@@ -206,7 +206,7 @@ const ProductList: React.FC = () => {
                                     <option value="basePrice-desc">Price: High to Low</option>
                                     <option value="name-asc">Name: A-Z</option>
                                 </select>
-                                <ArrowUpDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <ArrowUpDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                             </div>
                         </div>
                     </div>
@@ -219,8 +219,8 @@ const ProductList: React.FC = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
                                 <div key={n} className="space-y-4 animate-pulse">
-                                    <div className="aspect-[3/4] bg-gray-100 w-full rounded-2xl" />
-                                    <div className="h-4 bg-gray-100 w-2/3 rounded" />
+                                    <div className="aspect-[3/4] bg-primary/5 w-full rounded-2xl" />
+                                    <div className="h-4 bg-primary/5 w-2/3 rounded" />
                                 </div>
                             ))}
                         </div>
@@ -230,11 +230,11 @@ const ProductList: React.FC = () => {
                     {!loading && products.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-32 text-center">
                             <span className="text-4xl mb-4">🍂</span>
-                            <h3 className="text-xl font-bold uppercase tracking-tight text-gray-900 mb-2">No Products Found</h3>
-                            <p className="text-gray-500 mb-6 max-w-md">We couldn't find any items matching your filters. Try adjusting your search or category.</p>
+                            <h3 className="text-xl font-bold uppercase tracking-tight text-primary mb-2">No Products Found</h3>
+                            <p className="text-secondary mb-6 max-w-md">We couldn't find any items matching your filters. Try adjusting your search or category.</p>
                             <button
                                 onClick={handleClearFilters}
-                                className="px-6 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-colors rounded-xl"
+                                className="px-6 py-3 bg-primary text-background text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-colors rounded-xl"
                             >
                                 Clear Filters
                             </button>
@@ -258,8 +258,8 @@ const ProductList: React.FC = () => {
                                             key={page}
                                             onClick={() => handlePageChange(page)}
                                             className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all rounded-lg ${filters.page === page
-                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                                : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'}
+                                                ? 'bg-primary text-background shadow-lg shadow-primary/20'
+                                                : 'bg-background text-secondary hover:bg-primary/5 border border-primary/20'}
                                             `}
                                         >
                                             {page}
@@ -280,7 +280,7 @@ const ProductList: React.FC = () => {
                         <div className="w-full flex justify-end items-center gap-4">
                             <button
                                 onClick={handleClearTempFilters}
-                                className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-2"
+                                className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary hover:text-primary transition-colors flex items-center gap-2"
                             >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -290,7 +290,7 @@ const ProductList: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleApplyFilters}
-                                className="px-8 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                                className="px-8 py-3 bg-primary text-background text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                             >
                                 Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
                             </button>

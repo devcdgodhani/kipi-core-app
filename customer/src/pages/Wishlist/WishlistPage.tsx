@@ -57,7 +57,7 @@ const WishlistPage: React.FC = () => {
     };
 
     if (loading && !wishlist) {
-        return <div className="text-center py-20 text-gray-500">Loading wishlist...</div>
+        return <div className="text-center py-20 text-secondary">Loading wishlist...</div>
     }
 
     const items = wishlist?.products || [];
@@ -67,21 +67,21 @@ const WishlistPage: React.FC = () => {
             <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-3">
                     <Heart className="fill-red-500 text-red-500" size={32} />
-                    <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Saved Essentials</h1>
-                    <span className="text-gray-500 text-lg font-medium">({items.length})</span>
+                    <h1 className="text-2xl font-black text-primary uppercase tracking-tight">Saved Essentials</h1>
+                    <span className="text-secondary text-lg font-medium">({items.length})</span>
                 </div>
             </div>
 
             {items.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-                    <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="bg-background rounded-2xl p-12 text-center shadow-sm border border-primary/10">
+                    <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Heart size={48} className="text-red-300" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Your wishlist is empty</h2>
-                    <p className="text-gray-500 mb-8">Saving items for later helps you sort your shopping.</p>
+                    <h2 className="text-2xl font-bold text-primary mb-2">Your wishlist is empty</h2>
+                    <p className="text-secondary mb-8">Saving items for later helps you sort your shopping.</p>
                     <button
                         onClick={() => navigate('/products')}
-                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all"
+                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/90 transition-all"
                     >
                         Start Shopping <ArrowRight size={20} />
                     </button>
@@ -93,8 +93,8 @@ const WishlistPage: React.FC = () => {
 
                         if (typeof product === 'string') {
                             return (
-                                <div key={product} className="bg-white rounded-xl overflow-hidden shadow-sm p-4 border border-gray-100">
-                                    <p className="text-gray-500">Item ID: {product} (Unavailable)</p>
+                                <div key={product} className="bg-background rounded-xl overflow-hidden shadow-sm p-4 border border-primary/10">
+                                    <p className="text-secondary">Item ID: {product} (Unavailable)</p>
                                     <button
                                         onClick={() => removeFromWishlist(product)}
                                         className="text-red-500 text-sm mt-2"
@@ -110,9 +110,9 @@ const WishlistPage: React.FC = () => {
                         const price = product.offerPrice || product.salePrice || product.basePrice;
 
                         return (
-                            <div key={product._id} className="bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-gray-50">
+                            <div key={product._id} className="bg-background rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-primary/5">
                                 <div
-                                    className="relative aspect-square bg-gray-50 cursor-pointer overflow-hidden"
+                                    className="relative aspect-square bg-primary/5 cursor-pointer overflow-hidden"
                                     onClick={() => navigate(`/products/${product.slug || product._id}`)}
                                 >
                                     <img
@@ -125,7 +125,7 @@ const WishlistPage: React.FC = () => {
                                             e.stopPropagation();
                                             removeFromWishlist(product._id);
                                         }}
-                                        className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-md rounded-2xl text-gray-400 hover:text-red-500 transition-all shadow-sm transform hover:rotate-12"
+                                        className="absolute top-4 right-4 p-3 bg-background/90 backdrop-blur-md rounded-2xl text-secondary hover:text-red-500 transition-all shadow-sm transform hover:rotate-12"
                                     >
                                         <Trash2 size={18} />
                                     </button>
@@ -133,7 +133,7 @@ const WishlistPage: React.FC = () => {
 
                                 <div className="p-6">
                                     <h3
-                                        className="font-bold text-gray-900 mb-1 truncate cursor-pointer hover:text-primary transition-colors"
+                                        className="font-bold text-primary mb-1 truncate cursor-pointer hover:text-primary transition-colors"
                                         onClick={() => navigate(`/products/${product.slug || product._id}`)}
                                     >
                                         {product.name}
@@ -145,13 +145,13 @@ const WishlistPage: React.FC = () => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => moveToCart(product)}
-                                            className="flex-1 py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 py-4 bg-background text-primary border-2 border-primary rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2"
                                         >
                                             <ShoppingBag size={14} /> Add to Cart
                                         </button>
                                         <button
                                             onClick={() => buyNow(product)}
-                                            className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 py-4 bg-primary text-background rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
                                         >
                                             Buy Now
                                         </button>

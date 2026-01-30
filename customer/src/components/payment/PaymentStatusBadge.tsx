@@ -12,38 +12,38 @@ export const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status, 
             case 'SUCCESS':
                 return {
                     icon: CheckCircle2,
-                    color: 'text-green-600 bg-green-50 border-green-100',
+                    color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20',
                     label: 'Success'
                 };
             case 'FAILED':
                 return {
                     icon: XCircle,
-                    color: 'text-red-600 bg-red-50 border-red-100',
+                    color: 'text-rose-600 bg-rose-500/10 border-rose-500/20',
                     label: 'Failed'
                 };
             case 'PENDING':
             case 'INITIATED':
                 return {
                     icon: Clock,
-                    color: 'text-amber-600 bg-amber-50 border-amber-100',
+                    color: 'text-amber-600 bg-amber-500/10 border-amber-500/20',
                     label: 'Pending'
                 };
             case 'REFUNDED':
                 return {
                     icon: RotateCcw,
-                    color: 'text-blue-600 bg-blue-50 border-blue-100',
+                    color: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
                     label: 'Refunded'
                 };
             case 'PARTIAL_REFUND':
                 return {
                     icon: RotateCcw,
-                    color: 'text-blue-600 bg-blue-50 border-blue-100',
+                    color: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
                     label: 'Partially Refunded'
                 };
             default:
                 return {
                     icon: AlertCircle,
-                    color: 'text-gray-600 bg-gray-50 border-gray-100',
+                    color: 'text-secondary bg-primary/5 border-primary/10',
                     label: status
                 };
         }

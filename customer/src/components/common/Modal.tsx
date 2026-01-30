@@ -37,19 +37,19 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidthClasses[maxWidth as keyof typeof maxWidthClasses] || 'max-w-lg'} border border-gray-100 animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]`}>
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white shrinking-0">
-                    <h2 className="text-xl font-black uppercase tracking-tight text-gray-900">{title}</h2>
+            <div className={`bg-background rounded-2xl shadow-2xl w-full ${maxWidthClasses[maxWidth as keyof typeof maxWidthClasses] || 'max-w-lg'} border border-primary/10 animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]`}>
+                <div className="flex items-center justify-between p-6 border-b border-primary/10 bg-background shrinking-0">
+                    <h2 className="text-xl font-black uppercase tracking-tight text-primary">{title}</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
+                        className="p-2 text-secondary hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
                     >
                         <X size={20} />
                     </button>
                 </div>
                 <div className="overflow-auto flex-1">{children}</div>
                 {footer && (
-                    <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrinking-0">
+                    <div className="p-4 border-t border-primary/10 bg-primary/5 flex justify-end gap-3 shrinking-0">
                         {footer}
                     </div>
                 )}

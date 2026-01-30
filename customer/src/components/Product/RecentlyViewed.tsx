@@ -28,11 +28,11 @@ const RecentlyViewed: React.FC = () => {
     if (loading || !products || products.length === 0) return null;
 
     return (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-12 py-20 border-t border-gray-100">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-12 py-20 border-t border-primary/10">
             <div className="flex items-end justify-between">
                 <div>
                     <span className="text-xs font-bold text-accent uppercase tracking-widest mb-2 block">Pick up where you left off</span>
-                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">Recently Viewed</h2>
+                    <h2 className="text-3xl font-black text-primary uppercase tracking-tight">Recently Viewed</h2>
                 </div>
             </div>
 
@@ -43,7 +43,7 @@ const RecentlyViewed: React.FC = () => {
                         className="group cursor-pointer space-y-4"
                         onClick={() => navigate(ROUTES.PRODUCTS.DETAILS.replace(':id', product._id))}
                     >
-                        <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
+                        <div className="aspect-[3/4] bg-primary/5 relative overflow-hidden">
                             {product.media?.[0]?.url ? (
                                 <img
                                     src={(product.media[0].fileStorageId as any)?.preSignedUrl || product.media[0].url}
@@ -51,17 +51,17 @@ const RecentlyViewed: React.FC = () => {
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
+                                    <div className="w-full h-full flex items-center justify-center bg-primary/5 text-secondary/30">
                                     <ShoppingBag size={48} />
                                 </div>
                             )}
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1 uppercase tracking-wide">
+                            <h3 className="text-sm font-bold text-primary group-hover:text-primary transition-colors line-clamp-1 uppercase tracking-wide">
                                 {product.name}
                             </h3>
-                            <p className="text-sm font-medium text-gray-500 mt-1">
+                            <p className="text-sm font-medium text-secondary mt-1">
                                 ₹ {product.basePrice}
                             </p>
                         </div>

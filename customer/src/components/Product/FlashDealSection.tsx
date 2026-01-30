@@ -92,30 +92,30 @@ const FlashDealSection: React.FC<FlashDealSectionProps> = ({ title, subtitle }) 
     return (
         <section className="bg-primary/5 py-12">
             <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-6">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-primary/10 pb-6">
                     <div>
                         <div className="flex items-center gap-2 text-red-600 mb-2">
                             <Zap size={20} fill="currentColor" />
                             <span className="text-xs font-bold uppercase tracking-widest">{subtitle || 'Limited Time Offers'}</span>
                         </div>
-                        <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-3">
+                        <h2 className="text-3xl font-black text-primary uppercase tracking-tight flex items-center gap-3">
                             {title || 'Flash Deals'}
                         </h2>
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-                            <Clock size={18} className="text-gray-400" />
+                        <div className="flex items-center gap-3 bg-background px-4 py-2 rounded-lg shadow-sm border border-primary/10">
+                            <Clock size={18} className="text-secondary/50" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase font-bold leading-none">Ending In</span>
-                                <span className="text-lg font-mono font-bold text-gray-900 leading-tight tracking-tighter">
+                                <span className="text-[10px] text-secondary/50 uppercase font-bold leading-none">Ending In</span>
+                                <span className="text-lg font-mono font-bold text-primary leading-tight tracking-tighter">
                                     {timeLeft}
                                 </span>
                             </div>
                         </div>
                         <button
                             onClick={() => navigate(ROUTES.PRODUCTS.ROOT)}
-                            className="hidden md:flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-primary transition-colors"
+                            className="hidden md:flex items-center gap-1 text-sm font-bold text-secondary hover:text-primary transition-colors"
                         >
                             View All <ChevronRight size={16} />
                         </button>

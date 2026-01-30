@@ -74,7 +74,7 @@ const BannerSlider: React.FC = () => {
     const prev = () => setCurrent((prev) => (prev - 1 + banners.length) % banners.length);
 
     return (
-        <section className="relative h-[70vh] min-h-[500px] w-full bg-gray-900 overflow-hidden group">
+        <section className="relative h-[70vh] min-h-[500px] w-full bg-primary overflow-hidden group">
             {banners.map((banner, index) => {
                 const getImageUrl = () => {
                     const mobileImg = typeof banner.mobileImageId === 'object' ? banner.mobileImageId?.preSignedUrl : banner.mobileImageId;
@@ -96,7 +96,7 @@ const BannerSlider: React.FC = () => {
                             alt={banner.title}
                             className="w-full h-full object-cover opacity-60 transition-all duration-700"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
 
                         <div className="relative z-10 h-full max-w-7xl mx-auto px-4 md:px-8 flex items-center">
                             <div className={`max-w-2xl space-y-8 transition-all duration-1000 ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -113,7 +113,7 @@ const BannerSlider: React.FC = () => {
                                             e.stopPropagation();
                                             handleNavigation(banner);
                                         }}
-                                        className="px-8 py-4 bg-white text-gray-900 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-colors"
+                                        className="px-8 py-4 bg-background text-primary text-sm font-black uppercase tracking-widest hover:bg-background/90 transition-colors"
                                     >
                                         Shop Now
                                     </button>
@@ -128,13 +128,13 @@ const BannerSlider: React.FC = () => {
                 <>
                     <button
                         onClick={prev}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-background/10 hover:bg-background/20 text-background backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100"
                     >
                         <ChevronLeft size={24} />
                     </button>
                     <button
                         onClick={next}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-background/10 hover:bg-background/20 text-background backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100"
                     >
                         <ChevronRight size={24} />
                     </button>
@@ -144,7 +144,7 @@ const BannerSlider: React.FC = () => {
                             <button
                                 key={i}
                                 onClick={() => setCurrent(i)}
-                                className={`w-8 h-1 transition-all ${i === current ? 'bg-white' : 'bg-white/30 hover:bg-white/50'
+                                className={`w-8 h-1 transition-all ${i === current ? 'bg-background' : 'bg-background/30 hover:bg-background/50'
                                     }`}
                             />
                         ))}

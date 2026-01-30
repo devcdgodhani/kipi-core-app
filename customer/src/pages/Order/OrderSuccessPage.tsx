@@ -7,21 +7,21 @@ const OrderSuccessPage: React.FC = () => {
     const { orderId } = useParams();
 
     return (
-        <div className="min-h-[60vh] flex flex-col justify-center items-center bg-gray-50 px-4 py-12">
-            <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
+        <div className="min-h-[60vh] flex flex-col justify-center items-center bg-primary/5 px-4 py-12">
+            <div className="bg-background p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
 
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
-                <p className="text-gray-500 mb-6">
+                <h1 className="text-2xl font-bold text-primary mb-2">Order Placed Successfully!</h1>
+                <p className="text-secondary mb-6">
                     Thank you for your purchase. Your order has been received and is being processed.
                 </p>
 
                 {orderId && (
-                    <div className="bg-gray-50 py-3 px-4 rounded-lg mb-6">
-                        <p className="text-sm text-gray-500 mb-1">Order Number (Ref)</p>
-                        <p className="text-sm font-mono font-bold text-gray-900 overflow-hidden text-ellipsis">{orderId}</p>
+                    <div className="bg-primary/5 py-3 px-4 rounded-lg mb-6">
+                        <p className="text-sm text-secondary mb-1">Order Number (Ref)</p>
+                        <p className="text-sm font-mono font-bold text-primary overflow-hidden text-ellipsis">{orderId}</p>
                     </div>
                 )}
 
@@ -34,7 +34,7 @@ const OrderSuccessPage: React.FC = () => {
                     </button>
                     <button
                         onClick={() => navigate('/')}
-                        className="w-full py-3 text-gray-600 font-semibold hover:bg-gray-50 rounded-xl transition-colors"
+                        className="w-full py-3 text-secondary font-semibold hover:bg-primary/5 rounded-xl transition-colors"
                     >
                         Continue Shopping
                     </button>

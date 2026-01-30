@@ -44,29 +44,29 @@ const InvoicePage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col justify-center items-center gap-4 bg-gray-50">
+            <div className="min-h-screen flex flex-col justify-center items-center gap-4 bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                <p className="text-gray-500 font-medium">Authenticating Invoice Generation...</p>
+                <p className="text-secondary/50 font-medium">Authenticating Invoice Generation...</p>
             </div>
         );
     }
 
     if (!order) {
         return (
-            <div className="min-h-screen flex flex-col justify-center items-center bg-white p-6">
+            <div className="min-h-screen flex flex-col justify-center items-center bg-background p-6">
                 <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />
-                <h1 className="text-xl font-bold">Document Fetch Failure</h1>
-                <button onClick={() => navigate(-1)} className="mt-6 px-6 py-2 bg-primary text-white rounded-lg font-bold">Return to Dashboard</button>
+                <h1 className="text-xl font-bold text-primary">Document Fetch Failure</h1>
+                <button onClick={() => navigate(-1)} className="mt-6 px-6 py-2 bg-primary text-background rounded-lg font-bold">Return to Dashboard</button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100/50 py-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-background/50 py-12 px-4 sm:px-6">
             <div className="max-w-4xl mx-auto mb-8 flex items-center justify-between no-print">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 font-bold uppercase text-[10px] tracking-widest transition-all"
+                    className="flex items-center gap-2 text-secondary/50 hover:text-primary font-bold uppercase text-[10px] tracking-widest transition-all"
                 >
                     <ChevronLeft size={16} />
                     Exit Preview
@@ -74,12 +74,12 @@ const InvoicePage: React.FC = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handlePrint}
-                        className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-xl shadow-gray-200"
+                        className="flex items-center gap-2 px-6 py-3 bg-primary text-background rounded-xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20"
                     >
                         <Printer size={16} />
                         Execute Print
                     </button>
-                    <button className="p-3 bg-white text-gray-400 hover:text-primary rounded-xl border border-gray-100 hover:border-primary/20 transition-all shadow-sm">
+                    <button className="p-3 bg-background text-secondary/50 hover:text-primary rounded-xl border border-primary/10 hover:border-primary/20 transition-all shadow-sm">
                         <Mail size={20} />
                     </button>
                 </div>
@@ -88,7 +88,7 @@ const InvoicePage: React.FC = () => {
             {/* Neural Invoice Template */}
             <div
                 ref={invoiceRef}
-                className="max-w-4xl mx-auto bg-white shadow-2xl rounded-[2.5rem] overflow-hidden border border-gray-100 p-12 sm:p-20 relative invoice-paper"
+                className="max-w-4xl mx-auto bg-background shadow-2xl rounded-[2.5rem] overflow-hidden border border-primary/10 p-12 sm:p-20 relative invoice-paper"
             >
                 {/* Header Decoration */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-indigo-500 to-rose-500" />
@@ -97,14 +97,14 @@ const InvoicePage: React.FC = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shadow-primary/20">
+                            <div className="w-12 h-12 bg-primary text-background rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shadow-primary/20">
                                 K
                             </div>
-                            <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase font-mono">KIPI CORE</h1>
+                            <h1 className="text-3xl font-black text-primary tracking-tighter uppercase font-mono">KIPI CORE</h1>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-2">Corporate Node</p>
-                            <p className="text-sm font-bold text-gray-600 leading-relaxed max-w-xs">
+                            <p className="text-[10px] font-black text-secondary/30 uppercase tracking-widest leading-none mb-2">Corporate Node</p>
+                            <p className="text-sm font-bold text-secondary/70 leading-relaxed max-w-xs">
                                 402, Neural Plaza, Silicon Valley,<br />
                                 Ahmedabad, Gujarat, IN - 380054
                             </p>
@@ -113,38 +113,38 @@ const InvoicePage: React.FC = () => {
                     </div>
 
                     <div className="text-right space-y-4">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm mb-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm mb-4">
                             <BadgeCheck size={14} />
                             Verified Settlement
                         </div>
                         <div className="space-y-1">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase font-mono">Tax Invoice</h2>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Document Registry</p>
+                            <h2 className="text-4xl font-black text-primary tracking-tighter uppercase font-mono">Tax Invoice</h2>
+                            <p className="text-[10px] font-black text-secondary/30 uppercase tracking-widest">Document Registry</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Meta Information Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20 py-8 border-y border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20 py-8 border-y border-primary/10">
                     <div className="space-y-3">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Invoice Entity</p>
+                        <p className="text-[10px] font-black text-secondary/30 uppercase tracking-widest border-b border-primary/5 pb-2">Invoice Entity</p>
                         <div>
-                            <p className="text-sm font-black text-gray-900 uppercase">#{order.orderNumber}</p>
-                            <p className="text-xs font-bold text-gray-500 mt-1">{format(new Date(order.createdAt), 'MMMM dd, yyyy')}</p>
+                            <p className="text-sm font-black text-primary uppercase">#{order.orderNumber}</p>
+                            <p className="text-xs font-bold text-secondary/50 mt-1">{format(new Date(order.createdAt), 'MMMM dd, yyyy')}</p>
                         </div>
                     </div>
                     <div className="space-y-3">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Client Identity</p>
+                        <p className="text-[10px] font-black text-secondary/30 uppercase tracking-widest border-b border-primary/5 pb-2">Client Identity</p>
                         <div>
-                            <p className="text-sm font-black text-gray-900 uppercase">{order.shippingAddress.name}</p>
-                            <p className="text-xs font-bold text-gray-500 mt-1">{order.shippingAddress.mobile}</p>
+                            <p className="text-sm font-black text-primary uppercase">{order.shippingAddress.name}</p>
+                            <p className="text-xs font-bold text-secondary/50 mt-1">{order.shippingAddress.mobile}</p>
                         </div>
                     </div>
                     <div className="space-y-3">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Protocol</p>
+                        <p className="text-[10px] font-black text-secondary/30 uppercase tracking-widest border-b border-primary/5 pb-2">Protocol</p>
                         <div>
-                            <p className="text-sm font-black text-gray-900 uppercase">{order.paymentMethod}</p>
-                            <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest text-emerald-500">{order.paymentStatus}</p>
+                            <p className="text-sm font-black text-primary uppercase">{order.paymentMethod}</p>
+                            <p className="text-xs font-bold text-secondary/50 mt-1 uppercase tracking-widest text-emerald-500">{order.paymentStatus}</p>
                         </div>
                     </div>
                 </div>
@@ -153,23 +153,23 @@ const InvoicePage: React.FC = () => {
                 <div className="mb-20">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b-2 border-gray-900">
-                                <th className="py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Manifest Item</th>
-                                <th className="py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity</th>
-                                <th className="py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Rate</th>
-                                <th className="py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                            <tr className="border-b-2 border-primary">
+                                <th className="py-4 text-left text-[10px] font-black text-secondary/30 uppercase tracking-widest">Manifest Item</th>
+                                <th className="py-4 text-center text-[10px] font-black text-secondary/30 uppercase tracking-widest">Quantity</th>
+                                <th className="py-4 text-right text-[10px] font-black text-secondary/30 uppercase tracking-widest">Rate</th>
+                                <th className="py-4 text-right text-[10px] font-black text-secondary/30 uppercase tracking-widest">Amount</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-primary/5">
                             {order.items.map((item, idx) => (
                                 <tr key={idx} className="group">
                                     <td className="py-6 pr-4">
-                                        <p className="text-sm font-black text-gray-900 uppercase leading-tight mb-1">{item.name}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">REF: SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</p>
+                                        <p className="text-sm font-black text-primary uppercase leading-tight mb-1">{item.name}</p>
+                                        <p className="text-[10px] font-bold text-secondary/30 uppercase tracking-widest font-mono">REF: SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</p>
                                     </td>
-                                    <td className="py-6 text-center text-sm font-bold text-gray-600">{item.quantity}</td>
-                                    <td className="py-6 text-right text-sm font-bold text-gray-600">₹{item.price.toLocaleString()}</td>
-                                    <td className="py-6 text-right text-sm font-black text-gray-900">₹{item.total.toLocaleString()}</td>
+                                    <td className="py-6 text-center text-sm font-bold text-secondary/70">{item.quantity}</td>
+                                    <td className="py-6 text-right text-sm font-bold text-secondary/70">₹{item.price.toLocaleString()}</td>
+                                    <td className="py-6 text-right text-sm font-black text-primary">₹{item.total.toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -177,11 +177,11 @@ const InvoicePage: React.FC = () => {
                 </div>
 
                 {/* Financial Calculus Section */}
-                <div className="flex flex-col md:flex-row justify-between gap-12 pt-12 border-t border-gray-100">
+                <div className="flex flex-col md:flex-row justify-between gap-12 pt-12 border-t border-primary/10">
                     <div className="md:w-1/2 space-y-6">
-                        <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Billing Nexus</h3>
-                            <p className="text-xs font-bold text-gray-500 leading-relaxed uppercase">
+                        <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10">
+                            <h3 className="text-[10px] font-black text-secondary/30 uppercase tracking-widest mb-3">Billing Nexus</h3>
+                            <p className="text-xs font-bold text-secondary/50 leading-relaxed uppercase">
                                 {order.shippingAddress.street}, {order.shippingAddress.landmark && `${order.shippingAddress.landmark}, `}
                                 {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}
                             </p>
@@ -195,9 +195,9 @@ const InvoicePage: React.FC = () => {
                     </div>
 
                     <div className="md:w-1/3 space-y-4">
-                        <div className="flex justify-between items-center text-sm text-gray-500 font-medium">
+                        <div className="flex justify-between items-center text-sm text-secondary/50 font-medium">
                             <span className="uppercase tracking-widest text-[10px] font-black">Gross Settlement</span>
-                            <span className="font-bold text-gray-900">₹{order.subTotal.toLocaleString()}</span>
+                            <span className="font-bold text-primary">₹{order.subTotal.toLocaleString()}</span>
                         </div>
                         {order.discountAmount! > 0 && (
                             <div className="flex justify-between items-center text-sm text-rose-500 font-medium">
@@ -205,24 +205,24 @@ const InvoicePage: React.FC = () => {
                                 <span className="font-black">-₹{order.discountAmount!.toLocaleString()}</span>
                             </div>
                         )}
-                        <div className="flex justify-between items-center text-sm text-gray-500 font-medium pb-4">
+                        <div className="flex justify-between items-center text-sm text-secondary/50 font-medium pb-4">
                             <span className="uppercase tracking-widest text-[10px] font-black">Logistics Fee</span>
-                            <span className="font-bold text-gray-900">{order.shippingCost === 0 ? 'COMPLIMENTARY' : `₹${order.shippingCost.toLocaleString()}`}</span>
+                            <span className="font-bold text-primary">{order.shippingCost === 0 ? 'COMPLIMENTARY' : `₹${order.shippingCost.toLocaleString()}`}</span>
                         </div>
-                        <div className="flex justify-between items-center p-6 bg-gray-900 text-white rounded-[2rem] shadow-xl shadow-gray-200">
+                        <div className="flex justify-between items-center p-6 bg-primary text-background rounded-[2rem] shadow-xl shadow-primary/20">
                             <span className="text-[10px] font-black uppercase tracking-widest">Net Total</span>
                             <div className="text-right">
                                 <p className="text-2xl font-black tracking-tight leading-none">₹{order.totalAmount.toLocaleString()}</p>
-                                <p className="text-[8px] font-bold text-white/50 uppercase tracking-widest mt-1">Currency: INR</p>
+                                <p className="text-[8px] font-bold text-background/50 uppercase tracking-widest mt-1">Currency: INR</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer Disclaimer */}
-                <div className="mt-20 text-center space-y-2 border-t border-gray-50 pt-12">
-                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Neural Commerce Network &copy; 2026</p>
-                    <p className="text-[8px] font-bold text-gray-300 uppercase tracking-widest">Protocol-Secured Node Environment</p>
+                <div className="mt-20 text-center space-y-2 border-t border-primary/5 pt-12">
+                    <p className="text-[10px] font-black text-secondary/20 uppercase tracking-[0.3em]">Neural Commerce Network &copy; 2026</p>
+                    <p className="text-[8px] font-bold text-secondary/20 uppercase tracking-widest">Protocol-Secured Node Environment</p>
                 </div>
             </div>
 

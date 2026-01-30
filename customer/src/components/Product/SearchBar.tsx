@@ -89,20 +89,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
     return (
         <div className={`relative w-full ${className}`} ref={dropdownRef}>
             <form onSubmit={(e) => handleSubmit(e)} className="relative z-50">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/50" />
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setIsFocused(true)}
                     placeholder={placeholder}
-                    className="w-full pl-11 pr-11 py-2.5 bg-gray-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl text-sm font-bold placeholder-gray-400 transition-all outline-none uppercase tracking-wide"
+                    className="w-full pl-11 pr-11 py-2.5 bg-primary/5 border-2 border-transparent focus:border-primary/20 focus:bg-background rounded-2xl text-sm font-bold placeholder-secondary/50 transition-all outline-none uppercase tracking-wide text-primary"
                 />
                 {query && (
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary/50 hover:text-primary p-1"
                     >
                         <X size={16} />
                     </button>
@@ -111,13 +111,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
             {/* Dropdown Suggestions */}
             {showDropdown && isFocused && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 shadow-2xl rounded-3xl overflow-hidden z-40 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-primary/10 shadow-2xl rounded-3xl overflow-hidden z-40 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="p-2">
                         {/* Suggestions from typing */}
                         {query.trim().length >= 2 && (
                             <div className="space-y-1">
                                 {loading && suggestions.length === 0 ? (
-                                    <div className="px-4 py-3 text-xs text-gray-400 animate-pulse">Searching...</div>
+                                    <div className="px-4 py-3 text-xs text-secondary animate-pulse">Searching...</div>
                                 ) : suggestions.length > 0 ? (
                                     suggestions.map((s, idx) => (
                                         <button
@@ -126,14 +126,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                                 setQuery(s);
                                                 handleSubmit(undefined, s);
                                             }}
-                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors text-left font-bold"
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 text-sm text-primary transition-colors text-left font-bold"
                                         >
                                             <Sparkles size={14} className="text-primary" />
                                             <span className="uppercase tracking-wide">{s}</span>
                                         </button>
                                     ))
                                 ) : !loading && (
-                                    <div className="px-4 py-3 text-xs text-gray-400 uppercase tracking-widest font-black">No results for "{query}"</div>
+                                            <div className="px-4 py-3 text-xs text-secondary uppercase tracking-widest font-black">No results for "{query}"</div>
                                 )}
                             </div>
                         )}
@@ -143,7 +143,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                             <div className="space-y-4 p-2">
                                 {trending.length > 0 && (
                                     <div className="space-y-2">
-                                        <h4 className="px-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <h4 className="px-2 text-[10px] font-black text-secondary uppercase tracking-[0.2em] flex items-center gap-2">
                                             <TrendingUp size={12} />
                                             Trending Searches
                                         </h4>
@@ -155,7 +155,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                                         setQuery(t);
                                                         handleSubmit(undefined, t);
                                                     }}
-                                                    className="px-4 py-2 bg-gray-50 hover:bg-primary/5 hover:text-primary rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-transparent hover:border-primary/10"
+                                                    className="px-4 py-2 bg-primary/5 hover:bg-primary/10 hover:text-primary rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-transparent hover:border-primary/10"
                                                 >
                                                     {t}
                                                 </button>
@@ -165,7 +165,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                 )}
 
                                 <div className="space-y-2">
-                                    <h4 className="px-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <h4 className="px-2 text-[10px] font-black text-secondary uppercase tracking-[0.2em] flex items-center gap-2">
                                         <History size={12} />
                                         Quick Categories
                                     </h4>
@@ -177,7 +177,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                                     setQuery(cat);
                                                     handleSubmit(undefined, cat);
                                                 }}
-                                                className="w-full px-4 py-3 text-left hover:bg-gray-50 rounded-2xl text-xs font-bold uppercase tracking-widest text-gray-600 transition-colors"
+                                                className="w-full px-4 py-3 text-left hover:bg-primary/5 rounded-2xl text-xs font-bold uppercase tracking-widest text-primary/70 transition-colors"
                                             >
                                                 {cat}
                                             </button>

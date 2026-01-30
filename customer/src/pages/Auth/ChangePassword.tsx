@@ -62,25 +62,25 @@ const ChangePassword: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen py-10 bg-gray-50 flex flex-col justify-center sm:py-12">
+        <div className="min-h-screen py-10 bg-primary/5 flex flex-col justify-center sm:py-12">
             <div className="relative py-3 sm:max-w-xl sm:mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-400 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl opacity-75"></div>
-                <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+                <div className="relative px-4 py-10 bg-background shadow-lg sm:rounded-3xl sm:p-20">
                     <div className="max-w-md mx-auto">
                         <div className="flex flex-col items-center mb-6">
                             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-primary mb-4 bg-primary/5">
                                 <Lock size={24} className="text-primary" />
                             </div>
-                            <h1 className="text-2xl font-bold text-gray-800">Change Password</h1>
+                            <h1 className="text-2xl font-bold text-primary">Change Password</h1>
                         </div>
 
                         {error && (
-                            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm text-center">
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-lg text-sm text-center">
                                 {error}
                             </div>
                         )}
                         {success && (
-                            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm text-center">
+                            <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg text-sm text-center">
                                 {success}
                             </div>
                         )}
@@ -150,7 +150,7 @@ const ChangePassword: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="w-full text-center text-sm text-gray-500 hover:text-gray-700 mt-4"
+                                className="w-full text-center text-sm text-secondary hover:text-primary mt-4"
                             >
                                 Cancel
                             </button>

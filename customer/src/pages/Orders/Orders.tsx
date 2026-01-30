@@ -7,7 +7,7 @@ const Orders: React.FC = () => {
 
             <div className="space-y-4">
                 {[1, 2, 3].map((order) => (
-                    <div key={order} className="bg-white p-6 rounded-2xl border border-primary/10 flex justify-between items-center">
+                    <div key={order} className="bg-background p-6 rounded-2xl border border-primary/10 flex justify-between items-center">
                         <div>
                             <p className="font-bold text-lg text-primary">Order #1234{order}</p>
                             <p className="text-sm text-primary/60">Placed on Dec 30, 2025</p>

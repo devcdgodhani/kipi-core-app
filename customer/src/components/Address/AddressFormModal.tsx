@@ -97,12 +97,12 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                    <h2 className="text-xl font-bold text-gray-900">
+            <div className="bg-background rounded-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-primary/10 flex items-center justify-between bg-primary/5">
+                    <h2 className="text-xl font-bold text-primary">
                         {editAddress ? 'Edit Address' : 'Add New Address'}
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                    <button onClick={onClose} className="p-2 hover:bg-primary/10 rounded-full transition-colors text-secondary">
                         <X size={20} />
                     </button>
                 </div>
@@ -111,88 +111,88 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
                     {/* Name & Mobile */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">Full Name</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Number</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">Mobile Number</label>
                             <input
                                 type="tel"
                                 name="mobile"
                                 value={formData.mobile}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                     </div>
 
                     {/* Address */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Street Address</label>
+                        <label className="block text-sm font-semibold text-secondary/80 mb-1">Street Address</label>
                         <textarea
                             name="street"
                             value={formData.street}
                             onChange={handleChange}
                             required
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                            className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none bg-background text-primary"
                             placeholder="House No, Building, Street Area"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">City</label>
                             <input
                                 type="text"
                                 name="city"
                                 value={formData.city}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Pincode</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">Pincode</label>
                             <input
                                 type="text"
                                 name="pincode"
                                 value={formData.pincode}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">State</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">State</label>
                             <input
                                 type="text"
                                 name="state"
                                 value={formData.state}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Landmark (Optional)</label>
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">Landmark (Optional)</label>
                             <input
                                 type="text"
                                 name="landmark"
                                 value={formData.landmark || ''}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-primary/20 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-primary"
                             />
                         </div>
                     </div>
@@ -200,16 +200,16 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
                     {/* Type & Default */}
                     <div className="flex gap-4 items-end">
                         <div className="flex-1">
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Address Type</label>
-                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <label className="block text-sm font-semibold text-secondary/80 mb-1">Address Type</label>
+                            <div className="flex bg-primary/5 p-1 rounded-lg">
                                 {['HOME', 'WORK', 'OTHER'].map(type => (
                                     <button
                                         key={type}
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, type: type as any }))}
                                         className={`flex-1 py-1 px-3 rounded-md text-sm font-medium transition-all ${formData.type === type
-                                            ? 'bg-white text-primary shadow-sm'
-                                            : 'text-gray-500 hover:text-gray-900'
+                                            ? 'bg-background text-primary shadow-sm'
+                                            : 'text-secondary hover:text-primary'
                                             }`}
                                     >
                                         {type}
@@ -226,16 +226,16 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
                                 onChange={handleChange}
                                 className="w-4 h-4 text-primary rounded focus:ring-primary"
                             />
-                            <span className="text-sm font-medium text-gray-700">Make Default</span>
+                            <span className="text-sm font-medium text-secondary/80">Make Default</span>
                         </label>
                     </div>
                 </form>
 
-                <div className="p-6 border-t border-gray-100 bg-gray-50">
+                <div className="p-6 border-t border-primary/10 bg-primary/5">
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
                     >
                         {loading && <Loader2 size={18} className="animate-spin" />}
                         {editAddress ? 'Update Address' : 'Save Address'}

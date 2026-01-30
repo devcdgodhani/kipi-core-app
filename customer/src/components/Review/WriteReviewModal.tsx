@@ -75,19 +75,19 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+            <div className="bg-background rounded-2xl w-full max-w-md p-6 relative">
                 <button
                     onClick={onClose}
-                    className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-4 text-secondary/50 hover:text-primary"
                 >
                     <X size={24} />
                 </button>
 
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Write a Review</h2>
+                <h2 className="text-2xl font-bold text-primary mb-6">Write a Review</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="flex flex-col items-center gap-2">
-                        <span className="text-gray-600 font-medium">Select Rating</span>
+                        <span className="text-secondary font-medium">Select Rating</span>
                         <RatingStars
                             rating={rating}
                             size={32}
@@ -97,14 +97,14 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-secondary mb-1">
                             Your Review
                         </label>
                         <textarea
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             rows={4}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                            className="w-full px-4 py-3 border border-primary/20 bg-background text-primary rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                             placeholder="What did you like or dislike?"
                             required
                         />
@@ -115,7 +115,7 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        className="w-full py-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
                         {loading ? 'Submitting...' : 'Submit Review'}
                     </button>

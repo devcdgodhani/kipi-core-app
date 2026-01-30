@@ -72,10 +72,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     return (
         <div
             onClick={handleClick}
-            className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100"
+            className="group cursor-pointer bg-background rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-primary/5"
         >
             {/* Image Container */}
-            <div className="relative aspect-square bg-gray-50 overflow-hidden">
+            <div className="relative aspect-square bg-primary/5 overflow-hidden">
                 <img
                     src={mainImageUrl}
                     alt={product.name}
@@ -84,14 +84,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 {/* Discount Badge */}
                 {hasDiscount && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
+                    <div className="absolute top-3 left-3 bg-primary text-background px-2 py-1 rounded-md text-xs font-bold shadow-sm">
                         {discountPercentage}% OFF
                     </div>
                 )}
 
                 {/* Wishlist Button Overlay */}
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                    <div className="bg-background/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-background transition-colors">
                         <WishlistButton productId={product._id} size={18} />
                     </div>
                 </div>
@@ -100,7 +100,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 {/* Out of Stock Overlay */}
                 {product.stock === 0 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <span className="bg-white text-gray-900 px-4 py-2 rounded-lg font-bold">
+                        <span className="bg-background text-primary px-4 py-2 rounded-lg font-bold">
                             Out of Stock
                         </span>
                     </div>
@@ -109,7 +109,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
             {/* Product Info */}
             <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-gray-900 line-clamp-2 min-h-[3rem]">
+                <h3 className="font-semibold text-primary line-clamp-2 min-h-[3rem]">
                     {product.name}
                 </h3>
 
@@ -119,7 +119,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                         {product.currency} {displayPrice.toFixed(2)}
                     </span>
                     {hasDiscount && (
-                        <span className="text-sm text-gray-400 line-through">
+                        <span className="text-sm text-secondary line-through">
                             {product.currency} {product.basePrice.toFixed(2)}
                         </span>
                     )}
@@ -127,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 {/* Stock Status */}
                 {product.stock > 0 && product.stock < 10 && (
-                    <p className="text-xs text-orange-600">
+                    <p className="text-xs text-secondary font-bold">
                         Only {product.stock} left in stock
                     </p>
                 )}
@@ -137,7 +137,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock === 0 || adding}
-                        className="flex-1 py-2.5 px-4 bg-white text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md"
+                        className="flex-1 py-2.5 px-4 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:border-secondary/20 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md"
                     >
                         {adding ? (
                             <Loader2 size={16} className="animate-spin" />
@@ -151,7 +151,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     <button
                         onClick={handleBuyNow}
                         disabled={product.stock === 0 || adding}
-                        className="flex-1 py-2.5 px-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
+                        className="flex-1 py-2.5 px-4 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
                     >
                         {product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
                     </button>

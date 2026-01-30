@@ -9,7 +9,6 @@ import {
     ChevronRight,
     LayoutDashboard,
     Undo2,
-    Coins,
     ShoppingBag,
     Wallet
 } from 'lucide-react';
@@ -53,17 +52,17 @@ const ProfileLayout: React.FC = () => {
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50/50 py-12">
+        <div className="min-h-screen bg-primary/5 py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}
                     <aside className="w-full lg:w-80 flex-shrink-0">
-                        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden sticky top-24">
+                        <div className="bg-background rounded-[2rem] shadow-sm border border-primary/10 overflow-hidden sticky top-24">
                             {/* User Header */}
-                            <div className="p-8 bg-gray-900 text-white relative overflow-hidden group">
+                            <div className="p-8 bg-primary text-background relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/30 transition-all duration-500" />
                                 <div className="relative z-10 flex flex-col items-center">
-                                    <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-2xl font-black mb-4">
+                                    <div className="w-20 h-20 rounded-full bg-background/10 backdrop-blur-md border border-background/20 flex items-center justify-center text-2xl font-black mb-4">
                                         {user.firstName?.charAt(0).toUpperCase()}
                                     </div>
                                     <h2 className="text-xl font-black tracking-tight">{user.firstName} {user.lastName}</h2>
@@ -75,7 +74,7 @@ const ProfileLayout: React.FC = () => {
                             <nav className="p-4 space-y-8">
                                 {navSections.map((section) => (
                                     <div key={section.title}>
-                                        <h3 className="px-6 mb-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">{section.title}</h3>
+                                        <h3 className="px-6 mb-3 text-[10px] font-black text-secondary uppercase tracking-widest">{section.title}</h3>
                                         <ul className="space-y-1">
                                             {section.items.map((item) => (
                                                 <li key={item.path}>
@@ -85,8 +84,8 @@ const ProfileLayout: React.FC = () => {
                                                         className={({ isActive }) => `
                                                             flex items-center justify-between px-6 py-3 rounded-2xl transition-all duration-300 group
                                                             ${isActive
-                                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}
+                                                            ? 'bg-primary text-background shadow-lg shadow-primary/20'
+                                                            : 'text-secondary hover:bg-primary/5 hover:text-primary'}
                                                         `}
                                                     >
                                                         <div className="flex items-center gap-4">
@@ -103,7 +102,7 @@ const ProfileLayout: React.FC = () => {
                                     </div>
                                 ))}
 
-                                <div className="mt-8 pt-8 border-t border-gray-100 px-4">
+                                <div className="mt-8 pt-8 border-t border-primary/10 px-4">
                                     <button
                                         onClick={handleLogout}
                                         className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 hover:bg-rose-50 transition-all duration-300 font-black uppercase tracking-widest group"
@@ -118,7 +117,7 @@ const ProfileLayout: React.FC = () => {
 
                     {/* Main Content */}
                     <main className="flex-1 min-w-0">
-                        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 min-h-[600px] relative overflow-hidden">
+                        <div className="bg-background rounded-[2.5rem] shadow-sm border border-primary/10 p-8 min-h-[600px] relative overflow-hidden">
                             <div className="relative z-10">
                                 <Outlet />
                             </div>

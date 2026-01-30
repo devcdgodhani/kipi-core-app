@@ -144,7 +144,7 @@ const ProductDetails: React.FC = () => {
     if (!product) {
         return (
             <div className="text-center py-20">
-                <h2 className="text-2xl font-bold text-gray-900">Product Not Found</h2>
+                <h2 className="text-2xl font-bold text-primary">Product Not Found</h2>
                 <button
                     onClick={() => navigate('/products')}
                     className="mt-4 text-primary underline"
@@ -166,22 +166,22 @@ const ProductDetails: React.FC = () => {
     const hasDiscount = currentPrice !== basePrice;
 
     return (
-        <div className="bg-white min-h-screen py-8">
+        <div className="bg-background min-h-screen py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Breadcrumb */}
-                <div className="mb-6 text-sm text-gray-500">
+                <div className="mb-6 text-sm text-secondary">
                     <span className="cursor-pointer hover:text-primary" onClick={() => navigate('/')}>Home</span>
                     <span className="mx-2">/</span>
                     <span className="cursor-pointer hover:text-primary" onClick={() => navigate('/products')}>Products</span>
                     <span className="mx-2">/</span>
-                    <span className="text-gray-900 font-medium">{product.name}</span>
+                    <span className="text-primary font-medium">{product.name}</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
                     {/* Image Gallery */}
                     <div className="space-y-4">
-                        <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+                        <div className="aspect-square bg-primary/5 rounded-2xl overflow-hidden border border-primary/10">
                             <img
                                 src={activeImage}
                                 alt={product.name}
@@ -194,7 +194,7 @@ const ProductDetails: React.FC = () => {
                                 <button
                                     key={idx}
                                     onClick={() => setActiveImage(media.url)}
-                                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${activeImage === media.url ? 'border-primary' : 'border-transparent hover:border-gray-200'
+                                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${activeImage === media.url ? 'border-primary' : 'border-transparent hover:border-primary/20'
                                         }`}
                                 >
                                     <img src={(media.fileStorageId as any)?.preSignedUrl || media.url} alt="" className="w-full h-full object-cover" />
@@ -206,14 +206,14 @@ const ProductDetails: React.FC = () => {
                     {/* Product Info */}
                     <div className="space-y-8">
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
                                 {product.name}
                             </h1>
 
                             {/* Reviews Preview (Static rating for now or fetch average) */}
                             <div className="flex items-center gap-2 mb-4">
                                 <RatingStars rating={4.5} />
-                                <span className="text-sm text-gray-500">(24 reviews)</span>
+                                <span className="text-sm text-secondary">(24 reviews)</span>
                             </div>
 
                             <div className="flex items-baseline gap-4 mb-4">
@@ -221,21 +221,21 @@ const ProductDetails: React.FC = () => {
                                     {product.currency} {currentPrice?.toFixed(2)}
                                 </span>
                                 {hasDiscount && (
-                                    <span className="text-xl text-gray-400 line-through">
+                                    <span className="text-xl text-secondary line-through">
                                         {product.currency} {basePrice?.toFixed(2)}
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        <div className="prose text-gray-600 max-w-none">
+                        <div className="prose text-secondary/80 max-w-none">
                             <p>{product.description}</p>
                         </div>
 
                         {/* SKU Selector (Simple version) */}
                         {skus.length > 1 && (
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-3">Variants</h3>
+                                <h3 className="font-semibold text-primary mb-3">Variants</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {skus.map(sku => (
                                         <button
@@ -243,7 +243,7 @@ const ProductDetails: React.FC = () => {
                                             onClick={() => setSelectedSku(sku)}
                                             className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${selectedSku?._id === sku._id
                                                 ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                                                : 'border-primary/20 text-secondary hover:border-primary/40'
                                                 }`}
                                         >
                                             {/* Simple display logic for variant attributes */}
@@ -255,10 +255,10 @@ const ProductDetails: React.FC = () => {
                         )}
 
                         {/* Actions */}
-                        <div className="pt-6 border-t border-gray-100 space-y-4">
+                        <div className="pt-6 border-t border-primary/10 space-y-4">
                             <div className="flex items-center gap-4">
                                 {/* Quantity */}
-                                <div className="flex items-center border border-gray-300 rounded-xl">
+                                <div className="flex items-center border border-primary/20 rounded-xl">
                                     <button
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                         className="p-3 hover:text-primary transition-colors"
@@ -275,7 +275,7 @@ const ProductDetails: React.FC = () => {
                                 </div>
 
                                 {/* Wishlist */}
-                                <div className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center">
+                                <div className="p-3 border-2 border-primary/10 rounded-xl hover:bg-primary/5 transition-all flex items-center justify-center">
                                     <WishlistButton productId={product._id} />
                                 </div>
                             </div>
@@ -285,7 +285,7 @@ const ProductDetails: React.FC = () => {
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={addingToCart || !selectedSku}
-                                    className="flex-1 py-3 px-6 bg-white text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="flex-1 py-3 px-6 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {addingToCart ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -300,7 +300,7 @@ const ProductDetails: React.FC = () => {
                                 <button
                                     onClick={handleBuyNow}
                                     disabled={addingToCart || !selectedSku}
-                                    className="flex-1 py-3 px-6 bg-primary text-white rounded-xl font-bold hover:bg-primary/95 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/25 hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="flex-1 py-3 px-6 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/25 hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     Buy Now
                                 </button>
@@ -308,20 +308,20 @@ const ProductDetails: React.FC = () => {
                         </div>
 
                         {/* Features/Meta */}
-                        <div className="space-y-2 text-sm text-gray-500 pt-4">
+                        <div className="space-y-2 text-sm text-secondary pt-4">
                             <div className="flex gap-2">
-                                <span className="font-semibold text-gray-900">SKU:</span>
+                                <span className="font-semibold text-primary">SKU:</span>
                                 {selectedSku?.skuCode || product.productCode}
                             </div>
                             <div className="flex gap-2">
-                                <span className="font-semibold text-gray-900">Category:</span>
+                                <span className="font-semibold text-primary">Category:</span>
                                 {/* Assuming we populated category names, otherwise show IDs for now or fetch categories */}
                                 {product.categoryIds.length > 0 ? 'Premium Collection' : 'Uncategorized'}
                             </div>
                         </div>
 
                         {/* ETA Checker */}
-                        <div className="pt-6 border-t border-gray-100">
+                        <div className="pt-6 border-t border-primary/10">
                             <ETAChecker />
                         </div>
 
@@ -330,7 +330,7 @@ const ProductDetails: React.FC = () => {
                 </div>
 
                 {/* Reviews Section */}
-                <div className="border-t border-gray-200 pt-16">
+                <div className="border-t border-primary/10 pt-16">
                     <ProductReviews productId={product._id} />
                 </div>
 
