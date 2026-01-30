@@ -219,15 +219,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {/* Overlay for mobile */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    className="fixed inset-0 bg-black/50 z-[70] md:hidden"
                     onClick={onClose}
                 />
             )}
 
             {/* Sidebar Container */}
             <aside
-                className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
-                    } pt-16 overflow-y-auto`}
+                className={`fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-gray-200 z-[80] transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    } pt-0 md:pt-16 overflow-y-auto`}
             >
                 <div className="flex items-center justify-between p-4 md:hidden absolute top-0 left-0 right-0 h-16 border-b border-gray-100 bg-white z-10">
                     <span className="font-bold tracking-widest text-xs uppercase text-primary">Kipi Admin</span>

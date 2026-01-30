@@ -49,11 +49,11 @@ const Navbar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => {
                 </button>
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center font-bold text-sm text-primary">K</div>
-                    <span className="font-bold tracking-widest text-xs uppercase text-primary hidden md:block">Kipi Admin</span>
+                    <span className="font-bold tracking-widest text-xs uppercase text-primary hidden lg:block">Kipi Admin</span>
                 </div>
             </div>
 
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-2 sm:gap-4 items-center">
                 {/* Profile Dropdown */}
                 <div className="relative" ref={profileRef}>
                     <button

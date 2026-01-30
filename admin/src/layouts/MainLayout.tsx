@@ -13,7 +13,7 @@ const MainLayout: React.FC = () => {
             <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-            <main className="pt-20 px-4 md:px-8 pb-8 md:ml-64 transition-all duration-300">
+            <main className="pt-20 px-4 sm:px-6 md:px-8 pb-8 md:ml-64 transition-all duration-300">
                 <Outlet />
             </main>
             <Toaster position="top-right" reverseOrder={false} />

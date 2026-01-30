@@ -112,17 +112,17 @@ export function Table<T>({
                         <button
                             disabled={!pagination.hasPreviousPage}
                             onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
-                            className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold uppercase tracking-wider text-gray-600 disabled:opacity-50 hover:border-primary/20 hover:text-primary transition-all flex items-center gap-1"
+                            className="px-3 sm:px-4 py-2 rounded-xl bg-white border border-gray-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-600 disabled:opacity-50 hover:border-primary/20 hover:text-primary transition-all flex items-center gap-1"
                         >
                             <ChevronLeft size={14} />
-                            Previous
+                            <span className="hidden xs:inline">Prev</span>
                         </button>
                         <button
                             disabled={!pagination.hasNextPage}
                             onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
-                            className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold uppercase tracking-wider text-gray-600 disabled:opacity-50 hover:border-primary/20 hover:text-primary transition-all flex items-center gap-1"
+                            className="px-3 sm:px-4 py-2 rounded-xl bg-white border border-gray-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-600 disabled:opacity-50 hover:border-primary/20 hover:text-primary transition-all flex items-center gap-1"
                         >
-                            Next
+                            <span className="hidden xs:inline">Next</span>
                             <ChevronRight size={14} />
                         </button>
                     </div>
