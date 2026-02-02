@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { theme } from '../theme/theme';
+import { getSafeImageUrl } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 2;
@@ -29,7 +30,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
   }
 
   const price = getProductPrice(product);
-  const imageUri = product.thumbnail || product.mainImage;
+  const imageUri = getSafeImageUrl(product.thumbnail) || getSafeImageUrl(product.mainImage);
 
   return (
     <TouchableOpacity 

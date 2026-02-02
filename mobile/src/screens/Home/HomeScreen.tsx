@@ -19,19 +19,12 @@ import { productService, categoryService } from '../../services/product.service'
 import { configService, Banner as BannerType } from '../../services/config.service';
 import { Skeleton } from '../../components/Skeleton';
 import { ProductCard } from '../../components/ProductCard';
+import { useWishlist } from '../../context/WishlistContext';
 import Icon from 'react-native-vector-icons/Feather';
+import { Product, SKU } from '../../types/product.types';
+import { getSafeImageUrl } from '../../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
-
-interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  thumbnail?: string;
-  basePrice?: number;
-  salePrice?: number;
-  offerPrice?: number;
-}
 
 interface Category {
   _id: string;
@@ -51,59 +44,41 @@ export default function HomeScreen({ navigation }: any) {
 
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  useEffect(() => {
-    loadHomeData();
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [loading]);
-
-  const loadHomeData = async () => {
+  const loadHomeData = React.useCallback(async () => {
     try {
       setLoading(true);
 
-      // Fetch app settings, banners and categories in parallel
       const [settings, activeBanners, allCategories] = await Promise.all([
-        configService.getAppSettings(),
-        configService.getActiveBanners(),
-        categoryService.getAll()
+        configService.getAppSettings().catch(() => null),
+        configService.getActiveBanners().catch(() => []),
+        categoryService.getAll().catch(() => [])
       ]);
 
       setAppSettings(settings);
       setBanners(activeBanners);
       setCategories(allCategories || []);
 
-      // Extract sections that need product data
-      if (settings && settings.sections) {
+      if (settings?.sections && Array.isArray(settings.sections)) {
         const productSections = settings.sections.filter((s: any) =>
           ['PRODUCT_CAROUSEL', 'POPULAR_PRODUCTS', 'NEW_ARRIVALS', 'FLASH_DEALS', 'RECOMMENDATIONS', 'RECENTLY_VIEWED'].includes(s.sectionId)
         );
 
         const dataMap: { [key: string]: Product[] } = {};
 
-        // Fetch data for each section
         await Promise.all(productSections.map(async (section: any) => {
           try {
-            let products: Product[] = [];
+            let res;
             if (section.sectionId === 'NEW_ARRIVALS') {
-              const res = await productService.getWithPagination({ limit: section.limit || 10, sortBy: 'createdAt', sortOrder: 'desc' });
-              products = res.data;
-            } else if (section.sectionId === 'FLASH_DEALS') {
-              // Using recommend for simplicity or specialized flash deal service if available
-              const res = await productService.getWithPagination({ limit: section.limit || 8 });
-              products = res.data;
+              res = await productService.getWithPagination({ limit: section.limit || 10, sortBy: 'createdAt', sortOrder: 'desc' });
             } else {
-              const res = await productService.getWithPagination({ limit: section.limit || 10 });
-              products = res.data;
+              res = await productService.getWithPagination({ limit: section.limit || 10 });
             }
-            dataMap[section.sectionId] = products;
+            if (res?.data) {
+              dataMap[section.sectionId] = res.data.map((product: any) => ({
+                ...product,
+                thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url) || undefined,
+              }));
+            }
           } catch (err) {
             console.error(`Error fetching data for section ${section.sectionId}:`, err);
           }
@@ -115,31 +90,37 @@ export default function HomeScreen({ navigation }: any) {
       console.error('Error loading home data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadHomeData();
+  }, [loadHomeData]);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     loadHomeData();
   }, [loadHomeData]);
 
-  const renderFeatureItem = ({ item }: { item: any }) => (
-    <View style={styles.featureItem}>
-      <Icon name={getIconName(item.icon)} size={24} color={theme.colors.primary.main} />
-      <View style={styles.featureInfo}>
-        <Text style={styles.featureTitle}>{item.title}</Text>
-        <Text style={styles.featureDescription}>{item.description}</Text>
-      </View>
-    </View>
-  );
-
   const getIconName = (icon: string) => {
+    if (!icon) return 'star';
     const map: { [key: string]: string } = {
       'Truck': 'truck',
       'ShieldCheck': 'shield',
       'RefreshCw': 'refresh-cw',
     };
-    return map[icon] || 'star';
+    return map[icon] || icon.toLowerCase().replace('check', '-check').replace('cw', '-cw');
   };
 
   const renderSection = (section: any) => {
@@ -157,27 +138,38 @@ export default function HomeScreen({ navigation }: any) {
               pagingEnabled
               data={banners}
               keyExtractor={(item) => item._id}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => item.link && navigation.navigate('Products', { category: item.link })}
-                  style={{ width: width - theme.spacing.md * 2, marginRight: theme.spacing.md }}
-                >
-                  <Image source={{ uri: item.image }} style={styles.bannerImage} />
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const bannerUrl = getSafeImageUrl(item.image) || getSafeImageUrl((item as any).imageId);
+                return (
+                  <TouchableOpacity
+                    onPress={() => item.link && navigation.navigate('Products', { category: item.link })}
+                    style={{ width: width - theme.spacing.md * 2, marginRight: theme.spacing.md }}
+                  >
+                    {bannerUrl ? (
+                      <Image source={{ uri: bannerUrl }} style={styles.bannerImage} />
+                    ) : (
+                      <View style={[styles.bannerImage, { backgroundColor: theme.colors.border.light, justifyContent: 'center', alignItems: 'center' }]}>
+                        <Icon name="image" size={48} color={theme.colors.text.tertiary} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
             />
           </View>
         );
 
       case 'FEATURES':
-        if (!appSettings?.features || appSettings.features.length === 0) return null;
+        if (!appSettings?.features || !Array.isArray(appSettings.features)) return null;
+        const activeFeatures = appSettings.features.filter((f: any) => f && f.isActive);
+        if (activeFeatures.length === 0) return null;
+
         return (
           <View key="FEATURES" style={styles.featuresSection}>
-            {appSettings.features.filter((f: any) => f.isActive).map((feature: any, index: number) => (
+            {activeFeatures.map((feature: any, index: number) => (
               <View key={index} style={styles.featureItem}>
                 <Icon
-                  name={feature.icon.toLowerCase().replace('check', '-check').replace('cw', '-cw')}
+                  name={getIconName(feature.icon)}
                   size={24}
                   color={theme.colors.primary.main}
                 />
@@ -190,6 +182,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         );
 
+      /* ... other cases ... */
       case 'FLASH_DEALS':
       case 'NEW_ARRIVALS':
       case 'RECOMMENDATIONS':
@@ -231,6 +224,7 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   if (loading && !refreshing) {
+    /* ... skeleton remains the same ... */
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.header}>
@@ -252,6 +246,10 @@ export default function HomeScreen({ navigation }: any) {
       </View>
     );
   }
+
+  const sections = appSettings?.sections && Array.isArray(appSettings.sections)
+    ? [...appSettings.sections].sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    : [];
 
   return (
     <Animated.ScrollView
@@ -295,8 +293,8 @@ export default function HomeScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Products', { category: item._id })}
             >
               <View style={styles.categoryIconContainer}>
-                {item.image ? (
-                  <Image source={{ uri: item.image }} style={styles.categoryIcon} />
+                {getSafeImageUrl(item.image) ? (
+                  <Image source={{ uri: getSafeImageUrl(item.image) as string }} style={styles.categoryIcon} />
                 ) : (
                   <Icon name="grid" size={24} color={theme.colors.primary.main} />
                 )}
@@ -308,10 +306,10 @@ export default function HomeScreen({ navigation }: any) {
       </View>
 
       {/* Dynamic Sections */}
-      {appSettings?.sections?.sort((a: any, b: any) => a.displayOrder - b.displayOrder).map((section: any) => renderSection(section))}
+      {sections.map((section: any) => renderSection(section))}
 
       {/* Default Content if no dynamic sections */}
-      {(!appSettings?.sections || appSettings.sections.length === 0) && (
+      {sections.length === 0 && (
         <View style={styles.bannerContainer}>
           <View style={styles.banner}>
             <View style={styles.bannerOverlay} />

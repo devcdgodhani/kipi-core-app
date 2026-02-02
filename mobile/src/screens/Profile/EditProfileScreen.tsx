@@ -13,33 +13,35 @@ import { theme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 
 const EditProfileScreen = () => {
     const navigation = useNavigation();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: 'User Name', // Should be populated from auth context/storage
-        email: 'user@example.com',
-        phone: '9876543210',
+        name: user?.name || user?.username || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
     });
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.email || !formData.phone) {
+        if (!formData.name || !formData.email) {
             Toast.show({
                 type: 'error',
                 text1: 'Validation Error',
-                text2: 'All fields are required',
+                text2: 'Name and Email are required',
             });
             return;
         }
 
         setLoading(true);
         try {
-            // Simulate API call
+            // Simulate API call for now as auth context doesn't have updateMe yet
             await new Promise<void>(resolve => setTimeout(resolve, 1500));
 
-            // Update local storage if needed
-            // await AsyncStorage.setItem('user', JSON.stringify({...}));
+            // In a real scenario, we'd call authService.updateMe(formData)
+            // and then refresh the auth context user data
 
             Toast.show({
                 type: 'success',

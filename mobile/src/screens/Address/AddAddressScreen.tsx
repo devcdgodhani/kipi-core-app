@@ -17,19 +17,19 @@ const AddAddressScreen = ({ navigation }: any) => {
   const { addAddress } = useAddress();
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
+    mobile: '',
     pincode: '',
-    addressLine1: '',
-    addressLine2: '',
+    street: '',
+    landmark: '',
     city: '',
     state: '',
+    country: 'India',
     type: 'HOME' as 'HOME' | 'WORK' | 'OTHER',
     isDefault: false,
   });
 
   const handleSubmit = async () => {
-    // Basic validation
-    if (!formData.name || !formData.phone || !formData.pincode || !formData.addressLine1 || !formData.city || !formData.state) {
+    if (!formData.name || !formData.mobile || !formData.pincode || !formData.street || !formData.city || !formData.state) {
       Toast.show({
         type: 'error',
         text1: 'Missing Fields',
@@ -60,11 +60,11 @@ const AddAddressScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Phone Number*</Text>
+          <Text style={styles.label}>Mobile Number*</Text>
           <TextInput
             style={styles.input}
-            value={formData.phone}
-            onChangeText={(text) => setFormData({ ...formData, phone: text })}
+            value={formData.mobile}
+            onChangeText={(text) => setFormData({ ...formData, mobile: text })}
             placeholder="9876543210"
             keyboardType="phone-pad"
             maxLength={10}
@@ -105,21 +105,21 @@ const AddAddressScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Address Line 1*</Text>
+          <Text style={styles.label}>Street/Building*</Text>
           <TextInput
             style={styles.input}
-            value={formData.addressLine1}
-            onChangeText={(text) => setFormData({ ...formData, addressLine1: text })}
+            value={formData.street}
+            onChangeText={(text) => setFormData({ ...formData, street: text })}
             placeholder="House No, Building Name"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Address Line 2 (Optional)</Text>
+          <Text style={styles.label}>Landmark (Optional)</Text>
           <TextInput
             style={styles.input}
-            value={formData.addressLine2}
-            onChangeText={(text) => setFormData({ ...formData, addressLine2: text })}
+            value={formData.landmark}
+            onChangeText={(text) => setFormData({ ...formData, landmark: text })}
             placeholder="Street, Landmark"
           />
         </View>

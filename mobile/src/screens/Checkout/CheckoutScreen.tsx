@@ -89,10 +89,10 @@ const CheckoutScreen = ({ navigation }: any) => {
                     </View>
                     <Text style={styles.addressName}>{address.name}</Text>
                     <Text style={styles.addressText}>
-                        {address.addressLine1}, {address.addressLine2 ? address.addressLine2 + ', ' : ''}
+                        {address.street}, {address.landmark ? address.landmark + ', ' : ''}
                         {address.city}, {address.state} - {address.pincode}
                     </Text>
-                    <Text style={styles.addressPhone}>Phone: {address.phone}</Text>
+                    <Text style={styles.addressPhone}>Mobile: {address.mobile}</Text>
                 </TouchableOpacity>
             ))}
             <TouchableOpacity

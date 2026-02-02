@@ -156,7 +156,7 @@ const OrderDetailScreen = () => {
           <Text style={styles.addressText}>
             {order.shippingAddress.state}, {order.shippingAddress.country} - {order.shippingAddress.pincode}
           </Text>
-          <Text style={styles.addressText}>Phone: {order.shippingAddress.mobile}</Text>
+          <Text style={styles.addressText}>Mobile: {order.shippingAddress.mobile}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

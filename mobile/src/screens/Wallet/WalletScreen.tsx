@@ -19,7 +19,11 @@ const WalletScreen = () => {
     const [page, setPage] = useState(1);
 
     useEffect(() => {
-        loadTransactions(1);
+        const initWallet = async () => {
+            await refreshWallet();
+            await loadTransactions(1);
+        };
+        initWallet();
     }, []);
 
     const onRefresh = async () => {

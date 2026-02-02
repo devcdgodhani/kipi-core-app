@@ -49,7 +49,7 @@ export default function ProfileScreen() {
     {
       label: 'Shipping Addresses',
       icon: 'map-pin',
-      screen: 'AddAddress'
+      screen: 'AddressList'
     },
     {
       label: 'Wishlist',

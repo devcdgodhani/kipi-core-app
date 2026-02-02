@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'http://10.10.10.168:3000/api/v1/customer', // Update this for production
+  baseURL:'http://10.10.10.168:3000/api/v1/customer', // Update this for production
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,7 +14,7 @@ axiosInstance.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
+    return config;                                    
   },
   (error) => Promise.reject(error)
 );

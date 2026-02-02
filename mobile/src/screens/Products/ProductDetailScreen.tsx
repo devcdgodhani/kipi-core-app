@@ -18,6 +18,7 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import Icon from 'react-native-vector-icons/Feather';
 import { Product, SKU } from '../../types/product.types';
+import { getSafeImageUrl } from '../../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -99,7 +100,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       name: product.name,
       price: price || 0,
       quantity: quantity,
-      thumbnail: product.mainImage || product.media?.[0]?.url,
+      thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url) || undefined,
       skuId: selectedSKU?._id,
       maxStock: selectedSKU ? selectedSKU.quantity : product.stock,
     };
@@ -187,7 +188,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
                   ...product,
                   id: product._id, // Ensure compatibility if Product type mismatch
                   price: getPrice(),
-                  thumbnail: product.mainImage || product.media?.[0]?.url,
+                  thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url),
                 } as any);
               }
             }}

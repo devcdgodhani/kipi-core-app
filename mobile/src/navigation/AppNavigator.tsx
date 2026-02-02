@@ -25,6 +25,7 @@ import ChangePasswordScreen from '../screens/Profile/ChangePasswordScreen';
 import WishlistScreen from '../screens/Wishlist/WishlistScreen';
 import WalletScreen from '../screens/Wallet/WalletScreen';
 import NotificationScreen from '../screens/Notifications/NotificationScreen';
+import AddressListScreen from '../screens/Address/AddressListScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -82,6 +83,7 @@ function AppStack() {
       <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
       <Stack.Screen name="AddAddress" component={AddAddressScreen} options={{ title: 'Add New Address' }} />
+      <Stack.Screen name="AddressList" component={AddressListScreen} options={{ title: 'Shipping Addresses' }} />
       <Stack.Screen name="Orders" component={OrdersScreen} options={{ title: 'My Orders' }} />
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Order Details' }} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />

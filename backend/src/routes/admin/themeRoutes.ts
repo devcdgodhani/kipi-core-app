@@ -6,7 +6,6 @@ import { jwtAuth } from '../../middlewares';
 const router = Router();
 
 // Protect all routes with Admin Auth
-router.use(jwtAuth());
 
 // App Name specific routes (Primary usage)
 router.get('/:appName', themeValidator.getByAppName, themeController.getThemeByAppName);

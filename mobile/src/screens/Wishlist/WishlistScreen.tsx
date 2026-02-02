@@ -14,6 +14,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { theme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
+import { getSafeImageUrl } from '../../utils/imageUtils';
 
 type RootStackParamList = {
   ProductDetail: { productId: string };
@@ -31,44 +32,48 @@ const WishlistScreen = () => {
       name: product.name,
       price: product.price || product.basePrice,
       quantity: 1,
-      thumbnail: product.mainImage || product.media?.[0]?.url,
+      thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.thumbnail) || (product.media?.[0] ? getSafeImageUrl(product.media[0].fileStorageId) : undefined) || undefined,
       maxStock: product.stock,
     });
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
-    >
-      <Image
-        source={{ uri: item.mainImage || item.media?.[0]?.url }}
-        style={styles.image}
-      />
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={2}>
-          {item.name}
-        </Text>
-        <Text style={styles.price}>
-          ₹{item.price || item.basePrice}
-        </Text>
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.addToCartBtn}
-            onPress={() => handleAddToCart(item)}
-          >
-            <Text style={styles.addToCartText}>Add to Cart</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.removeBtn}
-            onPress={() => removeFromWishlist(item._id)}
-          >
-            <Icon name="trash-2" size={20} color={theme.colors.error} />
-          </TouchableOpacity>
+  const renderItem = ({ item }: { item: any }) => {
+    const imageUrl = getSafeImageUrl(item.mainImage) || getSafeImageUrl(item.thumbnail) || (item.media?.[0] ? getSafeImageUrl(item.media[0].fileStorageId) || getSafeImageUrl(item.media[0]) : null);
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
+      >
+        <Image
+          source={{ uri: imageUrl || 'https://via.placeholder.com/150' }}
+          style={styles.image}
+        />
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <Text style={styles.price}>
+            ₹{item.price || item.basePrice}
+          </Text>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.addToCartBtn}
+              onPress={() => handleAddToCart(item)}
+            >
+              <Text style={styles.addToCartText}>Add to Cart</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.removeBtn}
+              onPress={() => removeFromWishlist(item._id)}
+            >
+              <Icon name="trash-2" size={20} color={theme.colors.error} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
