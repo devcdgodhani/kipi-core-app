@@ -24,7 +24,7 @@ const CheckoutContext = createContext<CheckoutContextType | undefined>(undefined
 
 export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const navigate = useNavigate();
-    const { cart, clearCart } = useCart();
+    const { cart, clearCart, selectedItems, removeItem } = useCart();
     const [loading, setLoading] = useState(false);
 
     const [state, setState] = useState<CheckoutState>({
@@ -47,9 +47,19 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         walletBalance: 0
     });
 
+    const getItemId = (item: any) => {
+        return (item.skuId as any)?._id ||
+            (typeof item.skuId === 'string' ? item.skuId : '') ||
+            (item.productId as any)?._id ||
+            (typeof item.productId === 'string' ? item.productId : '');
+    };
+
     const calculateTotal = () => {
         if (!cart || !cart.items) return 0;
         return cart.items.reduce((acc, item) => {
+            const id = getItemId(item);
+            if (!selectedItems.includes(id)) return acc;
+
             const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
             const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
 
@@ -108,7 +118,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             },
             orderSummary: { subTotal, tax, shipping, discount, walletDiscount, total }
         }));
-    }, [cart, state.appliedCoupon, state.wallet.useWallet, state.walletBalance]);
+    }, [cart, selectedItems, state.appliedCoupon, state.wallet.useWallet, state.walletBalance]);
 
     const setStep = (step: CheckoutState['step']) => {
         setState(prev => ({ ...prev, step }));
@@ -169,29 +179,35 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             toast.error("Cart is empty");
             return;
         }
+        if (selectedItems.length === 0) {
+            toast.error("No items selected for checkout");
+            return;
+        }
 
         setLoading(true);
         try {
-            const items = cart.items.map(item => {
-                const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
-                const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
-                const pId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
-                const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
+            const items = cart.items
+                .filter(item => selectedItems.includes(getItemId(item)))
+                .map(item => {
+                    const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
+                    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
+                    const pId = typeof item.productId === 'object' ? (item.productId as any)?._id : item.productId;
+                    const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id : item.skuId;
 
-                const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
-                    productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
-                    item.salePrice || item.price || 0;
+                    const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
+                        productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+                        item.salePrice || item.price || 0;
 
-                return {
-                    productId: pId || '',
-                    skuId: sId || pId || '',
-                    name: productRef.name || 'Unknown Product',
-                    quantity: item.quantity || 1,
-                    price: price,
-                    total: price * (item.quantity || 1),
-                    image: skuRef?.media?.[0]?.url || productRef.mainImage || productRef.media?.[0]?.url || ''
-                };
-            });
+                    return {
+                        productId: pId || '',
+                        skuId: sId || pId || '',
+                        name: productRef.name || 'Unknown Product',
+                        quantity: item.quantity || 1,
+                        price: price,
+                        total: price * (item.quantity || 1),
+                        image: skuRef?.media?.[0]?.url || productRef.mainImage || productRef.media?.[0]?.url || ''
+                    };
+                });
 
             const orderData: CreateOrderRequest = {
                 items: items as any, // Cast for compatibility with OrderItem
@@ -235,7 +251,21 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 navigate(`/order/success/${order._id}`);
             }
 
-            await clearCart();
+            // Remove only ordered items
+            // If all items selected, clear cart. Else remove individually.
+            if (selectedItems.length === cart.items.length) {
+                await clearCart();
+            } else {
+                // Remove processed items sequentially (not ideal but safe for now)
+                for (const id of selectedItems) {
+                    try {
+                        await removeItem(id);
+                    } catch (e) {
+                        console.error('Failed to remove item', id, e);
+                    }
+                }
+            }
+
             setState(prev => ({ ...prev, appliedCoupon: null }));
 
         } catch (error) {

@@ -241,6 +241,48 @@ export class ProductController {
       next(err);
     }
   };
+
+  getProductSKUs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { productId } = req.params;
+      
+      const skus = await this.skuService.findAll(
+        { productId } as any,
+        {},
+        [{ path: 'media.fileStorageId' }]
+      );
+
+      // Enrich SKUs with presigned URLs
+      if (Array.isArray(skus)) {
+        await Promise.all(skus.map(async (sku: any) => {
+          if (sku.media && Array.isArray(sku.media)) {
+            for (const mediaItem of sku.media) {
+              if (mediaItem.fileStorageId && typeof mediaItem.fileStorageId === 'object') {
+                const fileStorage = mediaItem.fileStorageId as any;
+                if (fileStorage.generatePreSignedUrl) {
+                  mediaItem.fileStorageId = {
+                    ...fileStorage.toObject(),
+                    preSignedUrl: await fileStorage.generatePreSignedUrl()
+                  };
+                }
+              }
+            }
+          }
+        }));
+      }
+
+      const apiResponse: IApiResponse<any> = {
+        status: HTTP_STATUS_CODE.OK.STATUS,
+        code: HTTP_STATUS_CODE.OK.CODE,
+        message: 'Product SKUs retrieved successfully',
+        data: skus,
+      };
+
+      res.status(apiResponse.status).json(apiResponse);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export const productController = new ProductController();

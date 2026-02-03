@@ -252,36 +252,53 @@ const OrderDetailPage: React.FC = () => {
                                 Order Manifest
                             </h2>
                             <div className="space-y-6">
-                                {order.items.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-6 group">
-                                        <div className="w-24 h-24 bg-primary/5 rounded-2xl overflow-hidden flex-shrink-0 border border-primary/10 group-hover:shadow-lg transition-all duration-300">
-                                            <img
-                                                src={item.image || '/placeholder-product.png'}
-                                                alt={item.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                                                <h3 className="font-bold text-primary leading-tight group-hover:text-primary transition-colors">{item.name}</h3>
-                                                <p className="font-black text-primary">₹{item.total.toLocaleString()}</p>
+                                {order.items.map((item, idx) => {
+                                    const pId = typeof item.productId === 'object' ? (item.productId as any)._id : item.productId;
+                                    const sId = typeof item.skuId === 'object' ? (item.skuId as any)._id : item.skuId;
+                                    const productUrl = `/products/${pId}${sId ? `?skuId=${sId}` : ''}`;
+
+                                    return (
+                                        <div key={idx} className="flex items-center gap-6 group">
+                                            <div
+                                                className="w-24 h-24 bg-primary/5 rounded-2xl overflow-hidden flex-shrink-0 border border-primary/10 group-hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                                onClick={() => navigate(productUrl)}
+                                            >
+                                                <img
+                                                    src={item.image || '/placeholder-product.png'}
+                                                    alt={item.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                />
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded">Qty: {item.quantity}</span>
-                                                {item.skuId && <span className="text-[10px] font-bold text-secondary uppercase tracking-widest font-mono">SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</span>}
-                                                {order.orderStatus === 'DELIVERED' && (
-                                                    <button
-                                                        onClick={() => handleReviewClick(item.productId as any, item.name)}
-                                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                                            <div className="flex-1">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                                                    <h3
+                                                        className="font-bold text-primary leading-tight group-hover:text-primary transition-colors cursor-pointer hover:text-secondary"
+                                                        onClick={() => navigate(productUrl)}
                                                     >
-                                                        <Star size={10} className="fill-primary" />
-                                                        Rate Product
-                                                    </button>
-                                                )}
+                                                        {item.name}
+                                                    </h3>
+                                                    <p className="font-black text-primary">₹{item.total.toLocaleString()}</p>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded">Qty: {item.quantity}</span>
+                                                    {item.skuId && <span className="text-[10px] font-bold text-secondary uppercase tracking-widest font-mono">SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</span>}
+                                                    {order.orderStatus === 'DELIVERED' && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleReviewClick(item.productId as any, item.name);
+                                                            }}
+                                                            className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                                                        >
+                                                            <Star size={10} className="fill-primary" />
+                                                            Rate Product
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="mt-8 pt-8 border-t border-primary/10 space-y-3">

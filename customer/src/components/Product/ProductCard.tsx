@@ -1,10 +1,10 @@
-import React from 'react';
-import type { Product } from '../../types/product.types';
+import React, { useEffect, useState } from 'react';
+import type { Product, SKU } from '../../types/product.types';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import WishlistButton from '../Wishlist/WishlistButton';
 import { ShoppingCart as CartIcon, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { productService } from '../../services/product.service';
 
 interface ProductCardProps {
     product: Product;
@@ -14,12 +14,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const navigate = useNavigate();
     const { addItem } = useCart();
     const [adding, setAdding] = useState(false);
+    const [skus, setSkus] = useState<SKU[]>([]);
+    const [selectedSku, setSelectedSku] = useState<SKU | null>(null);
 
-    const displayPrice = product.offerPrice || product.salePrice || product.basePrice || 0;
-    const hasDiscount = !!((product.offerPrice || product.salePrice) && (product.offerPrice || product.salePrice || 0) < product.basePrice);
+    useEffect(() => {
+        loadSkus();
+    }, [product._id]);
+
+    const loadSkus = async () => {
+        try {
+            const skusData = await productService.getProductSKUs(product._id);
+            setSkus(skusData);
+            if (skusData.length > 0) {
+                setSelectedSku(skusData[0]); // Select first SKU by default
+            }
+        } catch (error) {
+            console.error('Failed to load SKUs:', error);
+        }
+    };
+
+    const displayPrice = selectedSku
+        ? (selectedSku.offerPrice || selectedSku.salePrice || selectedSku.price || selectedSku.basePrice || 0)
+        : (product.offerPrice || product.salePrice || product.basePrice || 0);
+
+    const basePrice = selectedSku ? selectedSku.basePrice : product.basePrice;
+    const hasDiscount = displayPrice < basePrice;
 
     const discountPercentage = hasDiscount
-        ? Math.round(((product.basePrice - displayPrice) / product.basePrice) * 100)
+        ? Math.round(((basePrice - displayPrice) / basePrice) * 100)
         : 0;
 
     const mainImageUrl = (product.mainImage as any)?.preSignedUrl || product.mainImage ||
@@ -28,7 +50,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         '/placeholder-product.png';
 
     const handleClick = () => {
-        navigate(`/products/${product.slug}`);
+        const skuParam = selectedSku ? `?skuId=${selectedSku._id}` : '';
+        navigate(`/products/${product.slug}${skuParam}`);
+    };
+
+    const handleSkuClick = (e: React.MouseEvent, sku: SKU) => {
+        e.stopPropagation();
+        setSelectedSku(sku);
+        navigate(`/products/${product.slug}?skuId=${sku._id}`);
     };
 
     const handleAddToCart = async (e: React.MouseEvent) => {
@@ -37,7 +66,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         try {
             await addItem({
                 productId: product._id,
-                skuId: product._id, // Fallback to product._id if skuId is not available
+                skuId: selectedSku?._id || product._id,
                 quantity: 1,
                 price: displayPrice
             } as any);
@@ -54,11 +83,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         try {
             await addItem({
                 productId: product._id,
-                skuId: product._id,
+                skuId: selectedSku?._id || product._id,
                 quantity: 1,
                 price: displayPrice
             } as any);
-            // Navigate to checkout after adding to cart
             navigate('/checkout');
         } catch (error) {
             console.error('Failed to add to cart:', error);
@@ -67,7 +95,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         }
     };
 
-
+    const currentStock = selectedSku ? selectedSku.quantity : product.stock;
 
     return (
         <div
@@ -96,9 +124,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
                 </div>
 
-
                 {/* Out of Stock Overlay */}
-                {product.stock === 0 && (
+                {currentStock === 0 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="bg-background text-primary px-4 py-2 rounded-lg font-bold">
                             Out of Stock
@@ -113,6 +140,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     {product.name}
                 </h3>
 
+                {/* SKU Variants */}
+                {skus.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5 py-1">
+                        {skus.slice(0, 4).map((sku) => (
+                            <button
+                                key={sku._id}
+                                onClick={(e) => handleSkuClick(e, sku)}
+                                className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md border transition-all ${selectedSku?._id === sku._id
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-primary/5 text-secondary border-primary/20 hover:border-primary/40'
+                                    }`}
+                                title={sku.variantAttributes.map(a => a.label || a.value).join(', ')}
+                            >
+                                {sku.variantAttributes[0]?.value?.substring(0, 3) || 'VAR'}
+                            </button>
+                        ))}
+                        {skus.length > 4 && (
+                            <span className="px-2 py-1 text-[9px] font-bold text-secondary">
+                                +{skus.length - 4}
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 {/* Price */}
                 <div className="flex items-baseline gap-2">
                     <span className="text-xl font-bold text-primary">
@@ -120,15 +171,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </span>
                     {hasDiscount && (
                         <span className="text-sm text-secondary line-through">
-                            {product.currency} {product.basePrice.toFixed(2)}
+                            {product.currency} {basePrice.toFixed(2)}
                         </span>
                     )}
                 </div>
 
                 {/* Stock Status */}
-                {product.stock > 0 && product.stock < 10 && (
+                {currentStock > 0 && currentStock < 10 && (
                     <p className="text-xs text-secondary font-bold">
-                        Only {product.stock} left in stock
+                        Only {currentStock} left in stock
                     </p>
                 )}
 
@@ -136,7 +187,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 <div className="flex flex-col sm:flex-row gap-2 mt-3">
                     <button
                         onClick={handleAddToCart}
-                        disabled={product.stock === 0 || adding}
+                        disabled={currentStock === 0 || adding}
                         className="flex-1 py-2.5 px-3 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:border-secondary/20 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md"
                     >
                         {adding ? (
@@ -150,10 +201,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </button>
                     <button
                         onClick={handleBuyNow}
-                        disabled={product.stock === 0 || adding}
+                        disabled={currentStock === 0 || adding}
                         className="flex-1 py-2.5 px-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
                     >
-                        {product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+                        {currentStock === 0 ? 'Out of Stock' : 'Buy Now'}
                     </button>
                 </div>
             </div>

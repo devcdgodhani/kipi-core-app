@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Cart, CartItem } from '../types/cart.types';
 import { cartService } from '../services/cart.service';
+import { wishlistService } from '../services/wishlist.service';
 import { useAppSelector } from '../features/hooks';
 import { toast } from 'react-hot-toast';
 
@@ -8,6 +9,7 @@ interface CartContextType {
     cart: Cart | null;
     loading: boolean;
     isCartOpen: boolean;
+    selectedItems: string[];
     openCart: () => void;
     closeCart: () => void;
     addItem: (item: CartItem) => Promise<void>;
@@ -15,6 +17,10 @@ interface CartContextType {
     updateQuantity: (skuId: string, quantity: number) => Promise<void>;
     clearCart: () => Promise<void>;
     refreshCart: () => Promise<void>;
+    toggleSelection: (itemId: string) => void;
+    selectAll: () => void;
+    clearSelection: () => void;
+    isItemSelected: (itemId: string) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -23,6 +29,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const { user } = useAppSelector(state => state.auth);
 
     // Unify userId retrieval
@@ -44,6 +51,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const openCart = () => setIsCartOpen(true);
     const closeCart = () => setIsCartOpen(false);
 
+    // Helper to safely extract ID
+    const getId = (obj: any): string => {
+        if (!obj) return '';
+        if (typeof obj === 'string') return obj;
+        return obj._id || obj.id || '';
+    };
+
     const refreshCart = async () => {
         if (!userId) {
             setCart(null);
@@ -59,7 +73,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     product: (item.productId as any)?.name ? (item.productId as any) : item.product,
                     sku: (item.skuId as any)?.skuCode ? (item.skuId as any) : item.sku
                 }));
-                setCart({ ...userCart, items: mappedItems });
+                const newCart = { ...userCart, items: mappedItems };
+                setCart(newCart);
+
+                // Initialize selected items if empty (first load)
+                if (selectedItems.length === 0 && mappedItems.length > 0) {
+                    const allIds = mappedItems.map(item => getId(item.skuId) || getId(item.productId));
+                    setSelectedItems(allIds);
+                }
             } else {
                 setCart(userCart);
             }
@@ -70,11 +91,28 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    // Helper to safely extract ID
-    const getId = (obj: any): string => {
-        if (!obj) return '';
-        if (typeof obj === 'string') return obj;
-        return obj._id || obj.id || '';
+    const toggleSelection = (itemId: string) => {
+        setSelectedItems(prev => {
+            if (prev.includes(itemId)) {
+                return prev.filter(id => id !== itemId);
+            } else {
+                return [...prev, itemId];
+            }
+        });
+    };
+
+    const selectAll = () => {
+        if (!cart) return;
+        const allIds = cart.items.map(item => getId(item.skuId) || getId(item.productId));
+        setSelectedItems(allIds);
+    };
+
+    const clearSelection = () => {
+        setSelectedItems([]);
+    };
+
+    const isItemSelected = (itemId: string) => {
+        return selectedItems.includes(itemId);
     };
 
     const addItem = async (item: CartItem) => {
@@ -168,7 +206,39 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 await cartService.create({ userId, items: [newItem] });
             }
             console.log('CartContext: Refreshing cart state...');
+
+            // Explicitly select the new item
+            const newItemId = getId(item.skuId) || getId(item.productId);
+            if (newItemId) {
+                setSelectedItems(prev => prev.includes(newItemId) ? prev : [...prev, newItemId]);
+            }
+
             await refreshCart();
+
+            // Remove from wishlist if present
+            try {
+                const productId = getId(item.productId) || getId((item as any).product);
+                if (productId) {
+                    const userWishlist = await wishlistService.getByUser(userId);
+                    if (userWishlist && userWishlist.products) {
+                        const isInWishlist = userWishlist.products.some(p => {
+                            const id = getId(p.productId);
+                            return id === productId;
+                        });
+
+                        if (isInWishlist) {
+                            const updatedProducts = userWishlist.products
+                                .map(p => ({ productId: getId(p.productId), addedAt: p.addedAt }))
+                                .filter(p => p.productId !== productId);
+                            await wishlistService.update(userWishlist._id, { products: updatedProducts });
+                        }
+                    }
+                }
+            } catch (error) {
+                // Silently fail wishlist removal - cart addition is more important
+                console.log('Failed to remove from wishlist:', error);
+            }
+
             setIsCartOpen(true);
             toast.success('Added to cart');
         } catch (error) {
@@ -216,6 +286,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 .filter(i => i !== null) as any[];
 
             await cartService.update(cart._id, { items: payloadItems });
+            setSelectedItems(prev => prev.filter(id => id !== targetId));
             await refreshCart();
             toast.success('Removed from cart');
         } catch (error) {
@@ -283,6 +354,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             await cartService.delete(cart._id);
             setCart(null);
+            setSelectedItems([]);
         } catch (error) {
             console.error('Failed to clear cart:', error);
             throw error;
@@ -296,7 +368,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [userId]);
 
     return (
-        <CartContext.Provider value={{ cart, loading, isCartOpen, openCart, closeCart, addItem, removeItem, updateQuantity, clearCart, refreshCart }}>
+        <CartContext.Provider value={{
+            cart,
+            loading,
+            isCartOpen,
+            selectedItems,
+            openCart,
+            closeCart,
+            addItem,
+            removeItem,
+            updateQuantity,
+            clearCart,
+            refreshCart,
+            toggleSelection,
+            selectAll,
+            clearSelection,
+            isItemSelected
+        }}>
             {children}
         </CartContext.Provider>
     );

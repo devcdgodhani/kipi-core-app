@@ -8,14 +8,17 @@ import {
     SafeAreaView,
     TouchableOpacity,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import { format, isValid } from 'date-fns';
+import { useNavigation } from '@react-navigation/native';
 
 const NotificationScreen = () => {
     const theme = useAppTheme();
+    const navigation = useNavigation<any>();
     const {
         notifications,
         loading,
@@ -23,7 +26,8 @@ const NotificationScreen = () => {
         loadNotifications,
         markAsRead,
         markAllRead,
-        unreadCount
+        unreadCount,
+        totalNotifications
     } = useNotifications();
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
@@ -42,8 +46,7 @@ const NotificationScreen = () => {
     };
 
     const loadMore = () => {
-        if (!loading && notifications.length < (unreadCount + notifications.filter(n => n.isRead).length)) {
-        // Simple check to avoid redundant calls, though not perfect
+        if (!loading && notifications.length < totalNotifications) {
             const nextPage = page + 1;
             loadNotifications(nextPage);
             setPage(nextPage);
@@ -75,8 +78,15 @@ const NotificationScreen = () => {
             if (!item.isRead) {
                 await markAsRead(item._id);
             }
-            // Handle navigation based on item.data or item.actionUrl if needed
-            // Example: if (item.data?.orderId) navigation.navigate('OrderDetail', { id: item.data.orderId })
+
+            // Navigate based on metadata
+            if (item.metadata?.orderId) {
+                navigation.navigate('OrderDetail', { orderId: item.metadata.orderId });
+            } else if (item.metadata?.productId) {
+                navigation.navigate('ProductDetail', { id: item.metadata.productId });
+            } else if (item.type === 'WALLET') {
+                navigation.navigate('Wallet');
+            }
         } catch (error) {
             console.error('Notification press error:', error);
         }
@@ -89,43 +99,51 @@ const NotificationScreen = () => {
         return format(date, 'MMM dd, HH:mm');
     };
 
-    const renderNotification = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            style={[styles.card, !item.isRead && styles.unreadCard]}
-            onPress={() => handleNotificationPress(item)}
-            activeOpacity={0.7}
-        >
-            <View style={[styles.iconContainer, { backgroundColor: item.imageUrl ? 'transparent' : `${getIconColor(item.type)}20` }]}>
-                {item.imageUrl ? (
-                    <Image source={{ uri: item.imageUrl }} style={styles.notificationImage} />
-                ) : (
-                    <Icon name={getIconName(item.type)} size={20} color={getIconColor(item.type)} />
-                )}
-            </View>
-            <View style={styles.contentContainer}>
-                <View style={styles.headerRow}>
-                    <Text style={[styles.title, !item.isRead && styles.unreadTitle]} numberOfLines={1}>
-                        {item.title}
-                    </Text>
-                    <Text style={styles.date}>
-                        {formatDate(item.createdAt)}
+    const renderNotification = ({ item }: { item: any }) => {
+        if (!item) return null;
+
+        return (
+            <TouchableOpacity
+                style={[styles.card, !item.isRead && styles.unreadCard]}
+                onPress={() => handleNotificationPress(item)}
+                activeOpacity={0.7}
+            >
+                <View style={[styles.iconContainer, { backgroundColor: item.imageUrl ? 'transparent' : `${getIconColor(item.type)}20` }]}>
+                    {item.imageUrl ? (
+                        <Image source={{ uri: item.imageUrl }} style={styles.notificationImage} />
+                    ) : (
+                        <Icon name={getIconName(item.type)} size={20} color={getIconColor(item.type)} />
+                    )}
+                </View>
+                <View style={styles.contentContainer}>
+                    <View style={styles.headerRow}>
+                        <Text style={[styles.title, !item.isRead && styles.unreadTitle]} numberOfLines={1}>
+                            {item.title || 'Notification'}
+                        </Text>
+                        <Text style={styles.date}>
+                            {formatDate(item.createdAt)}
+                        </Text>
+                    </View>
+                    <Text style={styles.message} numberOfLines={2}>
+                        {item.message || ''}
                     </Text>
                 </View>
-                <Text style={styles.message} numberOfLines={2}>
-                    {item.message}
-                </Text>
-            </View>
-            {!item.isRead && <View style={styles.unreadDot} />}
-        </TouchableOpacity>
-    );
+                {!item.isRead && <View style={styles.unreadDot} />}
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Notifications ({unreadCount})</Text>
+                <View>
+                    <Text style={styles.headerTitle}>Notifications</Text>
+                    <Text style={styles.unreadSub}>{unreadCount} unread messages</Text>
+                </View>
                 {unreadCount > 0 && (
-                    <TouchableOpacity onPress={markAllRead}>
-                        <Text style={styles.markAllRead}>Mark all as read</Text>
+                    <TouchableOpacity onPress={markAllRead} style={styles.markButton}>
+                        <Icon name="check-circle" size={16} color={theme.colors.primary.main} />
+                        <Text style={styles.markAllRead}>Mark all read</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -133,19 +151,35 @@ const NotificationScreen = () => {
             <FlatList
                 data={notifications}
                 renderItem={renderNotification}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item) => item?._id || Math.random().toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary.main]} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[theme.colors.primary.main]}
+                        tintColor={theme.colors.primary.main}
+                    />
                 }
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                    loading && !refreshing ? (
+                        <View style={styles.footerLoader}>
+                            <ActivityIndicator size="small" color={theme.colors.primary.main} />
+                        </View>
+                    ) : null
+                }
                 ListEmptyComponent={
-                    <View style={styles.emptyState}>
-                        <Icon name="bell-off" size={48} color={theme.colors.text.tertiary} />
-                        <Text style={styles.emptyText}>No notifications yet</Text>
-                        <Text style={styles.emptySubtext}>We'll notify you when something important happens.</Text>
-                    </View>
+                    !loading ? (
+                        <View style={styles.emptyState}>
+                            <View style={styles.emptyIconBg}>
+                                <Icon name="bell-off" size={40} color={theme.colors.text.tertiary} />
+                            </View>
+                            <Text style={styles.emptyText}>All caught up!</Text>
+                            <Text style={styles.emptySubtext}>We'll notify you when something important happens.</Text>
+                        </View>
+                    ) : null
                 }
             />
         </SafeAreaView>
@@ -155,7 +189,7 @@ const NotificationScreen = () => {
 const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background.default,
+        backgroundColor: theme.colors.background.paper,
     },
     header: {
         flexDirection: 'row',
@@ -168,17 +202,30 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     headerTitle: {
         ...theme.typography.h3,
-        fontSize: 18,
+        fontSize: 20,
         color: theme.colors.text.primary,
         fontWeight: 'bold',
+    },
+    unreadSub: {
+        ...theme.typography.body2,
+        color: theme.colors.text.secondary,
+        fontSize: 12,
+    },
+    markButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        padding: 4,
     },
     markAllRead: {
         ...theme.typography.body2,
         color: theme.colors.primary.main,
         fontWeight: 'bold',
+        fontSize: 13,
     },
     listContent: {
         padding: theme.spacing.md,
+        flexGrow: 1,
     },
     card: {
         flexDirection: 'row',
@@ -191,8 +238,8 @@ const createStyles = (theme: any) => StyleSheet.create({
         ...theme.shadows.sm,
     },
     unreadCard: {
-        backgroundColor: `${theme.colors.primary.main}05`,
-        borderColor: theme.colors.primary.main,
+        backgroundColor: `${theme.colors.primary.main}08`,
+        borderColor: `${theme.colors.primary.main}30`,
     },
     iconContainer: {
         width: 48,
@@ -219,13 +266,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     title: {
         ...theme.typography.body1,
-        fontWeight: '600',
+        fontWeight: '700',
         flex: 1,
         marginRight: 8,
         color: theme.colors.text.primary,
+        fontSize: 15,
     },
     unreadTitle: {
-        fontWeight: 'bold',
+        color: theme.colors.primary.main,
     },
     date: {
         ...theme.typography.body2,
@@ -236,6 +284,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         ...theme.typography.body2,
         color: theme.colors.text.secondary,
         lineHeight: 18,
+        fontSize: 13,
     },
     unreadDot: {
         width: 8,
@@ -243,26 +292,43 @@ const createStyles = (theme: any) => StyleSheet.create({
         borderRadius: 4,
         backgroundColor: theme.colors.primary.main,
         position: 'absolute',
-        top: 10,
-        right: 10,
+        top: 12,
+        right: 12,
+    },
+    footerLoader: {
+        paddingVertical: theme.spacing.md,
+        alignItems: 'center',
     },
     emptyState: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         padding: theme.spacing.xl,
-        marginTop: theme.spacing.xl * 2,
+        marginTop: 60,
+    },
+    emptyIconBg: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: theme.colors.background.default,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: theme.spacing.lg,
+        ...theme.shadows.sm,
     },
     emptyText: {
         ...theme.typography.h3,
-        fontSize: 18,
-        color: theme.colors.text.secondary,
-        marginTop: theme.spacing.md,
-        marginBottom: theme.spacing.sm,
+        fontSize: 20,
+        color: theme.colors.text.primary,
+        fontWeight: 'bold',
+        marginBottom: theme.spacing.xs,
     },
     emptySubtext: {
         ...theme.typography.body2,
         color: theme.colors.text.tertiary,
         textAlign: 'center',
+        fontSize: 14,
+        paddingHorizontal: 20,
     },
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Product, SKU } from '../../types/product.types';
 import { productService } from '../../services/product.service';
 import { useCart } from '../../context/CartContext';
@@ -16,6 +16,7 @@ import { recentlyViewedService } from '../../services/recentlyViewed.service';
 const ProductDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // This 'id' is actually the slug based on our routing
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { addItem } = useCart();
 
     const [product, setProduct] = useState<Product | null>(null);
@@ -31,6 +32,17 @@ const ProductDetails: React.FC = () => {
             loadProductData(id);
         }
     }, [id]);
+
+    // Handle SKU selection from URL parameter
+    useEffect(() => {
+        const skuIdParam = searchParams.get('skuId');
+        if (skuIdParam && skus.length > 0) {
+            const skuFromParam = skus.find(s => s._id === skuIdParam);
+            if (skuFromParam) {
+                setSelectedSku(skuFromParam);
+            }
+        }
+    }, [searchParams, skus]);
 
     const loadProductData = async (slugOrId: string) => {
         setLoading(true);
@@ -232,24 +244,49 @@ const ProductDetails: React.FC = () => {
                             <p>{product.description}</p>
                         </div>
 
-                        {/* SKU Selector (Simple version) */}
-                        {skus.length > 1 && (
-                            <div>
-                                <h3 className="font-semibold text-primary mb-3">Variants</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {skus.map(sku => (
-                                        <button
-                                            key={sku._id}
-                                            onClick={() => setSelectedSku(sku)}
-                                            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${selectedSku?._id === sku._id
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-primary/20 text-secondary hover:border-primary/40'
+                        {/* SKU Selector (Enhanced version) */}
+                        {skus.length > 0 && (
+                            <div className="border-t border-primary/10 pt-6">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-4">
+                                    Select Variant {selectedSku && `(${skus.indexOf(selectedSku) + 1}/${skus.length})`}
+                                </h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {skus.map(sku => {
+                                        const isSelected = selectedSku?._id === sku._id;
+                                        const isOutOfStock = sku.quantity === 0;
+                                        const variantLabel = sku.variantAttributes.map(a => a.label || a.value).join(' / ');
+
+                                        return (
+                                            <button
+                                                key={sku._id}
+                                                onClick={() => !isOutOfStock && setSelectedSku(sku)}
+                                                disabled={isOutOfStock}
+                                                className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all ${isSelected
+                                                        ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/20'
+                                                        : isOutOfStock
+                                                            ? 'border-secondary/20 bg-secondary/5 text-secondary/40 cursor-not-allowed'
+                                                            : 'border-primary/20 text-secondary hover:border-primary/60 hover:bg-primary/5'
                                                 }`}
-                                        >
-                                            {/* Simple display logic for variant attributes */}
-                                            {sku.variantAttributes.map(attr => attr.value).join(' / ')}
-                                        </button>
-                                    ))}
+                                                title={variantLabel}
+                                            >
+                                                <span className="block">{variantLabel}</span>
+                                                {isOutOfStock && (
+                                                    <span className="absolute inset-0 flex items-center justify-center">
+                                                        <span className="text-[8px] font-black uppercase bg-secondary/10 px-2 py-0.5 rounded">
+                                                            Out of Stock
+                                                        </span>
+                                                    </span>
+                                                )}
+                                                {isSelected && !isOutOfStock && (
+                                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                                        <svg className="w-3 h-3 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

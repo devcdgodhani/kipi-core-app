@@ -5,7 +5,7 @@ import CartItem from './CartItem';
 import { useNavigate } from 'react-router-dom';
 
 const CartDrawer: React.FC = () => {
-    const { cart, isCartOpen, closeCart } = useCart();
+    const { cart, isCartOpen, closeCart, selectedItems, selectAll, clearSelection } = useCart();
     const navigate = useNavigate();
     const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +19,6 @@ const CartDrawer: React.FC = () => {
 
         if (isCartOpen) {
             document.addEventListener('mousedown', handleClickOutside);
-            // Prevent body scroll (optional)
             document.body.style.overflow = 'hidden';
         }
 
@@ -29,7 +28,32 @@ const CartDrawer: React.FC = () => {
         };
     }, [isCartOpen, closeCart]);
 
-    const subtotal = cart?.items.reduce((sum, item) => sum + (item.quantity * (item.salePrice || item.price)), 0) || 0;
+    const getItemId = (item: any) => {
+        return (item.skuId as any)?._id ||
+            (typeof item.skuId === 'string' ? item.skuId : '') ||
+            (item.productId as any)?._id ||
+            (typeof item.productId === 'string' ? item.productId : '');
+    };
+
+    const subtotal = cart?.items.reduce((sum, item) => {
+        const id = getItemId(item);
+        if (selectedItems.includes(id)) {
+            // Use locally calculated price or fallback to item properties
+            // The item object from context typically has normalized price fields
+            const price = item.offerPrice || item.salePrice || item.price || 0;
+            return sum + (item.quantity * price);
+        }
+        return sum;
+    }, 0) || 0;
+
+    const areAllSelected = cart?.items.length ? cart.items.every(item => selectedItems.includes(getItemId(item))) : false;
+    const selectedCount = selectedItems.length;
+
+    // Formatting
+    const formattedSubtotal = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+    }).format(subtotal);
 
     return (
         <>
@@ -63,6 +87,26 @@ const CartDrawer: React.FC = () => {
                         </button>
                     </div>
 
+                    {/* Select All Bar */}
+                    {cart && cart.items.length > 0 && (
+                        <div className="px-6 py-3 border-b border-primary/10 bg-primary/5 flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                checked={areAllSelected}
+                                onChange={() => areAllSelected ? clearSelection() : selectAll()}
+                                className="w-5 h-5 rounded border-primary/20 text-primary cursor-pointer accent-primary"
+                            />
+                            <span className="text-sm font-medium text-secondary">
+                                Select All ({cart.items.length} items)
+                            </span>
+                            {selectedCount > 0 && (
+                                <span className="text-xs text-primary font-bold ml-auto">
+                                    {selectedCount} selected
+                                </span>
+                            )}
+                        </div>
+                    )}
+
                     {/* Items */}
                     <div className="flex-1 overflow-y-auto px-6 py-4">
                         {!cart || cart.items.length === 0 ? (
@@ -87,7 +131,7 @@ const CartDrawer: React.FC = () => {
                         ) : (
                             <div className="space-y-1">
                                 {cart.items.map((item) => (
-                                    <CartItem key={item.skuId} item={item} />
+                                    <CartItem key={getItemId(item)} item={item} />
                                 ))}
                             </div>
                         )}
@@ -97,9 +141,9 @@ const CartDrawer: React.FC = () => {
                     {cart && cart.items.length > 0 && (
                         <div className="border-t border-primary/10 p-6 bg-primary/5">
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-secondary font-medium">Subtotal</span>
+                                <span className="text-secondary font-medium">Subtotal ({selectedCount} items)</span>
                                 <span className="text-xl font-bold text-primary">
-                                    ${subtotal.toFixed(2)}
+                                    {formattedSubtotal}
                                 </span>
                             </div>
                             <p className="text-xs text-secondary mb-4 text-center">
@@ -108,11 +152,15 @@ const CartDrawer: React.FC = () => {
                             <button
                                 onClick={() => {
                                     closeCart();
-                                    navigate('/checkout'); // Or /cart
+                                    navigate('/checkout');
                                 }}
-                                className="w-full py-4 bg-primary text-background rounded-xl font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                                disabled={selectedCount === 0}
+                                className={`w-full py-4 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${selectedCount > 0
+                                        ? 'bg-primary text-background hover:bg-primary/90'
+                                        : 'bg-primary/20 text-primary/40 cursor-not-allowed'
+                                    }`}
                             >
-                                Checkout
+                                Checkout {selectedCount > 0 ? `(${selectedCount})` : ''}
                                 <ArrowRight size={20} />
                             </button>
                         </div>

@@ -108,12 +108,14 @@ const WishlistPage: React.FC = () => {
                         if (!product || !product.name) return null;
 
                         const price = product.offerPrice || product.salePrice || product.basePrice;
+                        const skuId = (item as any).skuId?._id || (item as any).skuId || ((item as any).skuId && typeof (item as any).skuId === 'string' ? (item as any).skuId : undefined);
+                        const productUrl = `/products/${product.slug || product._id}${skuId ? `?skuId=${skuId}` : ''}`;
 
                         return (
                             <div key={product._id} className="bg-background rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-primary/5">
                                 <div
                                     className="relative aspect-square bg-primary/5 cursor-pointer overflow-hidden"
-                                    onClick={() => navigate(`/products/${product.slug || product._id}`)}
+                                    onClick={() => navigate(productUrl)}
                                 >
                                     <img
                                         src={(product.mainImage as any)?.preSignedUrl || product.mainImage || '/placeholder-product.png'}
@@ -134,7 +136,7 @@ const WishlistPage: React.FC = () => {
                                 <div className="p-6">
                                     <h3
                                         className="font-bold text-primary mb-1 truncate cursor-pointer hover:text-primary transition-colors"
-                                        onClick={() => navigate(`/products/${product.slug || product._id}`)}
+                                        onClick={() => navigate(productUrl)}
                                     >
                                         {product.name}
                                     </h3>

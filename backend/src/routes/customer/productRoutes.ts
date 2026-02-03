@@ -22,4 +22,7 @@ router.get('/getRecommended', productController.getRecommended);
 router.get('/getSimilar/:productId', productController.getSimilar);
 router.get('/getFrequentlyBoughtTogether/:productId', productController.getFrequentlyBoughtTogether);
 
+// SKU routes
+router.get('/getSKUs/:productId', productController.getProductSKUs);
+
 export default router;

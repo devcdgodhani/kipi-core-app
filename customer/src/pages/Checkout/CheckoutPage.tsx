@@ -25,7 +25,7 @@ const CheckoutPage: React.FC = () => {
     } = useCheckout();
 
     const { addresses, loading: loadingAddresses } = useAddress();
-    const { cart } = useCart();
+    const { cart, selectedItems } = useCart();
 
     const [couponCode, setCouponCode] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
@@ -74,9 +74,16 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-    if ((!cart || !cart.items || cart.items.length === 0) && !contextLoading && !isRedirecting) {
+    if ((!cart || !cart.items || cart.items.length === 0 || selectedItems.length === 0) && !contextLoading && !isRedirecting) {
         return <Navigate to="/cart" />;
     }
+
+    const getItemId = (item: any) => {
+        return (item.skuId as any)?._id ||
+            (typeof item.skuId === 'string' ? item.skuId : '') ||
+            (item.productId as any)?._id ||
+            (typeof item.productId === 'string' ? item.productId : '');
+    };
 
     return (
         <div className="min-h-screen bg-primary/5 py-12">
@@ -270,7 +277,7 @@ const CheckoutPage: React.FC = () => {
 
                             {/* Order Items List */}
                             <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                                {cart?.items.map((item, idx) => {
+                                {cart?.items.filter(item => selectedItems.includes(getItemId(item))).map((item, idx) => {
                                     const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
                                     const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
                                     const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||

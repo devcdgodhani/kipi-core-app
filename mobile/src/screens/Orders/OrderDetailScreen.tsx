@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,20 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Image,
+  TouchableOpacity,
+  Platform,
+  Modal,
+  TextInput,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { orderService } from '../../services/order.service';
+import { returnService } from '../../services/returnService';
+import { reviewService } from '../../services/review.service';
 import { Order } from '../../types/order.types';
-import { theme } from '../../theme/theme';
+import { useAppTheme } from '../../theme/theme';
+import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import { format, isValid } from 'date-fns';
 
 type ParamList = {
   OrderDetail: { orderId: string };
@@ -20,9 +28,27 @@ type ParamList = {
 
 const OrderDetailScreen = () => {
   const route = useRoute<RouteProp<ParamList, 'OrderDetail'>>();
+  const navigation = useNavigation<any>();
   const { orderId } = route.params;
+  const theme = useAppTheme();
+
   const [order, setOrder] = useState<Order | null>(null);
+  const [returns, setReturns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Return Modal State
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+
+  // Review Modal State
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
     loadOrderDetails();
@@ -30,283 +56,705 @@ const OrderDetailScreen = () => {
 
   const loadOrderDetails = async () => {
     try {
-      const data = await orderService.getById(orderId);
-      setOrder(data);
+      setLoading(true);
+      const [orderRes, returnsRes] = await Promise.all([
+        orderService.getById(orderId),
+        returnService.getMyReturns({ orderId })
+      ]);
+
+      if (orderRes) setOrder(orderRes);
+      if (returnsRes?.recordList) {
+        setReturns(returnsRes.recordList.filter((r: any) => String(r.orderId?._id || r.orderId) === String(orderId)));
+      }
     } catch (error) {
       console.error('Failed to load order details', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to load order details',
-      });
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load order details' });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRequestReturn = async () => {
+    if (!returnReason.trim()) {
+      Toast.show({ type: 'error', text1: 'Required', text2: 'Please provide a reason' });
+      return;
+    }
+
+    try {
+      setSubmittingReturn(true);
+      await returnService.requestReturn({
+        orderId: order!._id,
+        reason: returnReason,
+        items: order!.items.map(item => ({ productId: item.productId, quantity: item.quantity }))
+      });
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Return request submitted' });
+      setShowReturnModal(false);
+      loadOrderDetails();
+    } catch (error) {
+      console.error('Return request error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to request return' });
+    } finally {
+      setSubmittingReturn(false);
+    }
+  };
+
+  const handleCancelReturn = async (returnId: string) => {
+    try {
+      await returnService.cancel(returnId);
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Return request cancelled' });
+      loadOrderDetails();
+    } catch (error) {
+      console.error('Cancel return error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to cancel return' });
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!comment.trim()) {
+      Toast.show({ type: 'error', text1: 'Required', text2: 'Please enter a comment' });
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      await reviewService.submit({
+        productId: selectedProduct.productId,
+        orderId: order!._id,
+        rating,
+        comment,
+      });
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Review submitted' });
+      setShowReviewModal(false);
+      setComment('');
+    } catch (error) {
+      console.error('Submit review error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to submit review' });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const formatDate = (date: any) => {
+    const d = new Date(date);
+    return isValid(d) ? format(d, 'MMM dd, yyyy HH:mm') : 'N/A';
+  };
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary.main} />
-        </View>
-      </SafeAreaView>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary.main} />
+      </View>
     );
   }
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>Order not found</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Order not found</Text>
+      </View>
     );
   }
 
-  const renderStatusStep = (label: string, isCompleted: boolean, isLast: boolean) => (
-    <View style={styles.stepContainer}>
-      <View style={[styles.stepDot, isCompleted && styles.activeStepDot]} />
-      {!isLast && <View style={[styles.stepLine, isCompleted && styles.activeStepLine]} />}
-      <View style={styles.stepLabelContainer}>
-        <Text style={[styles.stepLabel, isCompleted && styles.activeStepLabel]}>
-          {label}
-        </Text>
-      </View>
-    </View>
-  );
+  const steps = [
+    { status: 'PENDING', label: 'Placed' },
+    { status: 'CONFIRMED', label: 'Confirmed' },
+    { status: 'PROCESSING', label: 'Processing' },
+    { status: 'SHIPPED', label: 'Shipped' },
+    { status: 'DELIVERED', label: 'Delivered' }
+  ];
+
+  const currentStepIndex = steps.findIndex(s => s.status === order.orderStatus || (order.orderStatus === 'Packed' && s.status === 'PROCESSING'));
+  const activeReturn = returns.find(r => r.status !== 'CANCELLED');
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.headerTitle}>Order #{order.orderNumber}</Text>
-          <Text style={styles.dateText}>
-            Placed on {new Date(order.createdAt).toLocaleString()}
-          </Text>
+        {/* Header */}
+        <View style={styles.card}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.orderNo}>Order #{order.orderNumber}</Text>
+              <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: `${theme.colors.primary.main}15` }]}>
+              <Text style={[styles.statusText, { color: theme.colors.primary.main }]}>{order.orderStatus}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Items</Text>
+        {/* Timeline */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Order Progress</Text>
+          <View style={styles.timelineRow}>
+            {steps.map((step, idx) => {
+              const isCompleted = idx <= currentStepIndex;
+              const isActive = idx === currentStepIndex;
+              return (
+                <View key={step.status} style={styles.timelineStep}>
+                  <View style={[
+                    styles.timelineDot,
+                    isCompleted && styles.activeDot,
+                    isActive && styles.currentDot
+                  ]} />
+                  <Text style={[styles.timelineLabel, isCompleted && styles.activeLabel]}>{step.label}</Text>
+                  {idx < steps.length - 1 && (
+                    <View style={[styles.timelineLine, idx < currentStepIndex && styles.activeLine]} />
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Items */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Items ({order.items.length})</Text>
           {order.items.map((item, index) => (
-            <View key={index} style={styles.itemCard}>
-              {item.image && (
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
-              )}
+            <View key={index} style={styles.itemRow}>
+              <View style={styles.itemImageContainer}>
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={styles.itemImage} />
+                ) : (
+                  <View style={styles.itemPlaceholder}><Icon name="package" size={24} color={theme.colors.text.tertiary} /></View>
+                )}
+              </View>
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.itemMeta}>
-                  Qty: {item.quantity} | ₹{item.price}
-                </Text>
+                <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                <Text style={styles.itemMeta}>Qty: {item.quantity} × ₹{item.price}</Text>
+                {order.orderStatus === 'DELIVERED' && (
+                  <TouchableOpacity
+                    style={styles.reviewBtn}
+                    onPress={() => {
+                      setSelectedProduct(item);
+                      setShowReviewModal(true);
+                    }}
+                  >
+                    <Icon name="star" size={12} color={theme.colors.primary.main} />
+                    <Text style={styles.reviewBtnText}>Rate Product</Text>
+                  </TouchableOpacity>
+                )}
               </View>
               <Text style={styles.itemTotal}>₹{item.total}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Status</Text>
-          {['PENDING', 'CONFIRMED', 'Packed', 'SHIPPED', 'DELIVERED'].map((status, index, array) => {
-            const isCompleted = ['DELIVERED', 'SHIPPED', 'CONFIRMED', 'PENDING'].includes(order.orderStatus)
-              ? ['PENDING', 'CONFIRMED', 'Packed', 'SHIPPED', 'DELIVERED'].indexOf(order.orderStatus) >= index
-              : false;
-
-            // Simplistic mapping for demo purposes
-            // In real app, orderStatus usually matches these exactly or mapped
-            // Using index comparison for linear progress
-            const currentStatusIndex = ['PENDING', 'CONFIRMED', 'Packed', 'SHIPPED', 'DELIVERED'].findIndex(s => s === order.orderStatus || (order.orderStatus === 'PROCESSING' && s === 'Packed'));
-            const completed = currentStatusIndex >= index;
-
-            return (
-              <View key={status}>
-                {renderStatusStep(status, completed, index === array.length - 1)}
-              </View>
-            );
-          })}
+        {/* Shipping Address */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Shipping Address</Text>
+          <View style={styles.addressBox}>
+            <Icon name="map-pin" size={18} color={theme.colors.primary.main} style={{ marginTop: 2, marginRight: 10 }} />
+            <View>
+              <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
+              <Text style={styles.addressText}>{order.shippingAddress.street}</Text>
+              <Text style={styles.addressText}>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</Text>
+              <Text style={styles.addressText}>Phone: {order.shippingAddress.mobile}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Summary</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Subtotal</Text>
-            <Text style={styles.value}>₹{order.subTotal}</Text>
+        {/* Payment Summary */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryValue}>₹{order.subTotal}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Shipping</Text>
-            <Text style={styles.value}>₹{order.shippingCost}</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Shipping</Text>
+            <Text style={styles.summaryValue}>₹{order.shippingCost}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Tax</Text>
-            <Text style={styles.value}>₹{order.tax}</Text>
-          </View>
-          <View style={[styles.row, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total</Text>
+          {order.discountAmount > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: theme.colors.success }]}>Discount ({order.couponCode})</Text>
+              <Text style={[styles.summaryValue, { color: theme.colors.success }]}>-₹{order.discountAmount}</Text>
+            </View>
+          )}
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total Amount</Text>
             <Text style={styles.totalValue}>₹{order.totalAmount}</Text>
           </View>
+          <View style={styles.paymentInfoRow}>
+            <Icon name="credit-card" size={14} color={theme.colors.text.secondary} />
+            <Text style={styles.paymentMethodText}>Paid via {order.paymentMethod} • {order.paymentStatus}</Text>
+          </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Shipping Address</Text>
-          <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
-          <Text style={styles.addressText}>
-            {order.shippingAddress.street}, {order.shippingAddress.city}
-          </Text>
-          <Text style={styles.addressText}>
-            {order.shippingAddress.state}, {order.shippingAddress.country} - {order.shippingAddress.pincode}
-          </Text>
-          <Text style={styles.addressText}>Mobile: {order.shippingAddress.mobile}</Text>
+        {/* Return Information / Actions */}
+        <View style={styles.actionContainer}>
+          {order.orderStatus === 'DELIVERED' && !activeReturn && (
+            <TouchableOpacity style={styles.returnMainBtn} onPress={() => setShowReturnModal(true)}>
+              <Icon name="rotate-ccw" size={18} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.returnMainBtnText}>Request Return</Text>
+            </TouchableOpacity>
+          )}
+
+          {activeReturn && (
+            <View style={[styles.returnStatusCard, { borderColor: theme.colors.primary.main }]}>
+              <View style={styles.returnStatusHeader}>
+                <Icon name="refresh-ccw" size={18} color={theme.colors.primary.main} />
+                <Text style={styles.returnStatusTitle}>Return Requested</Text>
+                <View style={[styles.badgeSmall, { backgroundColor: `${theme.colors.primary.main}20` }]}>
+                  <Text style={{ color: theme.colors.primary.main, fontSize: 10, fontWeight: 'bold' }}>{activeReturn.status}</Text>
+                </View>
+              </View>
+              <Text style={styles.returnReasonText}>Reason: {activeReturn.reason}</Text>
+              {activeReturn.status === 'PENDING' && (
+                <TouchableOpacity
+                  style={styles.cancelReturnBtn}
+                  onPress={() => handleCancelReturn(activeReturn._id)}
+                >
+                  <Text style={styles.cancelReturnText}>Cancel Return Request</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
+
+      {/* Return Modal */}
+      <Modal visible={showReturnModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Request Return</Text>
+            <Text style={styles.label}>Reason for return</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Search, Size mismatch, Damaged, etc."
+              multiline
+              numberOfLines={4}
+              value={returnReason}
+              onChangeText={setReturnReason}
+              textAlignVertical="top"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowReturnModal(false)}>
+                <Text style={styles.cancelBtnText}>Discard</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmBtn}
+                onPress={handleRequestReturn}
+                disabled={submittingReturn}
+              >
+                {submittingReturn ? <ActivityIndicator color="#FFF" /> : <Text style={styles.confirmBtnText}>Submit Request</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Review Modal */}
+      <Modal visible={showReviewModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Rate Product</Text>
+            <Text style={styles.productNameReview}>{selectedProduct?.name}</Text>
+
+            <View style={styles.starPicker}>
+              {[1, 2, 3, 4, 5].map(s => (
+                <TouchableOpacity key={s} onPress={() => setRating(s)} style={{ padding: 8 }}>
+                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} fill={s <= rating ? "#FFD700" : "transparent"} />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="Write your feedback here..."
+              multiline
+              numberOfLines={3}
+              value={comment}
+              onChangeText={setComment}
+              textAlignVertical="top"
+            />
+
+            <TouchableOpacity
+              style={styles.submitReviewBtn}
+              onPress={handleSubmitReview}
+              disabled={submittingReview}
+            >
+              {submittingReview ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitReviewBtnText}>Submit Review</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowReviewModal(false)}>
+              <Text style={styles.closeBtnText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
-  },
-  content: {
-    padding: theme.spacing.md,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  section: {
+  content: {
+    padding: 16,
+  },
+  card: {
     backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
     ...theme.shadows.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
   },
-  headerTitle: {
-    ...theme.typography.h3,
-    marginBottom: theme.spacing.xs,
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  dateText: {
-    ...theme.typography.body2,
-    color: theme.colors.text.secondary,
-  },
-  sectionTitle: {
-    ...theme.typography.h3,
+  orderNo: {
     fontSize: 18,
-    marginBottom: theme.spacing.md,
+    fontWeight: '900',
     color: theme.colors.text.primary,
   },
-  itemCard: {
+  orderDate: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    marginTop: 4,
+  },
+  statusBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
+    marginBottom: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  timelineRow: {
     flexDirection: 'row',
-    marginBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    paddingBottom: theme.spacing.sm,
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  timelineStep: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: theme.colors.border.light,
+    zIndex: 2,
+  },
+  activeDot: {
+    backgroundColor: theme.colors.primary.main,
+  },
+  currentDot: {
+    borderWidth: 3,
+    borderColor: `${theme.colors.primary.main}40`,
+    transform: [{ scale: 1.3 }],
+  },
+  timelineLabel: {
+    fontSize: 10,
+    color: theme.colors.text.tertiary,
+    marginTop: 8,
+    fontWeight: '700',
+  },
+  activeLabel: {
+    color: theme.colors.text.primary,
+  },
+  timelineLine: {
+    position: 'absolute',
+    top: 5,
+    left: '50%',
+    width: '100%',
+    height: 2,
+    backgroundColor: theme.colors.border.light,
+    zIndex: 1,
+  },
+  activeLine: {
+    backgroundColor: theme.colors.primary.main,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  itemImageContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 15,
+    backgroundColor: theme.colors.background.default,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
   },
   itemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: theme.borderRadius.sm,
-    marginRight: theme.spacing.sm,
-    backgroundColor: theme.colors.background.default,
+    width: '100%',
+    height: '100%',
+  },
+  itemPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   itemInfo: {
     flex: 1,
-    justifyContent: 'center',
+    marginLeft: 15,
   },
   itemName: {
-    ...theme.typography.body2,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
     marginBottom: 4,
   },
   itemMeta: {
-    ...theme.typography.body2,
     fontSize: 12,
     color: theme.colors.text.secondary,
+    fontWeight: '600',
+  },
+  reviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 4,
+  },
+  reviewBtnText: {
+    fontSize: 11,
+    color: theme.colors.primary.main,
+    fontWeight: '800',
   },
   itemTotal: {
-    ...theme.typography.body1,
-    fontWeight: 'bold',
-    marginLeft: theme.spacing.sm,
-    alignSelf: 'center',
+    fontSize: 16,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
   },
-  row: {
+  addressBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
   },
-  label: {
-    ...theme.typography.body2,
+  addressName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.text.primary,
+    marginBottom: 6,
+  },
+  addressText: {
+    fontSize: 13,
     color: theme.colors.text.secondary,
-  },
-  value: {
-    ...theme.typography.body2,
+    lineHeight: 18,
     fontWeight: '500',
   },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    fontWeight: '600',
+  },
+  summaryValue: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    fontWeight: '700',
+  },
   totalRow: {
-    marginTop: theme.spacing.sm,
-    paddingTop: theme.spacing.sm,
+    marginTop: 10,
+    paddingTop: 15,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.light,
   },
   totalLabel: {
-    ...theme.typography.h3,
+    fontSize: 16,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
   },
   totalValue: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '900',
     color: theme.colors.primary.main,
   },
-  addressName: {
-    ...theme.typography.body1,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  addressText: {
-    ...theme.typography.body2,
-    color: theme.colors.text.secondary,
-    marginBottom: 2,
-  },
-  stepContainer: {
+  paymentInfoRow: {
     flexDirection: 'row',
-    height: 60,
+    alignItems: 'center',
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.light,
+    gap: 8,
   },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: theme.colors.border.medium,
-    marginTop: 4,
-    marginRight: theme.spacing.sm,
+  paymentMethodText: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
-  activeStepDot: {
-    backgroundColor: theme.colors.success,
+  actionContainer: {
+    marginBottom: 30,
   },
-  stepLine: {
-    width: 2,
-    backgroundColor: theme.colors.border.medium,
-    position: 'absolute',
-    left: 5,
-    top: 16,
-    bottom: -4,
+  returnMainBtn: {
+    backgroundColor: theme.colors.error || '#FF4444',
+    height: 56,
+    borderRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.md,
   },
-  activeStepLine: {
-    backgroundColor: theme.colors.success,
+  returnMainBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '900',
   },
-  stepLabelContainer: {
+  returnStatusCard: {
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background.paper,
+    borderWidth: 1.5,
+    ...theme.shadows.sm,
+  },
+  returnStatusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  returnStatusTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
     flex: 1,
   },
-  stepLabel: {
-    ...theme.typography.body2,
-    color: theme.colors.text.secondary,
+  badgeSmall: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  activeStepLabel: {
+  returnReasonText: {
+    fontSize: 13,
+    color: theme.colors.text.secondary,
+    lineHeight: 18,
+    marginBottom: 15,
+  },
+  cancelReturnBtn: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+  },
+  cancelReturnText: {
+    fontSize: 13,
+    color: theme.colors.error || '#FF4444',
+    fontWeight: '800',
+    textDecorationLine: 'underline',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: 24,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '900',
     color: theme.colors.text.primary,
-    fontWeight: '600',
+    marginBottom: 15,
+  },
+  productNameReview: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 10,
+  },
+  textInput: {
+    backgroundColor: theme.colors.background.default,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+    padding: 15,
+    height: 100,
+    color: theme.colors.text.primary,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  cancelBtnText: {
+    color: theme.colors.text.secondary,
+    fontWeight: '800',
+  },
+  confirmBtn: {
+    flex: 2,
+    backgroundColor: theme.colors.primary.main,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+  },
+  confirmBtnText: {
+    color: '#FFF',
+    fontWeight: '900',
+  },
+  starPicker: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  submitReviewBtn: {
+    backgroundColor: theme.colors.primary.main,
+    height: 54,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  submitReviewBtnText: {
+    color: '#FFF',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  closeBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  closeBtnText: {
+    color: theme.colors.text.tertiary,
+    fontWeight: '700',
   },
   errorText: {
-    ...theme.typography.body1,
+    fontSize: 16,
     color: theme.colors.error,
+    fontWeight: 'bold',
   },
 });
 
