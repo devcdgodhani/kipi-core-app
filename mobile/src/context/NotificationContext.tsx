@@ -3,6 +3,7 @@ import { notificationService } from '../services/notification.service';
 import { Notification } from '../types/notification.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useAuth } from './AuthContext';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -109,9 +110,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const { user } = useAuth();
+
   useEffect(() => {
     refreshNotifications();
-  }, []);
+  }, [user]);
 
   return (
     <NotificationContext.Provider 

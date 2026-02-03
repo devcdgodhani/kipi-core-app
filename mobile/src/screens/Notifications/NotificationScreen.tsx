@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -10,11 +10,12 @@ import {
     Image,
 } from 'react-native';
 import { useNotifications } from '../../context/NotificationContext';
-import { theme } from '../../theme/theme';
+import { useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 const NotificationScreen = () => {
+    const theme = useAppTheme();
     const {
         notifications,
         loading,
@@ -26,6 +27,8 @@ const NotificationScreen = () => {
     } = useNotifications();
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
+
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
     useEffect(() => {
         loadNotifications(1);
@@ -39,7 +42,8 @@ const NotificationScreen = () => {
     };
 
     const loadMore = () => {
-        if (!loading) {
+        if (!loading && notifications.length < (unreadCount + notifications.filter(n => n.isRead).length)) {
+        // Simple check to avoid redundant calls, though not perfect
             const nextPage = page + 1;
             loadNotifications(nextPage);
             setPage(nextPage);
@@ -67,10 +71,22 @@ const NotificationScreen = () => {
     };
 
     const handleNotificationPress = async (item: any) => {
-        if (!item.isRead) {
-            await markAsRead(item._id);
+        try {
+            if (!item.isRead) {
+                await markAsRead(item._id);
+            }
+            // Handle navigation based on item.data or item.actionUrl if needed
+            // Example: if (item.data?.orderId) navigation.navigate('OrderDetail', { id: item.data.orderId })
+        } catch (error) {
+            console.error('Notification press error:', error);
         }
-        // Handle navigation based on item.data or item.actionUrl if needed
+    };
+
+    const formatDate = (dateValue: any) => {
+        if (!dateValue) return '';
+        const date = new Date(dateValue);
+        if (!isValid(date)) return '';
+        return format(date, 'MMM dd, HH:mm');
     };
 
     const renderNotification = ({ item }: { item: any }) => (
@@ -92,7 +108,7 @@ const NotificationScreen = () => {
                         {item.title}
                     </Text>
                     <Text style={styles.date}>
-                        {format(new Date(item.createdAt), 'MMM dd, HH:mm')}
+                        {formatDate(item.createdAt)}
                     </Text>
                 </View>
                 <Text style={styles.message} numberOfLines={2}>
@@ -120,7 +136,7 @@ const NotificationScreen = () => {
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary.main]} />
                 }
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
@@ -136,7 +152,7 @@ const NotificationScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -146,7 +162,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: theme.spacing.md,
-        backgroundColor: theme.colors.background.paper,
+        backgroundColor: theme.colors.background.default,
         borderBottomWidth: 1,
         borderBottomColor: theme.colors.border.light,
     },
@@ -154,11 +170,12 @@ const styles = StyleSheet.create({
         ...theme.typography.h3,
         fontSize: 18,
         color: theme.colors.text.primary,
+        fontWeight: 'bold',
     },
     markAllRead: {
         ...theme.typography.body2,
         color: theme.colors.primary.main,
-        fontWeight: '600',
+        fontWeight: 'bold',
     },
     listContent: {
         padding: theme.spacing.md,
@@ -166,16 +183,16 @@ const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
         padding: theme.spacing.md,
-        backgroundColor: theme.colors.background.paper,
-        borderRadius: theme.borderRadius.md,
-        marginBottom: theme.spacing.sm,
+        backgroundColor: theme.colors.background.default,
+        borderRadius: theme.borderRadius.lg,
+        marginBottom: theme.spacing.md,
+        borderWidth: 1,
+        borderColor: theme.colors.border.light,
         ...theme.shadows.sm,
-        borderLeftWidth: 3,
-        borderLeftColor: 'transparent',
     },
     unreadCard: {
-        backgroundColor: theme.colors.background.default, // Slightly different if needed, potentially highlighted
-        borderLeftColor: theme.colors.primary.main,
+        backgroundColor: `${theme.colors.primary.main}05`,
+        borderColor: theme.colors.primary.main,
     },
     iconContainer: {
         width: 48,
@@ -205,6 +222,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         flex: 1,
         marginRight: 8,
+        color: theme.colors.text.primary,
     },
     unreadTitle: {
         fontWeight: 'bold',
@@ -225,8 +243,8 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: theme.colors.primary.main,
         position: 'absolute',
-        top: theme.spacing.md,
-        right: theme.spacing.md,
+        top: 10,
+        right: 10,
     },
     emptyState: {
         alignItems: 'center',

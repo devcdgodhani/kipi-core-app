@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,25 +7,58 @@ import {
   SafeAreaView,
   ScrollView,
   Animated,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { theme } from '../../theme/theme';
+import { useAppTheme } from '../../theme/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
 import { useAuth } from '../../context/AuthContext';
+import { useWallet } from '../../context/WalletContext';
+import { useWishlist } from '../../context/WishlistContext';
+import { orderService } from '../../services/order.service';
 
 export default function ProfileScreen() {
+  const theme = useAppTheme();
   const navigation = useNavigation<any>();
   const { logout, user } = useAuth();
+  const { wallet, refreshWallet } = useWallet();
+  const { wishlistItems } = useWishlist();
+  const [orderCount, setOrderCount] = useState<number | string>('0');
+  const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = React.useState(new Animated.Value(0));
 
-  React.useEffect(() => {
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const fetchOrderCount = async () => {
+    try {
+      const response = await orderService.getMyOrders({ page: 1, limit: 1 });
+      // response is already the unwrapped data (OrderListResponse)
+      if (response && typeof response.totalRecords !== 'undefined') {
+        setOrderCount(response.totalRecords);
+      }
+    } catch (error) {
+      console.error('Failed to fetch order count:', error);
+    }
+  };
+
+  useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 600,
       useNativeDriver: true,
     }).start();
+    fetchOrderCount();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      refreshWallet(),
+      fetchOrderCount()
+    ]);
+    setRefreshing(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -35,9 +68,18 @@ export default function ProfileScreen() {
     }
   };
 
+  const getFullName = () => {
+    if (!user) return 'Guest User';
+    if (user.name) return user.name;
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    }
+    return user.username || user.email || 'Guest User';
+  };
+
   const getInitials = (name: string) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (!name || name === 'Guest User') return 'U';
+    return name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase();
   };
 
   const menuItems = [
@@ -54,8 +96,7 @@ export default function ProfileScreen() {
     {
       label: 'Wishlist',
       icon: 'heart',
-      screen: 'Wishlist',
-      disabled: false
+      screen: 'Wishlist'
     },
     {
       label: 'Edit Profile',
@@ -68,12 +109,6 @@ export default function ProfileScreen() {
       screen: 'ChangePassword'
     },
     {
-      label: 'My Wallet',
-      icon: 'credit-card',
-      screen: 'Wallet',
-      disabled: false
-    },
-    {
       label: 'Notifications',
       icon: 'bell',
       screen: 'Notifications',
@@ -83,79 +118,81 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.ScrollView contentContainerStyle={styles.content} style={{ opacity: fadeAnim }}>
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <View style={styles.avatarContainer}>
-              <Text style={styles.initials}>{getInitials(user?.name || user?.username)}</Text>
-            </View>
-            <View style={styles.headerInfo}>
-              <Text style={styles.name}>{user?.name || user?.username || 'Guest User'}</Text>
-              <Text style={styles.email}>{user?.email || 'N/A'}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statCount}>0</Text>
-            <Text style={styles.statLabel}>Orders</Text>
-          </View>
-          <View style={[styles.statBox, styles.statBorder]}>
-            <Text style={styles.statCount}>₹0.00</Text>
-            <Text style={styles.statLabel}>Wallet</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statCount}>0</Text>
-            <Text style={styles.statLabel}>Wishlist</Text>
-          </View>
-        </View>
-
-        <View style={styles.menuContainer}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.menuItem, item.disabled && styles.disabledMenuItem]}
-              onPress={() => {
-                if (item.disabled) return;
-                if (item.screen) navigation.navigate(item.screen);
-              }}
-              disabled={!!item.disabled}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.iconContainer, item.disabled && styles.disabledIconContainer]}>
-                  <Icon name={item.icon} size={18} color={item.disabled ? theme.colors.text.tertiary : theme.colors.primary.main} />
-                </View>
-                <Text style={[styles.menuLabel, item.disabled && styles.disabledText]}>{item.label}</Text>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <View style={styles.header}>
+            <View style={styles.headerRow}>
+              <View style={styles.avatarContainer}>
+                <Text style={styles.initials}>{getInitials(getFullName())}</Text>
               </View>
-              {!item.disabled && <Icon name="chevron-right" size={18} color={theme.colors.border.medium} />}
-            </TouchableOpacity>
-          ))}
-        </View>
+              <View style={styles.headerInfo}>
+                <Text style={styles.name}>{getFullName()}</Text>
+                <Text style={styles.email}>{user?.email || 'N/A'}</Text>
+              </View>
+            </View>
+          </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Icon name="log-out" size={18} color={theme.colors.error} />
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-      </Animated.ScrollView>
+          <View style={styles.statsContainer}>
+            <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('Orders')}>
+              <Text style={styles.statCount}>{orderCount}</Text>
+              <Text style={styles.statLabel}>Orders</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.statBox, styles.statBorder]} onPress={() => navigation.navigate('Wallet')}>
+              <Text style={styles.statCount}>₹{(wallet?.availableBalance ?? 0).toFixed(2)}</Text>
+              <Text style={styles.statLabel}>Wallet</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('Wishlist')}>
+              <Text style={styles.statCount}>{wishlistItems?.length || 0}</Text>
+              <Text style={styles.statLabel}>Wishlist</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.menuContainer}>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.menuItem}
+                onPress={() => navigation.navigate(item.screen)}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.iconBox, item.icon === 'heart' ? styles.wishlistIcon : null]}>
+                    <Icon name={item.icon} size={20} color={item.icon === 'heart' ? '#EF4444' : theme.colors.primary.main} />
+                  </View>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color={theme.colors.text.tertiary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Icon name="log-out" size={20} color="#EF4444" />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: theme.colors.background.paper,
   },
   content: {
-    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   header: {
-    padding: theme.spacing.xl,
-    backgroundColor: theme.colors.primary.main,
-    borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.md,
+    backgroundColor: theme.colors.background.default,
+    padding: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+    borderBottomLeftRadius: theme.borderRadius.xl,
+    borderBottomRightRadius: theme.borderRadius.xl,
+    ...theme.shadows.sm,
   },
   headerRow: {
     flexDirection: 'row',
@@ -165,37 +202,35 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: theme.colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
+    ...theme.shadows.md,
   },
   initials: {
+    ...theme.typography.h2,
+    color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text.inverse,
   },
   headerInfo: {
-    marginLeft: theme.spacing.lg,
+    marginLeft: theme.spacing.md,
   },
   name: {
     ...theme.typography.h3,
-    color: theme.colors.text.inverse,
-    marginBottom: 4,
+    color: theme.colors.text.primary,
+    marginBottom: 2,
   },
   email: {
     ...theme.typography.body2,
-    color: theme.colors.text.inverse,
-    opacity: 0.8,
+    color: theme.colors.text.secondary,
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: theme.colors.background.default,
+    margin: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    marginBottom: theme.spacing.xl,
     ...theme.shadows.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
   },
   statBox: {
     flex: 1,
@@ -208,65 +243,62 @@ const styles = StyleSheet.create({
   },
   statCount: {
     ...theme.typography.h3,
-    color: theme.colors.primary.main,
+    color: theme.colors.text.primary,
+    fontSize: 18,
   },
   statLabel: {
     ...theme.typography.body2,
     color: theme.colors.text.secondary,
+    fontSize: 12,
     marginTop: 2,
   },
   menuContainer: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background.default,
+    marginHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.xs,
     ...theme.shadows.sm,
-    marginBottom: theme.spacing.xl,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
   },
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.background.default,
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.background.paper,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
   },
+  wishlistIcon: {
+    backgroundColor: '#FEE2E2',
+  },
   menuLabel: {
     ...theme.typography.body1,
+    color: theme.colors.text.primary,
     fontWeight: '500',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    margin: theme.spacing.xl,
     padding: theme.spacing.md,
-    backgroundColor: theme.colors.background.paper,
     borderRadius: theme.borderRadius.md,
-    ...theme.shadows.sm,
+    backgroundColor: '#FEE2E2',
   },
   logoutText: {
-    ...theme.typography.button,
-    color: theme.colors.error,
     marginLeft: theme.spacing.sm,
-  },
-  disabledMenuItem: {
-    opacity: 0.7,
-  },
-  disabledIconContainer: {
-    backgroundColor: theme.colors.background.paper,
-  },
-  disabledText: {
-    color: theme.colors.text.tertiary,
+    color: '#EF4444',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

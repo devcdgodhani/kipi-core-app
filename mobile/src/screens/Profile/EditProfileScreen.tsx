@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
     Text,
@@ -9,21 +9,36 @@ import {
     ScrollView,
     ActivityIndicator,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
 const EditProfileScreen = () => {
+    const theme = useAppTheme();
     const navigation = useNavigation();
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: user?.name || user?.username || '',
-        email: user?.email || '',
-        phone: user?.phone || '',
+        name: '',
+        email: '',
+        phone: '',
     });
+
+    const styles = useMemo(() => createStyles(theme), [theme]);
+
+    // Update form data when user data is available
+    useEffect(() => {
+        if (user) {
+            const fullName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || '';
+            setFormData({
+                name: fullName,
+                email: user.email || '',
+                phone: user.mobile || user.phone || '',
+            });
+        }
+    }, [user]);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.email) {
@@ -70,6 +85,7 @@ const EditProfileScreen = () => {
                         value={formData.name}
                         onChangeText={(text) => setFormData({ ...formData, name: text })}
                         placeholder="Enter your name"
+                        placeholderTextColor={theme.colors.text.tertiary}
                     />
                 </View>
 
@@ -80,6 +96,7 @@ const EditProfileScreen = () => {
                         value={formData.email}
                         editable={false}
                         placeholder="Enter your email"
+                        placeholderTextColor={theme.colors.text.tertiary}
                     />
                     <Text style={styles.helperText}>Email cannot be changed</Text>
                 </View>
@@ -91,6 +108,7 @@ const EditProfileScreen = () => {
                         value={formData.phone}
                         onChangeText={(text) => setFormData({ ...formData, phone: text })}
                         placeholder="Enter your phone number"
+                        placeholderTextColor={theme.colors.text.tertiary}
                         keyboardType="phone-pad"
                         maxLength={10}
                     />
@@ -112,7 +130,7 @@ const EditProfileScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,10 @@ import {
   Platform,
   Animated,
   TextInput,
+  SafeAreaView,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { useNavigation } from '@react-navigation/native';
+import { useAppTheme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
 import { configService, Banner as BannerType } from '../../services/config.service';
 import { Skeleton } from '../../components/Skeleton';
@@ -34,6 +36,7 @@ interface Category {
 }
 
 export default function HomeScreen({ navigation }: any) {
+  const theme = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [appSettings, setAppSettings] = useState<any>(null);
@@ -43,6 +46,7 @@ export default function HomeScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [fadeAnim] = useState(new Animated.Value(0));
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const loadHomeData = React.useCallback(async () => {
     try {
@@ -98,293 +102,180 @@ export default function HomeScreen({ navigation }: any) {
     loadHomeData();
   }, [loadHomeData]);
 
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [loading]);
-
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = () => {
     setRefreshing(true);
     loadHomeData();
-  }, [loadHomeData]);
-
-  const getIconName = (icon: string) => {
-    if (!icon) return 'star';
-    const map: { [key: string]: string } = {
-      'Truck': 'truck',
-      'ShieldCheck': 'shield',
-      'RefreshCw': 'refresh-cw',
-    };
-    return map[icon] || icon.toLowerCase().replace('check', '-check').replace('cw', '-cw');
   };
 
-  const renderSection = (section: any) => {
+  const renderCategoryItem = ({ item }: { item: Category }) => (
+    <TouchableOpacity 
+      style={styles.categoryCard}
+      onPress={() => navigation.navigate('Products', { screen: 'ProductList', params: { categoryId: item._id } })}
+    >
+      <View style={styles.categoryIconContainer}>
+        {item.image ? (
+          <Image source={{ uri: getSafeImageUrl(item.image) }} style={styles.categoryImage} />
+        ) : (
+          <Icon name="grid" size={24} color={theme.colors.primary.main} />
+        )}
+      </View>
+      <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderProductSection = (section: any) => {
     const products = sectionsData[section.sectionId] || [];
+    if (products.length === 0) return null;
 
-    if (!section.isVisible) return null;
-
-    switch (section.sectionId) {
-      case 'BANNER':
-        if (banners.length === 0) return null;
-        return (
-          <View key="BANNER" style={styles.bannerContainer}>
-            <FlatList
-              horizontal
-              pagingEnabled
-              data={banners}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => {
-                const bannerUrl = getSafeImageUrl(item.image) || getSafeImageUrl((item as any).imageId);
-                return (
-                  <TouchableOpacity
-                    onPress={() => item.link && navigation.navigate('Products', { category: item.link })}
-                    style={{ width: width - theme.spacing.md * 2, marginRight: theme.spacing.md }}
-                  >
-                    {bannerUrl ? (
-                      <Image source={{ uri: bannerUrl }} style={styles.bannerImage} />
-                    ) : (
-                      <View style={[styles.bannerImage, { backgroundColor: theme.colors.border.light, justifyContent: 'center', alignItems: 'center' }]}>
-                        <Icon name="image" size={48} color={theme.colors.text.tertiary} />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
+    return (
+      <View key={section._id} style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Products', { screen: 'ProductList' })}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={products}
+          renderItem={({ item }) => (
+            <ProductCard
+              product={item} 
+              onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
             />
-          </View>
-        );
-
-      case 'FEATURES':
-        if (!appSettings?.features || !Array.isArray(appSettings.features)) return null;
-        const activeFeatures = appSettings.features.filter((f: any) => f && f.isActive);
-        if (activeFeatures.length === 0) return null;
-
-        return (
-          <View key="FEATURES" style={styles.featuresSection}>
-            {activeFeatures.map((feature: any, index: number) => (
-              <View key={index} style={styles.featureItem}>
-                <Icon
-                  name={getIconName(feature.icon)}
-                  size={24}
-                  color={theme.colors.primary.main}
-                />
-                <View style={styles.featureInfo}>
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={styles.featureDescription} numberOfLines={1}>{feature.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        );
-
-      /* ... other cases ... */
-      case 'FLASH_DEALS':
-      case 'NEW_ARRIVALS':
-      case 'RECOMMENDATIONS':
-      case 'RECENTLY_VIEWED':
-        if (products.length === 0) return null;
-        return (
-          <View key={section.sectionId} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                {section.subtitle ? <Text style={styles.sectionSubtitle}>{section.subtitle}</Text> : null}
-              </View>
-              <TouchableOpacity onPress={() => navigation.navigate('Products')}>
-                <View style={styles.seeAllContainer}>
-                  <Text style={styles.seeAllText}>See All</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              horizontal
-              data={products}
-              renderItem={({ item }) => (
-                <ProductCard
-                  product={item}
-                  onPress={() => navigation.navigate('ProductDetail', { slug: item.slug })}
-                  width={width * 0.4}
-                />
-              )}
-              keyExtractor={(item) => item._id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          </View>
-        );
-
-      default:
-        return null;
-    }
+          )}
+          keyExtractor={(item) => item._id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.horizontalList, { gap: theme.spacing.md }]}
+        />
+      </View>
+    );
   };
 
   if (loading && !refreshing) {
-    /* ... skeleton remains the same ... */
     return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.header}>
-          <Skeleton width={200} height={32} borderRadius={theme.borderRadius.md} style={{ marginBottom: 8 }} />
-          <Skeleton width={150} height={20} borderRadius={theme.borderRadius.sm} />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary.main} />
         </View>
-        <View style={styles.bannerContainer}>
-          <Skeleton height={150} borderRadius={theme.borderRadius.lg} />
-        </View>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Skeleton width={120} height={24} />
-          </View>
-          <View style={{ flexDirection: 'row', paddingLeft: theme.spacing.md }}>
-            <Skeleton width={width * 0.42} height={200} borderRadius={theme.borderRadius.lg} style={{ marginRight: theme.spacing.md }} />
-            <Skeleton width={width * 0.42} height={200} borderRadius={theme.borderRadius.lg} />
-          </View>
-        </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
-  const sections = appSettings?.sections && Array.isArray(appSettings.sections)
-    ? [...appSettings.sections].sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0))
-    : [];
-
   return (
-    <Animated.ScrollView
-      style={[styles.container, { opacity: fadeAnim }]}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      {/* Search Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>{appSettings?.appName || 'Kipi Store'}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="bell" size={24} color={theme.colors.text.inverse} />
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.topBar}>
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color={theme.colors.text.tertiary} style={styles.searchIcon} />
+          <Icon name="search" size={20} color={theme.colors.text.tertiary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search for products..."
+            placeholder="Search products..."
             placeholderTextColor={theme.colors.text.tertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onSubmitEditing={() => navigation.navigate('Products', { search: searchQuery })}
+            onSubmitEditing={() => navigation.navigate('Products', { screen: 'ProductList', params: { search: searchQuery } })}
           />
         </View>
+        <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('Cart')}>
+          <Icon name="shopping-bag" size={24} color={theme.colors.primary.main} />
+        </TouchableOpacity>
       </View>
 
-      {/* Category Navigation */}
-      <View style={styles.categoriesWrapper}>
-        <FlatList
-          horizontal
-          data={categories}
-          keyExtractor={(item) => item._id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesList}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.categoryItem}
-              onPress={() => navigation.navigate('Products', { category: item._id })}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {banners.length > 0 && (
+          <View style={styles.bannerContainer}>
+            <ScrollView
+              horizontal 
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
             >
-              <View style={styles.categoryIconContainer}>
-                {getSafeImageUrl(item.image) ? (
-                  <Image source={{ uri: getSafeImageUrl(item.image) as string }} style={styles.categoryIcon} />
-                ) : (
-                  <Icon name="grid" size={24} color={theme.colors.primary.main} />
-                )}
-              </View>
-              <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Dynamic Sections */}
-      {sections.map((section: any) => renderSection(section))}
-
-      {/* Default Content if no dynamic sections */}
-      {sections.length === 0 && (
-        <View style={styles.bannerContainer}>
-          <View style={styles.banner}>
-            <View style={styles.bannerOverlay} />
-            <Text style={styles.bannerText}>Welcome to {appSettings?.appName || 'Kipi'}!</Text>
-            <Text style={styles.bannerSubtext}>Shop the latest products</Text>
+              {banners.map((banner, index) => (
+                <View key={index} style={styles.bannerWrapper}>
+                  <Image source={{ uri: getSafeImageUrl(banner.imageUrl) }} style={styles.bannerImage} />
+                </View>
+              ))}
+            </ScrollView>
           </View>
-        </View>
-      )}
+        )}
 
-      {/* Bottom Spacing */}
-      <View style={styles.bottomSpacing} />
-    </Animated.ScrollView>
+        <View style={styles.categoriesContainer}>
+          <FlatList
+            data={categories}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item._id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryList}
+          />
+        </View>
+
+        {appSettings?.sections?.map((section: any) => renderProductSection(section))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
   },
   loadingContainer: {
     flex: 1,
-    padding: 0,
-    backgroundColor: theme.colors.background.default,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-  },
-  header: {
-    padding: theme.spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 60 : theme.spacing.xl,
-    backgroundColor: theme.colors.primary.main,
-    borderBottomLeftRadius: theme.borderRadius.xl,
-    borderBottomRightRadius: theme.borderRadius.xl,
-    ...theme.shadows.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
   },
-  headerTitle: {
-    ...theme.typography.h2,
-    color: theme.colors.text.inverse,
-    fontWeight: 'bold',
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.background.default,
-    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.background.paper,
+    borderRadius: theme.borderRadius.full,
     paddingHorizontal: theme.spacing.md,
     height: 48,
-    ...theme.shadows.sm,
-  },
-  searchIcon: {
-    marginRight: theme.spacing.sm,
   },
   searchInput: {
     flex: 1,
-    height: '100%',
+    marginLeft: theme.spacing.sm,
+    fontSize: 16,
     color: theme.colors.text.primary,
-    fontSize: theme.typography.fontSize.base,
   },
-  categoriesWrapper: {
-    paddingVertical: theme.spacing.lg,
-    backgroundColor: theme.colors.background.default,
+  cartButton: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  categoriesList: {
+  bannerContainer: {
+    marginTop: theme.spacing.md,
+  },
+  bannerWrapper: {
+    width: width,
     paddingHorizontal: theme.spacing.md,
   },
-  categoryItem: {
+  bannerImage: {
+    width: width - theme.spacing.md * 2,
+    height: 180,
+    borderRadius: theme.borderRadius.lg,
+  },
+  categoriesContainer: {
+    marginTop: theme.spacing.lg,
+    paddingLeft: theme.spacing.md,
+  },
+  categoryList: {
+    paddingRight: theme.spacing.md,
+  },
+  categoryCard: {
     alignItems: 'center',
     marginRight: theme.spacing.lg,
     width: 70,
@@ -397,87 +288,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    ...theme.shadows.sm,
+    overflow: 'hidden',
   },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  categoryImage: {
+    width: '100%',
+    height: '100%',
   },
   categoryName: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
-    fontWeight: 'medium',
-  },
-  bannerContainer: {
-    padding: theme.spacing.md,
-  },
-  banner: {
-    backgroundColor: theme.colors.primary.main,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.xl,
-    alignItems: 'flex-start',
-    overflow: 'hidden',
-    position: 'relative',
-    ...theme.shadows.md,
-  },
-  bannerImage: {
-    width: '100%',
-    height: 180,
-    borderRadius: theme.borderRadius.lg,
-    resizeMode: 'cover',
-  },
-  bannerOverlay: {
-    position: 'absolute',
-    right: -20,
-    bottom: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  bannerText: {
-    ...theme.typography.h2,
-    color: theme.colors.text.inverse,
-    marginBottom: 4,
-  },
-  bannerSubtext: {
-    ...theme.typography.body1,
-    color: theme.colors.text.inverse,
-    opacity: 0.9,
-  },
-  featuresSection: {
-    padding: theme.spacing.md,
-    gap: theme.spacing.md,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.paper,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    ...theme.shadows.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  featureInfo: {
-    marginLeft: theme.spacing.md,
-    flex: 1,
-  },
-  featureTitle: {
-    ...theme.typography.body1,
-    fontWeight: 'bold',
     color: theme.colors.text.primary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
-  featureDescription: {
-    fontSize: 12,
-    color: theme.colors.text.secondary,
-  },
-  section: {
-    marginTop: theme.spacing.lg,
+  sectionContainer: {
+    marginTop: theme.spacing.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -489,28 +313,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...theme.typography.h3,
     color: theme.colors.text.primary,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: theme.colors.text.secondary,
-    marginTop: -2,
-  },
-  seeAllContainer: {
-    backgroundColor: `${theme.colors.primary.main}15`,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: theme.borderRadius.sm,
-  },
-  seeAllText: {
-    ...theme.typography.body2,
-    color: theme.colors.primary.main,
     fontWeight: 'bold',
+  },
+  seeAll: {
+    color: theme.colors.primary.main,
+    fontWeight: '600',
   },
   horizontalList: {
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,
-  },
-  bottomSpacing: {
-    height: theme.spacing.xl,
   },
 });

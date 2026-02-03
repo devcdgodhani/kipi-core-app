@@ -1,3 +1,5 @@
+import { useTheme } from '../context/ThemeContext';
+
 export const colors = {
   primary: {
     main: '#000000',
@@ -142,6 +144,30 @@ export const theme = {
   spacing,
   borderRadius,
   shadows,
+};
+
+export const useAppTheme = () => {
+  const { theme: dynamicTheme } = useTheme();
+  
+  return {
+    ...theme,
+    colors: {
+      ...theme.colors,
+      primary: {
+        ...theme.colors.primary,
+        main: dynamicTheme.colors.primary,
+      },
+      secondary: {
+        ...theme.colors.secondary,
+        main: dynamicTheme.colors.secondary,
+      },
+      background: {
+        ...theme.colors.background,
+        default: dynamicTheme.colors.background,
+      },
+      surface: dynamicTheme.colors.surface || theme.colors.surface,
+    }
+  };
 };
 
 export type Theme = typeof theme;

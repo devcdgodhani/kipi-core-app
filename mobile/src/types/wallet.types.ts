@@ -14,7 +14,12 @@ export interface WalletTransaction {
 export interface Wallet {
   _id: string;
   userId: string;
-  balance: number;
+  balance: number; // legacy/total
+  availableBalance: number;
+  blockedBalance: number;
+  totalEarned: number;
+  totalSpent: number;
+  totalExpired: number;
   currency: string;
   status: 'ACTIVE' | 'INACTIVE' | 'FROZEN';
   createdAt: string;

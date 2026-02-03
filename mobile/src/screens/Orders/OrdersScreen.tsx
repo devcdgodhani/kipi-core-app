@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,20 +13,24 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { orderService } from '../../services/order.service';
 import { Order } from '../../types/order.types';
-import { theme } from '../../theme/theme';
+import { useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import { format, isValid } from 'date-fns';
 
 type RootStackParamList = {
   OrderDetail: { orderId: string };
 };
 
 const OrdersScreen = () => {
+  const theme = useAppTheme();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'ALL' | 'PENDING' | 'DELIVERED'>('ALL');
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
     loadOrders();
@@ -39,9 +43,9 @@ const OrdersScreen = () => {
         limit: 100, // Load initial batch
         sort: { createdAt: -1 }
       });
-      if (response && response.recordList) {
-        setOrders(response.recordList);
-      }
+      // response is already recordList if service unwraps it, or body
+      const data = response?.recordList || response?.data?.recordList || (Array.isArray(response) ? response : []);
+      setOrders(data);
     } catch (error) {
       console.error('Failed to load orders', error);
       Toast.show({
@@ -81,6 +85,13 @@ const OrdersScreen = () => {
     }
   };
 
+  const formatDate = (dateValue: any) => {
+    if (!dateValue) return 'N/A';
+    const date = new Date(dateValue);
+    if (!isValid(date)) return 'Invalid Date';
+    return format(date, 'dd MMM yyyy');
+  };
+
   const renderOrderItem = ({ item }: { item: Order }) => (
     <TouchableOpacity
       style={styles.orderCard}
@@ -88,13 +99,15 @@ const OrdersScreen = () => {
     >
       <View style={styles.orderHeader}>
         <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
-        <Text style={[styles.orderStatus, { color: getStatusColor(item.orderStatus) }]}>
-          {item.orderStatus}
-        </Text>
+        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.orderStatus)}15` }]}>
+          <Text style={[styles.orderStatus, { color: getStatusColor(item.orderStatus) }]}>
+            {item.orderStatus}
+          </Text>
+        </View>
       </View>
       
       <Text style={styles.orderDate}>
-        Placed on {new Date(item.createdAt).toLocaleDateString()}
+        Placed on {formatDate(item.createdAt)}
       </Text>
       
       <View style={styles.divider} />
@@ -124,7 +137,7 @@ const OrdersScreen = () => {
     </View>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
@@ -143,7 +156,7 @@ const OrdersScreen = () => {
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary.main]} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -156,10 +169,10 @@ const OrdersScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.default,
+    backgroundColor: theme.colors.background.paper,
   },
   centerContainer: {
     flex: 1,
@@ -168,17 +181,16 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.background.paper,
+    backgroundColor: theme.colors.background.default,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
   },
   tab: {
     paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    marginRight: theme.spacing.md,
-    borderBottomWidth: 2,
+    paddingHorizontal: theme.spacing.sm,
+    marginRight: theme.spacing.lg,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   activeTab: {
@@ -196,29 +208,38 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   orderCard: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background.default,
+    borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
     ...theme.shadows.sm,
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   orderNumber: {
     ...theme.typography.body1,
     fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   orderStatus: {
-    ...theme.typography.body2,
+    fontSize: 12,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   orderDate: {
     ...theme.typography.body2,
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.tertiary,
     marginBottom: theme.spacing.sm,
   },
   divider: {
@@ -237,8 +258,9 @@ const styles = StyleSheet.create({
   },
   orderTotal: {
     ...theme.typography.h3,
-    fontSize: 16,
+    fontSize: 18,
     color: theme.colors.primary.main,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     alignItems: 'center',

@@ -28,14 +28,16 @@ interface VerifyOTPData {
 
 export const authService = {
     register: async (data: RegisterData): Promise<any> => {
-        const response = await axiosInstance.post('/auth/register', data);
+        const response: any = await axiosInstance.post('/auth/register', data);
         
-        // Store tokens and user in AsyncStorage
-        if (response?.data?.data) {
-             const { ...user } = response.data.data;
-             await AsyncStorage.setItem('user', JSON.stringify(user));
+        // The interceptor returns response.data (the body)
+        // Body: { status, message, data: { tokens, ...user } }
+        const payload = response?.data || response;
+        if (payload) {
+             const userToStore = payload.user || payload;
+             await AsyncStorage.setItem('user', JSON.stringify(userToStore));
 
-             const tokens = response.data.data.tokens;
+             const tokens = payload.tokens;
              if (tokens && Array.isArray(tokens)) {
                 for (const tokenObj of tokens) {
                     if (tokenObj.type && tokenObj.token) {
@@ -49,34 +51,28 @@ export const authService = {
     },
 
     verifyOTP: async (data: VerifyOTPData): Promise<any> => {
-        // Get OTP_TOKEN from AsyncStorage for authorization
         const otpToken = await AsyncStorage.getItem('OTP_TOKEN');
-        
-        const response = await axiosInstance.post('/auth/verifyOtp', data, {
-            headers: {
-                Authorization: `Bearer ${otpToken}`,
-            },
+        const response: any = await axiosInstance.post('/auth/verifyOtp', data, {
+            headers: { Authorization: `Bearer ${otpToken}` },
         });
-
-        // Clear OTP_TOKEN after successful verification
         await AsyncStorage.removeItem('OTP_TOKEN');
-        
         return response;
     },
 
     login: async (credentials: { email: string; password: string }) => {
-        const response = await axiosInstance.post('/auth/login', { ...credentials, type: 'CUSTOMER' });
-        if (response?.data) {
-             // Safely check structure
+        const response: any = await axiosInstance.post('/auth/login', { ...credentials, type: 'CUSTOMER' });
+        if (response) {
              const payload = response.data || response;
-             if (payload && payload.tokens) {
-                 await AsyncStorage.setItem('user', JSON.stringify(payload));
-                 for (const tokenObj of payload.tokens) {
-                     await AsyncStorage.setItem(tokenObj.type, tokenObj.token);
+             if (payload) {
+                 // Store only user object, not tokens
+                 const userToStore = payload.user || payload;
+                 await AsyncStorage.setItem('user', JSON.stringify(userToStore));
+                 
+                 if (payload.tokens && Array.isArray(payload.tokens)) {
+                    for (const tokenObj of payload.tokens) {
+                        await AsyncStorage.setItem(tokenObj.type, tokenObj.token);
+                    }
                  }
-             } else if (payload) {
-                 // Fallback if structure differs
-                 await AsyncStorage.setItem('user', JSON.stringify(payload));
              }
         }
         return response;

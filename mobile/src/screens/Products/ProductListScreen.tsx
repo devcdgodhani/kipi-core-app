@@ -188,6 +188,7 @@ export default function ProductListScreen({ navigation, route }: any) {
           keyExtractor={(item) => item._id}
           numColumns={COLUMN_COUNT}
           contentContainerStyle={styles.listContent}
+          columnWrapperStyle={styles.columnWrapper}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
@@ -299,6 +300,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: theme.spacing.md,
+  },
+  columnWrapper: {
+    gap: theme.spacing.md,
   },
   footerLoader: {
     paddingVertical: theme.spacing.lg,

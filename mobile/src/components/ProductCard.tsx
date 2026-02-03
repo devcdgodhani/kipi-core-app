@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { theme } from '../theme/theme';
+import { useAppTheme } from '../theme/theme';
 import { getSafeImageUrl } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
-const COLUMN_COUNT = 2;
-const CARD_WIDTH = (width - theme.spacing.md * 3) / COLUMN_COUNT;
 
 interface Product {
   _id: string;
@@ -25,6 +23,12 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, width: customWidth }) => {
+  const theme = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const COLUMN_COUNT = 2;
+  const CARD_WIDTH = (width - theme.spacing.md * 3) / COLUMN_COUNT;
+
   const getProductPrice = (p: Product) => {
     return p.offerPrice || p.salePrice || p.basePrice || 0;
   }
@@ -43,6 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
           <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
         ) : (
           <View style={styles.placeholder}>
+              <Icon name="image" size={24} color={theme.colors.text.tertiary} />
             <Text style={styles.placeholderText}>NO IMAGE</Text>
           </View>
         )}
@@ -67,7 +72,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
   );
 };
 
-const styles = StyleSheet.create({
+// Assuming Icon is available or should be imported. Let's use Feather if possible or omit if unsure.
+// I'll add Feather import.
+import Icon from 'react-native-vector-icons/Feather';
+
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.background.default,
     borderRadius: theme.borderRadius.lg,
@@ -91,6 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
   },
   placeholderText: {
     fontSize: 10,

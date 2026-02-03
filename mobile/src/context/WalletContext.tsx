@@ -3,6 +3,7 @@ import { walletService } from '../services/wallet.service';
 import { Wallet, WalletTransaction } from '../types/wallet.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useAuth } from './AuthContext';
 
 interface WalletContextType {
   wallet: Wallet | null;
@@ -11,15 +12,20 @@ interface WalletContextType {
   refreshWallet: () => Promise<void>;
   loadTransactions: (page: number) => Promise<void>;
   totalTransactions: number;
+  expiringSoon: WalletTransaction | null;
+  totalExpired: number;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const [expiringSoon, setExpiringSoon] = useState<WalletTransaction | null>(null);
+  const [totalExpired, setTotalExpired] = useState(0);
 
   const refreshWallet = async () => {
     try {
@@ -28,17 +34,32 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!token) {
         setWallet(null);
         setTransactions([]);
+        setExpiringSoon(null);
         return;
       }
 
       setLoading(true);
-      const walletData = await walletService.getMyWallet();
+      const [walletRes, expiringRes] = await Promise.all([
+        walletService.getMyWallet().catch(() => null),
+        walletService.getExpiringTransactions(30).catch(() => [])
+      ]);
+
+      // Backend returns { status, code, message, data: wallet }
+      // The http interceptor extracts response.data
+      const walletData = walletRes?.data || walletRes;
       if (walletData) {
         setWallet(walletData);
+        setTotalExpired(walletData.totalExpired || 0);
+      }
+
+      const expiryList = expiringRes?.data || expiringRes;
+      if (Array.isArray(expiryList) && expiryList.length > 0) {
+        setExpiringSoon(expiryList[0]);
+      } else {
+        setExpiringSoon(null);
       }
     } catch (error) {
-           console.error('Failed to fetch wallet:', error);
-      // Silent fail or toast? Silent for initial load usually
+      console.error('Failed to fetch wallet:', error);
     } finally {
       setLoading(false);
     }
@@ -47,14 +68,18 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const loadTransactions = async (page: number = 1) => {
     try {
       setLoading(true);
-      const result = await walletService.getMyTransactions({ page, limit: 20 });
-      if (result && result.recordList) {
+      const response = await walletService.getMyTransactions({ page, limit: 20 });
+      // Backend returns { status, code, message, data: { recordList, totalRecords, ... } }
+      // The http interceptor extracts response.data
+      const paginationData = response?.data || response;
+
+      if (paginationData && paginationData.recordList) {
         if (page === 1) {
-          setTransactions(result.recordList);
+          setTransactions(paginationData.recordList);
         } else {
-          setTransactions(prev => [...prev, ...result.recordList]);
+          setTransactions(prev => [...prev, ...paginationData.recordList]);
         }
-        setTotalTransactions(result.totalRecords || 0);
+        setTotalTransactions(paginationData.totalRecords || 0);
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
@@ -70,7 +95,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     refreshWallet();
-  }, []);
+  }, [user]);
 
   return (
     <WalletContext.Provider 
@@ -80,7 +105,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loading, 
         refreshWallet, 
         loadTransactions,
-        totalTransactions
+        totalTransactions,
+        expiringSoon,
+        totalExpired
       }}
     >
       {children}

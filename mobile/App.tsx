@@ -9,27 +9,30 @@ import { WishlistProvider } from './src/context/WishlistContext';
 import { WalletProvider } from './src/context/WalletContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import Toast from 'react-native-toast-message';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Provider store={store}>
-        <CartProvider>
-          <AddressProvider>
-            <WishlistProvider>
-              <WalletProvider>
-                <NotificationProvider>
-                  <SafeAreaProvider>
-                    <AppNavigator />
-                    <Toast />
-                  </SafeAreaProvider>
-                </NotificationProvider>
-              </WalletProvider>
-            </WishlistProvider>
-          </AddressProvider>
-        </CartProvider>
-      </Provider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Provider store={store}>
+          <CartProvider>
+            <AddressProvider>
+              <WishlistProvider>
+                <WalletProvider>
+                  <NotificationProvider>
+                    <SafeAreaProvider>
+                      <AppNavigator />
+                      <Toast />
+                    </SafeAreaProvider>
+                  </NotificationProvider>
+                </WalletProvider>
+              </WishlistProvider>
+            </AddressProvider>
+          </CartProvider>
+        </Provider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
