@@ -98,7 +98,14 @@ export default function ProductDetailScreen({ route, navigation }: any) {
         const skusResponse = await productService.getProductSKUs(productData._id);
         if (skusResponse && skusResponse.length > 0) {
           setSkus(skusResponse);
-          setSelectedSKU(skusResponse[0]);
+
+          // Check for pre-selected SKU from navigation
+          const targetSkuId = route.params?.skuId;
+          const preSelectedSku = targetSkuId
+            ? skusResponse.find(s => s._id === targetSkuId)
+            : null;
+
+          setSelectedSKU(preSelectedSku || skusResponse[0]);
         }
       }
     } catch (error) {
@@ -140,6 +147,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   const handleAddToCart = async () => {
     if (!product) return;
     const price = getPrice();
+    const skuName = selectedSKU?.variantAttributes?.map(a => a.value).join(' / ');
     const cartItem = {
       _id: selectedSKU ? selectedSKU._id : product._id,
       productId: product._id,
@@ -148,6 +156,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       quantity: quantity,
       thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url) || undefined,
       skuId: selectedSKU?._id,
+      skuName: skuName,
       maxStock: selectedSKU ? selectedSKU.quantity : product.stock,
     };
     await addToCart(cartItem);
@@ -218,7 +227,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       style={styles.relatedCard}
       onPress={() => navigation.push('ProductDetail', { id: item._id })}
     >
-      <Image source={{ uri: getSafeImageUrl(item.mainImage) }} style={styles.relatedImage} />
+      <Image source={{ uri: getSafeImageUrl(item.mainImage) || 'https://via.placeholder.com/150' }} style={styles.relatedImage} />
       <Text style={styles.relatedName} numberOfLines={1}>{item.name}</Text>
       <Text style={styles.relatedPrice}>₹{(item.offerPrice || item.salePrice || item.basePrice || 0).toFixed(0)}</Text>
     </TouchableOpacity>
@@ -231,7 +240,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
         <View style={styles.imageCarousel}>
           {images[currentImageIndex] ? (
             <Image
-              source={{ uri: images[currentImageIndex] }}
+              source={{ uri: images[currentImageIndex] || '' }}
               style={styles.productImage}
               resizeMode="cover"
             />
@@ -269,7 +278,6 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               name="heart"
               size={22}
               color={isInWishlist(product._id) ? theme.colors.error : theme.colors.text.secondary}
-              fill={isInWishlist(product._id) ? theme.colors.error : 'transparent'}
             />
           </TouchableOpacity>
         </View>
@@ -280,7 +288,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <View>
               <Text style={styles.productName}>{product.name}</Text>
               <View style={styles.ratingRow}>
-                <Icon name="star" size={14} color="#FFD700" fill="#FFD700" />
+                <Icon name="star" size={14} color="#FFD700" />
                 <Text style={styles.ratingText}>4.5 (120 reviews)</Text>
               </View>
             </View>
@@ -399,7 +407,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
                       <Text style={styles.reviewUser}>Verified Buyer</Text>
                       <View style={styles.starRow}>
                         {[1, 2, 3, 4, 5].map(s => (
-                          <Icon key={s} name="star" size={10} color={s <= review.rating ? "#FFD700" : "#CCC"} fill={s <= review.rating ? "#FFD700" : "transparent"} />
+                          <Icon key={s} name="star" size={10} color={s <= review.rating ? "#FFD700" : "#CCC"} />
                         ))}
                       </View>
                     </View>
@@ -453,7 +461,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <View style={styles.ratingPicker}>
               {[1, 2, 3, 4, 5].map(s => (
                 <TouchableOpacity key={s} onPress={() => setRating(s)} style={styles.starTouch}>
-                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} fill={s <= rating ? "#FFD700" : "transparent"} />
+                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} />
                 </TouchableOpacity>
               ))}
             </View>

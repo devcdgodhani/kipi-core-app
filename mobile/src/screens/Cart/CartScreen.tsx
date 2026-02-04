@@ -16,12 +16,25 @@ import { theme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 
 type RootStackParamList = {
-  ProductDetail: { slug: string; id: string };
+  Home: undefined;
+  Products: undefined;
+  Cart: undefined;
+  Profile: undefined;
+  ProductDetail: { slug?: string; id?: string; skuId?: string };
   Checkout: undefined;
 };
 
 const CartScreen = () => {
-  const { items, removeFromCart, updateQuantity, cartTotal, itemCount } = useCart();
+  const {
+    items,
+    removeFromCart,
+    updateQuantity,
+    selectedItems,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isItemSelected,
+  } = useCart();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [fadeAnim] = React.useState(new Animated.Value(0));
 
@@ -33,42 +46,102 @@ const CartScreen = () => {
     }).start();
   }, []);
 
-  const renderItem = ({ item }: { item: CartItem }) => (
-    <View style={styles.cartItem}>
-      <Image
-        source={{ uri: item.thumbnail || 'https://via.placeholder.com/100' }}
-        style={styles.itemImage}
-      />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName} numberOfLines={2}>
-          {item.name}
-        </Text>
-        <Text style={styles.itemPrice}>₹{item.price.toFixed(2)}</Text>
+  const selectedTotal = useMemo(() => {
+    return items.reduce((sum: number, item: CartItem) => {
+      if (selectedItems.includes(item._id)) {
+        return sum + (item.price * item.quantity);
+      }
+      return sum;
+    }, 0);
+  }, [items, selectedItems]);
 
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            onPress={() => updateQuantity(item._id, item.quantity - 1)}
-            style={styles.qtyButton}
-          >
-            <Icon name="minus" size={16} color={theme.colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{item.quantity}</Text>
-          <TouchableOpacity
-            onPress={() => updateQuantity(item._id, item.quantity + 1)}
-            style={styles.qtyButton}
-          >
-            <Icon name="plus" size={16} color={theme.colors.text.primary} />
-          </TouchableOpacity>
-        </View>
+  const selectedCount = useMemo(() =>
+    items.filter((i: CartItem) => selectedItems.includes(i._id)).length,
+    [items, selectedItems]);
+
+  const allSelected = useMemo(() =>
+    items.length > 0 && selectedCount === items.length,
+    [items.length, selectedCount]);
+
+  const renderItem = ({ item }: { item: CartItem }) => {
+    const isSelected = isItemSelected(item._id);
+    const itemTotal = item.price * item.quantity;
+
+    return (
+      <View style={styles.cartItem}>
+        {/* Checkbox */}
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={() => toggleSelection(item._id)}
+        >
+          <Icon
+            name={isSelected ? 'check-square' : 'square'}
+            size={24}
+            color={isSelected ? theme.colors.primary.main : theme.colors.text.secondary}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.itemContent}
+          onPress={() => navigation.navigate('Products', {
+            screen: 'ProductDetail',
+            params: { id: item.productId, skuId: item.skuId }
+          } as any)}
+        >
+          <Image
+            source={{ uri: item.thumbnail || 'https://via.placeholder.com/100' }}
+            style={styles.itemImage}
+          />
+
+          <View style={styles.itemDetails}>
+            <View style={styles.itemHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.itemName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                {item.skuName && (
+                  <Text style={styles.skuNameText}>Variant: {item.skuName}</Text>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={() => removeFromCart(item._id)}
+                style={styles.removeButton}
+              >
+                <Icon name="trash-2" size={18} color={theme.colors.error} />
+              </TouchableOpacity>
+            </View>
+
+
+            <View style={styles.controlsRow}>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity
+                  onPress={() => updateQuantity(item._id, Math.max(1, item.quantity - 1))}
+                  style={styles.qtyButton}
+                  disabled={item.quantity <= 1}
+                >
+                  <Icon name="minus" size={14} color={item.quantity <= 1 ? theme.colors.text.tertiary : theme.colors.text.primary} />
+                </TouchableOpacity>
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+                <TouchableOpacity
+                  onPress={() => updateQuantity(item._id, item.quantity + 1)}
+                  style={styles.qtyButton}
+                >
+                  <Icon name="plus" size={14} color={theme.colors.text.primary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.priceContainer}>
+                <Text style={styles.totalItemPrice}>₹{itemTotal.toFixed(2)}</Text>
+                {item.quantity > 1 && (
+                  <Text style={styles.unitPrice}>₹{item.price.toFixed(2)} / Unit</Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={() => removeFromCart(item._id)}
-        style={styles.removeButton}
-      >
-        <Icon name="trash-2" size={20} color={theme.colors.error} />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   if (items.length === 0) {
     return (
@@ -77,7 +150,7 @@ const CartScreen = () => {
         <Text style={styles.emptyText}>Your cart is empty</Text>
         <TouchableOpacity
           style={styles.shopButton}
-          onPress={() => navigation.navigate('Products' as any)}
+          onPress={() => navigation.navigate('Products')}
         >
           <Text style={styles.shopButtonText}>Start Shopping</Text>
         </TouchableOpacity>
@@ -88,37 +161,71 @@ const CartScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        {/* Select All Header */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.selectAllContainer}
+            onPress={() => allSelected ? clearSelection() : selectAll()}
+          >
+            <Icon
+              name={allSelected ? 'check-square' : 'square'}
+              size={24}
+              color={allSelected ? theme.colors.primary.main : theme.colors.text.secondary}
+            />
+            <Text style={styles.selectAllText}>{allSelected ? 'Deselect All' : 'Select All'}</Text>
+          </TouchableOpacity>
+          <Text style={styles.itemCountText}>{items.length} Items</Text>
+        </View>
+
         <FlatList
           data={items}
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
         />
+
         <View style={styles.footer}>
           <View style={styles.priceBreakdown}>
+            <Text style={styles.summaryTitle}>SUMMARY</Text>
+
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Subtotal ({itemCount} items)</Text>
-              <Text style={styles.priceValue}>₹{cartTotal.toFixed(2)}</Text>
+              <Text style={styles.priceLabel}>Subtotal</Text>
+              <Text style={styles.priceValue}>₹{selectedTotal.toFixed(2)}</Text>
             </View>
+
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>Shipping</Text>
-              <Text style={[styles.priceValue, { color: theme.colors.success }]}>FREE</Text>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={[styles.priceValue, { color: theme.colors.success }]}>FREE</Text>
+                <Text style={styles.strikethroughPrice}>₹99.00</Text>
+              </View>
             </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Tax</Text>
-              <Text style={styles.priceValue}>₹0.00</Text>
-            </View>
+
             <View style={[styles.priceRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Grand Total</Text>
-              <Text style={styles.totalAmount}>₹{cartTotal.toFixed(2)}</Text>
+              <View>
+                <Text style={styles.totalLabel}>Total Pay</Text>
+                <Text style={styles.totalAmount}>₹{selectedTotal.toFixed(2)}</Text>
+              </View>
             </View>
           </View>
+
           <TouchableOpacity
-            style={styles.checkoutButton}
+            style={[styles.checkoutButton, selectedCount === 0 && styles.disabledButton]}
             onPress={() => navigation.navigate('Checkout')}
+            disabled={selectedCount === 0}
           >
-            <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+            <Text style={styles.checkoutButtonText}>
+              Proceed to Checkout ({selectedCount})
+            </Text>
+            <Icon name="arrow-right" size={20} color={theme.colors.text.inverse} />
           </TouchableOpacity>
+
+          <View style={styles.paymentIcons}>
+            {/* Simple representation of payment icons */}
+            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>VISA</Text></View>
+            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>MASTER</Text></View>
+            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>UPI</Text></View>
+          </View>
         </View>
       </Animated.View>
     </SafeAreaView>
@@ -152,8 +259,43 @@ const styles = StyleSheet.create({
     ...theme.typography.button,
     color: theme.colors.primary.contrastText,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.background.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  selectAllContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  selectAllText: {
+    ...theme.typography.button,
+    color: theme.colors.text.primary,
+    fontWeight: 'bold',
+    marginLeft: 8,
+    textTransform: 'uppercase',
+    fontSize: 12,
+    letterSpacing: 1,
+  },
+  itemCountText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.text.secondary,
+    backgroundColor: theme.colors.background.default,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   listContent: {
     padding: theme.spacing.md,
+    paddingBottom: 100, // Extra space for footer
   },
   cartItem: {
     flexDirection: 'row',
@@ -164,100 +306,193 @@ const styles = StyleSheet.create({
     ...theme.shadows.sm,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    alignItems: 'center',
+  },
+  checkboxContainer: {
+    marginRight: theme.spacing.sm,
+    padding: 4,
+  },
+  itemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: theme.borderRadius.sm,
+    width: 70,
+    height: 70,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.background.default,
   },
   itemDetails: {
     flex: 1,
     marginLeft: theme.spacing.md,
     justifyContent: 'space-between',
+    minHeight: 70,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   itemName: {
     ...theme.typography.body1,
     fontWeight: '600',
     color: theme.colors.text.primary,
+    flex: 1,
+    marginRight: 8,
   },
-  itemPrice: {
-    ...theme.typography.body2,
+  skuNameText: {
+    fontSize: 10,
     color: theme.colors.text.secondary,
-    marginTop: 4,
+    marginTop: 2,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  removeButton: {
+    padding: 4,
+  },
+
+  controlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 8,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: theme.spacing.sm,
-  },
-  qtyButton: {
-    padding: 4,
-    backgroundColor: theme.colors.background.default,
-    borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background.default,
+  },
+  qtyButton: {
+    padding: 6,
   },
   quantityText: {
-    ...theme.typography.body1,
-    marginHorizontal: theme.spacing.md,
-    minWidth: 20,
+    ...theme.typography.body2,
+    marginHorizontal: 8,
+    fontWeight: '600',
+    minWidth: 16,
     textAlign: 'center',
   },
-  removeButton: {
-    padding: theme.spacing.sm,
-    justifyContent: 'center',
+  priceContainer: {
+    alignItems: 'flex-end',
   },
-  footer: {
-    backgroundColor: theme.colors.background.paper,
-    padding: theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
-    ...theme.shadows.lg,
-  },
-  priceBreakdown: {
-    marginBottom: theme.spacing.md,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing.xs,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-  },
-  priceValue: {
-    fontSize: 14,
-    color: theme.colors.text.primary,
-    fontWeight: '500',
-  },
-  totalRow: {
-    marginTop: theme.spacing.sm,
-    paddingTop: theme.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
-  },
-  totalLabel: {
+  totalItemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     color: theme.colors.text.primary,
   },
-  totalAmount: {
+  unitPrice: {
+    fontSize: 10,
+    color: theme.colors.text.secondary,
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+
+  footer: {
+    backgroundColor: theme.colors.background.paper,
+    padding: theme.spacing.lg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    ...theme.shadows.lg,
+    elevation: 20,
+    marginTop: -20, // Overlap list slightly or just ensure visual separation
+  },
+  summaryTitle: {
     fontSize: 18,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.md,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  priceBreakdown: {
+    marginBottom: theme.spacing.lg,
+    gap: 12,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priceLabel: {
+    fontSize: 13,
+    color: theme.colors.text.secondary,
     fontWeight: 'bold',
-    color: theme.colors.primary.main,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  priceValue: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    fontWeight: '600',
+  },
+  strikethroughPrice: {
+    fontSize: 10,
+    color: theme.colors.text.tertiary,
+    textDecorationLine: 'line-through',
+  },
+  totalRow: {
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.light,
+    alignItems: 'flex-end', 
+  },
+  totalLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: theme.colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  totalAmount: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: theme.colors.text.primary,
+    letterSpacing: -1,
   },
   checkoutButton: {
     backgroundColor: theme.colors.primary.main,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
     ...theme.shadows.md,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   checkoutButtonText: {
     color: theme.colors.text.inverse,
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  paymentIcons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 20,
+    opacity: 0.4,
+  },
+  paymentIconPlaceholder: {
+    width: 40,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.text.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paymentIconText: {
+    fontSize: 8,
     fontWeight: 'bold',
   },
 });

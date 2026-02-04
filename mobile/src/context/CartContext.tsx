@@ -10,6 +10,7 @@ export interface CartItem {
     quantity: number;
     thumbnail?: string;
     skuId?: string;
+    skuName?: string;
     maxStock?: number;
 }
 
@@ -22,6 +23,11 @@ interface CartContextType {
     cartTotal: number;
     itemCount: number;
     loading: boolean;
+    selectedItems: string[];
+    toggleSelection: (itemId: string) => void;
+    selectAll: () => void;
+    clearSelection: () => void;
+    isItemSelected: (itemId: string) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -29,6 +35,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [items, setItems] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
     useEffect(() => {
         loadCart();
@@ -61,6 +68,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    useEffect(() => {
+        // Initialize selected items when cart loads
+        if (items.length > 0 && selectedItems.length === 0) {
+            // Optional: Auto-select all on data load if we want that behavior, 
+            // but traditionally we might want to respect user choice or just default all.
+            // For now, let's default all to selected if list was empty.
+            const allIds = items.map((i: CartItem) => i._id);
+            setSelectedItems(allIds);
+        }
+    }, [items.length]); // Simple dependency for now
+
+    const toggleSelection = (itemId: string) => {
+        setSelectedItems(prev =>
+            prev.includes(itemId)
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
+        );
+    };
+
+    const selectAll = () => {
+        setSelectedItems(items.map((item: CartItem) => item._id));
+    };
+
+    const clearSelection = () => {
+        setSelectedItems([]);
+    };
+
+    const isItemSelected = (itemId: string) => selectedItems.includes(itemId);
+
     const addToCart = async (newItem: CartItem) => {
         let updatedItems = [...items];
         const existingItemIndex = updatedItems.findIndex(
@@ -70,7 +106,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (existingItemIndex > -1) {
             // Item exists, update quantity
             updatedItems[existingItemIndex].quantity += newItem.quantity;
-            // Check max stock if available
             if (newItem.maxStock && updatedItems[existingItemIndex].quantity > newItem.maxStock) {
                 updatedItems[existingItemIndex].quantity = newItem.maxStock;
                 Toast.show({
@@ -82,6 +117,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
             // Add new item
             updatedItems.push(newItem);
+            // Auto-select new item
+            setSelectedItems(prev => [...prev, newItem._id]);
         }
 
         await saveCart(updatedItems);
@@ -95,6 +132,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const removeFromCart = async (itemId: string) => {
         const updatedItems = items.filter((item) => item._id !== itemId);
         await saveCart(updatedItems);
+        setSelectedItems(prev => prev.filter(id => id !== itemId));
         Toast.show({
             type: 'success',
             text1: 'Removed',
@@ -127,14 +165,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const clearCart = async () => {
         await saveCart([]);
+        setSelectedItems([]);
         Toast.show({
             type: 'success',
             text1: 'Cart Cleared',
         });
     };
 
-    const cartTotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
-    const itemCount = items.reduce((count, item) => count + item.quantity, 0);
+    const cartTotal = items.reduce<number>((total: number, item: CartItem) => total + item.price * item.quantity, 0);
+    const itemCount = items.reduce<number>((count: number, item: CartItem) => count + item.quantity, 0);
 
     return (
         <CartContext.Provider
@@ -147,6 +186,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 cartTotal,
                 itemCount,
                 loading,
+                selectedItems,
+                toggleSelection,
+                selectAll,
+                clearSelection,
+                isItemSelected,
             }}
         >
             {children}
