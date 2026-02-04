@@ -13,6 +13,7 @@ export const CheckoutPayment: React.FC = () => {
 
     const { gateways, loading, paymentInitiating, error } = useAppSelector(state => state.payment);
     const [selectedGateway, setSelectedGateway] = useState<string>('');
+    const [vpa, setVpa] = useState<string>('');
 
     useEffect(() => {
         console.log('CheckoutPayment page mounted, Order ID:', orderId);
@@ -25,7 +26,8 @@ export const CheckoutPayment: React.FC = () => {
         try {
             const result = await dispatch(initiatePayment({
                 orderId,
-                gatewayName: selectedGateway
+                gatewayName: selectedGateway,
+                vpa: selectedGateway === 'PHONEPE' ? vpa : undefined
             })).unwrap();
 
             if (result.redirectUrl) {
@@ -57,7 +59,7 @@ export const CheckoutPayment: React.FC = () => {
                     const inputOrder = document.createElement('input');
                     inputOrder.type = 'hidden';
                     inputOrder.name = 'orderId';
-                    inputOrder.value = result.orderId;
+                    inputOrder.value = result.orderId || result.data?.orderId || orderId;
                     form.appendChild(inputOrder);
 
                     document.body.appendChild(form);
@@ -65,6 +67,11 @@ export const CheckoutPayment: React.FC = () => {
                 } else {
                     window.location.href = result.redirectUrl;
                 }
+            } else if (selectedGateway === 'PHONEPE' && vpa) {
+                // Direct UPI Collect implementation
+                toast.success('Payment request sent to your UPI app! Please approve it.');
+                // Redirect to a waiting/status page for this order/payment
+                navigate(`/order/success/${orderId}?status=pending`);
             } else {
                 toast.error('Payment initiation failed: No redirect URL');
             }
@@ -109,6 +116,8 @@ export const CheckoutPayment: React.FC = () => {
                         gateways={gateways}
                         selectedGateway={selectedGateway}
                         onSelect={setSelectedGateway}
+                        vpa={vpa}
+                        onVpaChange={setVpa}
                         disabled={paymentInitiating}
                     />
                 </div>

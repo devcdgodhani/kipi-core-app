@@ -125,7 +125,15 @@ export default function ProductDetailScreen({ route, navigation }: any) {
         productService.getRecommended(6) // Using recommended as "Recently Bought" proxy if needed
       ]);
 
-      if (revRes) setReviews(revRes);
+      if (revRes) {
+        if (revRes.recordList) {
+          setReviews(revRes.recordList);
+        } else if (Array.isArray(revRes)) {
+          setReviews(revRes);
+        } else {
+          setReviews([]);
+        }
+      }
       if (simRes) setSimilarProducts(simRes);
       if (freqRes) setFrequentlyBought(freqRes);
       if (recRes) setRecentlyBought(recRes);
@@ -289,7 +297,11 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               <Text style={styles.productName}>{product.name}</Text>
               <View style={styles.ratingRow}>
                 <Icon name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingText}>4.5 (120 reviews)</Text>
+                <Text style={styles.ratingText}>
+                  {reviews.length > 0
+                    ? `${(reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)} (${reviews.length} review${reviews.length !== 1 ? 's' : ''})`
+                    : 'No reviews yet'}
+                </Text>
               </View>
             </View>
             <Text style={styles.productPrice}>₹{getPrice().toFixed(2)}</Text>

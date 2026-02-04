@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Placeholder screens - we'll create these next
+// Screens
 import HomeScreen from '../screens/Home/HomeScreen';
 import ProductListScreen from '../screens/Products/ProductListScreen';
 import ProductDetailScreen from '../screens/Products/ProductDetailScreen';
@@ -17,6 +17,8 @@ import VerifyOTPScreen from '../screens/Auth/VerifyOTPScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
 import CheckoutScreen from '../screens/Checkout/CheckoutScreen';
+import PaymentGatewayScreen from '../screens/Checkout/PaymentGatewayScreen';
+import OrderSuccessScreen from '../screens/Checkout/OrderSuccessScreen';
 import AddAddressScreen from '../screens/Address/AddAddressScreen';
 import OrdersScreen from '../screens/Orders/OrdersScreen';
 import OrderDetailScreen from '../screens/Orders/OrderDetailScreen';
@@ -26,6 +28,7 @@ import WishlistScreen from '../screens/Wishlist/WishlistScreen';
 import WalletScreen from '../screens/Wallet/WalletScreen';
 import NotificationScreen from '../screens/Notifications/NotificationScreen';
 import AddressListScreen from '../screens/Address/AddressListScreen';
+import PaymentWebViewScreen from '../screens/Checkout/PaymentWebViewScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -82,10 +85,13 @@ function AppStack() {
     <Stack.Navigator>
       <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
+      <Stack.Screen name="PaymentGateway" component={PaymentGatewayScreen} options={{ title: 'Select Gateway' }} />
+      <Stack.Screen name="OrderSuccess" component={OrderSuccessScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AddAddress" component={AddAddressScreen} options={{ title: 'Add New Address' }} />
       <Stack.Screen name="AddressList" component={AddressListScreen} options={{ title: 'Shipping Addresses' }} />
       <Stack.Screen name="Orders" component={OrdersScreen} options={{ title: 'My Orders' }} />
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Order Details' }} />
+      <Stack.Screen name="PaymentWebView" component={PaymentWebViewScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
       <Stack.Screen name="Wishlist" component={WishlistScreen} options={{ title: 'My Wishlist' }} />

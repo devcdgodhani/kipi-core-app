@@ -21,6 +21,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuth();
+
+
+
   }, []);
 
   const checkAuth = async () => {

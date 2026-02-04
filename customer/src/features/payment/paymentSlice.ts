@@ -41,9 +41,9 @@ export const fetchEnabledGateways = createAsyncThunk(
 
 export const initiatePayment = createAsyncThunk(
   'payment/initiate',
-  async ({ orderId, gatewayName }: { orderId: string; gatewayName: string }, { rejectWithValue }) => {
+  async ({ orderId, gatewayName, vpa }: { orderId: string; gatewayName: string; vpa?: string }, { rejectWithValue }) => {
     try {
-      return await paymentService.initiatePayment(orderId, gatewayName);
+      return await paymentService.initiatePayment(orderId, gatewayName, vpa);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to initiate payment');
     }

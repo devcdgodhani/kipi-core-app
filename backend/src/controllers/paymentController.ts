@@ -19,10 +19,10 @@ export class PaymentController {
    */
   initiatePayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { orderId, gatewayName } = req.body;
+      const { orderId, gatewayName, vpa } = req.body;
       const userId = (req.user as any)?._id;
 
-      const result = await this.paymentService.initiatePayment(orderId, gatewayName, userId);
+      const result = await this.paymentService.initiatePayment(orderId, gatewayName, userId, vpa);
 
       const response: IApiResponse<any> = {
         status: HTTP_STATUS_CODE.CREATED.STATUS,

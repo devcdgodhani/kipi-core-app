@@ -46,6 +46,7 @@ export const seedUsers = async () => {
           city: 'Mumbai',
           state: 'Maharashtra',
           pincode: '400001',
+          country: 'India',
           type: ADDRESS_TYPE.HOME,
           isDefault: true,
         });
@@ -74,14 +75,13 @@ const upsertUser = async (data: any) => {
 };
 
 const upsertAddress = async (userId: any, data: any) => {
-  const address = await addressService.findOne({ userId, isDefault: true } as any);
-  if (!address) {
-    await addressService.create({
+  await addressService.upsert(
+    { userId, isDefault: true } as any,
+    {
       userId,
       ...data,
-      location: { type: 'Point', coordinates: [72.8777, 19.0760] }, // Default Mumbai coordinates
+      location: { type: 'Point', coordinates: [72.8777, 19.0760] },
       status: ADDRESS_STATUS.ACTIVE,
-    } as any);
-    // console.log(`+ Added address for user: ${data.name}`);
-  }
+    } as any
+  );
 };

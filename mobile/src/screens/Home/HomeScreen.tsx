@@ -114,7 +114,7 @@ export default function HomeScreen({ navigation }: any) {
     >
       <View style={styles.categoryIconContainer}>
         {item.image ? (
-          <Image source={{ uri: getSafeImageUrl(item.image) }} style={styles.categoryImage} />
+          <Image source={{ uri: getSafeImageUrl(item.image) || undefined }} style={styles.categoryImage} />
         ) : (
           <Icon name="grid" size={24} color={theme.colors.primary.main} />
         )}
@@ -140,7 +140,7 @@ export default function HomeScreen({ navigation }: any) {
           renderItem={({ item }) => (
             <ProductCard
               product={item} 
-              onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
+              onPress={(skuId) => navigation.navigate('ProductDetail', { id: item._id, skuId })}
             />
           )}
           keyExtractor={(item) => item._id}
@@ -194,7 +194,7 @@ export default function HomeScreen({ navigation }: any) {
             >
               {banners.map((banner, index) => (
                 <View key={index} style={styles.bannerWrapper}>
-                  <Image source={{ uri: getSafeImageUrl(banner.imageUrl) }} style={styles.bannerImage} />
+                  <Image source={{ uri: getSafeImageUrl(banner.image) || undefined }} style={styles.bannerImage} />
                 </View>
               ))}
             </ScrollView>

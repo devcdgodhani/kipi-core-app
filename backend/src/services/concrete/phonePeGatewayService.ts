@@ -1,6 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import { ENV_VARIABLE } from '../../configs/env';
+import { logger } from '../../configs/logger';
 import {
   IPaymentGateway,
   PaymentInitResponse,
@@ -87,12 +88,15 @@ export class PhonePeGatewayService implements IPaymentGateway {
       // Get Auth Token first
       const accessToken = await this.getAuthToken();
 
+      const isDirectUPI = !!metadata?.vpa;
+
       // PhonePe V2 payload structure
-      const payload = {
+      const payload: any = {
         merchantOrderId: merchantTransactionId,
         amount: amount * 100, // Amount in paise
+        merchantUserId: (order as any).userId || 'USER_' + order.userId,
         paymentFlow: {
-          type: 'PG_CHECKOUT',
+          type: isDirectUPI ? 'API_CHECKOUT' : 'PG_CHECKOUT',
           message: `Payment for Order #${order.orderNumber}`,
           merchantUrls: {
             redirectUrl: ENV_VARIABLE.CUSTOMER_APP_URL 
@@ -102,6 +106,15 @@ export class PhonePeGatewayService implements IPaymentGateway {
           }
         }
       };
+
+      if (isDirectUPI) {
+        payload.paymentInstrument = {
+          type: 'UPI_COLLECT',
+          vpa: metadata?.vpa
+        };
+      }
+
+      logger.info('PhonePe V2 Payload:', { payload });
 
       // Make API call to checkout/v2/pay
       const response = await axios.post(
@@ -115,23 +128,38 @@ export class PhonePeGatewayService implements IPaymentGateway {
         }
       );
 
-      // Check response for redirect URL
-      if (response.data && (response.data.redirectUrl || response.data.data?.redirectUrl)) {
-        const redirectUrl = response.data.redirectUrl || response.data.data?.redirectUrl;
+      logger.info('PhonePe V2 Response:', { response: response.data });
 
+      // For Direct UPI (API_CHECKOUT), we might not get a redirectUrl but a success/pending state
+      if (isDirectUPI) {
+        const state = response.data?.state;
+        if (state === 'PENDING' || state === 'COMPLETED' || state === 'PAYMENT_INITIATED') {
+          return {
+            success: true,
+            gatewayTransactionId: merchantTransactionId,
+            data: response.data
+          };
+        }
+      }
+
+      // Check response for redirect URL (PG_CHECKOUT)
+      const redirectUrl = response.data?.redirectUrl || response.data?.data?.redirectUrl;
+      if (redirectUrl) {
         return {
           success: true,
           gatewayTransactionId: merchantTransactionId,
-          redirectUrl: redirectUrl,
-          redirectMethod: 'GET'
-        };
-      } else {
-        return {
-          success: false,
-          error: response.data?.message || 'Payment initiation failed',
-          errorCode: response.data?.code
+          redirectUrl,
+          redirectMethod: 'GET',
+          data: response.data
         };
       }
+
+      return {
+        success: false,
+        error: response.data?.message || 'Payment initiation failed',
+        errorCode: response.data?.code,
+        data: response.data
+      };
     } catch (error: any) {
       console.error('PhonePe createPayment error:', error.response?.data || error.message);
       return {

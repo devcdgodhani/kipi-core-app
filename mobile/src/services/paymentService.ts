@@ -13,8 +13,8 @@ export const paymentService = {
   },
 
   // Initiate payment
-  initiatePayment: async (orderId: string, gatewayName: string): Promise<any> => {
-    const response = await http.post(`${BASE_URL}/initiate`, { orderId, gatewayName });
+  initiatePayment: async (orderId: string, gatewayName: string, vpa?: string): Promise<any> => {
+    const response = await http.post(`${BASE_URL}/initiate`, { orderId, gatewayName, vpa });
     return response.data;
   },
 

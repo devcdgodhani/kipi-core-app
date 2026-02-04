@@ -42,7 +42,8 @@ export class PaymentService
   async initiatePayment(
     orderId: string,
     gatewayName: PAYMENT_GATEWAY,
-    userId: string
+    userId: string,
+    vpa?: string
   ): Promise<{
     payment: IPaymentAttributes;
     redirectUrl?: string;
@@ -92,7 +93,7 @@ export class PaymentService
     const gatewayResponse = await gatewayService.createPayment(
       order as IOrderAttributes,
       order.totalAmount,
-      { callbackUrl }
+      { callbackUrl, vpa }
     );
 
     if (!gatewayResponse.success) {

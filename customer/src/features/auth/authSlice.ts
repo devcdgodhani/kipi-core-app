@@ -1,10 +1,12 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { authService } from '../../services/auth.service';
 
 interface AuthState {
   user: any | null;
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
+  isInitialized: boolean;
 }
 
 const storedUser = localStorage.getItem('user');
@@ -15,7 +17,27 @@ const initialState: AuthState = {
   token: storedToken || null,
   isAuthenticated: !!storedToken,
   loading: false,
+  isInitialized: false,
 };
+
+export const initializeAuth = createAsyncThunk(
+  'auth/initialize',
+  async (_, { dispatch }) => {
+    const token = localStorage.getItem('ACCESS_TOKEN');
+    if (!token) return null;
+
+    try {
+      const response = await authService.getMe();
+      const user = response?.data || response;
+      return user;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        dispatch(logout());
+      }
+      throw error;
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -34,8 +56,26 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       localStorage.removeItem('user');
       localStorage.removeItem('ACCESS_TOKEN');
-      localStorage.removeItem('REFRESH_TOKEN'); // Might as well clear refresh token
+      localStorage.removeItem('REFRESH_TOKEN');
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(initializeAuth.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isInitialized = true;
+        if (action.payload) {
+          state.user = action.payload;
+          state.isAuthenticated = true;
+        }
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.loading = false;
+        state.isInitialized = true;
+      });
   },
 });
 

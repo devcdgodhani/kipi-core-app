@@ -8,6 +8,7 @@ import { AddressProvider } from './src/context/AddressContext';
 import { WishlistProvider } from './src/context/WishlistContext';
 import { WalletProvider } from './src/context/WalletContext';
 import { NotificationProvider } from './src/context/NotificationContext';
+import { CheckoutProvider } from './src/context/CheckoutContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider } from './src/context/ThemeContext';
 import Toast from 'react-native-toast-message';
@@ -22,10 +23,12 @@ export default function App() {
               <WishlistProvider>
                 <WalletProvider>
                   <NotificationProvider>
-                    <SafeAreaProvider>
-                      <AppNavigator />
-                      <Toast />
-                    </SafeAreaProvider>
+                    <CheckoutProvider>
+                      <SafeAreaProvider>
+                        <AppNavigator />
+                        <Toast />
+                      </SafeAreaProvider>
+                    </CheckoutProvider>
                   </NotificationProvider>
                 </WalletProvider>
               </WishlistProvider>
