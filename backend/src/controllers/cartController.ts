@@ -43,11 +43,26 @@ export class CartController {
 
       const cart = await this.cartService.findOne(filter, options);
 
+      // Runtime Calculation of Totals
       if (cart && cart.items) {
+        let calculatedTotalItems = 0;
+        let calculatedTotalPrice = 0;
+
         await Promise.all(cart.items.map(async (item: any) => {
           if (item.productId) await enrichProductWithPresignedUrls(item.productId);
           if (item.skuId) await enrichProductWithPresignedUrls(item.skuId);
+          
+          // Calculate price source
+          const price = item.skuId?.offerPrice || item.skuId?.salePrice || item.skuId?.basePrice || 
+                        item.productId?.offerPrice || item.productId?.salePrice || item.productId?.basePrice || 0;
+                        
+          calculatedTotalItems += item.quantity;
+          calculatedTotalPrice += (price * item.quantity);
         }));
+
+        // Override stored values with runtime calculated values
+        cart.totalItems = calculatedTotalItems;
+        cart.totalPrice = calculatedTotalPrice;
       }
 
       const response: IApiResponse<ICartAttributes | null> = {

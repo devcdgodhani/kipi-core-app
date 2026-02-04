@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import type { Category, ProductFilters } from '../../types/product.types';
+import type { ProductFilters } from '../../types/product.types';
 import type { Attribute } from '../../types/attribute.types';
-import { categoryService } from '../../services/product.service';
 import { attributeService } from '../../services/attribute.service';
 
 interface ProductFiltersProps {
@@ -13,23 +12,12 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
     filters,
     onFilterChange,
 }) => {
-    const [categories, setCategories] = useState<Category[]>([]);
     const [attributes, setAttributes] = useState<Attribute[]>([]); // New state
-    const [activeTab, setActiveTab] = useState('category');
+    const [activeTab, setActiveTab] = useState('price');
 
     useEffect(() => {
-        loadCategories();
         loadAttributes(); // Load attributes
     }, []);
-
-    const loadCategories = async () => {
-        try {
-            const data = await categoryService.getAll();
-            setCategories(data);
-        } catch (error) {
-            console.error('Failed to load categories:', error);
-        }
-    };
 
     const loadAttributes = async () => {
         try {
@@ -38,15 +26,6 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
         } catch (error) {
             console.error('Failed to load attributes:', error);
         }
-    };
-
-    const handleCategoryToggle = (categoryId: string) => {
-        const currentCategories = filters.categoryIds || [];
-        const newCategories = currentCategories.includes(categoryId)
-            ? currentCategories.filter(id => id !== categoryId)
-            : [...currentCategories, categoryId];
-
-        onFilterChange({ ...filters, categoryIds: newCategories });
     };
 
     const handlePriceChange = (min?: number, max?: number) => {
@@ -79,7 +58,7 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
                 </div>
                 <div className="flex flex-row md:flex-col md:flex-1 md:overflow-y-auto gap-2 md:gap-0">
                     {[
-                        { id: 'category', label: 'Categories', count: filters.categoryIds?.length || 0 },
+                        // { id: 'category', label: 'Categories', count: filters.categoryIds?.length || 0 }, // Removed per requirement
                         ...attributes.map(attr => ({
                             id: attr._id,
                             label: attr.name,
@@ -116,45 +95,7 @@ const ProductFiltersComponent: React.FC<ProductFiltersProps> = ({
 
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto bg-background">
-                {activeTab === 'category' && (
-                    <div className="space-y-4 animate-in fade-in duration-300">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-primary uppercase tracking-wide text-sm">Select Categories</h3>
-                            <span className="text-xs text-secondary/50">{categories.length} Found</span>
-                        </div>
-                        <div className="space-y-3">
-                            {categories.map((category) => (
-                                <label
-                                    key={category._id}
-                                    className={`flex items-center justify-between p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 group ${filters.categoryIds?.includes(category._id)
-                                        ? 'bg-background border-primary shadow-xl shadow-primary/5'
-                                        : 'bg-background border-transparent hover:border-primary/20 shadow-sm'
-                                        }`}
-                                >
-                                    <span className={`text-sm font-bold uppercase tracking-wide transition-colors ${filters.categoryIds?.includes(category._id) ? 'text-primary' : 'text-secondary'
-                                        }`}>{category.name}</span>
 
-                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${filters.categoryIds?.includes(category._id)
-                                        ? 'bg-primary border-primary'
-                                        : 'border-primary/20 bg-primary/5'
-                                        }`}>
-                                        <input
-                                            type="checkbox"
-                                            checked={filters.categoryIds?.includes(category._id) || false}
-                                            onChange={() => handleCategoryToggle(category._id)}
-                                            className="hidden"
-                                        />
-                                        {filters.categoryIds?.includes(category._id) && (
-                                            <svg className="w-3.5 h-3.5 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {activeTab === 'price' && (
                     <div className="space-y-8 animate-in fade-in duration-300">

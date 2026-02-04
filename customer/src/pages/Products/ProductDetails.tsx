@@ -70,8 +70,8 @@ const ProductDetails: React.FC = () => {
                 const initialImageUrl = (activeMedia?.fileStorageId as any)?.preSignedUrl || activeMedia?.url || '/placeholder-product.png';
                 setActiveImage(initialImageUrl);
 
-                // Load SKUs
-                const skusData = await productService.getProductSKUs(productData._id);
+                // Load SKUs from product data
+                const skusData = productData.skus || [];
                 setSkus(skusData);
 
                 // Track View
@@ -93,6 +93,20 @@ const ProductDetails: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // Update active image when selected SKU changes
+    useEffect(() => {
+        if (selectedSku) {
+            const skuImage = (selectedSku.media?.[0]?.fileStorageId as any)?.preSignedUrl || selectedSku.media?.[0]?.url;
+            if (skuImage) {
+                setActiveImage(skuImage);
+            } else if (product) {
+                const activeMedia = product.media.find(m => m.status === 'ACTIVE');
+                const initialImageUrl = (activeMedia?.fileStorageId as any)?.preSignedUrl || activeMedia?.url || '/placeholder-product.png';
+                setActiveImage(initialImageUrl);
+            }
+        }
+    }, [selectedSku, product]);
 
     const handleAddToCart = async () => {
         if (!product || !selectedSku) return;

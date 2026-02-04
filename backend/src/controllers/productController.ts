@@ -48,22 +48,47 @@ export class ProductController {
         { path: 'mainImage' }
       ]);
       
-      if (response && (response as any)._id) {
+      let productData: any = response;
+      if (response && typeof (response as any).toObject === 'function') {
+          productData = (response as any).toObject();
+      }
+      
+      if (productData && productData._id) {
           const skus = await this.skuService.findAll(
-            { productId: (response as any)._id } as any,
+            { productId: productData._id } as any,
             {},
             [{ path: 'media.fileStorageId' }]
           );
-          (response as any).skus = skus;
+
+          // Enrich SKUs with presigned URLs
+            if (Array.isArray(skus)) {
+                await Promise.all(skus.map(async (sku: any) => {
+                if (sku.media && Array.isArray(sku.media)) {
+                    for (const mediaItem of sku.media) {
+                    if (mediaItem.fileStorageId && typeof mediaItem.fileStorageId === 'object') {
+                        const fileStorage = mediaItem.fileStorageId as any;
+                        if (fileStorage.generatePreSignedUrl) {
+                        mediaItem.fileStorageId = {
+                            ...fileStorage.toObject(),
+                            preSignedUrl: await fileStorage.generatePreSignedUrl()
+                        };
+                        }
+                    }
+                    }
+                }
+                }));
+            }
+
+          productData.skus = skus;
       }
 
-      await enrichProductWithPresignedUrls(response);
+      await enrichProductWithPresignedUrls(productData);
 
       const apiResponse: TProductRes = {
         status: HTTP_STATUS_CODE.OK.STATUS,
         code: HTTP_STATUS_CODE.OK.CODE,
         message: PRODUCT_SUCCESS_MESSAGES.GET_SUCCESS,
-        data: response,
+        data: productData,
       };
 
       res.status(apiResponse.status).json(apiResponse);
@@ -95,7 +120,52 @@ export class ProductController {
         ]
       );
 
-      if (response.recordList && Array.isArray(response.recordList)) {
+      // Bulk fetch SKUs for all products on this page to avoid N+1
+      if (response.recordList && Array.isArray(response.recordList) && response.recordList.length > 0) {
+        // Convert to plain objects first
+        const products = response.recordList.map(p => (typeof (p as any).toObject === 'function' ? (p as any).toObject() : p));
+        const productIds = products.map((p: any) => p._id);
+        
+        const allSkus = await this.skuService.findAll(
+          { productId: { $in: productIds } } as any,
+          {},
+          [{ path: 'media.fileStorageId' }]
+        );
+
+        // Enrich SKUs with presigned URLs
+        if (Array.isArray(allSkus)) {
+            await Promise.all(allSkus.map(async (sku: any) => {
+            if (sku.media && Array.isArray(sku.media)) {
+                for (const mediaItem of sku.media) {
+                if (mediaItem.fileStorageId && typeof mediaItem.fileStorageId === 'object') {
+                    const fileStorage = mediaItem.fileStorageId as any;
+                    if (fileStorage.generatePreSignedUrl) {
+                    mediaItem.fileStorageId = {
+                        ...fileStorage.toObject(),
+                        preSignedUrl: await fileStorage.generatePreSignedUrl()
+                    };
+                    }
+                }
+                }
+            }
+            }));
+        }
+
+        // Map SKUs to products
+        const skusByProduct: Record<string, any[]> = {};
+        allSkus.forEach((sku: any) => {
+            const pId = sku.productId.toString();
+            if (!skusByProduct[pId]) skusByProduct[pId] = [];
+            skusByProduct[pId].push(sku);
+        });
+
+        products.forEach((p: any) => {
+            p.skus = skusByProduct[p._id.toString()] || [];
+        });
+
+        // Update recordList with the enriched plain objects
+        response.recordList = products;
+
         await Promise.all(response.recordList.map(p => enrichProductWithPresignedUrls(p)));
       }
 

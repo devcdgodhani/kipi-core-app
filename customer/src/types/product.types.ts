@@ -32,6 +32,7 @@ export interface Product {
   stock: number;
   createdAt: string;
   updatedAt: string;
+  skus?: SKU[];
 }
 
 export interface SKU {

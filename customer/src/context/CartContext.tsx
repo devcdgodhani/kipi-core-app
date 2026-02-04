@@ -172,10 +172,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return {
                             productId: pId,
                             skuId: sId || pId, // Fallback to product ID if SKU ID missing
-                            quantity: i.quantity,
-                            price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                            salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                            offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                            quantity: i.quantity
+                            // Price fields removed to rely on runtime calculation
                         };
                     })
                     .filter(i => i !== null) as any[];
@@ -197,10 +195,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const newItem = {
                     productId: pId,
                     skuId: sId || pId,
-                    quantity: item.quantity,
-                    price: item.sku?.basePrice || item.product?.basePrice || 0,
-                    salePrice: item.sku?.salePrice || item.product?.salePrice,
-                    offerPrice: item.sku?.offerPrice || item.product?.offerPrice
+                    quantity: item.quantity
+                    // Price fields removed
                 };
                 console.log('CartContext: Sending create payload:', newItem);
                 await cartService.create({ userId, items: [newItem] });
@@ -277,10 +273,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     return {
                         productId: pId,
                         skuId: sId || pId,
-                        quantity: i.quantity,
-                        price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                        salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                        offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                        quantity: i.quantity
                     };
                 })
                 .filter(i => i !== null) as any[];
@@ -328,10 +321,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     return {
                         productId: pId,
                         skuId: sId || pId,
-                        quantity: i.quantity,
-                        price: (i as any).sku?.offerPrice || (i as any).sku?.salePrice || (i as any).sku?.basePrice || (i as any).product?.offerPrice || (i as any).product?.salePrice || (i as any).product?.basePrice || 0,
-                        salePrice: (i as any).sku?.salePrice || (i as any).product?.salePrice,
-                        offerPrice: (i as any).sku?.offerPrice || (i as any).product?.offerPrice
+                        quantity: i.quantity
                     };
                 })
                 .filter(i => i !== null) as any[];

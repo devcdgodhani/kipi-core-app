@@ -2,6 +2,7 @@ import type { Product } from './product.types';
 // import { Sku } from './sku.types'; // Assuming Sku type exists or using Partial<Product> logic
 
 export interface CartItem {
+    _id?: string;
     productId: string;
     skuId?: string;
     quantity: number;

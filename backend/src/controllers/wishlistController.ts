@@ -25,6 +25,11 @@ export class WishlistController {
           path: 'products.productId', 
           select: 'name mainImage slug basePrice salePrice offerPrice status',
           populate: { path: 'mainImage' }
+        },
+        { 
+          path: 'products.skuId', 
+          select: 'skuCode basePrice salePrice offerPrice media',
+          populate: { path: 'media.fileStorageId' }
         }
       ];
       
@@ -33,6 +38,7 @@ export class WishlistController {
       if (wishlist && wishlist.products) {
         await Promise.all(wishlist.products.map(async (p: any) => {
           if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+          if (p.skuId) await enrichProductWithPresignedUrls(p.skuId);
         }));
       }
 
@@ -58,6 +64,11 @@ export class WishlistController {
           path: 'products.productId', 
           select: 'name mainImage slug basePrice salePrice offerPrice status',
           populate: { path: 'mainImage' }
+        },
+        { 
+          path: 'products.skuId', 
+          select: 'skuCode basePrice salePrice offerPrice media',
+          populate: { path: 'media.fileStorageId' }
         }
       ];
 
@@ -68,6 +79,7 @@ export class WishlistController {
           if (wishlist.products) {
             await Promise.all(wishlist.products.map(async (p: any) => {
               if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+              if (p.skuId) await enrichProductWithPresignedUrls(p.skuId);
             }));
           }
         }));
@@ -94,6 +106,11 @@ export class WishlistController {
           path: 'products.productId', 
           select: 'name mainImage slug basePrice salePrice offerPrice status',
           populate: { path: 'mainImage' }
+        },
+        { 
+          path: 'products.skuId', 
+          select: 'skuCode basePrice salePrice offerPrice media',
+          populate: { path: 'media.fileStorageId' }
         }
       ];
       const wishlistList = await this.wishlistService.findAllWithPagination(filter, options, populate);
@@ -103,6 +120,7 @@ export class WishlistController {
           if (wishlist.products) {
             await Promise.all(wishlist.products.map(async (p: any) => {
               if (p.productId) await enrichProductWithPresignedUrls(p.productId);
+              if (p.skuId) await enrichProductWithPresignedUrls(p.skuId);
             }));
           }
         }));

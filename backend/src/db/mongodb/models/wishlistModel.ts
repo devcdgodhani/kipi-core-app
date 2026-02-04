@@ -4,6 +4,7 @@ import { WISHLIST_STATUS } from '../../../constants/wishlist';
 
 const wishlistItemSchema = new Schema(
   {
+    skuId: { type: Schema.Types.ObjectId, ref: 'Sku' }, // Optional for backward compatibility
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     addedAt: { type: Date, default: Date.now },
   },

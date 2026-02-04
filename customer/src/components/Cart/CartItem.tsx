@@ -12,21 +12,36 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     const { updateQuantity, removeItem, toggleSelection, isItemSelected } = useCart();
 
     // Cast populated fields (since backend now populates them)
-    const productRef = (item.productId as any)?.name ? (item.productId as any) : (item.product || {});
-    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : (item.sku || {});
+    // Robust extraction: Check if it's a populated object (has _id/name/skuCode) or fallback
+    const productRef = (item.productId as any)?.name ? (item.productId as any) : ((item.product as any)?.name ? item.product : {});
+    const skuRef = (item.skuId as any)?.skuCode ? (item.skuId as any) : ((item.sku as any)?.skuCode ? item.sku : {});
 
     // Determine the ID used for operations (matches CartContext logic)
-    const targetId = item.skuId || item.productId;
+    const targetId = (item.skuId as any)?._id || (typeof item.skuId === 'string' ? item.skuId : '') ||
+        (item.productId as any)?._id || (typeof item.productId === 'string' ? item.productId : '');
 
     const name = productRef?.name || 'Unknown Product';
+    // Fallback image logic: SKU Image > Product Main Image > Placeholder
     const imageUrl = (skuRef?.media?.[0]?.fileStorageId as any)?.preSignedUrl ||
         skuRef?.media?.[0]?.url ||
         (productRef?.mainImage as any)?.preSignedUrl ||
         productRef?.mainImage ||
         '/placeholder-product.png';
+
+    // Price Logic: Prioritize database SKU price > database Product price > snapshot item price
     const price = skuRef?.offerPrice || skuRef?.salePrice || skuRef?.basePrice ||
         productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
+        (item.sku as any)?.price || (item.product as any)?.price ||
         item.salePrice || item.price || 0;
+
+    console.log('CartItem render:', {
+        id: item._id,
+        qty: item.quantity,
+        price,
+        skuRef,
+        productRef,
+        itemRaw: item
+    });
 
     // Format price
     const formattedPrice = new Intl.NumberFormat('en-IN', {
@@ -34,28 +49,34 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         currency: 'INR',
     }).format(price);
 
-    // Navigation URL
+    // Navigation URL Logic
     const productSlug = productRef?.slug || productRef?._id;
-    const skuIdParam = (skuRef as any)?._id || (typeof item.skuId === 'string' ? item.skuId : '');
+    // Extract SKU ID strictly for URL
+    const skuIdRaw = (item.skuId as any)?._id || (typeof item.skuId === 'string' ? item.skuId : '') || (item.sku as any)?._id;
+    const skuIdParam = skuIdRaw && typeof skuIdRaw === 'string' ? skuIdRaw : '';
+
     const productUrl = `/products/${productSlug}${skuIdParam ? `?skuId=${skuIdParam}` : ''}`;
 
     return (
-        <div className="flex gap-4 py-4 border-b border-primary/10 last:border-0 items-center">
+        <div className="flex gap-4 p-4 bg-background rounded-2xl border border-primary/10 items-center mb-4 last:mb-0 shadow-sm shadow-primary/5">
             {/* Checkbox */}
-            <div className="flex-shrink-0 pt-8"> {/* Align with image center roughly or top */}
+            <div className="flex-shrink-0 pt-8" onClick={(e) => e.stopPropagation()}> 
                 <input
                     type="checkbox"
                     checked={isItemSelected(targetId)}
                     onChange={() => toggleSelection(targetId)}
-                    className="w-5 h-5 rounded border-primary/20 text-primary focus:ring-primary/20 cursor-pointer accent-primary"
+                    className="w-5 h-5 rounded border-2 border-primary/20 text-primary cursor-pointer"
+                    style={{ accentColor: 'var(--primary)' }} // Inline style fallback
                 />
             </div>
 
             {/* Image */}
-            <div className="w-20 h-20 bg-primary/5 rounded-lg overflow-hidden flex-shrink-0 border border-primary/10 group">
-                <Link to={productUrl}>
-                    <img src={imageUrl} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                </Link>
+            <div className="w-20 h-20 bg-primary/5 rounded-lg overflow-hidden flex-shrink-0 border border-primary/10 group relative z-10">
+                {productRef && (
+                    <Link to={productUrl} className="block w-full h-full">
+                        <img src={imageUrl} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    </Link>
+                )}
             </div>
 
             {/* Details */}
@@ -72,8 +93,17 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                             <Trash2 size={16} />
                         </button>
                     </div>
+                    {skuRef?.variantAttributes && skuRef.variantAttributes.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                            {skuRef.variantAttributes.map((attr: any, idx: number) => (
+                                <span key={idx} className="text-xs text-secondary font-medium bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
+                                    {attr.label || 'Option'}: {attr.value}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                     {skuRef?.skuCode && (
-                        <p className="text-xs text-secondary">SKU: {skuRef.skuCode}</p>
+                        <p className="text-[10px] text-secondary/60 mt-1 uppercase tracking-wider">SKU: {skuRef.skuCode}</p>
                     )}
                 </div>
 
@@ -94,7 +124,16 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                             <Plus size={14} />
                         </button>
                     </div>
-                    <span className="font-semibold text-primary">{formattedPrice}</span>
+                    <div className="flex flex-col items-end">
+                        <span className="font-black text-primary text-lg font-mono tracking-tight">
+                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(price * item.quantity)}
+                        </span>
+                        {item.quantity >= 1 && (
+                            <span className="text-[10px] text-secondary/60 font-bold uppercase tracking-wider">
+                                {formattedPrice} / Unit
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

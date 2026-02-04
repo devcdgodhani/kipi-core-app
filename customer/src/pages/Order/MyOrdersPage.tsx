@@ -81,22 +81,35 @@ const MyOrdersPage: React.FC = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {order.items.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-primary/5 rounded-lg overflow-hidden flex-shrink-0">
-                                            <img
-                                                src={item.image || '/placeholder-product.png'}
-                                                alt={item.name}
-                                                className="w-full h-full object-cover"
-                                            />
+                                {order.items.map((item, idx) => {
+                                    const pId = item.productId && typeof item.productId === 'object' ? (item.productId as any)._id : item.productId;
+                                    const sId = item.skuId && typeof item.skuId === 'object' ? (item.skuId as any)._id : item.skuId;
+                                    const productUrl = pId ? `/products/${pId}${sId ? `?skuId=${sId}` : ''}` : '#';
+
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className="flex items-center gap-4 cursor-pointer group/item"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(productUrl);
+                                            }}
+                                        >
+                                            <div className="w-16 h-16 bg-primary/5 rounded-lg overflow-hidden flex-shrink-0 border border-primary/10 group-hover/item:border-primary/30 transition-colors">
+                                                <img
+                                                    src={item.image || '/placeholder-product.png'}
+                                                    alt={item.name}
+                                                    className="w-full h-full object-cover group-hover/item:scale-105 transition-transform"
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-medium text-primary line-clamp-1 group-hover/item:text-secondary transition-colors">{item.name}</h4>
+                                                <p className="text-sm text-secondary">Qty: {item.quantity}</p>
+                                            </div>
+                                            <p className="font-medium text-primary">₹{item.total.toFixed(2)}</p>
                                         </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-primary line-clamp-1">{item.name}</h4>
-                                            <p className="text-sm text-secondary">Qty: {item.quantity}</p>
-                                        </div>
-                                        <p className="font-medium text-primary">₹{item.total.toFixed(2)}</p>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-primary/10 flex justify-between items-center">

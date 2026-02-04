@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import WishlistButton from '../Wishlist/WishlistButton';
 import { ShoppingCart as CartIcon, Loader2 } from 'lucide-react';
-import { productService } from '../../services/product.service';
+
 
 interface ProductCardProps {
     product: Product;
@@ -14,24 +14,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const navigate = useNavigate();
     const { addItem } = useCart();
     const [adding, setAdding] = useState(false);
-    const [skus, setSkus] = useState<SKU[]>([]);
+    // Use embedded SKUs if available, otherwise empty. Backend now provides them.
+    const [skus, setSkus] = useState<SKU[]>(product.skus || []);
     const [selectedSku, setSelectedSku] = useState<SKU | null>(null);
 
     useEffect(() => {
-        loadSkus();
-    }, [product._id]);
-
-    const loadSkus = async () => {
-        try {
-            const skusData = await productService.getProductSKUs(product._id);
-            setSkus(skusData);
-            if (skusData.length > 0) {
-                setSelectedSku(skusData[0]); // Select first SKU by default
+        // Reset/Update SKUs if product changes.
+        // If product.skus is present (from updated backend), use it.
+        if (product.skus) {
+            setSkus(product.skus);
+            if (product.skus.length > 0 && !selectedSku) {
+                setSelectedSku(product.skus[0]);
             }
-        } catch (error) {
-            console.error('Failed to load SKUs:', error);
+        } else {
+            // Fallback if skus missing (removed separate call to avoid N+1)
+            // If we really need to fetch, we should do it, but User specifically requested to stop calling separate API.
+            // We'll trust the list API.
+            setSkus([]);
         }
-    };
+    }, [product._id, product.skus]);
 
     const displayPrice = selectedSku
         ? (selectedSku.offerPrice || selectedSku.salePrice || selectedSku.price || selectedSku.basePrice || 0)
@@ -44,7 +45,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         ? Math.round(((basePrice - displayPrice) / basePrice) * 100)
         : 0;
 
-    const mainImageUrl = (product.mainImage as any)?.preSignedUrl || product.mainImage ||
+    const mainImageUrl = (selectedSku?.media?.[0]?.fileStorageId as any)?.preSignedUrl ||
+        selectedSku?.media?.[0]?.url ||
+        (product.mainImage as any)?.preSignedUrl ||
+        product.mainImage ||
         product.media.find(m => m.status === 'ACTIVE')?.url ||
         (product.media.find(m => m.status === 'ACTIVE')?.fileStorageId as any)?.preSignedUrl ||
         '/placeholder-product.png';
@@ -141,23 +145,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </h3>
 
                 {/* SKU Variants */}
-                {skus.length > 1 && (
+                {skus.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 py-1">
-                        {skus.slice(0, 4).map((sku) => (
-                            <button
-                                key={sku._id}
-                                onClick={(e) => handleSkuClick(e, sku)}
-                                className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md border transition-all ${selectedSku?._id === sku._id
-                                    ? 'bg-primary text-background border-primary'
-                                    : 'bg-primary/5 text-secondary border-primary/20 hover:border-primary/40'
-                                    }`}
-                                title={sku.variantAttributes.map(a => a.label || a.value).join(', ')}
-                            >
-                                {sku.variantAttributes[0]?.value?.substring(0, 3) || 'VAR'}
-                            </button>
-                        ))}
+                        {skus.slice(0, 4).map((sku) => {
+                            // Extract meaningful label (e.g. Color or Size)
+                            const label = sku.variantAttributes[0]?.value || 'VAR';
+                            const isSelected = selectedSku?._id === sku._id;
+
+                            return (
+                                <button
+                                    key={sku._id}
+                                    onClick={(e) => handleSkuClick(e, sku)}
+                                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border transition-all ${isSelected
+                                        ? 'bg-primary text-background border-primary shadow-sm'
+                                        : 'bg-primary/5 text-secondary border-primary/20 hover:border-primary/40 hover:bg-primary/10'
+                                        }`}
+                                    title={sku.variantAttributes.map(a => `${a.label}: ${a.value}`).join(', ')}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
                         {skus.length > 4 && (
-                            <span className="px-2 py-1 text-[9px] font-bold text-secondary">
+                            <span className="px-2 py-1 text-[9px] font-bold text-secondary bg-primary/5 rounded-md border border-primary/10">
                                 +{skus.length - 4}
                             </span>
                         )}

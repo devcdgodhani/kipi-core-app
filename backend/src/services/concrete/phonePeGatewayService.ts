@@ -90,7 +90,7 @@ export class PhonePeGatewayService implements IPaymentGateway {
       // PhonePe V2 payload structure
       const payload = {
         merchantOrderId: merchantTransactionId,
-        amount: amount, // Amount in paise
+        amount: amount * 100, // Amount in paise
         paymentFlow: {
           type: 'PG_CHECKOUT',
           message: `Payment for Order #${order.orderNumber}`,
@@ -246,7 +246,7 @@ export class PhonePeGatewayService implements IPaymentGateway {
       const payload = {
         merchantRefundId: merchantRefundId,
         originalMerchantOrderId: payment.gatewayTransactionId,
-        amount: amount
+        amount: amount * 100
       };
 
       const response = await axios.post(

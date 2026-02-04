@@ -15,7 +15,7 @@ const cartItemSchema = z.object({
   skuId: z.string(),
   productId: z.string(),
   quantity: z.number().int().min(1),
-  price: z.number().min(0),
+  price: z.number().min(0).optional(),
   salePrice: z.number().min(0).optional(),
   offerPrice: z.number().min(0).optional(),
 });

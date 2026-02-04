@@ -9,52 +9,7 @@ const WishlistPage: React.FC = () => {
     const navigate = useNavigate();
     const { addItem } = useCart();
 
-    const moveToCart = async (product: any) => {
-        const price = product.offerPrice || product.salePrice || product.basePrice || 0;
-        try {
-            await addItem({
-                productId: product._id,
-                skuId: product._id,
-                quantity: 1,
-                price: price,
-                product: product,
-                sku: {
-                    _id: product._id,
-                    basePrice: product.basePrice,
-                    salePrice: product.salePrice,
-                    offerPrice: product.offerPrice,
-                    price: price
-                } as any
-            });
-            removeFromWishlist(product._id);
-        } catch (error) {
-            console.error('Failed to move to cart', error);
-        }
-    };
 
-    const buyNow = async (product: any) => {
-        const price = product.offerPrice || product.salePrice || product.basePrice || 0;
-        try {
-            await addItem({
-                productId: product._id,
-                skuId: product._id,
-                quantity: 1,
-                price: price,
-                product: product,
-                sku: {
-                    _id: product._id,
-                    basePrice: product.basePrice,
-                    salePrice: product.salePrice,
-                    offerPrice: product.offerPrice,
-                    price: price
-                } as any
-            });
-            removeFromWishlist(product._id);
-            navigate('/checkout');
-        } catch (error) {
-            console.error('Failed to buy now', error);
-        }
-    };
 
     if (loading && !wishlist) {
         return <div className="text-center py-20 text-secondary">Loading wishlist...</div>
@@ -90,6 +45,7 @@ const WishlistPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {items.map((item: any) => {
                         const product = item.productId as any;
+                        const sku = item.skuId as any;
 
                         if (typeof product === 'string') {
                             return (
@@ -107,9 +63,36 @@ const WishlistPage: React.FC = () => {
 
                         if (!product || !product.name) return null;
 
-                        const price = product.offerPrice || product.salePrice || product.basePrice;
-                        const skuId = (item as any).skuId?._id || (item as any).skuId || ((item as any).skuId && typeof (item as any).skuId === 'string' ? (item as any).skuId : undefined);
+                        const price = sku?.offerPrice || sku?.salePrice || sku?.basePrice ||
+                            product.offerPrice || product.salePrice || product.basePrice;
+
+                        const imageUrl = (sku?.media?.[0]?.fileStorageId as any)?.preSignedUrl ||
+                            sku?.media?.[0]?.url ||
+                            (product.mainImage as any)?.preSignedUrl ||
+                            product.mainImage ||
+                            '/placeholder-product.png';
+
+                        const skuId = sku?._id || ((item as any).skuId && typeof (item as any).skuId === 'string' ? (item as any).skuId : undefined);
                         const productUrl = `/products/${product.slug || product._id}${skuId ? `?skuId=${skuId}` : ''}`;
+
+                        const handleAddToCart = async () => {
+                            await addItem({
+                                productId: product._id,
+                                skuId: skuId || product._id,
+                                quantity: 1
+                            } as any);
+                            removeFromWishlist(product._id);
+                        };
+
+                        const handleBuyNow = async () => {
+                            await addItem({
+                                productId: product._id,
+                                skuId: skuId || product._id,
+                                quantity: 1
+                            } as any);
+                            removeFromWishlist(product._id);
+                            navigate('/checkout');
+                        };
 
                         return (
                             <div key={product._id} className="bg-background rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-primary/5">
@@ -118,7 +101,7 @@ const WishlistPage: React.FC = () => {
                                     onClick={() => navigate(productUrl)}
                                 >
                                     <img
-                                        src={(product.mainImage as any)?.preSignedUrl || product.mainImage || '/placeholder-product.png'}
+                                        src={imageUrl}
                                         alt={product.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />
@@ -140,19 +123,22 @@ const WishlistPage: React.FC = () => {
                                     >
                                         {product.name}
                                     </h3>
+                                    {sku?.skuCode && (
+                                        <p className="text-[10px] text-secondary/60 mb-2 uppercase tracking-wider">SKU: {sku.skuCode}</p>
+                                    )}
                                     <p className="text-lg font-black text-primary mb-6">
                                         ₹{price?.toLocaleString()}
                                     </p>
 
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => moveToCart(product)}
+                                            onClick={handleAddToCart}
                                             className="flex-1 py-4 bg-background text-primary border-2 border-primary rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2"
                                         >
                                             <ShoppingBag size={14} /> Add to Cart
                                         </button>
                                         <button
-                                            onClick={() => buyNow(product)}
+                                            onClick={handleBuyNow}
                                             className="flex-1 py-4 bg-primary text-background rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
                                         >
                                             Buy Now
