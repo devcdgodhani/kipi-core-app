@@ -22,6 +22,7 @@ export interface Product {
   basePrice: number;
   salePrice?: number;
   offerPrice?: number;
+  isFlashDeal?: boolean;
   discount?: number;
   currency: string;
   media: MediaItem[];
@@ -30,6 +31,7 @@ export interface Product {
   attributes: ProductAttribute[];
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
   stock: number;
+  skus?: SKU[];
   createdAt: string;
   updatedAt: string;
 }

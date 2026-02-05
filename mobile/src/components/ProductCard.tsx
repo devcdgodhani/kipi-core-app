@@ -27,38 +27,43 @@ interface Product {
   basePrice?: number;
   salePrice?: number;
   offerPrice?: number;
+  isFlashDeal?: boolean;
+  skus?: SKU[];
 }
 
 interface ProductCardProps {
   product: Product;
   onPress: (skuId?: string) => void;
   width?: number;
+  showSkus?: boolean;
+  isFlashDeal?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, width: customWidth }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onPress,
+  width: customWidth,
+  showSkus = true,
+  isFlashDeal = false
+}) => {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [skus, setSkus] = useState<SKU[]>([]);
-  const [selectedSku, setSelectedSku] = useState<SKU | null>(null);
+
+  // Use pre-fetched SKUs from product object
+  const productSkus = product.skus || [];
+  const [selectedSku, setSelectedSku] = useState<SKU | null>(productSkus.length > 0 ? productSkus[0] : null);
+
+  // Update selectedSku if product changes (e.g. in a list)
+  useEffect(() => {
+    if (productSkus.length > 0) {
+      setSelectedSku(productSkus[0]);
+    } else {
+      setSelectedSku(null);
+    }
+  }, [product._id]);
 
   const COLUMN_COUNT = 2;
   const CARD_WIDTH = (width - theme.spacing.md * 3) / COLUMN_COUNT;
-
-  useEffect(() => {
-    loadSkus();
-  }, [product._id]);
-
-  const loadSkus = async () => {
-    try {
-      const skusData = await productService.getProductSKUs(product._id);
-      setSkus(skusData);
-      if (skusData.length > 0) {
-        setSelectedSku(skusData[0]);
-      }
-    } catch (error) {
-      console.error('Failed to load SKUs:', error);
-    }
-  };
 
   const getProductPrice = () => {
     if (selectedSku) {
@@ -100,11 +105,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
             <Text style={styles.placeholderText}>NO IMAGE</Text>
           </View>
         )}
-        {hasDiscount && (
+        {hasDiscount && !isFlashDeal && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>
               {Math.round(((basePrice - price) / basePrice) * 100)}% OFF
             </Text>
+          </View>
+        )}
+        {isFlashDeal && (
+          <View style={[styles.badge, { backgroundColor: '#E11D48' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+              <Icon name="zap" size={8} color="#FFF" />
+              <Text style={styles.badgeText}>FLASH SALE</Text>
+            </View>
           </View>
         )}
       </View>
@@ -113,9 +126,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
 
         {/* SKU Variants */}
-        {skus.length > 1 && (
+        {showSkus && productSkus.length > 1 && (
           <View style={styles.skuContainer}>
-            {skus.slice(0, 3).map((sku) => (
+            {productSkus.slice(0, 3).map((sku: SKU) => (
               <TouchableOpacity
                 key={sku._id}
                 onPress={() => handleSkuPress(sku)}
@@ -133,8 +146,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, widt
                 </Text>
               </TouchableOpacity>
             ))}
-            {skus.length > 3 && (
-              <Text style={styles.skuMore}>+{skus.length - 3}</Text>
+            {productSkus.length > 3 && (
+              <Text style={styles.skuMore}>+{productSkus.length - 3}</Text>
             )}
           </View>
         )}

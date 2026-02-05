@@ -95,17 +95,18 @@ export default function ProductDetailScreen({ route, navigation }: any) {
 
       if (productData) {
         setProduct(productData);
-        const skusResponse = await productService.getProductSKUs(productData._id);
-        if (skusResponse && skusResponse.length > 0) {
-          setSkus(skusResponse);
+        // SKUs are now pre-fetched and attached to the product object by the backend
+        const productSkus = productData.skus || [];
+        if (productSkus.length > 0) {
+          setSkus(productSkus);
 
           // Check for pre-selected SKU from navigation
           const targetSkuId = route.params?.skuId;
           const preSelectedSku = targetSkuId
-            ? skusResponse.find(s => s._id === targetSkuId)
+            ? productSkus.find(s => s._id === targetSkuId)
             : null;
 
-          setSelectedSKU(preSelectedSku || skusResponse[0]);
+          setSelectedSKU(preSelectedSku || productSkus[0]);
         }
       }
     } catch (error) {

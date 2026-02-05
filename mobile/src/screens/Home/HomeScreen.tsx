@@ -18,6 +18,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAppTheme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
+import { flashDealService } from '../../services/flashDeal.service';
+import { recentlyViewedService } from '../../services/recentlyViewed.service';
 import { configService, Banner as BannerType } from '../../services/config.service';
 import { Skeleton } from '../../components/Skeleton';
 import { ProductCard } from '../../components/ProductCard';
@@ -71,14 +73,40 @@ export default function HomeScreen({ navigation }: any) {
 
         await Promise.all(productSections.map(async (section: any) => {
           try {
-            let res;
-            if (section.sectionId === 'NEW_ARRIVALS') {
-              res = await productService.getWithPagination({ limit: section.limit || 10, sortBy: 'createdAt', sortOrder: 'desc' });
+            let products: Product[] = [];
+            const limit = section.limit || 8;
+
+            if (section.sectionId === 'FLASH_DEALS') {
+              const deals = await flashDealService.getActive().catch(() => []);
+              if (deals.length > 0) {
+                const deal = deals[0];
+                const dealProducts = (deal.productIds as Product[]).map(product => {
+                  let offerPrice = product.basePrice || 0;
+                  if (deal.discountType === 'PERCENTAGE') {
+                    offerPrice = (product.basePrice || 0) * (1 - deal.discountValue / 100);
+                  } else {
+                    offerPrice = Math.max(0, (product.basePrice || 0) - deal.discountValue);
+                  }
+                  return { ...product, offerPrice, isFlashDeal: true };
+                });
+                products = dealProducts.slice(0, limit);
+              }
+            } else if (section.sectionId === 'RECOMMENDATIONS') {
+              products = await productService.getRecommended(limit).catch(() => []);
+            } else if (section.sectionId === 'RECENTLY_VIEWED') {
+              const res = await recentlyViewedService.getRecentlyViewed(limit).catch(() => ({ products: [] }));
+              products = res.products || [];
+            } else if (section.sectionId === 'NEW_ARRIVALS') {
+              const res = await productService.getWithPagination({ limit, sortBy: 'createdAt', sortOrder: 'desc' }).catch(() => null);
+              products = res?.data || [];
             } else {
-              res = await productService.getWithPagination({ limit: section.limit || 10 });
+              // Default to getWithPagination for other sections
+              const res = await productService.getWithPagination({ limit }).catch(() => null);
+              products = res?.data || [];
             }
-            if (res?.data) {
-              dataMap[section.sectionId] = res.data.map((product: any) => ({
+
+            if (products.length > 0) {
+              dataMap[section.sectionId] = products.map((product: any) => ({
                 ...product,
                 thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url) || undefined,
               }));
@@ -141,6 +169,8 @@ export default function HomeScreen({ navigation }: any) {
             <ProductCard
               product={item} 
               onPress={(skuId) => navigation.navigate('ProductDetail', { id: item._id, skuId })}
+              showSkus={false}
+              isFlashDeal={(item as any).isFlashDeal}
             />
           )}
           keyExtractor={(item) => item._id}
