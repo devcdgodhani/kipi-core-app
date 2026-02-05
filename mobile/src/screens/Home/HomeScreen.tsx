@@ -16,7 +16,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAppTheme } from '../../theme/theme';
+import { useAppTheme, Theme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
 import { flashDealService } from '../../services/flashDeal.service';
 import { recentlyViewedService } from '../../services/recentlyViewed.service';
@@ -154,15 +154,15 @@ export default function HomeScreen({ navigation }: any) {
   const getSectionIcon = (sectionId: string) => {
     switch (sectionId) {
       case 'FLASH_DEALS':
-        return { name: 'zap', color: '#E11D48' };
+        return { name: 'zap', color: theme.colors.error || '#E11D48' };
       case 'RECOMMENDATIONS':
         return { name: 'sparkles', color: theme.colors.primary.main };
       case 'RECENTLY_VIEWED':
         return { name: 'clock', color: theme.colors.text.secondary };
       case 'NEW_ARRIVALS':
-        return { name: 'award', color: '#F59E0B' };
+        return { name: 'award', color: theme.colors.warning };
       case 'POPULAR_PRODUCTS':
-        return { name: 'trending-up', color: '#8B5CF6' };
+        return { name: 'trending-up', color: theme.colors.primary.main };
       default:
         return { name: 'star', color: theme.colors.primary.main };
     }
@@ -272,7 +272,7 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,

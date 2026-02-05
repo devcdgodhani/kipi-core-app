@@ -159,7 +159,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.menuItemLeft}>
                   <View style={[styles.iconBox, item.icon === 'heart' ? styles.wishlistIcon : null]}>
-                    <Icon name={item.icon} size={20} color={item.icon === 'heart' ? '#EF4444' : theme.colors.primary.main} />
+                    <Icon name={item.icon} size={20} color={item.icon === 'heart' ? theme.colors.error : theme.colors.primary.main} />
                   </View>
                   <Text style={styles.menuLabel}>{item.label}</Text>
                 </View>
@@ -169,7 +169,7 @@ export default function ProfileScreen() {
           </View>
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Icon name="log-out" size={20} color="#EF4444" />
+            <Icon name="log-out" size={20} color={theme.colors.error} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -209,7 +209,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   initials: {
     ...theme.typography.h2,
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 24,
   },
   headerInfo: {
@@ -279,7 +279,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginRight: theme.spacing.md,
   },
   wishlistIcon: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: `${theme.colors.error}15`,
   },
   menuLabel: {
     ...theme.typography.body1,
@@ -293,11 +293,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     margin: theme.spacing.xl,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: `${theme.colors.error}15`,
   },
   logoutText: {
     marginLeft: theme.spacing.sm,
-    color: '#EF4444',
+    color: theme.colors.error,
     fontWeight: '600',
     fontSize: 16,
   },

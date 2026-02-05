@@ -12,18 +12,22 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import { getSafeImageUrl } from '../../utils/imageUtils';
+import { useMemo } from 'react';
 
 type RootStackParamList = {
   ProductDetail: { productId: string };
 };
 
 const WishlistScreen = () => {
+  const theme = useAppTheme();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleAddToCart = (product: any) => {
     addToCart({
@@ -97,7 +101,7 @@ const WishlistScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -149,6 +153,7 @@ const styles = StyleSheet.create({
   addToCartText: {
     ...theme.typography.button,
     fontSize: 12,
+    color: theme.colors.text.inverse,
   },
   removeBtn: {
     padding: 6,

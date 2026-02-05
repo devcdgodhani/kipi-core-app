@@ -10,13 +10,17 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import Toast from 'react-native-toast-message';
+import { useMemo } from 'react';
 
 export default function ForgotPasswordScreen({ navigation }: any) {
+  const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleSendOTP = async () => {
     if (!email) {
@@ -104,7 +108,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,

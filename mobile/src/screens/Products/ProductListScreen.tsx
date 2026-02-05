@@ -12,7 +12,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
 import { attributeService } from '../../services/attribute.service';
 import { ProductCard } from '../../components/ProductCard';
@@ -212,7 +212,7 @@ export default function ProductListScreen({ navigation, route }: any) {
             setShowFilterDrawer(true);
           }}
         >
-          <Icon name="sliders" size={18} color={appliedFiltersCount > 0 ? '#FFF' : theme.colors.text.primary} />
+          <Icon name="sliders" size={18} color={appliedFiltersCount > 0 ? theme.colors.text.inverse : theme.colors.text.primary} />
           {appliedFiltersCount > 0 && (
             <View style={styles.badge}><Text style={styles.badgeText}>{appliedFiltersCount}</Text></View>
           )}
@@ -269,7 +269,7 @@ export default function ProductListScreen({ navigation, route }: any) {
               <View style={styles.drawerHeader}>
                 <View style={styles.headerLeft}>
                   <View style={styles.headerIconBox}>
-                    <Icon name="filter" size={20} color="#FFF" />
+                    <Icon name="filter" size={20} color={theme.colors.text.inverse} />
                   </View>
                   <View>
                     <Text style={styles.drawerTitle}>ADVANCED FILTERS</Text>
@@ -277,7 +277,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => setShowFilterDrawer(false)} style={styles.closeBtn}>
-                  <Icon name="x" size={24} color="#FFF" />
+                  <Icon name="x" size={24} color={theme.colors.text.inverse} />
                 </TouchableOpacity>
               </View>
 
@@ -341,7 +341,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                               >
                                 <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{opt.label.toUpperCase()}</Text>
                                 <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
-                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                  {isSel && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                                 </View>
                               </TouchableOpacity>
                             );
@@ -367,7 +367,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                               >
                                 <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{cat.name.toUpperCase()}</Text>
                                 <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
-                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                  {isSel && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                                 </View>
                               </TouchableOpacity>
                             );
@@ -398,7 +398,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                               >
                                 <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{range.label.toUpperCase()}</Text>
                                 <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
-                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                  {isSel && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                                 </View>
                               </TouchableOpacity>
                             );
@@ -431,7 +431,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                                     <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{opt.label.toUpperCase()}</Text>
                                   </View>
                                   <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
-                                    {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                    {isSel && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                                   </View>
                                 </TouchableOpacity>
                               );
@@ -456,7 +456,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                               IN STOCK ONLY
                             </Text>
                             <View style={[styles.checkCircle, tempFilters.inStock && styles.checkCircleActive]}>
-                              {tempFilters.inStock && <Icon name="check" size={12} color="#FFF" />}
+                              {tempFilters.inStock && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                             </View>
                           </TouchableOpacity>
 
@@ -468,7 +468,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                               SHOW ALL
                             </Text>
                             <View style={[styles.checkCircle, !tempFilters.inStock && styles.checkCircleActive]}>
-                              {!tempFilters.inStock && <Icon name="check" size={12} color="#FFF" />}
+                              {!tempFilters.inStock && <Icon name="check" size={12} color={theme.colors.text.inverse} />}
                             </View>
                           </TouchableOpacity>
                         </View>
@@ -500,7 +500,7 @@ export default function ProductListScreen({ navigation, route }: any) {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -558,7 +558,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: '#FFF',
   },
   badgeText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -619,11 +619,11 @@ const createStyles = (theme: any) => StyleSheet.create({
   drawerContent: {
     width: width,
     height: '100%',
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.background.paper,
     alignSelf: 'flex-end',
   },
   drawerHeader: {
-    backgroundColor: '#006241', // Teal Green from image
+    backgroundColor: theme.colors.primary.main,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -647,12 +647,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   drawerTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     letterSpacing: 1,
   },
   drawerSubtitle: {
     fontSize: 10,
-    color: 'rgba(255,255,255,0.7)',
+    color: `${theme.colors.text.inverse}B3`,
     fontWeight: '700',
     letterSpacing: 1,
     marginTop: 2,
@@ -665,9 +665,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'column',
   },
   tabBarContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.background.paper,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.colors.border.light,
   },
   tabBarScroll: {
     paddingHorizontal: 20,
@@ -679,24 +679,24 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FFF',
+    borderColor: theme.colors.border.light,
+    backgroundColor: theme.colors.background.paper,
   },
   chipTabActive: {
-    borderColor: '#006241',
+    borderColor: theme.colors.primary.main,
   },
   chipTabText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#9E9E9E',
+    color: theme.colors.text.tertiary,
     letterSpacing: 0.5,
   },
   chipTabTextActive: {
-    color: '#006241',
+    color: theme.colors.primary.main,
   },
   drawerContentPane: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: theme.colors.background.default,
   },
   drawerScroll: {
     flex: 1,
@@ -713,12 +713,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   tabContentTitle: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#006241',
+    color: theme.colors.primary.main,
     letterSpacing: 0.5,
   },
   optionCount: {
     fontSize: 12,
-    color: '#BDBDBD',
+    color: theme.colors.text.tertiary,
     fontWeight: '600',
   },
   cardList: {
@@ -729,37 +729,37 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.background.paper,
     borderRadius: 15,
     ...theme.shadows.sm,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   optionCardActive: {
-    borderColor: '#006241',
-    backgroundColor: '#FFF',
+    borderColor: theme.colors.primary.main,
+    backgroundColor: theme.colors.background.paper,
   },
   optionCardText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#424242',
+    color: theme.colors.text.primary,
     letterSpacing: 0.5,
   },
   optionCardTextActive: {
-    color: '#006241',
+    color: theme.colors.primary.main,
   },
   checkCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkCircleActive: {
-    backgroundColor: '#B2DFDB',
-    borderColor: '#B2DFDB',
+    backgroundColor: theme.colors.primary.main,
+    borderColor: theme.colors.primary.main,
   },
   optionRowLeft: {
     flexDirection: 'row',
@@ -777,9 +777,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     flexDirection: 'row',
     gap: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.background.paper,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: theme.colors.border.light,
   },
   resetBtn: {
     flex: 1,
@@ -788,17 +788,17 @@ const createStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border.light,
   },
   resetBtnText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#757575',
+    color: theme.colors.text.secondary,
   },
   applyBtn: {
     flex: 2,
     height: 55,
-    backgroundColor: '#006241',
+    backgroundColor: theme.colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
@@ -807,7 +807,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   applyBtnText: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

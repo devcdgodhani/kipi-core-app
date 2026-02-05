@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, ViewStyle } from 'react-native';
-import { theme } from '../theme/theme';
+import { Theme, useAppTheme } from '../theme/theme';
 
 interface SkeletonProps {
     width?: number | string;
@@ -12,9 +12,10 @@ interface SkeletonProps {
 export const Skeleton: React.FC<SkeletonProps> = ({
     width = '100%',
     height = 20,
-    borderRadius = theme.borderRadius.md,
+    borderRadius,
     style,
 }) => {
+    const theme = useAppTheme();
     const animatedValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -42,6 +43,8 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         outputRange: [0.3, 0.7],
     });
 
+    const styles = createStyles(theme);
+
     return (
         <Animated.View
             style={[
@@ -49,7 +52,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
                 {
                     width: width as any,
                     height: height as any,
-                    borderRadius,
+                    borderRadius: borderRadius ?? theme.borderRadius.md,
                     opacity,
                 },
                 style,
@@ -58,7 +61,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     skeleton: {
         backgroundColor: theme.colors.border.light,
     },

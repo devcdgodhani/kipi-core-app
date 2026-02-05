@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { useAppTheme } from '../theme/theme';
+import { useAppTheme, Theme } from '../theme/theme';
 import { getSafeImageUrl } from '../utils/imageUtils';
 import { productService } from '../services/product.service';
 import Icon from 'react-native-vector-icons/Feather';
@@ -113,9 +113,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </View>
         )}
         {isFlashDeal && (
-          <View style={[styles.badge, { backgroundColor: '#E11D48' }]}>
+          <View style={[styles.badge, { backgroundColor: theme.colors.error || '#E11D48' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Icon name="zap" size={8} color="#FFF" />
+              <Icon name="zap" size={8} color={theme.colors.text.inverse} />
               <Text style={styles.badgeText}>FLASH SALE</Text>
             </View>
           </View>
@@ -163,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.background.paper,
     borderRadius: theme.borderRadius.lg,

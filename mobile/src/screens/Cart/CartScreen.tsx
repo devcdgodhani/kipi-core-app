@@ -12,7 +12,7 @@ import {
 import { useCart, CartItem } from '../../context/CartContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 
 type RootStackParamList = {
@@ -35,8 +35,11 @@ const CartScreen = () => {
     clearSelection,
     isItemSelected,
   } = useCart();
+  const theme = useAppTheme();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [fadeAnim] = React.useState(new Animated.Value(0));
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -249,7 +252,7 @@ const CartScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -274,7 +277,7 @@ const styles = StyleSheet.create({
   },
   shopButtonText: {
     ...theme.typography.button,
-    color: theme.colors.primary.contrastText,
+    color: theme.colors.text.inverse,
   },
   headerRow: {
     flexDirection: 'row',

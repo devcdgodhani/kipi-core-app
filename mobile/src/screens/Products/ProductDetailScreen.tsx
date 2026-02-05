@@ -14,7 +14,7 @@ import {
   TextInput,
   FlatList,
 } from 'react-native';
-import { useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { productService } from '../../services/product.service';
 import { reviewService } from '../../services/review.service';
 import { recentlyViewedService } from '../../services/recentlyViewed.service';
@@ -297,7 +297,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <View>
               <Text style={styles.productName}>{product.name}</Text>
               <View style={styles.ratingRow}>
-                <Icon name="star" size={14} color="#FFD700" />
+                <Icon name="star" size={14} color={theme.colors.warning} />
                 <Text style={styles.ratingText}>
                   {reviews.length > 0
                     ? `${(reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)} (${reviews.length} review${reviews.length !== 1 ? 's' : ''})`
@@ -354,20 +354,20 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           {/* Trust Icons */}
           <View style={styles.trustSection}>
             <View style={styles.trustItem}>
-              <View style={[styles.trustIconContainer, { backgroundColor: '#10B98115' }]}>
-                <Icon name="truck" size={16} color="#10B981" />
+              <View style={[styles.trustIconContainer, { backgroundColor: `${theme.colors.success}15` }]}>
+                <Icon name="truck" size={16} color={theme.colors.success} />
               </View>
               <Text style={styles.trustText}>Free Shipping</Text>
             </View>
             <View style={styles.trustItem}>
-              <View style={[styles.trustIconContainer, { backgroundColor: '#3B82F615' }]}>
-                <Icon name="shield" size={16} color="#3B82F6" />
+              <View style={[styles.trustIconContainer, { backgroundColor: `${theme.colors.primary.main}15` }]}>
+                <Icon name="shield" size={16} color={theme.colors.primary.main} />
               </View>
               <Text style={styles.trustText}>Secure Payment</Text>
             </View>
             <View style={styles.trustItem}>
-              <View style={[styles.trustIconContainer, { backgroundColor: '#F59E0B15' }]}>
-                <Icon name="repeat" size={16} color="#F59E0B" />
+              <View style={[styles.trustIconContainer, { backgroundColor: `${theme.colors.warning}15` }]}>
+                <Icon name="repeat" size={16} color={theme.colors.warning} />
               </View>
               <Text style={styles.trustText}>Easy Returns</Text>
             </View>
@@ -442,7 +442,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
                       <Text style={styles.reviewUser}>Verified Buyer</Text>
                       <View style={styles.starRow}>
                         {[1, 2, 3, 4, 5].map(s => (
-                          <Icon key={s} name="star" size={10} color={s <= review.rating ? "#FFD700" : "#CCC"} />
+                          <Icon key={s} name="star" size={10} color={s <= review.rating ? theme.colors.warning : theme.colors.border.medium} />
                         ))}
                       </View>
                     </View>
@@ -456,7 +456,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             )}
 
             {reviews.length > 3 && (
-              <TouchableOpacity style={styles.viewAllButton}>
+              <TouchableOpacity style={styles.viewAllButton} onPress={() => { }}>
                 <Text style={styles.viewAllText}>View All Reviews</Text>
               </TouchableOpacity>
             )}
@@ -477,7 +477,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           style={[styles.actionButton, styles.buyNowButton]}
           onPress={handleBuyNow}
         >
-          <Icon name="zap" size={20} color="#FFF" style={{ marginRight: 8 }} />
+          <Icon name="zap" size={20} color={theme.colors.text.inverse} style={{ marginRight: 8 }} />
           <Text style={[styles.actionButtonText, styles.buyNowText]}>Buy Now</Text>
         </TouchableOpacity>
       </View>
@@ -497,7 +497,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <View style={styles.ratingPicker}>
               {[1, 2, 3, 4, 5].map(s => (
                 <TouchableOpacity key={s} onPress={() => setRating(s)} style={styles.starTouch}>
-                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} />
+                  <Icon name="star" size={32} color={s <= rating ? theme.colors.warning : theme.colors.border.light} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -519,7 +519,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               disabled={submittingReview}
             >
               {submittingReview ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={theme.colors.text.inverse} />
               ) : (
                 <Text style={styles.submitButtonText}>Submit Review</Text>
               )}
@@ -531,7 +531,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.paper,
@@ -559,7 +559,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 12,
   },
   backButtonText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontWeight: 'bold',
   },
   imageCarousel: {
@@ -601,7 +601,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.background.paper,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadows.md,
@@ -768,7 +768,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginRight: 10,
   },
   avatarText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontWeight: 'bold',
   },
   reviewUser: {
@@ -841,18 +841,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     backgroundColor: theme.colors.background.paper,
+    gap: 12,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.light,
-    gap: 12,
-    ...theme.shadows.lg,
   },
   actionButton: {
     flex: 1,
-    height: 52,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 12,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+    ...theme.shadows.sm,
   },
   addToCartButton: {
     backgroundColor: theme.colors.background.default,
@@ -863,12 +863,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.primary.main,
   },
   actionButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: theme.colors.primary.main,
   },
   buyNowText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
   },
   modalOverlay: {
     flex: 1,
@@ -877,57 +877,56 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   modalContent: {
     backgroundColor: theme.colors.background.paper,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 44 : 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: theme.colors.text.primary,
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.text.primary,
     marginBottom: 8,
   },
   ratingPicker: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   starTouch: {
     padding: 4,
   },
   reviewInput: {
     backgroundColor: theme.colors.background.default,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    padding: 16,
+    borderRadius: 12,
+    padding: 15,
     height: 120,
     color: theme.colors.text.primary,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
   },
   submitButton: {
     backgroundColor: theme.colors.primary.main,
-    height: 56,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   submitButtonText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: 'bold',
   },
 });

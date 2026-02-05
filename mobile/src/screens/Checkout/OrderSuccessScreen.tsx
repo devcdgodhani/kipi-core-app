@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
+import { useMemo } from 'react';
 
 const OrderSuccessScreen = ({ route, navigation }: any) => {
     const { orderId } = route.params || {};
+    const theme = useAppTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -39,7 +42,7 @@ const OrderSuccessScreen = ({ route, navigation }: any) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,

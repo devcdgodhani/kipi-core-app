@@ -10,11 +10,14 @@ import {
   Switch,
 } from 'react-native';
 import { useAddress } from '../../context/AddressContext';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
+import { useMemo } from 'react';
 
 const AddAddressScreen = ({ navigation }: any) => {
+  const theme = useAppTheme();
   const { addAddress } = useAddress();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
@@ -166,7 +169,7 @@ const AddAddressScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -215,7 +218,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   selectedTypeText: {
-    color: theme.colors.primary.contrastText,
+    color: theme.colors.text.inverse,
     fontWeight: 'bold',
   },
   switchContainer: {

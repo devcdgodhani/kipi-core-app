@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { orderService } from '../../services/order.service';
 import { Order } from '../../types/order.types';
-import { useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import { format, isValid } from 'date-fns';
@@ -110,7 +110,7 @@ const OrdersScreen = () => {
     >
       <View style={styles.orderHeader}>
         <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.orderStatus)}15` }]}>
+        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.orderStatus)}20` }]}>
           <Icon name={getStatusIcon(item.orderStatus)} size={12} color={getStatusColor(item.orderStatus)} style={{ marginRight: 4 }} />
           <Text style={[styles.orderStatus, { color: getStatusColor(item.orderStatus) }]}>
             {item.orderStatus}
@@ -181,7 +181,7 @@ const OrdersScreen = () => {
   );
 };
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.paper,

@@ -10,14 +10,18 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import Toast from 'react-native-toast-message';
+import { useMemo } from 'react';
 
 export default function ResetPasswordScreen({ navigation }: any) {
+  const theme = useAppTheme();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleReset = async () => {
     if (!password || !confirmPassword) {
@@ -116,7 +120,7 @@ export default function ResetPasswordScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,

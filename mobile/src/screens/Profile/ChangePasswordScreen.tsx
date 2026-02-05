@@ -9,13 +9,17 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
+import { useMemo } from 'react';
 
 const ChangePasswordScreen = () => {
-  const navigation = useNavigation();
+  const theme = useAppTheme();
+  const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(false);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -114,7 +118,7 @@ const ChangePasswordScreen = () => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={theme.colors.primary.contrastText} />
+            <ActivityIndicator color={theme.colors.text.inverse} />
           ) : (
             <Text style={styles.submitButtonText}>Change Password</Text>
           )}
@@ -124,7 +128,7 @@ const ChangePasswordScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: theme.colors.border.medium,
+    borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     fontSize: theme.typography.fontSize.base,
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     ...theme.typography.button,
-    color: theme.colors.primary.contrastText,
+    color: theme.colors.text.inverse,
   },
 });
 

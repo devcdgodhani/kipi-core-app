@@ -164,10 +164,20 @@ export const useAppTheme = () => {
       background: {
         ...theme.colors.background,
         default: dynamicTheme.colors.background,
+        paper: dynamicTheme.colors.surface || (dynamicTheme.colors.background === '#FFFFFF' ? '#F5F5F5' : dynamicTheme.colors.background),
       },
-      surface: dynamicTheme.colors.surface || theme.colors.surface,
+      surface: dynamicTheme.colors.surface || (dynamicTheme.colors.background === '#FFFFFF' ? '#F5F5F5' : dynamicTheme.colors.background),
+      text: {
+        ...theme.colors.text,
+        primary: dynamicTheme.colors.textPrimary || theme.colors.text.primary,
+        secondary: dynamicTheme.colors.textSecondary || theme.colors.text.secondary,
+      },
+      border: {
+        ...theme.colors.border,
+        light: dynamicTheme.colors.border || theme.colors.border.light,
+      }
     }
   };
 };
 
-export type Theme = typeof theme;
+export type Theme = ReturnType<typeof useAppTheme>;

@@ -11,7 +11,7 @@ import {
     TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { theme, useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { paymentService } from '../../services/paymentService';
 import Toast from 'react-native-toast-message';
 
@@ -35,6 +35,8 @@ const PaymentGatewayScreen = ({ route, navigation }: any) => {
     const [initiating, setInitiating] = useState(false);
     const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
     const [vpa, setVpa] = useState('');
+
+    const styles = React.useMemo(() => createStyles(theme), [theme]);
 
     useEffect(() => {
         const fetchGateways = async () => {
@@ -195,7 +197,7 @@ const PaymentGatewayScreen = ({ route, navigation }: any) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -305,14 +307,14 @@ const styles = StyleSheet.create({
     },
     payButton: {
         flex: 1,
-        backgroundColor: '#6739B7',
+        backgroundColor: theme.colors.primary.main,
         padding: theme.spacing.md,
         borderRadius: theme.borderRadius.md,
         alignItems: 'center',
     },
     payButtonText: {
         ...theme.typography.button,
-        color: '#FFF',
+        color: theme.colors.text.inverse,
     },
     secondaryButton: {
         flex: 1,

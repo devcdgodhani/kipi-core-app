@@ -10,12 +10,14 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { useAppTheme, Theme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import { useAuth } from '../../context/AuthContext';
 import Icon from 'react-native-vector-icons/Feather';
+import { useMemo } from 'react';
 
 export default function RegisterScreen({ navigation }: any) {
+  const theme = useAppTheme();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,6 +25,8 @@ export default function RegisterScreen({ navigation }: any) {
   const [mobile, setMobile] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !password) {
@@ -159,7 +163,7 @@ export default function RegisterScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -188,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.sm,
     marginBottom: theme.spacing.md,
     padding: theme.spacing.md,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: `${theme.colors.error}15`,
     borderRadius: theme.borderRadius.md,
   },
   form: {

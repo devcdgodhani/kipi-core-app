@@ -307,7 +307,7 @@ const OrderDetailScreen = () => {
         <View style={styles.actionContainer}>
           {order.orderStatus === 'DELIVERED' && !activeReturn && (
             <TouchableOpacity style={styles.returnMainBtn} onPress={() => setShowReturnModal(true)}>
-              <Icon name="rotate-ccw" size={18} color="#FFF" style={{ marginRight: 8 }} />
+              <Icon name="rotate-ccw" size={18} color={theme.colors.text.inverse} style={{ marginRight: 8 }} />
               <Text style={styles.returnMainBtnText}>Request Return</Text>
             </TouchableOpacity>
           )}
@@ -359,7 +359,7 @@ const OrderDetailScreen = () => {
                 onPress={handleRequestReturn}
                 disabled={submittingReturn}
               >
-                {submittingReturn ? <ActivityIndicator color="#FFF" /> : <Text style={styles.confirmBtnText}>Submit Request</Text>}
+                {submittingReturn ? <ActivityIndicator color={theme.colors.text.inverse} /> : <Text style={styles.confirmBtnText}>Submit Request</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -376,7 +376,7 @@ const OrderDetailScreen = () => {
             <View style={styles.starPicker}>
               {[1, 2, 3, 4, 5].map(s => (
                 <TouchableOpacity key={s} onPress={() => setRating(s)} style={{ padding: 8 }}>
-                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} />
+                  <Icon name="star" size={32} color={s <= rating ? theme.colors.warning : theme.colors.border.light} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -396,7 +396,7 @@ const OrderDetailScreen = () => {
               onPress={handleSubmitReview}
               disabled={submittingReview}
             >
-              {submittingReview ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitReviewBtnText}>Submit Review</Text>}
+              {submittingReview ? <ActivityIndicator color={theme.colors.text.inverse} /> : <Text style={styles.submitReviewBtnText}>Submit Review</Text>}
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setShowReviewModal(false)}>
               <Text style={styles.closeBtnText}>Close</Text>
@@ -639,7 +639,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     ...theme.shadows.md,
   },
   returnMainBtnText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontSize: 16,
     fontWeight: '900',
   },
@@ -747,7 +747,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 15,
   },
   confirmBtnText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontWeight: '900',
   },
   starPicker: {
@@ -764,7 +764,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: 12,
   },
   submitReviewBtnText: {
-    color: '#FFF',
+    color: theme.colors.text.inverse,
     fontWeight: '900',
     fontSize: 16,
   },

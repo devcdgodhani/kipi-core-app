@@ -14,10 +14,11 @@ import {
 import { useCart } from '../../context/CartContext';
 import { useAddress } from '../../context/AddressContext';
 import { useCheckout } from '../../context/CheckoutContext';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import { couponService } from '../../services/coupon.service';
+import { useMemo } from 'react';
 
 const CheckoutScreen = ({ navigation }: any) => {
     const { items: cartItems, selectedItems } = useCart();
@@ -37,6 +38,9 @@ const CheckoutScreen = ({ navigation }: any) => {
         wallet,
         toggleWallet
     } = useCheckout();
+
+    const theme = useAppTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
     const [couponCode, setCouponCode] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
@@ -202,7 +206,7 @@ const CheckoutScreen = ({ navigation }: any) => {
                                     disabled={applyingCoupon || !couponCode}
                                 >
                                     {applyingCoupon ? (
-                                        <ActivityIndicator size="small" color="#FFF" />
+                                        <ActivityIndicator size="small" color={theme.colors.text.inverse} />
                                     ) : (
                                         <Text style={styles.applyCouponText}>Apply</Text>
                                     )}
@@ -242,7 +246,7 @@ const CheckoutScreen = ({ navigation }: any) => {
                         <View style={styles.walletCard}>
                             <View style={styles.walletInfo}>
                                 <View style={styles.walletIconContainer}>
-                                    <Icon name="briefcase" size={20} color="#FFF" />
+                                    <Icon name="briefcase" size={20} color={theme.colors.text.inverse} />
                                 </View>
                                 <View>
                                     <Text style={styles.walletLabel}>Wallet Balance</Text>
@@ -252,7 +256,7 @@ const CheckoutScreen = ({ navigation }: any) => {
                             <Switch
                                 value={wallet.useWallet}
                                 onValueChange={toggleWallet}
-                                trackColor={{ false: '#D1D1D1', true: theme.colors.primary.main }}
+                                trackColor={{ false: theme.colors.border.medium, true: theme.colors.primary.main }}
                             />
                         </View>
                         {wallet.useWallet && (
@@ -319,7 +323,7 @@ const CheckoutScreen = ({ navigation }: any) => {
                     disabled={checkoutLoading}
                 >
                     {checkoutLoading ? (
-                        <ActivityIndicator size="small" color="#FFF" />
+                        <ActivityIndicator size="small" color={theme.colors.text.inverse} />
                     ) : (
                         <Text style={styles.placeOrderText}>Place Order</Text>
                     )}
@@ -329,7 +333,7 @@ const CheckoutScreen = ({ navigation }: any) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,

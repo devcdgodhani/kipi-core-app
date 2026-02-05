@@ -11,16 +11,20 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import Toast from 'react-native-toast-message';
+import { useMemo } from 'react';
 
 export default function VerifyOTPScreen({ route, navigation }: any) {
+  const theme = useAppTheme();
   const { email, type, otpType } = route.params; // type: 'CUSTOMER', otpType: 'REGISTER' or 'FORGOT_PASSWORD'
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [timer, setTimer] = useState(60);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
     let interval: any;
@@ -143,7 +147,7 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,

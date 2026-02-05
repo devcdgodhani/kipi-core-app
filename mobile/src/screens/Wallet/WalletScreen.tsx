@@ -63,12 +63,12 @@ const WalletScreen = () => {
         <View style={styles.transactionCard}>
             <View style={[
                 styles.iconContainer,
-                { backgroundColor: item.transactionType === 'CREDIT' ? '#E6F4EA' : '#FDECEA' }
+                { backgroundColor: item.transactionType === 'CREDIT' ? `${theme.colors.success}15` : `${theme.colors.error}15` }
             ]}>
                 <Icon
                     name={getTransactionIcon(item.transactionType)}
                     size={20}
-                    color={item.transactionType === 'CREDIT' ? '#10B981' : '#EF4444'}
+                    color={item.transactionType === 'CREDIT' ? theme.colors.success : theme.colors.error}
                 />
             </View>
             <View style={styles.transactionInfo}>
@@ -89,12 +89,12 @@ const WalletScreen = () => {
             <View style={styles.txAmountContainer}>
                 <Text style={[
                     styles.transactionAmount,
-                    { color: item.transactionType === 'CREDIT' ? '#10B981' : theme.colors.text.primary }
+                    { color: item.transactionType === 'CREDIT' ? theme.colors.success : theme.colors.text.primary }
                 ]}>
                     {item.transactionType === 'CREDIT' ? '+' : '-'}₹{item.amount.toFixed(2)}
                 </Text>
-                <View style={[styles.statusBadge, { backgroundColor: item.status === 'CONFIRMED' ? '#E6F4EA' : '#FFF4E5' }]}>
-                    <Text style={[styles.statusBadgeText, { color: item.status === 'CONFIRMED' ? '#1E4620' : '#854D0E' }]}>
+                <View style={[styles.statusBadge, { backgroundColor: item.status === 'CONFIRMED' ? `${theme.colors.success}15` : `${theme.colors.warning}15` }]}>
+                    <Text style={[styles.statusBadgeText, { color: item.status === 'CONFIRMED' ? theme.colors.success : theme.colors.warning }]}>
                         {item.status}
                     </Text>
                 </View>
@@ -125,7 +125,7 @@ const WalletScreen = () => {
                         {expiringSoon && (
                             <View style={styles.warningCard}>
                                 <View style={styles.warningIcon}>
-                                    <Icon name="alert-circle" size={20} color="#B45309" />
+                                    <Icon name="alert-circle" size={20} color={theme.colors.warning} />
                                 </View>
                                 <View style={styles.warningContent}>
                                     <Text style={styles.warningTitle}>Points Expiring Soon!</Text>
@@ -142,15 +142,15 @@ const WalletScreen = () => {
                                 ₹{(wallet?.availableBalance ?? 0).toFixed(2)}
                             </Text>
                             <View style={styles.walletStatus}>
-                                <View style={[styles.statusDot, { backgroundColor: wallet?.status === 'ACTIVE' ? '#10B981' : '#EF4444' }]} />
+                                <View style={[styles.statusDot, { backgroundColor: wallet?.status === 'ACTIVE' ? theme.colors.success : theme.colors.error }]} />
                                 <Text style={styles.statusText}>{wallet?.status || 'Active'}</Text>
                             </View>
                         </View>
 
                         <View style={styles.summaryGrid}>
                             <View style={styles.summaryCard}>
-                                <View style={[styles.summaryIconContainer, { backgroundColor: '#FFF4E5' }]}>
-                                    <Icon name="clock" size={16} color="#B45309" />
+                                <View style={[styles.summaryIconContainer, { backgroundColor: `${theme.colors.warning}15` }]}>
+                                    <Icon name="clock" size={16} color={theme.colors.warning} />
                                 </View>
                                 <View>
                                     <Text style={styles.summaryLabel}>Blocked</Text>
@@ -159,8 +159,8 @@ const WalletScreen = () => {
                             </View>
 
                             <View style={styles.summaryCard}>
-                                <View style={[styles.summaryIconContainer, { backgroundColor: '#F3E8FF' }]}>
-                                    <Icon name="credit-card" size={16} color="#7E22CE" />
+                                <View style={[styles.summaryIconContainer, { backgroundColor: `${theme.colors.primary.main}15` }]}>
+                                    <Icon name="credit-card" size={16} color={theme.colors.primary.main} />
                                 </View>
                                 <View>
                                     <Text style={styles.summaryLabel}>Earnings</Text>
@@ -169,8 +169,8 @@ const WalletScreen = () => {
                             </View>
 
                             <View style={styles.summaryCard}>
-                                <View style={[styles.summaryIconContainer, { backgroundColor: '#FEE2E2' }]}>
-                                    <Icon name="x-circle" size={16} color="#DC2626" />
+                                <View style={[styles.summaryIconContainer, { backgroundColor: `${theme.colors.error}15` }]}>
+                                    <Icon name="x-circle" size={16} color={theme.colors.error} />
                                 </View>
                                 <View>
                                     <Text style={styles.summaryLabel}>Expired</Text>
@@ -224,9 +224,9 @@ const createStyles = (theme: any) => StyleSheet.create({
         marginTop: 4,
     },
     warningCard: {
-        backgroundColor: '#FFFBEB',
+        backgroundColor: `${theme.colors.warning}15`,
         borderWidth: 1,
-        borderColor: '#FEF3C7',
+        borderColor: `${theme.colors.warning}30`,
         borderRadius: theme.borderRadius.lg,
         padding: theme.spacing.md,
         flexDirection: 'row',
@@ -237,7 +237,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: theme.borderRadius.md,
-        backgroundColor: '#FEF3C7',
+        backgroundColor: `${theme.colors.warning}15`,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -247,15 +247,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     warningTitle: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#92400E',
+        color: theme.colors.warning,
     },
     warningText: {
         fontSize: 12,
-        color: '#B45309',
+        color: theme.colors.text.secondary,
         marginTop: 2,
     },
     balanceCard: {
-        backgroundColor: theme.colors.primary.main === '#000000' ? '#004D40' : theme.colors.primary.main,
+        backgroundColor: theme.colors.primary.main,
         borderRadius: 24,
         padding: theme.spacing.xl,
         alignItems: 'center',
@@ -304,7 +304,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     balanceValue: {
         ...theme.typography.h1,
-        color: '#FFFFFF',
+        color: theme.colors.text.inverse,
         fontSize: 40,
         fontWeight: '900',
         marginBottom: theme.spacing.md,
@@ -326,7 +326,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     statusText: {
         ...theme.typography.body2,
         fontSize: 12,
-        color: '#FFFFFF',
+        color: theme.colors.text.inverse,
         fontWeight: 'bold',
     },
     txMeta: {
@@ -348,7 +348,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     expiryTag: {
         fontSize: 10,
-        color: '#B45309',
+        color: theme.colors.warning,
         fontWeight: 'bold',
         marginTop: 2,
     },

@@ -9,7 +9,7 @@ import {
     ScrollView,
     ActivityIndicator,
 } from 'react-native';
-import { useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -120,7 +120,7 @@ const EditProfileScreen = () => {
                     disabled={loading}
                 >
                     {loading ? (
-                        <ActivityIndicator color={theme.colors.primary.contrastText} />
+                        <ActivityIndicator color={theme.colors.text.inverse} />
                     ) : (
                         <Text style={styles.submitButtonText}>Save Changes</Text>
                     )}
@@ -130,7 +130,7 @@ const EditProfileScreen = () => {
     );
 };
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -148,7 +148,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: theme.colors.border.medium,
+        borderColor: theme.colors.border.light,
         borderRadius: theme.borderRadius.md,
         padding: theme.spacing.md,
         fontSize: theme.typography.fontSize.base,
@@ -177,7 +177,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     submitButtonText: {
         ...theme.typography.button,
-        color: theme.colors.primary.contrastText,
+        color: theme.colors.text.inverse,
     },
 });
 

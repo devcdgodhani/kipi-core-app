@@ -10,13 +10,17 @@ import {
 } from 'react-native';
 import { useAddress } from '../../context/AddressContext';
 import { Address } from '../../types/address.types';
-import { theme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import { useMemo } from 'react';
 
 const AddressListScreen = () => {
+    const theme = useAppTheme();
     const navigation = useNavigation<any>();
     const { addresses, loading, deleteAddress, setDefaultAddress } = useAddress();
+
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
     const renderAddressCard = (address: Address) => (
         <View key={address._id} style={styles.addressCard}>
@@ -103,7 +107,7 @@ const AddressListScreen = () => {
                     style={styles.addButton}
                     onPress={() => navigation.navigate('AddAddress')}
                 >
-                    <Icon name="plus" size={20} color={theme.colors.primary.contrastText} />
+                    <Icon name="plus" size={20} color={theme.colors.text.inverse} />
                     <Text style={styles.addButtonText}>Add New Address</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -111,7 +115,7 @@ const AddressListScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -228,7 +232,7 @@ const styles = StyleSheet.create({
     },
     addButtonText: {
         ...theme.typography.button,
-        color: theme.colors.primary.contrastText,
+        color: theme.colors.text.inverse,
         marginLeft: theme.spacing.sm,
     },
     centerContainer: {

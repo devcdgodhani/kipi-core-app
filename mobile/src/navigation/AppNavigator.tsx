@@ -4,7 +4,7 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Feather';
-import { theme } from '../theme/theme';
+import { useAppTheme } from '../theme/theme';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -70,6 +70,7 @@ function ProductsStack() {
 
 // Main Tab Navigator
 function MainTabs() {
+  const theme = useAppTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -93,12 +94,12 @@ function MainTabs() {
         tabBarInactiveTintColor: theme.colors.text.tertiary,
         tabBarStyle: {
           borderTopWidth: 0,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: theme.colors.background.paper,
           elevation: 20,
           height: Platform.OS === 'ios' ? 88 : 65,
           paddingBottom: Platform.OS === 'ios' ? 30 : 10,
           paddingTop: 10,
-          shadowColor: '#000',
+          shadowColor: theme.colors.text.primary,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
@@ -142,12 +143,13 @@ function AppStack() {
 
 // Root Navigator
 export default function AppNavigator() {
+  const theme = useAppTheme();
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#000000" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background.default }}>
+        <ActivityIndicator size="large" color={theme.colors.primary.main} />
       </View>
     );
   }
