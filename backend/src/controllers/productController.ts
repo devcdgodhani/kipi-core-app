@@ -99,7 +99,14 @@ export class ProductController {
 
   getWithPagination = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reqData: any = { ...req.query, ...req.body };
+      const rawData: any = { ...req.query, ...req.body };
+      
+      // Support for nested filter object (e.g. from some frontend libraries or explicit grouping)
+      const reqData = { 
+        ...rawData, 
+        ...(rawData.filter && typeof rawData.filter === 'object' ? rawData.filter : {}) 
+      };
+      delete reqData.filter;
       
       if (reqData.sortBy) {
           const sortOrder = reqData.sortOrder === 'asc' ? 1 : -1;

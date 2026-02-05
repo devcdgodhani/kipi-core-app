@@ -1,3 +1,4 @@
+import { Types, isValidObjectId } from 'mongoose';
 import { ProductModel } from '../../db/mongodb/models/productModel';
 import { IProductAttributes, IProductDocument } from '../../interfaces/product';
 import { IProductService } from '../contracts/productServiceInterface';
@@ -19,10 +20,10 @@ export class ProductService
     searchFields?: (keyof IProductAttributes)[];
   }) {
     const { filters = {}, searchFields } = options;
-    const { attributes, ...restFilters } = filters;
+    const { attributes, minPrice, maxPrice, inStock, categoryIds, status, ...restFilters } = filters;
 
     // Default search fields for products if not specified
-    const defaultSearchFields: (keyof IProductAttributes)[] = ['name', 'description', 'slug'];
+    const defaultSearchFields: (keyof IProductAttributes)[] = ['name', 'description', 'slug', 'productCode'];
     const effectiveSearchFields = searchFields || defaultSearchFields;
 
     // Use super for standard fields with search capability
@@ -31,6 +32,36 @@ export class ProductService
       filters: restFilters,
       searchFields: effectiveSearchFields 
     });
+
+    // Handle Category Filter (ensure ObjectIds)
+    if (categoryIds) {
+      const ids = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+      result.filter.categoryIds = { 
+        $in: ids.filter(id => id).map(id => isValidObjectId(id) ? new Types.ObjectId(id) : id) 
+      };
+    }
+
+    // Handle Status (Exact match instead of regex)
+    if (status) {
+      if (Array.isArray(status)) {
+        result.filter.status = { $in: status };
+      } else {
+        result.filter.status = status;
+      }
+    }
+
+    // Handle Price Range
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const priceFilter: any = {};
+      if (minPrice !== undefined) priceFilter.$gte = Number(minPrice);
+      if (maxPrice !== undefined) priceFilter.$lte = Number(maxPrice);
+      result.filter.basePrice = priceFilter;
+    }
+
+    // Handle Availability (Stock)
+    if (inStock === true || inStock === 'true') {
+      result.filter.stock = { $gt: 0 };
+    }
 
     // Handle nested attribute filters
     if (attributes && typeof attributes === 'object') {
@@ -41,7 +72,7 @@ export class ProductService
           attrConditions.push({
             attributes: {
               $elemMatch: {
-                attributeId: attrId,
+                attributeId: isValidObjectId(attrId) ? new Types.ObjectId(attrId) : attrId,
                 value: { $in: values }
               }
             }
@@ -53,7 +84,6 @@ export class ProductService
         if (!result.filter.$and) {
           result.filter.$and = [];
         }
-        // Use Type Assertion or spread carefully if TS complains
         (result.filter.$and as any[]).push(...attrConditions);
       }
     }

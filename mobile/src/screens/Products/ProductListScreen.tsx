@@ -14,8 +14,10 @@ import {
 } from 'react-native';
 import { useAppTheme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
+import { attributeService } from '../../services/attribute.service';
 import { ProductCard } from '../../components/ProductCard';
 import Icon from 'react-native-vector-icons/Feather';
+import type { Attribute } from '../../types/attribute.types';
 
 const { width, height } = Dimensions.get('window');
 const COLUMN_COUNT = 2;
@@ -30,15 +32,23 @@ export default function ProductListScreen({ navigation, route }: any) {
   const [hasMore, setHasMore] = useState(true);
 
   // Filter States
-  const [search, setSearch] = useState(route.params?.search || '');
-  const [selectedCategory, setSelectedCategory] = useState(route.params?.category || null);
-  const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
-  const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<'createdAt' | 'name' | 'price' | 'basePrice' | undefined>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | undefined>('desc');
+  const [filters, setFilters] = useState({
+    search: route.params?.search || '',
+    selectedCategory: route.params?.category || null,
+    minPrice: undefined as number | undefined,
+    maxPrice: undefined as number | undefined,
+    sortBy: 'createdAt' as 'createdAt' | 'name' | 'price' | 'basePrice' | undefined,
+    sortOrder: 'desc' as 'desc' | 'asc' | undefined,
+    selectedAttributes: {} as Record<string, string[]>,
+    inStock: false,
+  });
+
+  const [tempFilters, setTempFilters] = useState(filters);
+  const [filterableAttributes, setFilterableAttributes] = useState<Attribute[]>([]);
 
   // UI State
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  const [activeFilterTab, setActiveFilterTab] = useState('sort');
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,11 +56,12 @@ export default function ProductListScreen({ navigation, route }: any) {
 
   useEffect(() => {
     loadCategories();
+    loadFilterableAttributes();
   }, []);
 
   useEffect(() => {
     loadProducts(1);
-  }, [search, selectedCategory, sortBy, sortOrder, minPrice, maxPrice]);
+  }, [filters]);
 
   useEffect(() => {
     if (showFilterDrawer) {
@@ -77,6 +88,15 @@ export default function ProductListScreen({ navigation, route }: any) {
     }
   };
 
+  const loadFilterableAttributes = async () => {
+    try {
+      const attrs = await attributeService.getAllFilterable();
+      setFilterableAttributes(attrs || []);
+    } catch (err) {
+      console.error('Error loading filterable attributes:', err);
+    }
+  };
+
   const loadProducts = async (p: number, isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
@@ -85,12 +105,14 @@ export default function ProductListScreen({ navigation, route }: any) {
       const response = await productService.getWithPagination({
         page: p,
         limit: 20,
-        search: search || undefined,
-        categoryIds: selectedCategory ? [selectedCategory] : undefined,
-        minPrice,
-        maxPrice,
-        sortBy: (sortBy === 'price' ? 'basePrice' : sortBy) as any,
-        sortOrder,
+        search: filters.search || undefined,
+        categoryIds: filters.selectedCategory ? [filters.selectedCategory] : undefined,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        sortBy: (filters.sortBy === 'price' ? 'basePrice' : filters.sortBy) as any,
+        sortOrder: filters.sortOrder,
+        attributes: filters.selectedAttributes,
+        inStock: filters.inStock || undefined,
       });
 
       if (p === 1) {
@@ -125,16 +147,48 @@ export default function ProductListScreen({ navigation, route }: any) {
     loadProducts(1, true);
   };
 
+  const handleAttributeToggle = (attributeId: string, value: string) => {
+    setTempFilters(prev => {
+      const currentValues = prev.selectedAttributes[attributeId] || [];
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter((v: string) => v !== value)
+        : [...currentValues, value];
+
+      const newAttributes = { ...prev.selectedAttributes, [attributeId]: newValues };
+      if (newValues.length === 0) delete (newAttributes as any)[attributeId];
+
+      return { ...prev, selectedAttributes: newAttributes };
+    });
+  };
+
   const clearFilters = () => {
-    setSelectedCategory(null);
-    setMinPrice(undefined);
-    setMaxPrice(undefined);
-    setSortBy('createdAt');
-    setSortOrder('desc');
+    setFilters({
+      search: '',
+      selectedCategory: null,
+      minPrice: undefined,
+      maxPrice: undefined,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+      selectedAttributes: {},
+      inStock: false,
+    });
+    setTempFilters({
+      search: '',
+      selectedCategory: null,
+      minPrice: undefined,
+      maxPrice: undefined,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+      selectedAttributes: {},
+      inStock: false,
+    });
     setShowFilterDrawer(false);
   };
 
-  const appliedFiltersCount = [selectedCategory, minPrice, maxPrice].filter(Boolean).length + (sortBy !== 'createdAt' ? 1 : 0);
+  const appliedFiltersCount = [filters.selectedCategory, filters.minPrice, filters.maxPrice].filter(Boolean).length +
+    (filters.sortBy !== 'createdAt' ? 1 : 0) +
+    Object.values(filters.selectedAttributes).reduce((acc: number, curr: any) => acc + (Array.isArray(curr) ? curr.length : 0), 0) +
+    (filters.inStock ? 1 : 0);
 
   const renderProduct = ({ item }: { item: any }) => (
     <ProductCard
@@ -149,11 +203,14 @@ export default function ProductListScreen({ navigation, route }: any) {
       <View style={styles.toolbar}>
         <View style={styles.searchBar}>
           <Icon name="search" size={16} color={theme.colors.text.tertiary} style={{ marginRight: 8 }} />
-          <Text style={styles.searchPlaceholder}>{search || 'Search products...'}</Text>
+          <Text style={styles.searchPlaceholder}>{filters.search || 'Search products...'}</Text>
         </View>
         <TouchableOpacity 
           style={[styles.filterBtn, appliedFiltersCount > 0 && styles.filterBtnActive]}
-          onPress={() => setShowFilterDrawer(true)}
+          onPress={() => {
+            setTempFilters(filters);
+            setShowFilterDrawer(true);
+          }}
         >
           <Icon name="sliders" size={18} color={appliedFiltersCount > 0 ? '#FFF' : theme.colors.text.primary} />
           {appliedFiltersCount > 0 && (
@@ -210,99 +267,228 @@ export default function ProductListScreen({ navigation, route }: any) {
           <Animated.View style={[styles.drawerContent, { transform: [{ translateX: slideAnim }] }]}>
             <SafeAreaView style={{ flex: 1 }}>
               <View style={styles.drawerHeader}>
-                <Text style={styles.drawerTitle}>Filters</Text>
-                <TouchableOpacity onPress={() => setShowFilterDrawer(false)}>
-                  <Icon name="x" size={24} color={theme.colors.text.primary} />
+                <View style={styles.headerLeft}>
+                  <View style={styles.headerIconBox}>
+                    <Icon name="filter" size={20} color="#FFF" />
+                  </View>
+                  <View>
+                    <Text style={styles.drawerTitle}>ADVANCED FILTERS</Text>
+                    <Text style={styles.drawerSubtitle}>REFINE YOUR DATA VIEW</Text>
+                  </View>
+                </View>
+                <TouchableOpacity onPress={() => setShowFilterDrawer(false)} style={styles.closeBtn}>
+                  <Icon name="x" size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={styles.drawerScroll} showsVerticalScrollIndicator={false}>
-                {/* Sort Options */}
-                <View style={styles.filterSection}>
-                  <Text style={styles.filterLabel}>Sort By</Text>
-                  <View style={styles.optionGrid}>
+              <View style={styles.drawerBody}>
+                {/* Horizontal Tabs */}
+                <View style={styles.tabBarContainer}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tabBarScroll}
+                  >
                     {[
-                      { id: 'new', label: 'Newest', sort: 'createdAt', order: 'desc', icon: 'trending-up' },
-                      { id: 'p-asc', label: 'Price: Low', sort: 'price', order: 'asc', icon: 'arrow-down' },
-                      { id: 'p-desc', label: 'Price: High', sort: 'price', order: 'desc', icon: 'arrow-up' },
-                      { id: 'name', label: 'Name: A-Z', sort: 'name', order: 'asc', icon: 'type' },
-                    ].map((opt) => {
-                      const isSel = sortBy === opt.sort && sortOrder === opt.order;
+                      { id: 'sort', label: 'SORT' },
+                      { id: 'category', label: 'CATEGORY' },
+                      { id: 'price', label: 'PRICE' },
+                      ...filterableAttributes.map(attr => ({
+                        id: attr._id,
+                        label: attr.name.toUpperCase(),
+                      })),
+                      { id: 'status', label: 'STATUS' },
+                    ].map((tab) => {
+                      const isActive = activeFilterTab === tab.id;
                       return (
                         <TouchableOpacity
-                          key={opt.id}
-                          style={[styles.optionChip, isSel && styles.optionChipActive]}
-                          onPress={() => { setSortBy(opt.sort as any); setSortOrder(opt.order as any); }}
+                          key={tab.id}
+                          style={[styles.chipTab, isActive && styles.chipTabActive]}
+                          onPress={() => setActiveFilterTab(tab.id)}
                         >
-                          <Icon name={opt.icon} size={14} color={isSel ? '#FFF' : theme.colors.text.secondary} style={{ marginRight: 6 }} />
-                          <Text style={[styles.optionText, isSel && styles.optionTextActive]}>{opt.label}</Text>
+                          <Text style={[styles.chipTabText, isActive && styles.chipTabTextActive]}>
+                            {tab.label}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
-                  </View>
+                  </ScrollView>
                 </View>
 
-                {/* Categories */}
-                <View style={styles.filterSection}>
-                  <Text style={styles.filterLabel}>Category</Text>
-                  <View style={styles.categoryList}>
-                    {[{ _id: null, name: 'All Categories' }, ...categories].map((cat) => {
-                      const isSel = selectedCategory === cat._id;
+                {/* Content Pane */}
+                <View style={styles.drawerContentPane}>
+                  <ScrollView style={styles.drawerScroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+                    {activeFilterTab === 'sort' && (
+                      <View style={styles.tabContent}>
+                        <View style={styles.contentHeader}>
+                          <Text style={styles.tabContentTitle}>SORT PRODUCTS</Text>
+                          <Text style={styles.optionCount}>5 Recommended</Text>
+                        </View>
+                        <View style={styles.cardList}>
+                          {[
+                            { id: 'new', label: 'Newest First', sort: 'createdAt', order: 'desc', icon: 'trending-up' },
+                            { id: 'p-asc', label: 'Price: Low to High', sort: 'price', order: 'asc', icon: 'arrow-down' },
+                            { id: 'p-desc', label: 'Price: High to Low', sort: 'price', order: 'desc', icon: 'arrow-up' },
+                            { id: 'name-asc', label: 'Name: A-Z', sort: 'name', order: 'asc', icon: 'type' },
+                            { id: 'name-desc', label: 'Name: Z-A', sort: 'name', order: 'desc', icon: 'type' },
+                          ].map((opt) => {
+                            const isSel = tempFilters.sortBy === opt.sort && tempFilters.sortOrder === opt.order;
+                            return (
+                              <TouchableOpacity
+                                key={opt.id}
+                                style={[styles.optionCard, isSel && styles.optionCardActive]}
+                                onPress={() => { setTempFilters(prev => ({ ...prev, sortBy: opt.sort as any, sortOrder: opt.order as any })); }}
+                              >
+                                <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{opt.label.toUpperCase()}</Text>
+                                <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
+                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+
+                    {activeFilterTab === 'category' && (
+                      <View style={styles.tabContent}>
+                        <View style={styles.contentHeader}>
+                          <Text style={styles.tabContentTitle}>SELECT CATEGORY</Text>
+                          <Text style={styles.optionCount}>{categories.length + 1} Options</Text>
+                        </View>
+                        <View style={styles.cardList}>
+                          {[{ _id: null, name: 'All Categories' }, ...categories].map((cat) => {
+                            const isSel = tempFilters.selectedCategory === cat._id;
+                            return (
+                              <TouchableOpacity
+                                key={cat._id || 'all'}
+                                style={[styles.optionCard, isSel && styles.optionCardActive]}
+                                onPress={() => setTempFilters(prev => ({ ...prev, selectedCategory: cat._id }))}
+                              >
+                                <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{cat.name.toUpperCase()}</Text>
+                                <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
+                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+
+                    {activeFilterTab === 'price' && (
+                      <View style={styles.tabContent}>
+                        <View style={styles.contentHeader}>
+                          <Text style={styles.tabContentTitle}>PRICE RANGE</Text>
+                          <Text style={styles.optionCount}>4 Options</Text>
+                        </View>
+                        <View style={styles.cardList}>
+                          {[
+                            { label: 'Under ₹500', min: 0, max: 500 },
+                            { label: '₹500 - ₹1000', min: 500, max: 1000 },
+                            { label: '₹1000 - ₹5000', min: 1000, max: 5000 },
+                            { label: 'Above ₹5000', min: 5000, max: undefined },
+                          ].map((range, idx) => {
+                            const isSel = tempFilters.minPrice === range.min && tempFilters.maxPrice === range.max;
+                            return (
+                              <TouchableOpacity
+                                key={idx}
+                                style={[styles.optionCard, isSel && styles.optionCardActive]}
+                                onPress={() => { setTempFilters(prev => ({ ...prev, minPrice: range.min, maxPrice: range.max })); }}
+                              >
+                                <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{range.label.toUpperCase()}</Text>
+                                <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
+                                  {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+
+                    {filterableAttributes.find(a => a._id === activeFilterTab) && (() => {
+                      const attr = filterableAttributes.find(a => a._id === activeFilterTab)!;
                       return (
-                        <TouchableOpacity
-                          key={cat._id || 'all'}
-                          style={[styles.catItem, isSel && styles.catItemActive]}
-                          onPress={() => setSelectedCategory(cat._id)}
-                        >
-                          <Text style={[styles.catItemText, isSel && styles.catItemTextActive]}>{cat.name}</Text>
-                          {isSel && <Icon name="check" size={16} color={theme.colors.primary.main} />}
-                        </TouchableOpacity>
+                        <View style={styles.tabContent}>
+                          <View style={styles.contentHeader}>
+                            <Text style={styles.tabContentTitle}>{attr.name.toUpperCase()}</Text>
+                            <Text style={styles.optionCount}>{attr.options.length} Options</Text>
+                          </View>
+                          <View style={styles.cardList}>
+                            {attr.options.map((opt) => {
+                              const isSel = tempFilters.selectedAttributes[attr._id]?.includes(opt.value);
+                              return (
+                                <TouchableOpacity
+                                  key={opt.value}
+                                  style={[styles.optionCard, isSel && styles.optionCardActive]}
+                                  onPress={() => handleAttributeToggle(attr._id, opt.value)}
+                                >
+                                  <View style={styles.optionRowLeft}>
+                                    {(attr.inputType === 'COLOR' || attr.slug === 'color') && (
+                                      <View style={[styles.colorPreview, { backgroundColor: opt.color || opt.value }]} />
+                                    )}
+                                    <Text style={[styles.optionCardText, isSel && styles.optionCardTextActive]}>{opt.label.toUpperCase()}</Text>
+                                  </View>
+                                  <View style={[styles.checkCircle, isSel && styles.checkCircleActive]}>
+                                    {isSel && <Icon name="check" size={12} color="#FFF" />}
+                                  </View>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
                       );
-                    })}
-                  </View>
-                </View>
+                    })()}
 
-                {/* Price Range */}
-                <View style={styles.filterSection}>
-                  <Text style={styles.filterLabel}>Price Range</Text>
-                  <View style={styles.priceRow}>
-                    <TouchableOpacity
-                      style={[styles.priceChip, minPrice === 0 && styles.priceChipActive]}
-                      onPress={() => { setMinPrice(0); setMaxPrice(500); }}
-                    >
-                      <Icon name="tag" size={12} color={minPrice === 0 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
-                      <Text style={[styles.priceText, minPrice === 0 && styles.priceTextActive]}>Under ₹500</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.priceChip, minPrice === 500 && styles.priceChipActive]}
-                      onPress={() => { setMinPrice(500); setMaxPrice(1000); }}
-                    >
-                      <Icon name="tag" size={12} color={minPrice === 500 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
-                      <Text style={[styles.priceText, minPrice === 500 && styles.priceTextActive]}>₹500 - ₹1000</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.priceChip, minPrice === 1000 && styles.priceChipActive]}
-                      onPress={() => { setMinPrice(1000); setMaxPrice(5000); }}
-                    >
-                      <Icon name="tag" size={12} color={minPrice === 1000 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
-                      <Text style={[styles.priceText, minPrice === 1000 && styles.priceTextActive]}>₹1000 - ₹5000</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.priceChip, minPrice === 5000 && styles.priceChipActive]}
-                      onPress={() => { setMinPrice(5000); setMaxPrice(undefined); }}
-                    >
-                      <Icon name="tag" size={12} color={minPrice === 5000 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
-                      <Text style={[styles.priceText, minPrice === 5000 && styles.priceTextActive]}>Above ₹5000</Text>
-                    </TouchableOpacity>
-                  </View>
+                    {activeFilterTab === 'status' && (
+                      <View style={styles.tabContent}>
+                        <View style={styles.contentHeader}>
+                          <Text style={styles.tabContentTitle}>AVAILABILITY</Text>
+                          <Text style={styles.optionCount}>2 Options</Text>
+                        </View>
+                        <View style={styles.cardList}>
+                          <TouchableOpacity 
+                            style={[styles.optionCard, tempFilters.inStock && styles.optionCardActive]}
+                            onPress={() => setTempFilters(prev => ({ ...prev, inStock: !prev.inStock }))}
+                          >
+                            <Text style={[styles.optionCardText, tempFilters.inStock && styles.optionCardTextActive]}>
+                              IN STOCK ONLY
+                            </Text>
+                            <View style={[styles.checkCircle, tempFilters.inStock && styles.checkCircleActive]}>
+                              {tempFilters.inStock && <Icon name="check" size={12} color="#FFF" />}
+                            </View>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity 
+                            style={[styles.optionCard, !tempFilters.inStock && styles.optionCardActive]}
+                            onPress={() => setTempFilters(prev => ({ ...prev, inStock: false }))}
+                          >
+                            <Text style={[styles.optionCardText, !tempFilters.inStock && styles.optionCardTextActive]}>
+                              SHOW ALL
+                            </Text>
+                            <View style={[styles.checkCircle, !tempFilters.inStock && styles.checkCircleActive]}>
+                              {!tempFilters.inStock && <Icon name="check" size={12} color="#FFF" />}
+                            </View>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </ScrollView>
                 </View>
-              </ScrollView>
+              </View>
 
               <View style={styles.drawerFooter}>
                 <TouchableOpacity style={styles.resetBtn} onPress={clearFilters}>
                   <Text style={styles.resetBtnText}>Reset</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.applyBtn} onPress={() => setShowFilterDrawer(false)}>
+                <TouchableOpacity
+                  style={styles.applyBtn}
+                  onPress={() => {
+                    setFilters(tempFilters);
+                    setShowFilterDrawer(false);
+                  }}
+                >
                   <Text style={styles.applyBtnText}>Apply Filters</Text>
                 </TouchableOpacity>
               </View>
@@ -425,150 +611,194 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   drawerOverlay: {
     flex: 1,
-    flexDirection: 'row',
-  },
-  drawerBackdrop: {
-    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
+  drawerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
   drawerContent: {
-    width: width * 0.8,
+    width: width,
     height: '100%',
-    backgroundColor: theme.colors.background.paper,
-    ...theme.shadows.lg,
+    backgroundColor: '#FFF',
+    alignSelf: 'flex-end',
   },
   drawerHeader: {
+    backgroundColor: '#006241', // Teal Green from image
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    paddingTop: height * 0.05,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  headerIconBox: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   drawerTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: theme.colors.text.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+    color: '#FFF',
+    letterSpacing: 1,
+  },
+  drawerSubtitle: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  closeBtn: {
+    padding: 5,
+  },
+  drawerBody: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  tabBarContainer: {
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  tabBarScroll: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    gap: 10,
+  },
+  chipTab: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFF',
+  },
+  chipTabActive: {
+    borderColor: '#006241',
+  },
+  chipTabText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#9E9E9E',
+    letterSpacing: 0.5,
+  },
+  chipTabTextActive: {
+    color: '#006241',
+  },
+  drawerContentPane: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
   },
   drawerScroll: {
     flex: 1,
-    padding: 20,
   },
-  filterSection: {
-    marginBottom: 32,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: theme.colors.text.primary,
-    marginBottom: 16,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  optionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  optionChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: theme.colors.background.default,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  optionChipActive: {
-    backgroundColor: theme.colors.primary.main,
-    borderColor: theme.colors.primary.main,
-  },
-  optionText: {
-    fontSize: 13,
-    color: theme.colors.text.secondary,
-    fontWeight: '600',
-  },
-  optionTextActive: {
-    color: '#FFF',
-  },
-  categoryList: {
-    gap: 4,
-  },
-  catItem: {
+  contentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    marginBottom: 25,
   },
-  catItemActive: {
-    backgroundColor: `${theme.colors.primary.main}10`,
+  tabContent: {
+    flex: 1,
   },
-  catItemText: {
+  tabContentTitle: {
     fontSize: 14,
-    color: theme.colors.text.secondary,
+    fontWeight: '900',
+    color: '#006241',
+    letterSpacing: 0.5,
+  },
+  optionCount: {
+    fontSize: 12,
+    color: '#BDBDBD',
     fontWeight: '600',
   },
-  catItemTextActive: {
-    color: theme.colors.primary.main,
-    fontWeight: '800',
+  cardList: {
+    gap: 12,
   },
-  priceRow: {
+  optionCard: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  priceChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    ...theme.shadows.sm,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    flexDirection: 'row',
+    borderColor: 'transparent',
+  },
+  optionCardActive: {
+    borderColor: '#006241',
+    backgroundColor: '#FFF',
+  },
+  optionCardText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#424242',
+    letterSpacing: 0.5,
+  },
+  optionCardTextActive: {
+    color: '#006241',
+  },
+  checkCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  priceChipActive: {
-    borderColor: theme.colors.primary.main,
-    backgroundColor: `${theme.colors.primary.main}10`,
+  checkCircleActive: {
+    backgroundColor: '#B2DFDB',
+    borderColor: '#B2DFDB',
   },
-  priceText: {
-    fontSize: 12,
-    color: theme.colors.text.secondary,
-    fontWeight: '600',
+  optionRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
   },
-  priceTextActive: {
-    color: theme.colors.primary.main,
-    fontWeight: '800',
+  colorPreview: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   drawerFooter: {
     padding: 20,
     flexDirection: 'row',
     gap: 12,
+    backgroundColor: '#FFF',
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
+    borderTopColor: '#F0F0F0',
   },
   resetBtn: {
     flex: 1,
-    height: 50,
+    height: 55,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
   },
   resetBtnText: {
     fontSize: 14,
     fontWeight: '800',
-    color: theme.colors.text.secondary,
+    color: '#757575',
   },
   applyBtn: {
     flex: 2,
-    height: 50,
-    backgroundColor: theme.colors.primary.main,
+    height: 55,
+    backgroundColor: '#006241',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,

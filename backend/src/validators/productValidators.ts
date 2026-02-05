@@ -15,9 +15,16 @@ const productFilterSchema = baseFilterSchema.extend({
   categoryIds: stringFilter,
   slug: stringFilter,
   basePrice: numberFilter,
-  salePrice: numberFilter,
-  offerPrice: numberFilter,
-  discount: numberFilter,
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  inStock: z.preprocess((val) => {
+    if (val === 'true' || val === true) return true;
+    if (val === 'false' || val === false) return false;
+    return val;
+  }, z.boolean().optional()),
+  attributes: z.record(z.string(), z.array(z.string())).optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.string().optional(),
 });
 
 const productCreateSchema = z.object({

@@ -25,6 +25,8 @@ const ProductList: React.FC = () => {
         categoryIds: searchParams.get('category') ? [searchParams.get('category')!] : undefined,
         minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
         maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
+        inStock: searchParams.get('inStock') === 'true',
+        attributes: searchParams.get('attributes') ? JSON.parse(decodeURIComponent(searchParams.get('attributes')!)) : {},
     });
     const [totalPages, setTotalPages] = useState(1);
 
@@ -32,17 +34,23 @@ const ProductList: React.FC = () => {
     useEffect(() => {
         const categoryParam = searchParams.get('category');
         const searchParam = searchParams.get('search');
+        const inStockParam = searchParams.get('inStock') === 'true';
+        const attributesParam = searchParams.get('attributes') ? JSON.parse(decodeURIComponent(searchParams.get('attributes')!)) : {};
 
         const currentCategoryId = filters.categoryIds?.[0] || undefined;
         // Check if URL params differ from state (external navigation)
         const hasCategoryChanged = categoryParam !== (currentCategoryId ?? null) && (categoryParam !== null || currentCategoryId !== undefined);
         const hasSearchChanged = (searchParam || '') !== (filters.search || '');
+        const hasInStockChanged = inStockParam !== (filters.inStock || false);
+        const hasAttributesChanged = JSON.stringify(attributesParam) !== JSON.stringify(filters.attributes || {});
 
-        if (hasCategoryChanged || hasSearchChanged) {
+        if (hasCategoryChanged || hasSearchChanged || hasInStockChanged || hasAttributesChanged) {
             setFilters(prev => ({
                 ...prev,
                 categoryIds: categoryParam ? [categoryParam] : (hasCategoryChanged ? undefined : prev.categoryIds),
                 search: hasSearchChanged ? (searchParam || '') : prev.search,
+                inStock: inStockParam,
+                attributes: attributesParam,
                 page: 1
             }));
         }
@@ -59,6 +67,10 @@ const ProductList: React.FC = () => {
         if (filters.maxPrice) params.maxPrice = filters.maxPrice.toString();
         if (filters.sortBy) params.sortBy = filters.sortBy;
         if (filters.sortOrder) params.sortOrder = filters.sortOrder;
+        if (filters.inStock) params.inStock = 'true';
+        if (filters.attributes && Object.keys(filters.attributes).length > 0) {
+            params.attributes = encodeURIComponent(JSON.stringify(filters.attributes));
+        }
         setSearchParams(params);
     }, [filters]);
 
@@ -147,6 +159,8 @@ const ProductList: React.FC = () => {
             categoryIds: undefined,
             minPrice: undefined,
             maxPrice: undefined,
+            inStock: false,
+            attributes: {},
         });
     };
 
