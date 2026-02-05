@@ -222,10 +222,10 @@ export default function ProductListScreen({ navigation, route }: any) {
                   <Text style={styles.filterLabel}>Sort By</Text>
                   <View style={styles.optionGrid}>
                     {[
-                      { id: 'new', label: 'Newest', sort: 'createdAt', order: 'desc' },
-                      { id: 'p-asc', label: 'Price: Low', sort: 'price', order: 'asc' },
-                      { id: 'p-desc', label: 'Price: High', sort: 'price', order: 'desc' },
-                      { id: 'name', label: 'Name: A-Z', sort: 'name', order: 'asc' },
+                      { id: 'new', label: 'Newest', sort: 'createdAt', order: 'desc', icon: 'trending-up' },
+                      { id: 'p-asc', label: 'Price: Low', sort: 'price', order: 'asc', icon: 'arrow-down' },
+                      { id: 'p-desc', label: 'Price: High', sort: 'price', order: 'desc', icon: 'arrow-up' },
+                      { id: 'name', label: 'Name: A-Z', sort: 'name', order: 'asc', icon: 'type' },
                     ].map((opt) => {
                       const isSel = sortBy === opt.sort && sortOrder === opt.order;
                       return (
@@ -234,6 +234,7 @@ export default function ProductListScreen({ navigation, route }: any) {
                           style={[styles.optionChip, isSel && styles.optionChipActive]}
                           onPress={() => { setSortBy(opt.sort as any); setSortOrder(opt.order as any); }}
                         >
+                          <Icon name={opt.icon} size={14} color={isSel ? '#FFF' : theme.colors.text.secondary} style={{ marginRight: 6 }} />
                           <Text style={[styles.optionText, isSel && styles.optionTextActive]}>{opt.label}</Text>
                         </TouchableOpacity>
                       );
@@ -269,24 +270,28 @@ export default function ProductListScreen({ navigation, route }: any) {
                       style={[styles.priceChip, minPrice === 0 && styles.priceChipActive]}
                       onPress={() => { setMinPrice(0); setMaxPrice(500); }}
                     >
+                      <Icon name="tag" size={12} color={minPrice === 0 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
                       <Text style={[styles.priceText, minPrice === 0 && styles.priceTextActive]}>Under ₹500</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.priceChip, minPrice === 500 && styles.priceChipActive]}
                       onPress={() => { setMinPrice(500); setMaxPrice(1000); }}
                     >
+                      <Icon name="tag" size={12} color={minPrice === 500 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
                       <Text style={[styles.priceText, minPrice === 500 && styles.priceTextActive]}>₹500 - ₹1000</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.priceChip, minPrice === 1000 && styles.priceChipActive]}
                       onPress={() => { setMinPrice(1000); setMaxPrice(5000); }}
                     >
+                      <Icon name="tag" size={12} color={minPrice === 1000 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
                       <Text style={[styles.priceText, minPrice === 1000 && styles.priceTextActive]}>₹1000 - ₹5000</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.priceChip, minPrice === 5000 && styles.priceChipActive]}
                       onPress={() => { setMinPrice(5000); setMaxPrice(undefined); }}
                     >
+                      <Icon name="tag" size={12} color={minPrice === 5000 ? theme.colors.primary.main : theme.colors.text.secondary} style={{ marginRight: 4 }} />
                       <Text style={[styles.priceText, minPrice === 5000 && styles.priceTextActive]}>Above ₹5000</Text>
                     </TouchableOpacity>
                   </View>
@@ -468,12 +473,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: 10,
   },
   optionChip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
     backgroundColor: theme.colors.background.default,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   optionChipActive: {
     backgroundColor: theme.colors.primary.main,
@@ -516,11 +523,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: 10,
   },
   priceChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   priceChipActive: {
     borderColor: theme.colors.primary.main,

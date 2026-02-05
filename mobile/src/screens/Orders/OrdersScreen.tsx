@@ -43,8 +43,7 @@ const OrdersScreen = () => {
         limit: 100, // Load initial batch
         sort: { createdAt: -1 }
       });
-      // response is already recordList if service unwraps it, or body
-      const data = response?.recordList || response?.data?.recordList || (Array.isArray(response) ? response : []);
+      const data = response?.recordList || (Array.isArray(response) ? response : []);
       setOrders(data);
     } catch (error) {
       console.error('Failed to load orders', error);
@@ -85,6 +84,18 @@ const OrdersScreen = () => {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return 'check-circle';
+      case 'CANCELLED': return 'x-circle';
+      case 'RETURNED': return 'rotate-ccw';
+      case 'SHIPPED': return 'package';
+      case 'CONFIRMED': return 'check';
+      case 'PROCESSING': return 'refresh-cw';
+      default: return 'clock';
+    }
+  };
+
   const formatDate = (dateValue: any) => {
     if (!dateValue) return 'N/A';
     const date = new Date(dateValue);
@@ -100,6 +111,7 @@ const OrdersScreen = () => {
       <View style={styles.orderHeader}>
         <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
         <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.orderStatus)}15` }]}>
+          <Icon name={getStatusIcon(item.orderStatus)} size={12} color={getStatusColor(item.orderStatus)} style={{ marginRight: 4 }} />
           <Text style={[styles.orderStatus, { color: getStatusColor(item.orderStatus) }]}>
             {item.orderStatus}
           </Text>
@@ -231,6 +243,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   orderStatus: {
     fontSize: 12,

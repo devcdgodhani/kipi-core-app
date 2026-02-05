@@ -189,12 +189,18 @@ const CartScreen = () => {
             <Text style={styles.summaryTitle}>SUMMARY</Text>
 
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Subtotal</Text>
+              <View style={styles.rowLabelGroup}>
+                <Icon name="file-text" size={14} color={theme.colors.text.tertiary} />
+                <Text style={styles.priceLabel}>Subtotal</Text>
+              </View>
               <Text style={styles.priceValue}>₹{selectedTotal.toFixed(2)}</Text>
             </View>
 
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Shipping</Text>
+              <View style={styles.rowLabelGroup}>
+                <Icon name="truck" size={14} color={theme.colors.text.tertiary} />
+                <Text style={styles.priceLabel}>Shipping</Text>
+              </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={[styles.priceValue, { color: theme.colors.success }]}>FREE</Text>
                 <Text style={styles.strikethroughPrice}>₹99.00</Text>
@@ -203,7 +209,10 @@ const CartScreen = () => {
 
             <View style={[styles.priceRow, styles.totalRow]}>
               <View>
-                <Text style={styles.totalLabel}>Total Pay</Text>
+                <View style={styles.totalLabelRow}>
+                  <Icon name="credit-card" size={12} color={theme.colors.text.secondary} />
+                  <Text style={styles.totalLabel}>Total Pay</Text>
+                </View>
                 <Text style={styles.totalAmount}>₹{selectedTotal.toFixed(2)}</Text>
               </View>
             </View>
@@ -221,10 +230,18 @@ const CartScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.paymentIcons}>
-            {/* Simple representation of payment icons */}
-            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>VISA</Text></View>
-            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>MASTER</Text></View>
-            <View style={styles.paymentIconPlaceholder}><Text style={styles.paymentIconText}>UPI</Text></View>
+            <View style={styles.paymentIconPlaceholder}>
+              <Icon name="credit-card" size={12} color={theme.colors.text.secondary} />
+              <Text style={styles.paymentIconText}>CARD</Text>
+            </View>
+            <View style={styles.paymentIconPlaceholder}>
+              <Icon name="smartphone" size={12} color={theme.colors.text.secondary} />
+              <Text style={styles.paymentIconText}>UPI</Text>
+            </View>
+            <View style={styles.paymentIconPlaceholder}>
+              <Icon name="shield" size={12} color={theme.colors.text.secondary} />
+              <Text style={styles.paymentIconText}>SAFE</Text>
+            </View>
           </View>
         </View>
       </Animated.View>
@@ -427,7 +444,19 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 16,
     color: theme.colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  rowLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  totalLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+    justifyContent: 'flex-end',
   },
   strikethroughPrice: {
     fontSize: 10,
@@ -447,7 +476,6 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 4,
   },
   totalAmount: {
     fontSize: 28,
@@ -483,13 +511,14 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   paymentIconPlaceholder: {
-    width: 40,
-    height: 24,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.colors.text.primary,
-    justifyContent: 'center',
+    borderColor: theme.colors.border.light,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
   paymentIconText: {
     fontSize: 8,

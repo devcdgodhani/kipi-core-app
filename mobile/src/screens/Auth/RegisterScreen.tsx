@@ -13,6 +13,7 @@ import {
 import { theme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import { useAuth } from '../../context/AuthContext';
+import Icon from 'react-native-vector-icons/Feather';
 
 export default function RegisterScreen({ navigation }: any) {
   const [firstName, setFirstName] = useState('');
@@ -73,48 +74,63 @@ export default function RegisterScreen({ navigation }: any) {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="First Name *"
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="First Name *"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+              />
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name *"
-              value={lastName}
-              onChangeText={setLastName}
-              autoCapitalize="words"
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name *"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+              />
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Email *"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="mail" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email *"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile (Optional)"
-              value={mobile}
-              onChangeText={setMobile}
-              keyboardType="phone-pad"
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="phone" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Mobile (Optional)"
+                value={mobile}
+                onChangeText={setMobile}
+                keyboardType="phone-pad"
+              />
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Password *"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="lock" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password *"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            </View>
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
@@ -178,13 +194,23 @@ const styles = StyleSheet.create({
   form: {
     gap: theme.spacing.md,
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    fontSize: theme.typography.fontSize.base,
     backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.md,
+  },
+  inputIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.primary,
   },
   button: {
     backgroundColor: theme.colors.primary.main,

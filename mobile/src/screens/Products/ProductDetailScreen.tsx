@@ -351,6 +351,28 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
+          {/* Trust Icons */}
+          <View style={styles.trustSection}>
+            <View style={styles.trustItem}>
+              <View style={[styles.trustIconContainer, { backgroundColor: '#10B98115' }]}>
+                <Icon name="truck" size={16} color="#10B981" />
+              </View>
+              <Text style={styles.trustText}>Free Shipping</Text>
+            </View>
+            <View style={styles.trustItem}>
+              <View style={[styles.trustIconContainer, { backgroundColor: '#3B82F615' }]}>
+                <Icon name="shield" size={16} color="#3B82F6" />
+              </View>
+              <Text style={styles.trustText}>Secure Payment</Text>
+            </View>
+            <View style={styles.trustItem}>
+              <View style={[styles.trustIconContainer, { backgroundColor: '#F59E0B15' }]}>
+                <Icon name="repeat" size={16} color="#F59E0B" />
+              </View>
+              <Text style={styles.trustText}>Easy Returns</Text>
+            </View>
+          </View>
+
           {/* Description */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About Product</Text>
@@ -455,6 +477,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           style={[styles.actionButton, styles.buyNowButton]}
           onPress={handleBuyNow}
         >
+          <Icon name="zap" size={20} color="#FFF" style={{ marginRight: 8 }} />
           <Text style={[styles.actionButtonText, styles.buyNowText]}>Buy Now</Text>
         </TouchableOpacity>
       </View>
@@ -772,6 +795,34 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text.tertiary,
     fontSize: 14,
     paddingVertical: 20,
+  },
+  trustSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: theme.colors.background.default,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  trustItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  trustIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  trustText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.colors.text.secondary,
+    textTransform: 'uppercase',
   },
   viewAllButton: {
     alignItems: 'center',

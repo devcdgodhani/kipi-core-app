@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { theme } from '../../theme/theme';
 import { useAuth } from '../../context/AuthContext';
+import Icon from 'react-native-vector-icons/Feather';
 
 export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth();
@@ -51,24 +52,30 @@ export default function LoginScreen({ navigation }: any) {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="mail" size={20} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.inputContainer}>
+              <Icon name="lock" size={20} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            </View>
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
@@ -139,13 +146,23 @@ const styles = StyleSheet.create({
   form: {
     gap: theme.spacing.md,
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    fontSize: theme.typography.fontSize.base,
     backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.md,
+  },
+  inputIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.text.primary,
   },
   button: {
     backgroundColor: theme.colors.primary.main,

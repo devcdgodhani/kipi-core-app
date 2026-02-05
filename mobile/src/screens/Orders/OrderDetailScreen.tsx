@@ -134,6 +134,28 @@ const OrderDetailScreen = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return theme.colors.success;
+      case 'CANCELLED':
+      case 'RETURNED': return theme.colors.error;
+      case 'SHIPPED': return theme.colors.primary.main;
+      default: return theme.colors.warning;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return 'check-circle';
+      case 'CANCELLED': return 'x-circle';
+      case 'RETURNED': return 'rotate-ccw';
+      case 'SHIPPED': return 'package';
+      case 'CONFIRMED': return 'check';
+      case 'PROCESSING': return 'refresh-cw';
+      default: return 'clock';
+    }
+  };
+
   const formatDate = (date: any) => {
     const d = new Date(date);
     return isValid(d) ? format(d, 'MMM dd, yyyy HH:mm') : 'N/A';
@@ -163,7 +185,7 @@ const OrderDetailScreen = () => {
     { status: 'DELIVERED', label: 'Delivered' }
   ];
 
-  const currentStepIndex = steps.findIndex(s => s.status === order.orderStatus || (order.orderStatus === 'Packed' && s.status === 'PROCESSING'));
+  const currentStepIndex = steps.findIndex(s => s.status === order.orderStatus);
   const activeReturn = returns.find(r => r.status !== 'CANCELLED');
 
   return (
@@ -176,8 +198,9 @@ const OrderDetailScreen = () => {
               <Text style={styles.orderNo}>Order #{order.orderNumber}</Text>
               <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: `${theme.colors.primary.main}15` }]}>
-              <Text style={[styles.statusText, { color: theme.colors.primary.main }]}>{order.orderStatus}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(order.orderStatus)}15` }]}>
+              <Icon name={getStatusIcon(order.orderStatus)} size={12} color={getStatusColor(order.orderStatus)} style={{ marginRight: 6 }} />
+              <Text style={[styles.statusText, { color: getStatusColor(order.orderStatus) }]}>{order.orderStatus}</Text>
             </View>
           </View>
         </View>
@@ -264,12 +287,12 @@ const OrderDetailScreen = () => {
             <Text style={styles.summaryLabel}>Shipping</Text>
             <Text style={styles.summaryValue}>₹{order.shippingCost}</Text>
           </View>
-          {order.discountAmount > 0 && (
+          {order.discountAmount ? (
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: theme.colors.success }]}>Discount ({order.couponCode})</Text>
               <Text style={[styles.summaryValue, { color: theme.colors.success }]}>-₹{order.discountAmount}</Text>
             </View>
-          )}
+          ) : null}
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total Amount</Text>
             <Text style={styles.totalValue}>₹{order.totalAmount}</Text>
@@ -353,7 +376,7 @@ const OrderDetailScreen = () => {
             <View style={styles.starPicker}>
               {[1, 2, 3, 4, 5].map(s => (
                 <TouchableOpacity key={s} onPress={() => setRating(s)} style={{ padding: 8 }}>
-                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} fill={s <= rating ? "#FFD700" : "transparent"} />
+                  <Icon name="star" size={32} color={s <= rating ? "#FFD700" : "#EEE"} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -423,13 +446,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginTop: 4,
   },
   statusBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '900',
     textTransform: 'uppercase',
   },
   sectionTitle: {

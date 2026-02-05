@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Feather';
+import { theme } from '../theme/theme';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -70,7 +71,45 @@ function ProductsStack() {
 // Main Tab Navigator
 function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ color, size }) => {
+          let iconName = 'home';
+
+          if (route.name === 'Home') {
+            iconName = 'home';
+          } else if (route.name === 'Products') {
+            iconName = 'grid';
+          } else if (route.name === 'Cart') {
+            iconName = 'shopping-bag';
+          } else if (route.name === 'Profile') {
+            iconName = 'user';
+          }
+
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: theme.colors.primary.main,
+        tabBarInactiveTintColor: theme.colors.text.tertiary,
+        tabBarStyle: {
+          borderTopWidth: 0,
+          backgroundColor: '#FFFFFF',
+          elevation: 20,
+          height: Platform.OS === 'ios' ? 88 : 65,
+          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+          paddingTop: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+          marginTop: -4,
+        },
+      })}
+    >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Products" component={ProductsStack} />
       <Tab.Screen name="Cart" component={CartScreen} />

@@ -151,14 +151,38 @@ export default function HomeScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
+  const getSectionIcon = (sectionId: string) => {
+    switch (sectionId) {
+      case 'FLASH_DEALS':
+        return { name: 'zap', color: '#E11D48' };
+      case 'RECOMMENDATIONS':
+        return { name: 'sparkles', color: theme.colors.primary.main };
+      case 'RECENTLY_VIEWED':
+        return { name: 'clock', color: theme.colors.text.secondary };
+      case 'NEW_ARRIVALS':
+        return { name: 'award', color: '#F59E0B' };
+      case 'POPULAR_PRODUCTS':
+        return { name: 'trending-up', color: '#8B5CF6' };
+      default:
+        return { name: 'star', color: theme.colors.primary.main };
+    }
+  };
+
   const renderProductSection = (section: any) => {
     const products = sectionsData[section.sectionId] || [];
     if (products.length === 0) return null;
 
+    const icon = getSectionIcon(section.sectionId);
+
     return (
       <View key={section._id} style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View style={styles.sectionTitleRow}>
+            <View style={[styles.sectionIconContainer, { backgroundColor: `${icon.color}15` }]}>
+              <Icon name={icon.name} size={16} color={icon.color} />
+            </View>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+          </View>
           <TouchableOpacity onPress={() => navigation.navigate('Products', { screen: 'ProductList' })}>
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
@@ -340,10 +364,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   sectionTitle: {
-    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '900',
     color: theme.colors.text.primary,
-    fontWeight: 'bold',
+    letterSpacing: -0.5,
   },
   seeAll: {
     color: theme.colors.primary.main,
