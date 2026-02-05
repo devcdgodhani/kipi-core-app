@@ -500,11 +500,45 @@ const ProductForm: React.FC = () => {
                 fileStorageId: (m.fileStorageId && typeof m.fileStorageId === 'object') ? (m.fileStorageId as any)._id : (m.fileStorageId || null)
             }));
 
+            // CONSOLIDATE ALL ATTRIBUTES (Base + Variants)
+            const attrMap = new Map();
+
+            // 1. Add static/base attributes
+            (formData.attributes || []).forEach((a: any) => {
+                const key = `${(typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId)}_${JSON.stringify(a.value)}`;
+                const attrObj: any = {
+                    attributeId: (typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId),
+                    value: a.value
+                };
+                if (a.label) {
+                    attrObj.label = a.label;
+                }
+                attrMap.set(key, attrObj);
+            });
+
+            // 2. Add variant attributes from all SKUs
+            cleanSkus.forEach(sku => {
+                (sku.variantAttributes || []).forEach((a: any) => {
+                    const key = `${(typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId)}_${JSON.stringify(a.value)}`;
+                    if (!attrMap.has(key)) {
+                        const attrObj: any = {
+                            attributeId: (typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId),
+                            value: a.value
+                        };
+                        if (a.label) {
+                            attrObj.label = a.label;
+                        }
+                        attrMap.set(key, attrObj);
+                    }
+                });
+            });
+
             const submitData = {
                 ...formData,
                 mainImage: (formData.mainImage && typeof formData.mainImage === 'object') ? (formData.mainImage as any)._id : (formData.mainImage || null),
                 media: cleanMedia,
-                skus: cleanSkus
+                skus: cleanSkus,
+                attributes: Array.from(attrMap.values())
             };
             delete (submitData as any).mainImage_preview;
 
