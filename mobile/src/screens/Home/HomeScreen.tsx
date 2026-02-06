@@ -13,8 +13,8 @@ import {
   Platform,
   Animated,
   TextInput,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppTheme, Theme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
@@ -230,6 +230,9 @@ export default function HomeScreen({ navigation }: any) {
             onSubmitEditing={() => navigation.navigate('Products', { screen: 'ProductList', params: { search: searchQuery } })}
           />
         </View>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Wishlist')}>
+          <Icon name="heart" size={24} color={theme.colors.primary.main} />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
           <Icon name="bell" size={24} color={theme.colors.primary.main} />
         </TouchableOpacity>
