@@ -86,6 +86,8 @@ function MainTabs() {
             iconName = 'shopping-bag';
           } else if (route.name === 'Profile') {
             iconName = 'user';
+          } else if (route.name === 'Wishlist') {
+            iconName = 'heart';
           }
 
           return <Icon name={iconName} size={size} color={color} />;
@@ -114,6 +116,7 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Products" component={ProductsStack} />
       <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Wishlist" component={WishlistScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

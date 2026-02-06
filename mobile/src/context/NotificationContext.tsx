@@ -43,7 +43,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setNotifications(listParams.notifications);
         setTotalNotifications(listParams.pagination?.total || 0);
       }
-      setUnreadCount(count || 0);
+
+      const countValue = typeof count === 'object' && count !== null ? (count as any).count : count;
+      setUnreadCount(countValue || 0);
     } catch (error) {
       console.error('Failed to refresh notifications:', error);
     } finally {
@@ -64,8 +66,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setTotalNotifications(result.pagination?.total || 0);
       }
       // Also update unread count
-      const count = await notificationService.getUnreadCount();
-      setUnreadCount(count || 0);
+      const countRes: any = await notificationService.getUnreadCount();
+      // Handle both number and object { count: number } responses
+      const countValue = typeof countRes === 'object' && countRes !== null ? countRes.count : countRes;
+      setUnreadCount(countValue || 0);
     } catch (error) {
       console.error('Failed to load notifications:', error);
       Toast.show({

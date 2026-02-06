@@ -230,8 +230,8 @@ export default function HomeScreen({ navigation }: any) {
             onSubmitEditing={() => navigation.navigate('Products', { screen: 'ProductList', params: { search: searchQuery } })}
           />
         </View>
-        <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('Cart')}>
-          <Icon name="shopping-bag" size={24} color={theme.colors.primary.main} />
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
+          <Icon name="bell" size={24} color={theme.colors.primary.main} />
         </TouchableOpacity>
       </View>
 
@@ -266,7 +266,11 @@ export default function HomeScreen({ navigation }: any) {
           />
         </View>
 
-        {appSettings?.sections?.map((section: any) => renderProductSection(section))}
+        {appSettings?.sections?.map((section: any, index: number) => {
+          const element = renderProductSection(section);
+          if (!element) return null;
+          return <React.Fragment key={section.sectionId || section._id || index}>{element}</React.Fragment>;
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -304,9 +308,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     fontSize: theme.typography.fontSize.base,
     color: theme.colors.text.primary,
   },
-  cartButton: {
-    width: 48,
-    height: 48,
+  iconButton: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -20,6 +20,7 @@ export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -76,9 +77,16 @@ export default function LoginScreen({ navigation }: any) {
                 placeholder="Password"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                <Icon
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={20}
+                  color={theme.colors.text.tertiary}
+                />
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity

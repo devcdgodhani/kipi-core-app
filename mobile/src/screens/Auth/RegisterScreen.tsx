@@ -22,6 +22,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [mobile, setMobile] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -131,9 +132,16 @@ export default function RegisterScreen({ navigation }: any) {
                 placeholder="Password *"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                <Icon
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={20}
+                  color={theme.colors.text.tertiary}
+                />
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -183,7 +191,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   subtitle: {
     ...theme.typography.body1,
-    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.xl,
   },

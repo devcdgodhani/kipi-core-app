@@ -13,6 +13,12 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider } from './src/context/ThemeContext';
 import Toast from 'react-native-toast-message';
 
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'AxiosError: Request failed with status code 400',
+]);
+
 export default function App() {
   return (
     <ThemeProvider>

@@ -232,7 +232,6 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             refreshWallet(); // Update wallet balance
 
         } catch (error: any) {
-            console.error(error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to place order";
             Toast.show({ type: 'error', text1: 'Order Failed', text2: errorMessage });
         } finally {

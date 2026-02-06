@@ -80,7 +80,12 @@ const CheckoutScreen = ({ navigation }: any) => {
     };
 
     const handlePlaceOrder = async () => {
-        await placeOrder(navigation);
+        try {
+            await placeOrder(navigation);
+        } catch (error) {
+            // Error is already handled in CheckoutContext with Toast
+            // This catch prevents unhandled promise rejection from showing duplicate error
+        }
     };
 
     const renderSummaryItem = (item: any) => (
@@ -492,7 +497,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     totalValue: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
     },
     footer: {
@@ -513,7 +517,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     footerTotalAmount: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
     },
     placeOrderButton: {
@@ -570,7 +573,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     orderItemPrice: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
         fontWeight: theme.typography.fontWeight.semibold,
     },
