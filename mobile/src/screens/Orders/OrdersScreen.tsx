@@ -27,24 +27,41 @@ const OrdersScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState<'ALL' | 'PENDING' | 'DELIVERED'>('ALL');
+  const LIMIT = 10;
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
 
-  const loadOrders = async () => {
+
+  const loadOrders = async (pageNum: number, shouldRefresh = false) => {
+    if (!shouldRefresh && (loadingMore || !hasMore)) return;
+
     try {
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
       const response = await orderService.getMyOrders({
-        page: 1,
-        limit: 100, // Load initial batch
+        page: pageNum,
+        limit: LIMIT,
         sort: { createdAt: -1 }
       });
-      const data = response?.recordList || (Array.isArray(response) ? response : []);
-      setOrders(data);
+
+      const newOrders = response?.recordList || (Array.isArray(response) ? response : []);
+
+      if (shouldRefresh || pageNum === 1) {
+        setOrders(newOrders);
+      } else {
+        setOrders(prev => [...prev, ...newOrders]);
+      }
+
+      setHasMore(newOrders.length === LIMIT);
+      setPage(pageNum);
+
     } catch (error) {
       console.error('Failed to load orders', error);
       Toast.show({
@@ -54,14 +71,28 @@ const OrdersScreen = () => {
       });
     } finally {
       setLoading(false);
+      setLoadingMore(false);
       setRefreshing(false);
     }
   };
 
+  useEffect(() => {
+    loadOrders(1, true);
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
-    loadOrders();
+    setHasMore(true);
+    loadOrders(1, true);
   };
+
+  const loadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      loadOrders(page + 1);
+    }
+  };
+
+
 
   const getFilteredOrders = () => {
     if (activeTab === 'ALL') return orders;
@@ -149,7 +180,16 @@ const OrdersScreen = () => {
     </View>
   );
 
-  if (loading && !refreshing) {
+  const renderFooter = () => {
+    if (!loadingMore) return <View style={{ height: 20 }} />;
+    return (
+      <View style={{ paddingVertical: 20 }}>
+        <ActivityIndicator size="small" color={theme.colors.primary.main} />
+      </View>
+    );
+  };
+
+  if (loading && !refreshing && orders.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
@@ -170,11 +210,16 @@ const OrdersScreen = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary.main]} />
         }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="package" size={64} color={theme.colors.text.tertiary} />
-            <Text style={styles.emptyText}>No orders found</Text>
-          </View>
+          !loading ? (
+            <View style={styles.emptyContainer}>
+              <Icon name="package" size={64} color={theme.colors.text.tertiary} />
+              <Text style={styles.emptyText}>No orders found</Text>
+            </View>
+          ) : null
         }
       />
     </SafeAreaView>
@@ -238,7 +283,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     ...theme.typography.body1,
     color: theme.colors.text.primary,
     fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.text.primary,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -275,7 +319,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     ...theme.typography.h3,
     color: theme.colors.text.primary,
     fontSize: theme.typography.fontSize.xl,
-    color: theme.colors.primary.main,
     fontWeight: theme.typography.fontWeight.bold,
   },
   emptyContainer: {
@@ -285,7 +328,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyText: {
     ...theme.typography.body1,
-    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.md,
   },

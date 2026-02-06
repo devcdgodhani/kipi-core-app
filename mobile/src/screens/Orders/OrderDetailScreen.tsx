@@ -36,10 +36,7 @@ const OrderDetailScreen = () => {
   const [returns, setReturns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Return Modal State
-  const [showReturnModal, setShowReturnModal] = useState(false);
-  const [returnReason, setReturnReason] = useState('');
-  const [submittingReturn, setSubmittingReturn] = useState(false);
+
 
   // Review Modal State
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -74,29 +71,7 @@ const OrderDetailScreen = () => {
     }
   };
 
-  const handleRequestReturn = async () => {
-    if (!returnReason.trim()) {
-      Toast.show({ type: 'error', text1: 'Required', text2: 'Please provide a reason' });
-      return;
-    }
 
-    try {
-      setSubmittingReturn(true);
-      await returnService.requestReturn({
-        orderId: order!._id,
-        reason: returnReason,
-        items: order!.items.map(item => ({ productId: item.productId, quantity: item.quantity }))
-      });
-      Toast.show({ type: 'success', text1: 'Success', text2: 'Return request submitted' });
-      setShowReturnModal(false);
-      loadOrderDetails();
-    } catch (error) {
-      console.error('Return request error:', error);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to request return' });
-    } finally {
-      setSubmittingReturn(false);
-    }
-  };
 
   const handleCancelReturn = async (returnId: string) => {
     try {
@@ -306,7 +281,10 @@ const OrderDetailScreen = () => {
         {/* Return Information / Actions */}
         <View style={styles.actionContainer}>
           {order.orderStatus === 'DELIVERED' && !activeReturn && (
-            <TouchableOpacity style={styles.returnMainBtn} onPress={() => setShowReturnModal(true)}>
+            <TouchableOpacity
+              style={styles.returnMainBtn}
+              onPress={() => navigation.navigate('ReturnRequest', { order })}
+            >
               <Icon name="rotate-ccw" size={18} color={theme.colors.text.inverse} style={{ marginRight: 8 }} />
               <Text style={styles.returnMainBtnText}>Request Return</Text>
             </TouchableOpacity>
@@ -335,36 +313,7 @@ const OrderDetailScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Return Modal */}
-      <Modal visible={showReturnModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Request Return</Text>
-            <Text style={styles.label}>Reason for return</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Search, Size mismatch, Damaged, etc."
-              multiline
-              numberOfLines={4}
-              value={returnReason}
-              onChangeText={setReturnReason}
-              textAlignVertical="top"
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowReturnModal(false)}>
-                <Text style={styles.cancelBtnText}>Discard</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmBtn}
-                onPress={handleRequestReturn}
-                disabled={submittingReturn}
-              >
-                {submittingReturn ? <ActivityIndicator color={theme.colors.text.inverse} /> : <Text style={styles.confirmBtnText}>Submit Request</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
 
       {/* Review Modal */}
       <Modal visible={showReviewModal} transparent animationType="slide">
