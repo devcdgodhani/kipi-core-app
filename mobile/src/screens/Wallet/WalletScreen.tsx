@@ -214,9 +214,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     mainTitle: {
         ...theme.typography.h1,
-        color: theme.colors.text.primary,
-        fontSize: 28,
-        fontWeight: 'bold',
+    color: theme.colors.text.primary,
+        fontSize: theme.typography.fontSize['4xl'],
+        fontWeight: theme.typography.fontWeight.bold,
     },
     subtitle: {
         ...theme.typography.body2,
@@ -245,8 +245,8 @@ const createStyles = (theme: any) => StyleSheet.create({
         flex: 1,
     },
     warningTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.base,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.warning,
     },
     warningText: {
@@ -285,8 +285,8 @@ const createStyles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
     },
     summaryLabel: {
-        fontSize: 9,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.xs,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.text.secondary,
         textTransform: 'uppercase',
     },
@@ -304,9 +304,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     balanceValue: {
         ...theme.typography.h1,
+    color: theme.colors.text.primary,
         color: theme.colors.text.inverse,
-        fontSize: 40,
-        fontWeight: '900',
+        fontSize: theme.typography.fontSize['5xl'],
+        fontWeight: theme.typography.fontWeight.black,
         marginBottom: theme.spacing.md,
     },
     walletStatus: {
@@ -325,9 +326,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     statusText: {
         ...theme.typography.body2,
-        fontSize: 12,
+        fontSize: theme.typography.fontSize.sm,
         color: theme.colors.text.inverse,
-        fontWeight: 'bold',
+        fontWeight: theme.typography.fontWeight.bold,
     },
     txMeta: {
         flexDirection: 'column',
@@ -347,9 +348,9 @@ const createStyles = (theme: any) => StyleSheet.create({
         textTransform: 'uppercase',
     },
     expiryTag: {
-        fontSize: 10,
+        fontSize: theme.typography.fontSize.xs,
         color: theme.colors.warning,
-        fontWeight: 'bold',
+        fontWeight: theme.typography.fontWeight.bold,
         marginTop: 2,
     },
     sectionHeader: {
@@ -361,13 +362,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     sectionTitle: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
         fontSize: 18,
         color: theme.colors.text.primary,
         fontWeight: 'bold',
     },
     recordsCount: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.sm,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.primary.main,
         backgroundColor: `${theme.colors.primary.main}15`,
         paddingHorizontal: 8,
@@ -400,6 +402,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     transactionTitle: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         fontWeight: 'bold',
         marginBottom: 2,
         textTransform: 'capitalize',
@@ -412,6 +415,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     transactionAmount: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         fontWeight: 'bold',
     },
     emptyState: {

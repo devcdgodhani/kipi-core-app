@@ -58,11 +58,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     title: {
         ...theme.typography.h2,
+    color: theme.colors.text.primary,
         textAlign: 'center',
         marginBottom: theme.spacing.md,
     },
     subtitle: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         color: theme.colors.text.secondary,
         textAlign: 'center',
         marginBottom: theme.spacing.xl,

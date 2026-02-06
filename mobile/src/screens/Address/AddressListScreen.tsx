@@ -129,7 +129,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     title: {
         ...theme.typography.h2,
-        color: theme.colors.text.primary,
+    color: theme.colors.text.primary,
     },
     subtitle: {
         ...theme.typography.body2,
@@ -161,8 +161,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         gap: 6,
     },
     typeText: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.xs,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.primary.main,
         textTransform: 'uppercase',
     },
@@ -173,8 +173,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         borderRadius: 4,
     },
     defaultBadgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.xs,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.text.inverse,
     },
     addressBody: {
@@ -182,7 +182,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     nameText: {
         ...theme.typography.body1,
-        fontWeight: 'bold',
+    color: theme.colors.text.primary,
+        fontWeight: theme.typography.fontWeight.bold,
         marginBottom: 4,
     },
     addressText: {
@@ -194,7 +195,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     phoneText: {
         ...theme.typography.body2,
         color: theme.colors.text.primary,
-        fontWeight: '500',
+        fontWeight: theme.typography.fontWeight.medium,
     },
     addressActions: {
         flexDirection: 'row',
@@ -210,8 +211,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         gap: 6,
     },
     actionText: {
-        fontSize: 14,
-        fontWeight: '500',
+        fontSize: theme.typography.fontSize.base,
+        fontWeight: theme.typography.fontWeight.medium,
         color: theme.colors.text.secondary,
     },
     vDivider: {
@@ -248,7 +249,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     emptyTitle: {
         ...theme.typography.h3,
-        color: theme.colors.text.primary,
+    color: theme.colors.text.primary,
         marginTop: theme.spacing.md,
     },
     emptyText: {

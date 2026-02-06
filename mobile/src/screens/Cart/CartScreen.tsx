@@ -263,8 +263,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.background.default,
   },
+  emptyTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text.primary,
+    marginTop: theme.spacing.md,
+  },
   emptyText: {
     ...theme.typography.h3,
+    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.lg,
@@ -356,16 +362,17 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   itemName: {
     ...theme.typography.body1,
-    fontWeight: '600',
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.primary,
     flex: 1,
     marginRight: 8,
   },
   skuNameText: {
-    fontSize: 10,
+    fontSize: theme.typography.fontSize.xs,
     color: theme.colors.text.secondary,
     marginTop: 2,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
     textTransform: 'uppercase',
   },
   removeButton: {
@@ -392,7 +399,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   quantityText: {
     ...theme.typography.body2,
     marginHorizontal: 8,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
     minWidth: 16,
     textAlign: 'center',
   },
@@ -400,8 +407,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'flex-end',
   },
   totalItemPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
   },
   unitPrice: {
@@ -414,15 +421,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   footer: {
     backgroundColor: theme.colors.background.paper,
     padding: theme.spacing.lg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
     ...theme.shadows.lg,
     elevation: 20,
-    marginTop: -20, // Overlap list slightly or just ensure visual separation
+    marginTop: -20,
   },
   summaryTitle: {
-    fontSize: 18,
-    fontWeight: '900',
+    ...theme.typography.h3,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.md,
     letterSpacing: 0.5,
@@ -440,14 +446,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   priceLabel: {
     fontSize: 13,
     color: theme.colors.text.secondary,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   priceValue: {
-    fontSize: 16,
+    fontSize: theme.typography.fontSize.lg,
     color: theme.colors.text.primary,
-    fontWeight: '700',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   rowLabelGroup: {
     flexDirection: 'row',
@@ -474,15 +480,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'flex-end', 
   },
   totalLabel: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   totalAmount: {
-    fontSize: 28,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize['4xl'],
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
     letterSpacing: -1,
   },
@@ -502,7 +508,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   checkoutButtonText: {
     color: theme.colors.text.inverse,
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -525,7 +531,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   paymentIconText: {
     fontSize: 8,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });
 

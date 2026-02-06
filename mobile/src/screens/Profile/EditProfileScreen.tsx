@@ -161,7 +161,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     helperText: {
         ...theme.typography.body2,
-        fontSize: 12,
+        fontSize: theme.typography.fontSize.xs,
         color: theme.colors.text.tertiary,
         marginTop: 4,
     },

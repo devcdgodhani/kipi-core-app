@@ -202,9 +202,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     headerTitle: {
         ...theme.typography.h3,
-        fontSize: 20,
+    color: theme.colors.text.primary,
+        fontSize: theme.typography.fontSize.xl,
         color: theme.colors.text.primary,
-        fontWeight: 'bold',
+        fontWeight: theme.typography.fontWeight.bold,
     },
     unreadSub: {
         ...theme.typography.body2,
@@ -266,11 +267,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     title: {
         ...theme.typography.body1,
-        fontWeight: '700',
+    color: theme.colors.text.primary,
+        fontWeight: theme.typography.fontWeight.bold,
         flex: 1,
         marginRight: 8,
         color: theme.colors.text.primary,
-        fontSize: 15,
+        fontSize: theme.typography.fontSize.base,
     },
     unreadTitle: {
         color: theme.colors.primary.main,
@@ -318,9 +320,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     emptyText: {
         ...theme.typography.h3,
-        fontSize: 20,
+    color: theme.colors.text.primary,
+        fontSize: theme.typography.fontSize['3xl'],
         color: theme.colors.text.primary,
-        fontWeight: 'bold',
+        fontWeight: theme.typography.fontWeight.bold,
         marginBottom: theme.spacing.xs,
     },
     emptySubtext: {

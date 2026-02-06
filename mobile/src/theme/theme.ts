@@ -24,6 +24,7 @@ export const colors = {
     medium: '#CCCCCC',
     dark: '#999999',
   },
+  accent: '#999999',
   error: '#EF4444',
   success: '#10B981',
   warning: '#F59E0B',
@@ -58,32 +59,26 @@ export const typography = {
   h1: {
     fontSize: 32,
     fontWeight: '700' as const,
-    color: '#000000',
   },
   h2: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#000000',
   },
   h3: {
     fontSize: 20,
     fontWeight: '600' as const,
-    color: '#000000',
   },
   body1: {
     fontSize: 16,
     fontWeight: '400' as const,
-    color: '#000000',
   },
   body2: {
     fontSize: 14,
     fontWeight: '400' as const,
-    color: '#666666',
   },
   button: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#FFFFFF',
   },
 };
 
@@ -151,6 +146,14 @@ export const useAppTheme = () => {
   
   return {
     ...theme,
+    typography: {
+      ...theme.typography,
+      h1: { ...theme.typography.h1, color: dynamicTheme.colors.textPrimary || theme.colors.text.primary },
+      h2: { ...theme.typography.h2, color: dynamicTheme.colors.textPrimary || theme.colors.text.primary },
+      h3: { ...theme.typography.h3, color: dynamicTheme.colors.textPrimary || theme.colors.text.primary },
+      body1: { ...theme.typography.body1, color: dynamicTheme.colors.textPrimary || theme.colors.text.primary },
+      body2: { ...theme.typography.body2, color: dynamicTheme.colors.textSecondary || theme.colors.text.secondary },
+    },
     colors: {
       ...theme.colors,
       primary: {
@@ -161,6 +164,7 @@ export const useAppTheme = () => {
         ...theme.colors.secondary,
         main: dynamicTheme.colors.secondary,
       },
+      accent: dynamicTheme.colors.accent || theme.colors.accent,
       background: {
         ...theme.colors.background,
         default: dynamicTheme.colors.background,

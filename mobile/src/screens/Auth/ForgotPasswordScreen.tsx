@@ -129,10 +129,11 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   backText: {
     ...theme.typography.body2,
     color: theme.colors.primary.main,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   title: {
     ...theme.typography.h1,
+    color: theme.colors.text.primary,
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
@@ -148,7 +149,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    fontSize: 16,
+    fontSize: theme.typography.fontSize.lg,
     backgroundColor: theme.colors.background.paper,
     color: theme.colors.text.primary,
   },
@@ -164,7 +165,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.text.inverse,
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });

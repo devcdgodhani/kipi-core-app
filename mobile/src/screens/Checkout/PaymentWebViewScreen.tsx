@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
         fontWeight: 'bold',
     },
     webviewContainer: {

@@ -436,8 +436,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
   },
   orderNo: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
   },
   orderDate: {
@@ -454,12 +454,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     textTransform: 'uppercase',
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
     marginBottom: 20,
     textTransform: 'uppercase',
@@ -494,7 +494,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 10,
     color: theme.colors.text.tertiary,
     marginTop: 8,
-    fontWeight: '700',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   activeLabel: {
     color: theme.colors.text.primary,
@@ -539,15 +539,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginLeft: 15,
   },
   itemName: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
     marginBottom: 4,
   },
   itemMeta: {
     fontSize: 12,
     color: theme.colors.text.secondary,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   reviewBtn: {
     flexDirection: 'row',
@@ -561,16 +561,16 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '800',
   },
   itemTotal: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
   },
   addressBox: {
     flexDirection: 'row',
   },
   addressName: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
     marginBottom: 6,
   },
@@ -603,12 +603,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
   },
   paymentInfoRow: {

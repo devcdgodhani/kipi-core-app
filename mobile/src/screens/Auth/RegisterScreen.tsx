@@ -177,13 +177,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: theme.typography.fontSize['4xl'],
-    fontWeight: theme.typography.fontWeight.bold,
+    ...theme.typography.h1,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    fontSize: theme.typography.fontSize.lg,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.xl,
   },

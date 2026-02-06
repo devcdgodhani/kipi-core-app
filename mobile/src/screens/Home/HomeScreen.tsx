@@ -301,7 +301,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: theme.spacing.sm,
-    fontSize: 16,
+    fontSize: theme.typography.fontSize.base,
     color: theme.colors.text.primary,
   },
   cartButton: {
@@ -349,9 +349,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     height: '100%',
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: theme.typography.fontSize.xs,
     color: theme.colors.text.primary,
-    fontWeight: '500',
+    fontWeight: theme.typography.fontWeight.medium,
     textAlign: 'center',
   },
   sectionContainer: {
@@ -377,8 +377,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '900',
+    ...theme.typography.h3,
     color: theme.colors.text.primary,
     letterSpacing: -0.5,
   },

@@ -66,10 +66,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         primary: backendTheme.colors.primary || DEFAULT_THEME.colors.primary,
                         secondary: backendTheme.colors.secondary || DEFAULT_THEME.colors.secondary,
                         accent: backendTheme.colors.accent || DEFAULT_THEME.colors.accent,
-                        surface: backendTheme.colors.background === '#FFFFFF' ? '#F5F5F5' : backendTheme.colors.background,
-                        textPrimary: backendTheme.colors.primary === '#000000' ? '#000000' : '#000000', // Keep some defaults
-                        textSecondary: '#666666',
-                        border: '#E5E5E5',
+                        surface: backendTheme.colors.surface || (backendTheme.colors.background === '#FFFFFF' ? '#F5F5F5' : backendTheme.colors.background),
+                        textPrimary: backendTheme.colors.textPrimary || backendTheme.colors.primary || DEFAULT_THEME.colors.textPrimary,
+                        textSecondary: backendTheme.colors.textSecondary || backendTheme.colors.secondary || DEFAULT_THEME.colors.textSecondary,
+                        border: backendTheme.colors.border || DEFAULT_THEME.colors.border,
                     }
                 };
                 setThemeState(newTheme);

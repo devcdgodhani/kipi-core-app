@@ -162,6 +162,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   title: {
     ...theme.typography.h1,
+    color: theme.colors.text.primary,
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
@@ -177,7 +178,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.colors.border.light,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    fontSize: 32,
+    fontSize: theme.typography.fontSize['4xl'],
     textAlign: 'center',
     letterSpacing: 8,
     backgroundColor: theme.colors.background.paper,
@@ -195,8 +196,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.text.inverse,
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: theme.typography.fontWeight.bold,
   },
   resendContainer: {
     flexDirection: 'row',
@@ -212,11 +213,11 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   timerText: {
     ...theme.typography.body2,
     color: theme.colors.text.tertiary,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   resendLink: {
     ...theme.typography.body2,
     color: theme.colors.primary.main,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });

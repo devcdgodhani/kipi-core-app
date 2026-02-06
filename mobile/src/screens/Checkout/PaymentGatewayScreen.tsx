@@ -212,7 +212,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     title: {
         ...theme.typography.h2,
-        marginBottom: theme.spacing.xs,
+    color: theme.colors.text.primary,
+        marginBottom: theme.spacing.sm,
     },
     subtitle: {
         ...theme.typography.body2,
@@ -245,6 +246,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     gatewayLabel: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         fontWeight: 'bold',
         color: theme.colors.text.primary,
     },
@@ -260,6 +262,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     emptyText: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         color: theme.colors.text.secondary,
         textAlign: 'center',
     },
@@ -272,7 +275,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     overlayText: {
         marginTop: theme.spacing.md,
         ...theme.typography.body1,
-        fontWeight: 'bold',
+    color: theme.colors.text.primary,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.primary.main,
     },
     gatewayCardContent: {
@@ -290,7 +294,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     upiLabel: {
         ...theme.typography.body2,
-        fontWeight: '600',
+        fontWeight: theme.typography.fontWeight.semibold,
         marginBottom: theme.spacing.sm,
     },
     upiInput: {
@@ -331,7 +335,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     upiNote: {
         marginTop: theme.spacing.sm,
-        fontSize: 12,
+        fontSize: theme.typography.fontSize.xs,
         color: theme.colors.text.secondary,
         fontStyle: 'italic',
     },

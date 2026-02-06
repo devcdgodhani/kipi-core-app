@@ -130,12 +130,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   name: {
     ...theme.typography.body1,
-    fontWeight: '600',
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.fontWeight.semibold,
     marginBottom: 4,
   },
   price: {
     ...theme.typography.body1,
-    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.primary.main,
   },
   actions: {
@@ -166,6 +168,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyText: {
     ...theme.typography.h3,
+    color: theme.colors.text.primary,
     marginTop: theme.spacing.lg,
     color: theme.colors.text.primary,
   },

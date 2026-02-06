@@ -190,9 +190,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     gap: 4,
   },
   placeholderText: {
-    fontSize: 10,
+    fontSize: theme.typography.fontSize.xs,
     color: theme.colors.text.tertiary,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   badge: {
     position: 'absolute',
@@ -205,16 +205,16 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   badgeText: {
     color: theme.colors.background.paper,
-    fontSize: 9,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.black,
     letterSpacing: 0.5,
   },
   info: {
     padding: theme.spacing.sm,
   },
   name: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.primary,
     marginBottom: 6,
     height: 36,
@@ -239,8 +239,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.colors.primary.main,
   },
   skuChipText: {
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.secondary,
     letterSpacing: 0.3,
   },
@@ -248,8 +248,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.background.paper,
   },
   skuMore: {
-    fontSize: 9,
-    fontWeight: '600',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.tertiary,
   },
   priceContainer: {
@@ -258,13 +258,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     gap: 6,
   },
   price: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
   },
   oldPrice: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.medium,
     color: theme.colors.text.tertiary,
     textDecorationLine: 'line-through',
   },

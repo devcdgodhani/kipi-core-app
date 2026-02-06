@@ -209,6 +209,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   initials: {
     ...theme.typography.h2,
+    color: theme.colors.text.primary,
     color: theme.colors.text.inverse,
     fontSize: 24,
   },
@@ -284,7 +285,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   menuLabel: {
     ...theme.typography.body1,
     color: theme.colors.text.primary,
-    fontWeight: '500',
+    fontWeight: theme.typography.fontWeight.medium,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -298,7 +299,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   logoutText: {
     marginLeft: theme.spacing.sm,
     color: theme.colors.error,
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: theme.typography.fontWeight.semibold,
+    fontSize: theme.typography.fontSize.lg,
   },
 });

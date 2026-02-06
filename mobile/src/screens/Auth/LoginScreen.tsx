@@ -202,6 +202,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   forgotText: {
     color: theme.colors.primary.main,
     fontSize: theme.typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

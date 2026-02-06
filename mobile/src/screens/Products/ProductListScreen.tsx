@@ -528,7 +528,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   searchPlaceholder: {
     fontSize: 14,
     color: theme.colors.text.tertiary,
-    fontWeight: '500',
+    fontWeight: theme.typography.fontWeight.medium,
   },
   filterBtn: {
     width: 48,
@@ -560,7 +560,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   badgeText: {
     color: theme.colors.text.inverse,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   listContent: {
     padding: 12,
@@ -587,7 +587,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyText: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
     marginBottom: 8,
   },
@@ -607,7 +607,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   clearBtnText: {
     color: theme.colors.primary.main,
-    fontWeight: '800',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   drawerOverlay: {
     flex: 1,
@@ -646,14 +646,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   drawerTitle: {
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.inverse,
     letterSpacing: 1,
   },
   drawerSubtitle: {
     fontSize: 10,
     color: `${theme.colors.text.inverse}B3`,
-    fontWeight: '700',
+    fontWeight: theme.typography.fontWeight.bold,
     letterSpacing: 1,
     marginTop: 2,
   },
@@ -687,7 +687,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   chipTabText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.tertiary,
     letterSpacing: 0.5,
   },
@@ -712,14 +712,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   tabContentTitle: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
     letterSpacing: 0.5,
   },
   optionCount: {
     fontSize: 12,
     color: theme.colors.text.tertiary,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   cardList: {
     gap: 12,
@@ -741,7 +741,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   optionCardText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
     letterSpacing: 0.5,
   },
@@ -792,7 +792,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   resetBtnText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.secondary,
   },
   applyBtn: {
@@ -806,7 +806,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   applyBtnText: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.inverse,
     textTransform: 'uppercase',
     letterSpacing: 1,

@@ -352,6 +352,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     sectionTitle: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
     },
     addressCard: {
         padding: theme.spacing.md,
@@ -390,6 +391,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     addressName: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         fontWeight: '600',
         marginBottom: 4,
     },
@@ -439,6 +441,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     paymentText: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         marginLeft: theme.spacing.md,
     },
     radioButton: {
@@ -474,7 +477,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     summaryValue: {
         ...theme.typography.body2,
-        fontWeight: '600',
+        fontWeight: theme.typography.fontWeight.semibold,
         color: theme.colors.text.primary,
     },
     totalRow: {
@@ -485,9 +488,11 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     totalLabel: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
     },
     totalValue: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
     },
     footer: {
@@ -508,6 +513,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     footerTotalAmount: {
         ...theme.typography.h3,
+    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
     },
     placeOrderButton: {
@@ -548,7 +554,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     orderItemName: {
         ...theme.typography.body1,
-        fontWeight: 'bold',
+    color: theme.colors.text.primary,
+        fontWeight: theme.typography.fontWeight.bold,
         marginBottom: 2,
     },
     orderItemSku: {
@@ -563,8 +570,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     orderItemPrice: {
         ...theme.typography.body1,
+    color: theme.colors.text.primary,
         color: theme.colors.primary.main,
-        fontWeight: '600',
+        fontWeight: theme.typography.fontWeight.semibold,
     },
     couponInputContainer: {
         flexDirection: 'row',
@@ -607,8 +615,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         marginRight: theme.spacing.sm,
     },
     availableCouponCode: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.sm,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.primary.main,
         marginBottom: 2,
     },
@@ -632,8 +640,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         gap: theme.spacing.sm,
     },
     appliedCouponText: {
-        fontSize: 14,
-        fontWeight: '600',
+        fontSize: theme.typography.fontSize.base,
+        fontWeight: theme.typography.fontWeight.semibold,
         color: theme.colors.success,
     },
     walletCard: {
@@ -660,12 +668,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         alignItems: 'center',
     },
     walletLabel: {
-        fontSize: 12,
+        fontSize: theme.typography.fontSize.xs,
         color: theme.colors.text.secondary,
     },
     walletAmount: {
-        fontSize: 14,
-        fontWeight: 'bold',
+        fontSize: theme.typography.fontSize.base,
+        fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.text.primary,
     },
     walletUsageInfo: {
@@ -675,9 +683,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
         paddingHorizontal: theme.spacing.md,
     },
     walletUsageText: {
-        fontSize: 12,
+        fontSize: theme.typography.fontSize.xs,
         color: theme.colors.text.secondary,
-        fontWeight: '600',
+        fontWeight: theme.typography.fontWeight.semibold,
     },
     walletUsageAmount: {
         fontSize: 12,

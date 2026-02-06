@@ -621,9 +621,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   productName: {
     ...theme.typography.h3,
-    fontSize: 22,
     color: theme.colors.text.primary,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.black,
     flex: 1,
     marginRight: 10,
   },
@@ -634,21 +634,21 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     gap: 4,
   },
   ratingText: {
-    fontSize: 12,
+    fontSize: theme.typography.fontSize.sm,
     color: theme.colors.text.secondary,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   productPrice: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize['3xl'],
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
   },
   section: {
     marginTop: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.text.primary,
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -678,7 +678,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   skuText: {
     fontSize: 14,
     color: theme.colors.text.primary,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   selectedSKUText: {
     color: theme.colors.primary.main,
@@ -702,8 +702,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   quantityText: {
     paddingHorizontal: 15,
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
   },
   horizontalList: {
@@ -721,13 +721,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   relatedName: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
     marginTop: 8,
   },
   relatedPrice: {
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
     marginTop: 2,
   },
@@ -773,7 +773,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   reviewUser: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
   },
   starRow: {
@@ -863,8 +863,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.colors.primary.main,
   },
   actionButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
   },
   buyNowText: {
@@ -927,6 +927,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   submitButtonText: {
     color: theme.colors.text.inverse,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });

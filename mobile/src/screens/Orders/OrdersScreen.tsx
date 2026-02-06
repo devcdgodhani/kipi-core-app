@@ -210,7 +210,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   tabText: {
     ...theme.typography.body2,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.secondary,
   },
   activeTabText: {
@@ -236,7 +236,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   orderNumber: {
     ...theme.typography.body1,
-    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.text.primary,
   },
   statusBadge: {
@@ -247,8 +248,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
   },
   orderStatus: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.bold,
     textTransform: 'uppercase',
   },
   orderDate: {
@@ -272,9 +273,10 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   orderTotal: {
     ...theme.typography.h3,
-    fontSize: 18,
+    color: theme.colors.text.primary,
+    fontSize: theme.typography.fontSize.xl,
     color: theme.colors.primary.main,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeight.bold,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -283,6 +285,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyText: {
     ...theme.typography.body1,
+    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.md,
   },
