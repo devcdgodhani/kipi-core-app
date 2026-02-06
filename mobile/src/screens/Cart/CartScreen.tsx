@@ -146,23 +146,37 @@ const CartScreen = () => {
     );
   };
 
+  const Header = ({ title }: { title: string }) => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')} style={styles.backButton}>
+        <Icon name="arrow-left" size={24} color={theme.colors.text.primary} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{title}</Text>
+      <View style={styles.backButton} />
+    </View>
+  );
+
   if (items.length === 0) {
     return (
       <SafeAreaView style={styles.emptyContainer}>
-        <Icon name="shopping-cart" size={64} color={theme.colors.text.secondary} />
-        <Text style={styles.emptyText}>Your cart is empty</Text>
-        <TouchableOpacity
-          style={styles.shopButton}
-          onPress={() => navigation.navigate('Products')}
-        >
-          <Text style={styles.shopButtonText}>Start Shopping</Text>
-        </TouchableOpacity>
+        <Header title="My Cart" />
+        <View style={styles.emptyContent}>
+          <Icon name="shopping-cart" size={64} color={theme.colors.text.secondary} />
+          <Text style={styles.emptyText}>Your cart is empty</Text>
+          <TouchableOpacity
+            style={styles.shopButton}
+            onPress={() => navigation.navigate('Products')}
+          >
+            <Text style={styles.shopButtonText}>Start Shopping</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <Header title="My Cart" />
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         {/* Select All Header */}
         <View style={styles.headerRow}>
@@ -259,9 +273,33 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
+    backgroundColor: theme.colors.background.default,
+  },
+  emptyContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     backgroundColor: theme.colors.background.default,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.text.primary,
   },
   emptyTitle: {
     ...theme.typography.h3,
@@ -270,7 +308,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   emptyText: {
     ...theme.typography.h3,
-    color: theme.colors.text.primary,
     color: theme.colors.text.secondary,
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.lg,
@@ -362,7 +399,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   itemName: {
     ...theme.typography.body1,
-    color: theme.colors.text.primary,
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.primary,
     flex: 1,

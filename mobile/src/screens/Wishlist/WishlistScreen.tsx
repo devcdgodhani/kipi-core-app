@@ -79,8 +79,22 @@ const WishlistScreen = () => {
     );
   };
 
+  const Header = () => (
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home' as any)}
+        style={styles.backButton}
+      >
+        <Icon name="arrow-left" size={24} color={theme.colors.text.primary} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>My Wishlist</Text>
+      <View style={styles.backButton} />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
+      <Header />
       {wishlistItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Icon name="heart" size={64} color={theme.colors.text.tertiary} />
@@ -105,6 +119,27 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.background.default,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.text.primary,
   },
   list: {
     padding: theme.spacing.md,
@@ -136,7 +171,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   price: {
     ...theme.typography.body1,
-    color: theme.colors.text.primary,
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.primary.main,
   },
@@ -170,7 +204,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     ...theme.typography.h3,
     color: theme.colors.text.primary,
     marginTop: theme.spacing.lg,
-    color: theme.colors.text.primary,
   },
   emptySubtext: {
     ...theme.typography.body2,
