@@ -30,7 +30,9 @@ import WalletScreen from '../screens/Wallet/WalletScreen';
 import NotificationScreen from '../screens/Notifications/NotificationScreen';
 import AddressListScreen from '../screens/Address/AddressListScreen';
 import PaymentWebViewScreen from '../screens/Checkout/PaymentWebViewScreen';
-import ReturnRequestScreen from '../screens/Orders/ReturnRequestScreen'; // Added import for ReturnRequestScreen
+import ReturnRequestScreen from '../screens/Orders/ReturnRequestScreen';
+import ReturnListScreen from '../screens/Orders/ReturnListScreen';
+import ReturnDetailScreen from '../screens/Orders/ReturnDetailScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -142,6 +144,8 @@ function AppStack() {
       <Stack.Screen name="Wallet" component={WalletScreen} options={{ title: 'My Wallet' }} />
       <Stack.Screen name="Notifications" component={NotificationScreen} options={{ title: 'Notifications' }} />
       <Stack.Screen name="ReturnRequest" component={ReturnRequestScreen} options={{ title: 'Return Request' }} />
+      <Stack.Screen name="ReturnList" component={ReturnListScreen} options={{ title: 'My Returns' }} />
+      <Stack.Screen name="ReturnDetail" component={ReturnDetailScreen} options={{ title: 'Return Details' }} />
     </Stack.Navigator>
   );
 }

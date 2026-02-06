@@ -8,22 +8,48 @@ import { toast } from 'react-hot-toast';
 const ReturnHistoryPage: React.FC = () => {
     const [returns, setReturns] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 10,
+        totalPages: 1
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
-        loadReturns();
-    }, []);
+        loadReturns(pagination.page);
+    }, [pagination.page]);
 
-    const loadReturns = async () => {
+    const loadReturns = async (page: number) => {
         try {
-            const response = await returnService.getMyReturns();
+            setLoading(true);
+            const response = await returnService.getMyReturns({
+                page,
+                limit: pagination.limit,
+                sort: { createdAt: -1 }
+            });
+
             if (response && response.recordList) {
+                console.log('Return Response:', response);
                 setReturns(response.recordList);
+                setPagination(prev => ({
+                    ...prev,
+                    totalPages: response.totalPages || 1
+                }));
+            } else if (Array.isArray(response)) {
+                // Fallback
+                setReturns(response);
             }
         } catch (error) {
             console.error('Failed to load returns:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= pagination.totalPages) {
+            setPagination(prev => ({ ...prev, page: newPage }));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -112,7 +138,7 @@ const ReturnHistoryPage: React.FC = () => {
                                                         try {
                                                             await returnService.cancel(item._id);
                                                             toast.success('Return request cancelled');
-                                                            loadReturns();
+                                                            loadReturns(pagination.page);
                                                         } catch (err) {
                                                             toast.error('Failed to cancel return request');
                                                         }
@@ -147,6 +173,30 @@ const ReturnHistoryPage: React.FC = () => {
                     ))}
                 </div>
             )}
+
+            {/* Pagination Controls */}
+            {
+                returns.length > 0 && pagination.totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-4 pt-8 border-t border-primary/10">
+                        <button
+                            onClick={() => handlePageChange(pagination.page - 1)}
+                            disabled={pagination.page === 1}
+                            className="px-4 py-2 rounded-lg border border-primary/20 text-sm font-bold text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/5 transition-all"
+                        >
+                            Previous
+                        </button>
+                        <span className="text-sm font-medium text-secondary">
+                            Page <span className="font-bold text-primary">{pagination.page}</span> of {pagination.totalPages}
+                        </span>
+                        <button
+                            onClick={() => handlePageChange(pagination.page + 1)}
+                            disabled={pagination.page === pagination.totalPages}
+                            className="px-4 py-2 rounded-lg border border-primary/20 text-sm font-bold text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/5 transition-all"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
         </div>
     );
 };

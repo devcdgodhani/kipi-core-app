@@ -89,6 +89,11 @@ export default function ProfileScreen() {
       screen: 'Orders'
     },
     {
+      label: 'Return History',
+      icon: 'rotate-ccw',
+      screen: 'ReturnList'
+    },
+    {
       label: 'Shipping Addresses',
       icon: 'map-pin',
       screen: 'AddressList'
@@ -210,7 +215,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   initials: {
     ...theme.typography.h2,
     color: theme.colors.text.primary,
-    color: theme.colors.text.inverse,
     fontSize: 24,
   },
   headerInfo: {
