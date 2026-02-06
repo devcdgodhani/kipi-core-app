@@ -268,9 +268,10 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             setState(prev => ({ ...prev, appliedCoupon: null }));
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Failed to place order");
+            const errorMessage = error.response?.data?.message || error.message || "Failed to place order";
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
