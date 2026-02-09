@@ -8,8 +8,7 @@ const walletSchema = new Schema<IWalletDocument>(
       type: Schema.Types.ObjectId, 
       ref: 'users', 
       required: true, 
-      unique: true,
-      index: true 
+      unique: true
     },
     availableBalance: { 
       type: Number, 
@@ -59,7 +58,7 @@ const walletSchema = new Schema<IWalletDocument>(
 );
 
 // Indexes for performance
-walletSchema.index({ userId: 1 });
+walletSchema.index({ status: 1 });
 walletSchema.index({ status: 1 });
 walletSchema.index({ availableBalance: -1 });
 

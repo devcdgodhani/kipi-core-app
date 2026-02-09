@@ -13,14 +13,12 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'users',
-      required: true,
-      index: true
+      required: true
     },
     gatewayName: {
       type: String,
       required: true,
-      enum: Object.values(PAYMENT_GATEWAY),
-      index: true
+      enum: Object.values(PAYMENT_GATEWAY)
     },
     gatewayTransactionId: {
       type: String,
@@ -50,8 +48,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
       type: String,
       required: true,
       enum: Object.values(PAYMENT_STATUS),
-      default: PAYMENT_STATUS.INITIATED,
-      index: true
+      default: PAYMENT_STATUS.INITIATED
     },
     metadata: {
       paymentMethod: { type: String },

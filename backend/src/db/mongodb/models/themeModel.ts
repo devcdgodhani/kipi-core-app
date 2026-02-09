@@ -32,7 +32,7 @@ const themeSchema = new Schema<IThemeDocument>(
   }
 );
 
-// Indexes
-themeSchema.index({ appName: 1 });
+// export const ThemeModel = model<IThemeDocument>('Theme', themeSchema);
+// themeSchema.index({ appName: 1 }); // Removed redundant index
 
 export const ThemeModel = model<IThemeDocument>('Theme', themeSchema);
