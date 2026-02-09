@@ -69,7 +69,7 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       if (item.skuId) {
         const sku = await this.skuService.findById(item.skuId.toString());
         if (sku) {
-          actualPrice = Number((sku as any).offerPrice || (sku as any).salePrice || (sku as any).basePrice || 0);
+          actualPrice = Number((sku as any).offerPrice || (sku as any).salePrice || (sku as any).price || (sku as any).basePrice || 0);
           if (actualPrice > 0) found = true;
         }
       }
@@ -78,7 +78,7 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       if (!found && item.productId) {
         const product = await this.productService.findById(item.productId.toString());
         if (product) {
-          actualPrice = Number((product as any).offerPrice || (product as any).salePrice || (product as any).basePrice || 0);
+          actualPrice = Number((product as any).offerPrice || (product as any).salePrice || (product as any).price || (product as any).basePrice || 0);
           if (actualPrice > 0) found = true;
         }
       }
@@ -87,7 +87,7 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
         throw new ApiError(
           HTTP_STATUS_CODE.BAD_REQUEST.CODE, 
           HTTP_STATUS_CODE.BAD_REQUEST.STATUS, 
-          `Pricing Resolution Failure: ${item.name} (SKU:${item.skuId} / PRD:${item.productId}) has no valid market price.`
+          `Pricing Resolution Failure: ${item.name} (SKU:${item.skuId} / PRD:${item.productId}) has no valid market price. Resolved as ₹${actualPrice}`
         );
       }
 

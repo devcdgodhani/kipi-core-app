@@ -68,13 +68,19 @@ export default class ReturnController {
             const reqData = { ...req.query, ...req.body };
             
             let result;
+            const populate = [
+                { path: 'orderId' },
+                { path: 'productId', populate: { path: 'mainImage' } },
+                { path: 'skuId', populate: { path: 'media.fileStorageId' } }
+            ];
+
             if (id) {
-                result = await returnService.findById(id);
+                result = await returnService.findById(id, { populate });
             } else {
                 const { filter, options } = returnService.generateFilter({
                     filters: reqData,
                 });
-                result = await returnService.findOne(filter, options);
+                result = await returnService.findOne(filter, { ...options, populate });
             }
 
             if (!result) {

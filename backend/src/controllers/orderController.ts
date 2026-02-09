@@ -73,13 +73,18 @@ export default class OrderController {
       const reqData = { ...req.query, ...req.body };
       
       let order;
+      const populate = [
+        { path: 'items.productId', populate: { path: 'mainImage' } },
+        { path: 'items.skuId', populate: { path: 'media.fileStorageId' } }
+      ];
+
       if (id) {
-        order = await this.orderService.findById(id);
+        order = await this.orderService.findById(id, { populate });
       } else {
         const { filter, options } = this.orderService.generateFilter({
           filters: reqData,
         });
-        order = await this.orderService.findOne(filter, options);
+        order = await this.orderService.findOne(filter, { ...options, populate });
       }
       
       if (!order) {

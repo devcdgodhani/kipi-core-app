@@ -65,6 +65,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (state.appliedCoupon) {
             if (state.appliedCoupon.type === 'PERCENTAGE') {
                 discount = (subTotal * state.appliedCoupon.value) / 100;
+                if (state.appliedCoupon.maxDiscountAmount && discount > state.appliedCoupon.maxDiscountAmount) {
+                    discount = state.appliedCoupon.maxDiscountAmount;
+                }
             } else {
                 discount = state.appliedCoupon.value;
             }
@@ -110,7 +113,8 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 discountAmount: 0, // Calculated in useEffect
                 description: couponData.description,
                 type: couponData.type,
-                value: couponData.value
+                value: couponData.value,
+                maxDiscountAmount: couponData.maxDiscountAmount
             };
 
             setState(prev => ({ ...prev, appliedCoupon: couponInfo }));

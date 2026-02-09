@@ -16,6 +16,7 @@ export interface CouponInfo {
   description?: string;
   type: 'PERCENTAGE' | 'FLAT';
   value: number;
+  maxDiscountAmount?: number;
 }
 
 export interface CheckoutState {
