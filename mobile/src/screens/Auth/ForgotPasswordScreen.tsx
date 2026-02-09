@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import Toast from 'react-native-toast-message';
@@ -61,50 +62,52 @@ export default function ForgotPasswordScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backText}>← Back to Login</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.subtitle}>
-            Enter your email and we'll send you a code to reset your password.
-          </Text>
-
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleSendOTP}
-              disabled={loading}
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              {loading ? (
-                <ActivityIndicator color={theme.colors.text.inverse} />
-              ) : (
-                <Text style={styles.buttonText}>Send Reset Code</Text>
-              )}
+              <Text style={styles.backText}>← Back to Login</Text>
             </TouchableOpacity>
+
+            <Text style={styles.title}>Forgot Password?</Text>
+            <Text style={styles.subtitle}>
+              Enter your email and we'll send you a code to reset your password.
+            </Text>
+
+            <View style={styles.form}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleSendOTP}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={theme.colors.text.inverse} />
+                ) : (
+                  <Text style={styles.buttonText}>Send Reset Code</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

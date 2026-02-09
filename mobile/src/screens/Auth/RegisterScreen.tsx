@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, Theme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import { useAuth } from '../../context/AuthContext';
@@ -67,107 +68,109 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to get started</Text>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="First Name *"
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Last Name *"
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Icon name="mail" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email *"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Icon name="phone" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Mobile (Optional)"
-                value={mobile}
-                onChangeText={setMobile}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Icon name="lock" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Password *"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                <Icon
-                  name={showPassword ? "eye" : "eye-off"}
-                  size={20}
-                  color={theme.colors.text.tertiary}
+            <View style={styles.form}>
+              <View style={styles.inputContainer}>
+                <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name *"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
                 />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Icon name="user" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name *"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Icon name="mail" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email *"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Icon name="phone" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Mobile (Optional)"
+                  value={mobile}
+                  onChangeText={setMobile}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Icon name="lock" size={18} color={theme.colors.text.tertiary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password *"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                  <Icon
+                    name={showPassword ? "eye" : "eye-off"}
+                    size={20}
+                    color={theme.colors.text.tertiary}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={theme.colors.text.inverse} />
+                ) : (
+                  <Text style={styles.buttonText}>Sign Up</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <Text style={styles.linkText}>
+                  Already have an account? <Text style={styles.linkTextBold}>Sign In</Text>
+                </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={theme.colors.text.inverse} />
-              ) : (
-                <Text style={styles.buttonText}>Sign Up</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.linkText}>
-                Already have an account? <Text style={styles.linkTextBold}>Sign In</Text>
-              </Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

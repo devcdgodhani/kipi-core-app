@@ -5,11 +5,11 @@ import {
     StyleSheet,
     FlatList,
     RefreshControl,
-    SafeAreaView,
     TouchableOpacity,
     Image,
     ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
@@ -202,7 +202,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     headerTitle: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
         fontSize: theme.typography.fontSize.xl,
         color: theme.colors.text.primary,
         fontWeight: theme.typography.fontWeight.bold,
@@ -267,7 +266,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     title: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         fontWeight: theme.typography.fontWeight.bold,
         flex: 1,
         marginRight: 8,
@@ -320,7 +318,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     emptyText: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
         fontSize: theme.typography.fontSize['3xl'],
         color: theme.colors.text.primary,
         fontWeight: theme.typography.fontWeight.bold,

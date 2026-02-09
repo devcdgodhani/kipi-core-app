@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { authService } from '../../services/auth.service';
 import Toast from 'react-native-toast-message';
@@ -92,58 +93,60 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Verify Email</Text>
-          <Text style={styles.subtitle}>
-            Enter the 6-digit code sent to {email}
-          </Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
+            <Text style={styles.title}>Verify Email</Text>
+            <Text style={styles.subtitle}>
+              Enter the 6-digit code sent to {email}
+            </Text>
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.otpInput}
-              placeholder="000000"
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-              autoFocus
-            />
+            <View style={styles.form}>
+              <TextInput
+                style={styles.otpInput}
+                placeholder="000000"
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+              />
 
-            <TouchableOpacity
-              style={[styles.button, (loading || otp.length !== 6) && styles.buttonDisabled]}
-              onPress={handleVerify}
-              disabled={loading || otp.length !== 6}
-            >
-              {loading ? (
-                <ActivityIndicator color={theme.colors.text.inverse} />
-              ) : (
-                <Text style={styles.buttonText}>Verify OTP</Text>
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, (loading || otp.length !== 6) && styles.buttonDisabled]}
+                onPress={handleVerify}
+                disabled={loading || otp.length !== 6}
+              >
+                {loading ? (
+                  <ActivityIndicator color={theme.colors.text.inverse} />
+                ) : (
+                  <Text style={styles.buttonText}>Verify OTP</Text>
+                )}
+              </TouchableOpacity>
 
-            <View style={styles.resendContainer}>
-              <Text style={styles.resendText}>Didn't receive the code?</Text>
-              {timer > 0 ? (
-                <Text style={styles.timerText}>Resend in {timer}s</Text>
-              ) : (
-                <TouchableOpacity onPress={handleResend} disabled={resending}>
-                  {resending ? (
-                    <ActivityIndicator size="small" color={theme.colors.primary.main} />
-                  ) : (
-                    <Text style={styles.resendLink}>Resend Now</Text>
-                  )}
-                </TouchableOpacity>
-              )}
+              <View style={styles.resendContainer}>
+                <Text style={styles.resendText}>Didn't receive the code?</Text>
+                {timer > 0 ? (
+                  <Text style={styles.timerText}>Resend in {timer}s</Text>
+                ) : (
+                  <TouchableOpacity onPress={handleResend} disabled={resending}>
+                    {resending ? (
+                      <ActivityIndicator size="small" color={theme.colors.primary.main} />
+                    ) : (
+                      <Text style={styles.resendLink}>Resend Now</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

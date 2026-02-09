@@ -6,9 +6,9 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart, CartItem } from '../../context/CartContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -39,7 +39,8 @@ const CartScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [fadeAnim] = React.useState(new Animated.Value(0));
 
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -198,7 +199,7 @@ const CartScreen = () => {
           data={items}
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 20 }]}
         />
 
         <View style={styles.footer}>
@@ -266,7 +267,7 @@ const CartScreen = () => {
   );
 };
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -457,6 +458,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   footer: {
     backgroundColor: theme.colors.background.paper,
     padding: theme.spacing.lg,
+    paddingBottom: insets.bottom > 0 ? insets.bottom : theme.spacing.lg,
     borderTopLeftRadius: theme.borderRadius.xl,
     borderTopRightRadius: theme.borderRadius.xl,
     ...theme.shadows.lg,

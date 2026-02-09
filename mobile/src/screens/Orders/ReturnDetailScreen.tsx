@@ -3,14 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  SafeAreaView,
+    ScrollView,
   ActivityIndicator,
   Image,
   TouchableOpacity,
   Linking,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { returnService } from '../../services/returnService';
 import { useAppTheme, Theme } from '../../theme/theme';

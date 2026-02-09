@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import http from '../services/http';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemeColors = {
@@ -50,14 +50,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const refreshTheme = async () => {
         try {
-            // Use static URL or get from http.ts if possible, but let's just use axios here for simplicity or better, our http service
-            // For now, let's fetch from the theme endpoint
-            // In mobile, we might need the full URL
-            const baseURL = 'http://10.10.10.168:3000/api/v1/customer'; // Matches http.ts
-            const response = await axios.get(`${baseURL}/themes/customer`);
+            // Use the standard http service for consistent configuration
+            const response: any = await http.get(`/themes/customer`);
             
-            if (response.data && response.data.data) {
-                const backendTheme = response.data.data;
+            if (response && response.data) {
+                const backendTheme = response.data;
                 const newTheme: Theme = {
                     id: 'backend',
                     name: backendTheme.name || 'Custom',

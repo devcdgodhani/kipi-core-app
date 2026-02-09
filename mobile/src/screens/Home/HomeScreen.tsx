@@ -14,7 +14,7 @@ import {
   Animated,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppTheme, Theme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
@@ -48,7 +48,8 @@ export default function HomeScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [fadeAnim] = useState(new Animated.Value(0));
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   const loadHomeData = React.useCallback(async () => {
     try {
@@ -239,6 +240,7 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={{ paddingBottom: 80 + insets.bottom }}
       >
         {banners.length > 0 && (
           <View style={styles.bannerContainer}>
@@ -277,7 +279,7 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,

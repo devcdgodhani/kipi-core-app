@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { useMemo } from 'react';
@@ -64,7 +65,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     subtitle: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         color: theme.colors.text.secondary,
         textAlign: 'center',
         marginBottom: theme.spacing.xl,

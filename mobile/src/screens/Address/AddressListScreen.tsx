@@ -5,9 +5,9 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    SafeAreaView,
     ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAddress } from '../../context/AddressContext';
 import { Address } from '../../types/address.types';
 import { Theme, useAppTheme } from '../../theme/theme';
@@ -18,7 +18,15 @@ import { useMemo } from 'react';
 const AddressListScreen = () => {
     const theme = useAppTheme();
     const navigation = useNavigation<any>();
-    const { addresses, loading, deleteAddress, setDefaultAddress } = useAddress();
+    const { addresses, loading, deleteAddress, setDefaultAddress, refreshAddresses } = useAddress();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            refreshAddresses();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const styles = useMemo(() => createStyles(theme), [theme]);
 

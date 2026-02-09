@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Image,
   TextInput,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useAppTheme, Theme } from '../../theme/theme';
@@ -167,7 +167,7 @@ export default function ReturnRequestScreen() {
                   <View style={styles.qtyControl}>
                     <TouchableOpacity 
                       style={styles.qtyBtn} 
-                      onPress={(e) => {
+                      onPress={(e: any) => {
                         e.stopPropagation();
                         updateItemQty(itemKey, Math.max(1, isSelected.quantity - 1));
                       }}
@@ -177,7 +177,7 @@ export default function ReturnRequestScreen() {
                     <Text style={styles.qtyText}>{isSelected.quantity}</Text>
                     <TouchableOpacity 
                       style={styles.qtyBtn}
-                      onPress={(e) => {
+                      onPress={(e: any) => {
                          e.stopPropagation();
                          updateItemQty(itemKey, Math.min(item.quantity, isSelected.quantity + 1));
                       }}

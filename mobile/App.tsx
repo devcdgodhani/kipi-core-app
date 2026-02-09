@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar, Platform } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from './src/store';
 import AppNavigator from './src/navigation/AppNavigator';
@@ -31,6 +32,11 @@ export default function App() {
                   <NotificationProvider>
                     <CheckoutProvider>
                       <SafeAreaProvider>
+                        <StatusBar
+                          barStyle="dark-content"
+                          backgroundColor="transparent"
+                          translucent={true}
+                        />
                         <AppNavigator />
                         <Toast />
                       </SafeAreaProvider>

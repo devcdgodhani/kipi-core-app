@@ -6,6 +6,7 @@ import { Address } from '../types/address.types';
 interface AddressContextType {
   addresses: Address[];
   loading: boolean;
+  refreshAddresses: () => Promise<void>;
   addAddress: (address: Omit<Address, '_id' | 'createdAt' | 'updatedAt' | 'userId' | 'status'>) => Promise<void>;
   updateAddress: (id: string, address: Partial<Address>) => Promise<void>;
   deleteAddress: (id: string) => Promise<void>;
@@ -22,10 +23,10 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAddresses();
+    refreshAddresses();
   }, []);
 
-  const loadAddresses = async () => {
+  const refreshAddresses = async () => {
     try {
       setLoading(true);
       // We need user id for the API call
@@ -123,6 +124,7 @@ export const AddressProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         addresses,
         loading,
+        refreshAddresses,
         addAddress,
         updateAddress,
         deleteAddress,

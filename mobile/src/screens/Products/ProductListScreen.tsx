@@ -10,8 +10,8 @@ import {
   Animated,
   Modal,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { productService, categoryService } from '../../services/product.service';
 import { attributeService } from '../../services/attribute.service';
@@ -51,8 +51,9 @@ export default function ProductListScreen({ navigation, route }: any) {
   const [activeFilterTab, setActiveFilterTab] = useState('sort');
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
 
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   useEffect(() => {
     loadCategories();
@@ -198,7 +199,7 @@ export default function ProductListScreen({ navigation, route }: any) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header Toolbar */}
       <View style={styles.toolbar}>
         <View style={styles.searchBar}>
@@ -496,11 +497,11 @@ export default function ProductListScreen({ navigation, route }: any) {
           </Animated.View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.default,
@@ -564,6 +565,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   listContent: {
     padding: 12,
+    paddingBottom: 80 + insets.bottom,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -775,6 +777,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   drawerFooter: {
     padding: 20,
+    paddingBottom: insets.bottom > 0 ? insets.bottom : 20,
     flexDirection: 'row',
     gap: 12,
     backgroundColor: theme.colors.background.paper,

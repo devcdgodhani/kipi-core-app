@@ -14,6 +14,7 @@ import {
   TextInput,
   FlatList,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { productService } from '../../services/product.service';
 import { reviewService } from '../../services/review.service';
@@ -56,7 +57,8 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   useEffect(() => {
     loadProduct();
@@ -210,20 +212,24 @@ export default function ProductDetailScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary.main} />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary.main} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!product) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Product not found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Product not found</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -243,8 +249,9 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   );
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Image Carousel */}
         <View style={styles.imageCarousel}>
           {images[currentImageIndex] ? (
@@ -527,11 +534,12 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           </View>
         </View>
       </Modal>
-    </Animated.View>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.paper,
@@ -834,12 +842,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   bottomActions: {
+    ...theme.shadows.lg,
     position: 'absolute',
     bottom: 0,
     width: '100%',
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    paddingBottom: insets.bottom > 0 ? insets.bottom : 16,
     backgroundColor: theme.colors.background.paper,
     gap: 12,
     borderTopWidth: 1,

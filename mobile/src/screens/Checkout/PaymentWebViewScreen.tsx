@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     StyleSheet,
     ActivityIndicator,
-    SafeAreaView,
     TouchableOpacity,
     Text,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/Feather';
-import { theme, useAppTheme } from '../../theme/theme';
+import { Theme, useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';
 
 const PaymentWebViewScreen = ({ route, navigation }: any) => {
-    const appTheme = useAppTheme();
+    const theme = useAppTheme();
     const { url, orderId, redirectMethod, gatewayData } = route.params || {};
     const [loading, setLoading] = useState(true);
+
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
     const handleNavigationStateChange = (navState: any) => {
         const { url: currentUrl } = navState;
@@ -78,7 +80,7 @@ const PaymentWebViewScreen = ({ route, navigation }: any) => {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Icon name="x" size={24} color={appTheme.colors.text.primary} />
+                    <Icon name="x" size={24} color={theme.colors.text.primary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Secure Payment</Text>
                 <View style={{ width: 40 }} />
@@ -95,7 +97,7 @@ const PaymentWebViewScreen = ({ route, navigation }: any) => {
                     startInLoadingState={true}
                     renderLoading={() => (
                         <View style={styles.loadingOverlay}>
-                            <ActivityIndicator size="large" color={appTheme.colors.primary.main} />
+                            <ActivityIndicator size="large" color={theme.colors.primary.main} />
                         </View>
                     )}
                 />
@@ -104,7 +106,7 @@ const PaymentWebViewScreen = ({ route, navigation }: any) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
+        color: theme.colors.text.primary,
         fontWeight: 'bold',
     },
     webviewContainer: {

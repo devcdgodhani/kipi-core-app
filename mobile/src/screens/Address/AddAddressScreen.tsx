@@ -6,9 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAddress } from '../../context/AddressContext';
 import { Theme, useAppTheme } from '../../theme/theme';
 import Toast from 'react-native-toast-message';

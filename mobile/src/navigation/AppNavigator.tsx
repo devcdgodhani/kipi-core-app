@@ -4,6 +4,7 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Feather';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/theme';
 
 // Screens
@@ -74,6 +75,8 @@ function ProductsStack() {
 // Main Tab Navigator
 function MainTabs() {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -101,13 +104,17 @@ function MainTabs() {
           borderTopWidth: 0,
           backgroundColor: theme.colors.background.paper,
           elevation: 20,
-          height: Platform.OS === 'ios' ? 88 : 80,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 20,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
           paddingTop: 10,
           shadowColor: theme.colors.text.primary,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
         tabBarLabelStyle: {
           fontSize: 11,

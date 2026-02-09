@@ -5,9 +5,9 @@ import {
     StyleSheet,
     FlatList,
     RefreshControl,
-    SafeAreaView,
     TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWallet } from '../../context/WalletContext';
 import { useAppTheme } from '../../theme/theme';
 import Icon from 'react-native-vector-icons/Feather';
@@ -304,7 +304,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     balanceValue: {
         ...theme.typography.h1,
-    color: theme.colors.text.primary,
         color: theme.colors.text.inverse,
         fontSize: theme.typography.fontSize['5xl'],
         fontWeight: theme.typography.fontWeight.black,
@@ -362,7 +361,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     sectionTitle: {
         ...theme.typography.h3,
-    color: theme.colors.text.primary,
         fontSize: 18,
         color: theme.colors.text.primary,
         fontWeight: 'bold',
@@ -402,7 +400,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     transactionTitle: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         fontWeight: 'bold',
         marginBottom: 2,
         textTransform: 'capitalize',
@@ -415,7 +412,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     transactionAmount: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         fontWeight: 'bold',
     },
     emptyState: {

@@ -5,12 +5,12 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    SafeAreaView,
     TextInput,
     ActivityIndicator,
     Image,
     Switch,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../../context/CartContext';
 import { useAddress } from '../../context/AddressContext';
 import { useCheckout } from '../../context/CheckoutContext';
@@ -22,7 +22,7 @@ import { useMemo } from 'react';
 
 const CheckoutScreen = ({ navigation }: any) => {
     const { items: cartItems, selectedItems } = useCart();
-    const { addresses } = useAddress();
+    const { addresses, refreshAddresses } = useAddress();
     const {
         selectedAddress,
         setSelectedAddress,
@@ -40,11 +40,21 @@ const CheckoutScreen = ({ navigation }: any) => {
     } = useCheckout();
 
     const theme = useAppTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const insets = useSafeAreaInsets();
+    const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
     const [couponCode, setCouponCode] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+
+    useEffect(() => {
+        // Refresh addresses when screen is focused
+        const unsubscribe = navigation.addListener('focus', () => {
+            refreshAddresses();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     useEffect(() => {
         // Auto-select default address if none selected
@@ -338,7 +348,7 @@ const CheckoutScreen = ({ navigation }: any) => {
     );
 };
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background.default,
@@ -501,6 +511,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     footer: {
         padding: theme.spacing.md,
+        paddingBottom: insets.bottom > 0 ? insets.bottom : theme.spacing.md,
         backgroundColor: theme.colors.background.paper,
         borderTopWidth: 1,
         borderTopColor: theme.colors.border.light,

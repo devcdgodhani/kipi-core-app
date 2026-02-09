@@ -4,12 +4,12 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     ScrollView,
     ActivityIndicator,
     Image,
     TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { Theme, useAppTheme } from '../../theme/theme';
 import { paymentService } from '../../services/paymentService';
@@ -246,7 +246,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     gatewayLabel: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         fontWeight: 'bold',
         color: theme.colors.text.primary,
     },
@@ -262,7 +261,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     },
     emptyText: {
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         color: theme.colors.text.secondary,
         textAlign: 'center',
     },
@@ -275,7 +273,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     overlayText: {
         marginTop: theme.spacing.md,
         ...theme.typography.body1,
-    color: theme.colors.text.primary,
         fontWeight: theme.typography.fontWeight.bold,
         color: theme.colors.primary.main,
     },
