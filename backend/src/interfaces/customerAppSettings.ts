@@ -1,10 +1,10 @@
-import { Document, ObjectId } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { CUSTOMER_APP_SETTINGS_STATUS } from '../constants/customerAppSettings';
 import { IDefaultAttributes } from './common';
 import { IFileStorageAttributes } from './fileStorage';
 
 export interface ICustomerAppSettingsAttributes extends IDefaultAttributes {
-  _id: ObjectId;
+  _id: Types.ObjectId;
   
   // Home page sections configuration
   sections: Array<{
@@ -25,6 +25,7 @@ export interface ICustomerAppSettingsAttributes extends IDefaultAttributes {
     description: string;
     isActive: boolean;
     displayOrder: number;
+    _id?: Types.ObjectId; // Optional: features usually have ids if subdocuments
   }>;
   
   // Footer configuration
@@ -59,9 +60,9 @@ export interface ICustomerAppSettingsAttributes extends IDefaultAttributes {
   };
   
   // Branding
-  logo?: ObjectId | IFileStorageAttributes;
+  logo?: Types.ObjectId | IFileStorageAttributes;
   appName: string;
-  favicon?: ObjectId | IFileStorageAttributes;
+  favicon?: Types.ObjectId | IFileStorageAttributes;
   
   // System fields
   status: CUSTOMER_APP_SETTINGS_STATUS;
