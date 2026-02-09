@@ -138,12 +138,19 @@ const ReturnDetailScreen = () => {
                     <Text style={styles.sectionTitle}>Product Details</Text>
                     <View style={styles.productRow}>
                         <Image 
-                            source={{ uri: returnDetail.productId?.mainImage || 'https://via.placeholder.com/100' }}
+                            source={{ uri: returnDetail.productId?.mainImage || returnDetail.product?.mainImage || returnDetail.productImage || 'https://via.placeholder.com/100' }}
                             style={styles.productImage}
                         />
                         <View style={styles.productInfo}>
-                            <Text style={styles.productName}>{returnDetail.productId?.name}</Text>
-                            <Text style={styles.reasonText}>Reason: {returnDetail.reason}</Text>
+                            <Text style={styles.productName}>
+                                {returnDetail.productId?.name || returnDetail.product?.name || returnDetail.productName || 'Product'}
+                            </Text>
+                            {(returnDetail.skuId?.code || returnDetail.skuCode || returnDetail.variantName) && (
+                                <Text style={styles.reasonText}>
+                                    Sku: {returnDetail.skuId?.code || returnDetail.skuCode || returnDetail.variantName}
+                                </Text>
+                            )}
+                            <Text style={styles.reasonText}>Reason: {returnDetail.reason || returnDetail.returnReason || 'N/A'}</Text>
                             <Text style={styles.descriptionText}>{returnDetail.description}</Text>
                         </View>
                     </View>
@@ -238,11 +245,13 @@ const createStyles = (theme: Theme) => StyleSheet.create({
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 8,
+      maxWidth: '40%',
   },
   statusText: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: '900',
       textTransform: 'uppercase',
+      flexShrink: 1,
   },
   divider: {
       height: 1,

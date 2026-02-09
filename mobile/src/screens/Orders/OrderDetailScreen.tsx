@@ -400,11 +400,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    maxWidth: '40%',
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: theme.typography.fontWeight.black,
     textTransform: 'uppercase',
+    flexShrink: 1,
   },
   sectionTitle: {
     fontSize: theme.typography.fontSize.base,

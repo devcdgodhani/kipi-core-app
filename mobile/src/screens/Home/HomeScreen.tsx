@@ -230,9 +230,7 @@ export default function HomeScreen({ navigation }: any) {
             onSubmitEditing={() => navigation.navigate('Products', { screen: 'ProductList', params: { search: searchQuery } })}
           />
         </View>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Wishlist')}>
-          <Icon name="heart" size={24} color={theme.colors.primary.main} />
-        </TouchableOpacity>
+
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
           <Icon name="bell" size={24} color={theme.colors.primary.main} />
         </TouchableOpacity>

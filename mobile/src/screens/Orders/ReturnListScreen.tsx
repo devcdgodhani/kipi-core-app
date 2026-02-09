@@ -126,12 +126,20 @@ const ReturnListScreen = () => {
 
         <View style={styles.contentRow}>
             <Image 
-                source={{ uri: item.productId?.mainImage || 'https://via.placeholder.com/100' }}
+          source={{ uri: item.productId?.mainImage || item.product?.mainImage || item.productImage || 'https://via.placeholder.com/100' }}
                 style={styles.productImage}
             />
             <View style={styles.infoCol}>
-                <Text style={styles.productName} numberOfLines={1}>{item.productId?.name || 'Product'}</Text>
-                <Text style={styles.reasonText}>Reason: {item.reason}</Text>
+          <Text style={styles.productName} numberOfLines={1}>
+            {item.productId?.name || item.product?.name || item.productName || 'Product'}
+          </Text>
+          {/* Try to show SKU or Variant if available */}
+          {(item.skuId?.code || item.skuCode || item.variantName) && (
+            <Text style={styles.reasonText}>
+              Sku: {item.skuId?.code || item.skuCode || item.variantName}
+            </Text>
+          )}
+          <Text style={styles.reasonText}>Reason: {item.reason || item.returnReason || 'N/A'}</Text>
                 {item.awb && (
                     <View style={styles.awbContainer}>
                         <Text style={styles.awbLabel}>Pickup Tracking:</Text>
