@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import AppRouter from './routes';
 import './index.css';
 import { useAppDispatch, useAppSelector } from './features/hooks';

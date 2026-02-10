@@ -88,7 +88,7 @@ const FinancialRecordDetail: React.FC = () => {
         );
     }
 
-    const infoSections = [
+    const infoSections: any[] = [
         {
             title: 'Transaction Details',
             icon: DollarSign,
@@ -185,7 +185,7 @@ const FinancialRecordDetail: React.FC = () => {
                             <h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{section.title}</h2>
                         </div>
                         <div className="space-y-6">
-                            {section.items.map((item, itemIdx) => (
+                            {section.items.map((item: any, itemIdx: number) => (
                                 <div key={itemIdx} className="flex items-start justify-between">
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{item.label}</span>
                                     {item.link ? (

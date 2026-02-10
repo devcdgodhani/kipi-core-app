@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
+    variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost' | 'danger';
     fullWidth?: boolean;
     isLoading?: boolean;
     loading?: boolean; // alias for isLoading
@@ -23,7 +23,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         secondary: "bg-secondary text-white hover:bg-secondary/90 disabled:opacity-70",
         accent: "bg-accent text-white hover:bg-accent/90 shadow-lg hover:shadow-accent/25 disabled:opacity-70",
         outline: "border-2 border-primary text-primary hover:bg-primary/10 disabled:opacity-70",
-        ghost: "bg-transparent text-gray-500 hover:bg-gray-100 border-none disabled:opacity-70"
+        ghost: "bg-transparent text-gray-500 hover:bg-gray-100 border-none disabled:opacity-70",
+        danger: "bg-red-600 text-white hover:bg-red-700 shadow-lg disabled:opacity-70"
     };
 
     return (
