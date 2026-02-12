@@ -216,16 +216,25 @@ const ProductDetails: React.FC = () => {
                         </div>
                         {/* Thumbnails */}
                         <div className="flex gap-4 overflow-x-auto pb-2">
-                            {product.media.map((media, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => setActiveImage(media.url)}
-                                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${activeImage === media.url ? 'border-primary' : 'border-transparent hover:border-primary/20'
-                                        }`}
-                                >
-                                    <img src={(media.fileStorageId as any)?.preSignedUrl || media.url} alt="" className="w-full h-full object-cover" />
-                                </button>
-                            ))}
+                            {/* Merge SKU and Product media */}
+                            {[
+                                ...(selectedSku?.media || []),
+                                ...product.media
+                            ].map((media, idx) => {
+                                const imageUrl = (media.fileStorageId as any)?.preSignedUrl || media.url;
+                                if (!imageUrl) return null;
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setActiveImage(imageUrl)}
+                                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${activeImage === imageUrl ? 'border-primary' : 'border-transparent hover:border-primary/20'
+                                            }`}
+                                    >
+                                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
