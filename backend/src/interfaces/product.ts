@@ -31,6 +31,7 @@ export interface IProductAttributes extends IDefaultAttributes {
     
     status: PRODUCT_STATUS;
     stock: number;
+    skus?: any[]; // Populated virtual field
 }
 
 export interface IProductDocument extends Omit<IProductAttributes, '_id'>, Document {}

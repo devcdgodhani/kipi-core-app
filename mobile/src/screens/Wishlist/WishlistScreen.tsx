@@ -13,12 +13,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { Theme, useAppTheme } from '../../theme/theme';
+import { Product } from '../../types/product.types';
 import Icon from 'react-native-vector-icons/Feather';
 import { getSafeImageUrl } from '../../utils/imageUtils';
 import { useMemo } from 'react';
 
 type RootStackParamList = {
-  ProductDetail: { productId: string };
+  ProductDetail: { productId: string; skuId?: string };
 };
 
 const WishlistScreen = () => {
@@ -29,47 +30,62 @@ const WishlistScreen = () => {
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: Product, skuId?: string) => {
+    const selectedSku = product.skus?.find(s => s._id === skuId);
+    const price = selectedSku ? (selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice) : (product.price || product.basePrice);
+
     addToCart({
       _id: product._id,
       productId: product._id,
+      skuId: skuId || product._id,
       name: product.name,
-      price: product.price || product.basePrice,
+      price: price,
       quantity: 1,
-      thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.thumbnail) || (product.media?.[0] ? getSafeImageUrl(product.media[0].fileStorageId) : undefined) || undefined,
-      maxStock: product.stock,
+      thumbnail: (selectedSku?.media?.[0] ? getSafeImageUrl(selectedSku.media[0].fileStorageId) : (getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.thumbnail) || (product.media?.[0] ? getSafeImageUrl(product.media[0].fileStorageId) : undefined))) || undefined,
+      maxStock: selectedSku?.quantity ?? product.stock,
     });
+    removeFromWishlist(product._id, skuId);
   };
 
-  const renderItem = ({ item }: { item: any }) => {
-    const imageUrl = getSafeImageUrl(item.mainImage) || getSafeImageUrl(item.thumbnail) || (item.media?.[0] ? getSafeImageUrl(item.media[0].fileStorageId) || getSafeImageUrl(item.media[0]) : null);
+  const renderItem = ({ item }: { item: Product }) => {
+    const selectedSku = item.skus?.find(s => s._id === item.skuId);
+    const price = selectedSku ? (selectedSku.offerPrice || selectedSku.salePrice || selectedSku.basePrice) : (item.price || item.basePrice);
+
+    const imageUrl = selectedSku?.media?.[0] ?
+      (getSafeImageUrl(selectedSku.media[0].fileStorageId) || getSafeImageUrl(selectedSku.media[0])) :
+      (getSafeImageUrl(item.mainImage) || getSafeImageUrl(item.thumbnail) || (item.media?.[0] ? getSafeImageUrl(item.media[0].fileStorageId) || getSafeImageUrl(item.media[0]) : null));
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
+        onPress={() => navigation.navigate('ProductDetail', { productId: item._id, skuId: item.skuId })}
       >
         <Image
           source={{ uri: imageUrl || 'https://via.placeholder.com/150' }}
           style={styles.image}
         />
         <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={2}>
+          <Text style={styles.name} numberOfLines={1}>
             {item.name}
           </Text>
+          {selectedSku?.skuCode && (
+            <Text style={{ fontSize: 10, color: theme.colors.text.tertiary, marginBottom: 2 }}>
+              SKU: {selectedSku.skuCode}
+            </Text>
+          )}
           <Text style={styles.price}>
-            ₹{item.price || item.basePrice}
+            ₹{price}
           </Text>
           <View style={styles.actions}>
             <TouchableOpacity
               style={styles.addToCartBtn}
-              onPress={() => handleAddToCart(item)}
+              onPress={() => handleAddToCart(item, item.skuId)}
             >
               <Text style={styles.addToCartText}>Add to Cart</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.removeBtn}
-              onPress={() => removeFromWishlist(item._id)}
+              onPress={() => removeFromWishlist(item._id, item.skuId)}
             >
               <Icon name="trash-2" size={20} color={theme.colors.error} />
             </TouchableOpacity>
@@ -107,7 +123,7 @@ const WishlistScreen = () => {
         <FlatList
           data={wishlistItems}
           renderItem={renderItem}
-          keyExtractor={(item) => item._id}
+            keyExtractor={(item) => `${item._id}-${item.skuId || 'default'}`}
           contentContainerStyle={styles.list}
         />
       )}

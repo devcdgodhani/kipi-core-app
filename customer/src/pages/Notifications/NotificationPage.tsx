@@ -13,8 +13,8 @@ const NotificationPage: React.FC = () => {
     const fetchNotifications = async () => {
         try {
             const response = await notificationService.getMyNotifications({ limit: 50 });
-            setNotifications(response.notifications);
-            setUnreadCount(response.unreadCount);
+            setNotifications(response?.notifications || []);
+            setUnreadCount(response?.unreadCount || 0);
         } catch (error) {
             console.error('Failed to fetch notifications', error);
         } finally {
@@ -29,7 +29,7 @@ const NotificationPage: React.FC = () => {
     const handleMarkAsRead = async (id: string) => {
         try {
             await notificationService.markAsRead([id]);
-            setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
+            setNotifications((notifications || []).map(n => n._id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             toast.error('Failed to mark as read');
@@ -39,7 +39,7 @@ const NotificationPage: React.FC = () => {
     const handleMarkAllAsRead = async () => {
         try {
             await notificationService.markAllAsRead();
-            setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+            setNotifications((notifications || []).map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
             toast.success('All marked as read');
         } catch (error) {
@@ -66,7 +66,7 @@ const NotificationPage: React.FC = () => {
                 )}
             </div>
 
-            {notifications.length === 0 ? (
+            {(!notifications || notifications.length === 0) ? (
                 <div className="py-20 text-center bg-primary/5 rounded-2xl border border-dashed border-primary/10">
                     <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-secondary">
                         {/* icon */}
@@ -75,7 +75,7 @@ const NotificationPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {notifications.map((notif) => (
+                        {(notifications || []).map((notif) => (
                         <div
                             key={notif._id}
                             className={`p-6 border transition-all duration-300 flex gap-6 ${notif.isRead

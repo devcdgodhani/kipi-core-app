@@ -283,10 +283,11 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           <TouchableOpacity
             style={styles.wishlistButton}
             onPress={() => {
-              if (isInWishlist(product._id, selectedSKU?._id)) {
-                removeFromWishlist(product._id, selectedSKU?._id);
+              const currentSkuId = selectedSKU?._id || (skus.length > 0 ? skus[0]._id : undefined);
+              if (isInWishlist(product._id, currentSkuId)) {
+                removeFromWishlist(product._id, currentSkuId);
               } else {
-                addToWishlist(product, selectedSKU?._id);
+                addToWishlist(product, currentSkuId);
               }
             }}
           >

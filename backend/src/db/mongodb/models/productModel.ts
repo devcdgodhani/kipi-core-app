@@ -46,8 +46,17 @@ const productSchema = new Schema<IProductDocument>(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
+
+productSchema.virtual('skus', {
+  ref: 'Sku',
+  localField: '_id',
+  foreignField: 'productId',
+  justOne: false
+});
 
 productSchema.index({ name: 1 });
 productSchema.index({ categoryIds: 1 });

@@ -27,11 +27,14 @@ export interface Product {
   currency: string;
   media: MediaItem[];
   mainImage?: string;
+  thumbnail?: string;
   categoryIds: string[];
   attributes: ProductAttribute[];
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
   stock: number;
   skus?: SKU[];
+  skuId?: string; // Used when product represents a specific SKU in wishlist/cart
+  price?: number; // Used in wishlist/cart displays
   createdAt: string;
   updatedAt: string;
 }

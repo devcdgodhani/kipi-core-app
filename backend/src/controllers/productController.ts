@@ -22,6 +22,7 @@ export class ProductController {
       ]);
       
       if (Array.isArray(response)) {
+        await this.populateSkusForProducts(response);
         await Promise.all(response.map(p => enrichProductWithPresignedUrls(p)));
       }
 
@@ -129,50 +130,7 @@ export class ProductController {
 
       // Bulk fetch SKUs for all products on this page to avoid N+1
       if (response.recordList && Array.isArray(response.recordList) && response.recordList.length > 0) {
-        // Convert to plain objects first
-        const products = response.recordList.map(p => (typeof (p as any).toObject === 'function' ? (p as any).toObject() : p));
-        const productIds = products.map((p: any) => p._id);
-        
-        const allSkus = await this.skuService.findAll(
-          { productId: { $in: productIds } } as any,
-          {},
-          [{ path: 'media.fileStorageId' }]
-        );
-
-        // Enrich SKUs with presigned URLs
-        if (Array.isArray(allSkus)) {
-            await Promise.all(allSkus.map(async (sku: any) => {
-            if (sku.media && Array.isArray(sku.media)) {
-                for (const mediaItem of sku.media) {
-                if (mediaItem.fileStorageId && typeof mediaItem.fileStorageId === 'object') {
-                    const fileStorage = mediaItem.fileStorageId as any;
-                    if (fileStorage.generatePreSignedUrl) {
-                    mediaItem.fileStorageId = {
-                        ...fileStorage.toObject(),
-                        preSignedUrl: await fileStorage.generatePreSignedUrl()
-                    };
-                    }
-                }
-                }
-            }
-            }));
-        }
-
-        // Map SKUs to products
-        const skusByProduct: Record<string, any[]> = {};
-        allSkus.forEach((sku: any) => {
-            const pId = sku.productId.toString();
-            if (!skusByProduct[pId]) skusByProduct[pId] = [];
-            skusByProduct[pId].push(sku);
-        });
-
-        products.forEach((p: any) => {
-            p.skus = skusByProduct[p._id.toString()] || [];
-        });
-
-        // Update recordList with the enriched plain objects
-        response.recordList = products;
-
+        response.recordList = await this.populateSkusForProducts(response.recordList);
         await Promise.all(response.recordList.map(p => enrichProductWithPresignedUrls(p)));
       }
 
@@ -257,7 +215,8 @@ export class ProductController {
 
       const products = await this.productService.getRecommended(userId, limit);
 
-      // Enrich with presigned URLs
+      // Enrich with SKUs and presigned URLs
+      await this.populateSkusForProducts(products);
       await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
@@ -280,7 +239,8 @@ export class ProductController {
 
       const products = await this.productService.getSimilar(productId, limit);
 
-      // Enrich with presigned URLs
+      // Enrich with SKUs and presigned URLs
+      await this.populateSkusForProducts(products);
       await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
@@ -303,7 +263,8 @@ export class ProductController {
 
       const products = await this.productService.getFrequentlyBoughtTogether(productId, limit);
 
-      // Enrich with presigned URLs
+      // Enrich with SKUs and presigned URLs
+      await this.populateSkusForProducts(products);
       await Promise.all(products.map(p => enrichProductWithPresignedUrls(p)));
 
       const apiResponse: TProductListRes = {
@@ -359,6 +320,60 @@ export class ProductController {
     } catch (err) {
       next(err);
     }
+  };
+
+  private populateSkusForProducts = async (products: any[]) => {
+    if (!products || products.length === 0) return products;
+
+    // Convert to plain objects and collect IDs
+    const plainProducts = products.map(p => (typeof (p as any).toObject === 'function' ? (p as any).toObject() : p));
+    const productIds = plainProducts.map((p: any) => p._id);
+
+    const allSkus = await this.skuService.findAll(
+      { productId: { $in: productIds } } as any,
+      {},
+      [{ path: 'media.fileStorageId' }]
+    );
+
+    // Enrich SKUs with presigned URLs
+    if (Array.isArray(allSkus)) {
+      await Promise.all(allSkus.map(async (sku: any) => {
+        if (sku.media && Array.isArray(sku.media)) {
+          for (const mediaItem of sku.media) {
+            if (mediaItem.fileStorageId && typeof mediaItem.fileStorageId === 'object') {
+              const fileStorage = mediaItem.fileStorageId as any;
+              if (fileStorage.generatePreSignedUrl) {
+                mediaItem.fileStorageId = {
+                  ...fileStorage.toObject(),
+                  preSignedUrl: await fileStorage.generatePreSignedUrl()
+                };
+              }
+            }
+          }
+        }
+      }));
+    }
+
+    // Map SKUs to products
+    const skusByProduct: Record<string, any[]> = {};
+    allSkus.forEach((sku: any) => {
+      const pId = sku.productId.toString();
+      if (!skusByProduct[pId]) skusByProduct[pId] = [];
+      skusByProduct[pId].push(sku);
+    });
+
+    plainProducts.forEach((p: any) => {
+      p.skus = skusByProduct[p._id.toString()] || [];
+    });
+
+    // Update in-place if possible (for arrays already containing objects)
+    products.forEach((p, idx) => {
+      if (typeof p === 'object') {
+        Object.assign(p, plainProducts[idx]);
+      }
+    });
+
+    return plainProducts;
   };
 }
 

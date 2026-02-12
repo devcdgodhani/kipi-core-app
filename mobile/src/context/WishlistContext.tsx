@@ -36,10 +36,16 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (token) {
                 const wishlist = await wishlistService.getMyWishlist();
                 if (wishlist && Array.isArray(wishlist.products)) {
-                    // Extract products from the wishlist object
+                    // Extract products from the wishlist object and preserve skuId
                     const remoteItems = wishlist.products
-                        .map((p: any) => p.productId)
-                        .filter((p: any) => p != null && typeof p === 'object');
+                        .map((p: any) => {
+                            if (!p.productId || typeof p.productId !== 'object') return null;
+                            return {
+                                ...p.productId,
+                                skuId: p.skuId?._id || p.skuId
+                            };
+                        })
+                        .filter((p: any) => p != null);
 
                     setWishlistItems(remoteItems);
                     await AsyncStorage.setItem('WISHLIST_ITEMS', JSON.stringify(remoteItems));

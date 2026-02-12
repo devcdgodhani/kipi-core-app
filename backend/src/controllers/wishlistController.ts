@@ -23,8 +23,11 @@ export class WishlistController {
       const populate = [
         { 
           path: 'products.productId', 
-          select: 'name mainImage slug basePrice salePrice offerPrice status',
-          populate: { path: 'mainImage' }
+          select: 'name mainImage slug basePrice salePrice offerPrice status skus',
+          populate: [
+            { path: 'mainImage' },
+            { path: 'skus', populate: { path: 'media.fileStorageId' } }
+          ]
         },
         { 
           path: 'products.skuId', 
@@ -62,8 +65,11 @@ export class WishlistController {
        const populate = [
         { 
           path: 'products.productId', 
-          select: 'name mainImage slug basePrice salePrice offerPrice status',
-          populate: { path: 'mainImage' }
+          select: 'name mainImage slug basePrice salePrice offerPrice status skus',
+          populate: [
+            { path: 'mainImage' },
+            { path: 'skus', populate: { path: 'media.fileStorageId' } }
+          ]
         },
         { 
           path: 'products.skuId', 
@@ -104,8 +110,11 @@ export class WishlistController {
       const populate = [
         { 
           path: 'products.productId', 
-          select: 'name mainImage slug basePrice salePrice offerPrice status',
-          populate: { path: 'mainImage' }
+          select: 'name mainImage slug basePrice salePrice offerPrice status skus',
+          populate: [
+            { path: 'mainImage' },
+            { path: 'skus', populate: { path: 'media.fileStorageId' } }
+          ]
         },
         { 
           path: 'products.skuId', 

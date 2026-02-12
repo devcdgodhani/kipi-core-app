@@ -52,7 +52,7 @@ const WishlistPage: React.FC = () => {
                                 <div key={product} className="bg-background rounded-xl overflow-hidden shadow-sm p-4 border border-primary/10">
                                     <p className="text-secondary">Item ID: {product} (Unavailable)</p>
                                     <button
-                                        onClick={() => removeFromWishlist(product)}
+                                        onClick={() => removeFromWishlist(product, item.skuId)}
                                         className="text-red-500 text-sm mt-2"
                                     >
                                         Remove
@@ -81,7 +81,7 @@ const WishlistPage: React.FC = () => {
                                 skuId: skuId || product._id,
                                 quantity: 1
                             } as any);
-                            removeFromWishlist(product._id);
+                            removeFromWishlist(product._id, skuId);
                         };
 
                         const handleBuyNow = async () => {
@@ -90,7 +90,7 @@ const WishlistPage: React.FC = () => {
                                 skuId: skuId || product._id,
                                 quantity: 1
                             } as any);
-                            removeFromWishlist(product._id);
+                            removeFromWishlist(product._id, skuId);
                             navigate('/checkout');
                         };
 
@@ -108,7 +108,7 @@ const WishlistPage: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            removeFromWishlist(product._id);
+                                            removeFromWishlist(product._id, skuId);
                                         }}
                                         className="absolute top-4 right-4 p-3 bg-background/90 backdrop-blur-md rounded-2xl text-secondary hover:text-red-500 transition-all shadow-sm transform hover:rotate-12"
                                     >
