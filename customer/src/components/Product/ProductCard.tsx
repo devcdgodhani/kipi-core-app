@@ -81,23 +81,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         }
     };
 
-    const handleBuyNow = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setAdding(true);
-        try {
-            await addItem({
-                productId: product._id,
-                skuId: selectedSku?._id || product._id,
-                quantity: 1,
-                price: displayPrice
-            } as any);
-            navigate('/checkout');
-        } catch (error) {
-            console.error('Failed to add to cart:', error);
-        } finally {
-            setAdding(false);
-        }
-    };
+
 
     const currentStock = selectedSku ? selectedSku.quantity : product.stock;
 
@@ -198,27 +182,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                <div className="mt-3">
                     <button
                         onClick={handleAddToCart}
                         disabled={currentStock === 0 || adding}
-                        className="flex-1 py-2.5 px-3 bg-background text-primary border-2 border-primary rounded-xl font-bold hover:bg-primary/5 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:border-secondary/20 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md"
+                        className="w-full py-2.5 px-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
                     >
                         {adding ? (
                             <Loader2 size={14} className="animate-spin" />
                         ) : (
                             <>
                                     <CartIcon size={14} />
-                                    <span className="sm:inline">Cart</span>
+                                    <span>{currentStock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
                             </>
                         )}
-                    </button>
-                    <button
-                        onClick={handleBuyNow}
-                        disabled={currentStock === 0 || adding}
-                        className="flex-1 py-2.5 px-3 bg-primary text-background rounded-xl font-bold hover:bg-primary/95 transition-all disabled:bg-secondary/20 disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px] active:shadow-sm"
-                    >
-                        {currentStock === 0 ? 'Out of Stock' : 'Buy Now'}
                     </button>
                 </div>
             </div>

@@ -35,16 +35,6 @@ const Home: React.FC = () => {
         fetchProducts();
     }, []);
 
-    const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
-        e.stopPropagation();
-        try {
-            // Redirect to details for simple handling
-            navigate(ROUTES.PRODUCTS.DETAILS.replace(':id', product._id));
-        } catch (error) {
-            toast.error('Could not add to cart');
-        }
-    };
-
     if (isSettingsLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -139,16 +129,6 @@ const Home: React.FC = () => {
                                                         <LucideIcons.ShoppingBag size={48} />
                                                     </div>
                                                 )}
-
-                                                {/* Quick Actions Hover */}
-                                                <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex flex-col gap-2">
-                                                    <button
-                                                        onClick={(e) => handleAddToCart(e, product)}
-                                                        className="w-full py-3 bg-background text-primary text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-background transition-colors shadow-lg"
-                                                    >
-                                                        View Details
-                                                    </button>
-                                                </div>
 
                                                 {/* Badges */}
                                                 {product.status === 'ACTIVE' && product.stock > 0 && (

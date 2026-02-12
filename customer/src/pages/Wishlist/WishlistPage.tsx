@@ -84,15 +84,7 @@ const WishlistPage: React.FC = () => {
                             removeFromWishlist(product._id, skuId);
                         };
 
-                        const handleBuyNow = async () => {
-                            await addItem({
-                                productId: product._id,
-                                skuId: skuId || product._id,
-                                quantity: 1
-                            } as any);
-                            removeFromWishlist(product._id, skuId);
-                            navigate('/checkout');
-                        };
+
 
                         return (
                             <div key={product._id} className="bg-background rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-primary/5">
@@ -130,18 +122,12 @@ const WishlistPage: React.FC = () => {
                                         ₹{price?.toLocaleString()}
                                     </p>
 
-                                    <div className="flex gap-2">
+                                    <div className="mt-6">
                                         <button
                                             onClick={handleAddToCart}
-                                            className="flex-1 py-4 bg-background text-primary border-2 border-primary rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2"
+                                            className="w-full py-4 bg-primary text-background rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
                                         >
                                             <ShoppingBag size={14} /> Add to Cart
-                                        </button>
-                                        <button
-                                            onClick={handleBuyNow}
-                                            className="flex-1 py-4 bg-primary text-background rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            Buy Now
                                         </button>
                                     </div>
                                 </div>
