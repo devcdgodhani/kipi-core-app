@@ -277,8 +277,10 @@ const ProductForm: React.FC = () => {
                 const cleanPrefix = (formData.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
                 const cleanAttrs = attrs.map(a => String(a).replace(/[^a-zA-Z0-9]/g, '').toUpperCase()).join('-');
                 const skuCode = `${cleanPrefix}-${cleanAttrs}-${Math.floor(Math.random() * 1000)}`;
+                const variantSlugPart = attrs.map(a => String(a)).join(' ');
                 newSkus.push({
                     skuCode,
+                    slug: generateSlug(`${formData.name} ${variantSlugPart} ${Math.floor(Math.random() * 1000)}`),
                     basePrice: formData.basePrice || 0,
                     salePrice: formData.salePrice || 0,
                     offerPrice: formData.offerPrice || 0,
@@ -479,15 +481,19 @@ const ProductForm: React.FC = () => {
         setSuccess(null);
 
         try {
-            const cleanSkus = [...productSkus, ...generatedSkus].map(sku => ({
-                ...sku,
-                skuCode: sku.skuCode?.trim(),
-                lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null),
-                variantAttributes: sku.variantAttributes?.map((attr: any) => ({
-                    ...attr,
-                    attributeId: (attr.attributeId && typeof attr.attributeId === 'object') ? attr.attributeId._id : attr.attributeId
-                }))
-            }));
+            const cleanSkus = [...productSkus, ...generatedSkus].map(sku => {
+                const variantPart = sku.variantAttributes?.map((v: any) => v.value).join(' ') || sku.skuCode || '';
+                return {
+                    ...sku,
+                    skuCode: sku.skuCode?.trim(),
+                    slug: sku.slug || generateSlug(`${formData.name} ${variantPart} ${Math.floor(Math.random() * 1000)}`),
+                    lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null),
+                    variantAttributes: sku.variantAttributes?.map((attr: any) => ({
+                        ...attr,
+                        attributeId: (attr.attributeId && typeof attr.attributeId === 'object') ? attr.attributeId._id : attr.attributeId
+                    }))
+                };
+            });
 
             // Validate SKU Code uniqueness within the local list
             const codes = cleanSkus.map(s => s.skuCode);
