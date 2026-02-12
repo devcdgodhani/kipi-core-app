@@ -4,6 +4,7 @@ import { IProductAttributes, IProductDocument } from '../../interfaces/product';
 import { IProductService } from '../contracts/productServiceInterface';
 import { MongooseCommonService } from './mongooseCommonService';
 import { skuService } from './skuService';
+import { generateSlug, generateNextCode } from '../../helpers/utils';
 
 export class ProductService
   extends MongooseCommonService<IProductAttributes, IProductDocument>
@@ -13,6 +14,30 @@ export class ProductService
  
   constructor() {
     super(ProductModel as any);
+  }
+
+  async create(data: any, options?: any) {
+    // Auto-generate Product Code if missing
+    if (!data.productCode) {
+      const lastProduct = await ProductModel.findOne({}, {}, { sort: { createdAt: -1 } });
+      data.productCode = generateNextCode(lastProduct ? lastProduct.productCode : null, 'P-');
+    }
+
+    // Auto-generate Slug if missing
+    if (!data.slug && data.name) {
+      data.slug = generateSlug(data.name);
+      
+      // Ensure slug uniqueness
+      let slugExists = await ProductModel.findOne({ slug: data.slug });
+      let counter = 1;
+      while (slugExists) {
+        data.slug = `${generateSlug(data.name)}-${counter}`;
+        slugExists = await ProductModel.findOne({ slug: data.slug });
+        counter++;
+      }
+    }
+
+    return super.create(data, options);
   }
 
   generateFilter(options: {
@@ -107,6 +132,24 @@ export class ProductService
         attributeId: typeof a.attributeId === 'object' ? a.attributeId._id.toString() : a.attributeId.toString(),
         value: a.value
       })).sort((a: any, b: any) => a.attributeId.localeCompare(b.attributeId));
+
+      // Auto-generate SKU Code and Slug for new SKUs if missing
+      if (!_id) {
+          if (!rest.skuCode) {
+              const productSlug = generateSlug(product.name);
+              const variantSlug = normalizedAttrs.map((a: any) => generateSlug(String(a.value))).join('-');
+              
+              // Count existing SKUs for sequential suffix
+              const existingSkusCount = await this.skuService.count({ productId });
+              const suffix = (existingSkusCount + 1).toString().padStart(3, '0');
+              
+              rest.skuCode = `${productSlug}-${variantSlug}-${suffix}`.toUpperCase();
+          }
+
+          if (!rest.slug) {
+             rest.slug = generateSlug(rest.skuCode);
+          }
+      }
 
       if (_id) {
         // Direct update by ID
@@ -256,6 +299,22 @@ export class ProductService
     }).lean();
 
     return products as any;
+  }
+
+
+  async delete(filter: any): Promise<any> {
+    // Find products to get their IDs before deletion
+    const products = await this.model.find(filter).select('_id').lean();
+    
+    if (products.length > 0) {
+      const productIds = products.map((p: any) => p._id);
+      
+      // Delete associated SKUs
+      await this.skuService.deleteMany({ productId: { $in: productIds } } as any);
+    }
+
+    // Proceed with deleting products
+    return super.delete(filter);
   }
 }
  

@@ -263,6 +263,7 @@ const SkuForm: React.FC = () => {
                                 </div>
 
                                 <CustomInput label="Unique SKU Code" name="skuCode" value={formData.skuCode || ''} onChange={handleGeneralChange} placeholder="e.g. TSHIRT-RED-L" required disabled={isEdit} />
+                                <CustomInput label="Slug" name="slug" value={formData.slug || ''} onChange={handleGeneralChange} placeholder="Auto-generated" disabled />
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <CustomInput label="Base Price" name="basePrice" type="number" value={formData.basePrice || 0} onChange={handleGeneralChange} />

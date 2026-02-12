@@ -621,7 +621,10 @@ const ProductForm: React.FC = () => {
                         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 space-y-6 animate-fade-in text-gray-700">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <CustomInput label="Product Name" name="name" value={formData.name || ''} onChange={handleGeneralChange} placeholder="e.g. Premium Cotton T-Shirt" required />
-                                <CustomInput label="Product Code" name="productCode" value={formData.productCode || ''} onChange={handleGeneralChange} placeholder="e.g. PCT-001" required />
+                                <CustomInput label="Product Code" name="productCode" value={formData.productCode || ''} onChange={handleGeneralChange} placeholder="Auto-generated" disabled />
+                            </div>
+                            <div className="grid grid-cols-1">
+                                <CustomInput label="Slug" name="slug" value={formData.slug || ''} onChange={handleGeneralChange} placeholder="Auto-generated" disabled />
                             </div>
                             <div className="flex flex-col gap-2">
                                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Narrative / Description</label>
@@ -812,6 +815,7 @@ const ProductForm: React.FC = () => {
                                                 <thead className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 uppercase tracking-wider text-gray-400 font-black">
                                                     <tr>
                                                         <th className="px-6 py-4">SKU Code</th>
+                                                        <th className="px-6 py-4">Slug</th>
                                                         <th className="px-6 py-4 text-center">Base/Sale/Offer</th>
                                                         <th className="px-6 py-4 text-center">Allocated Lot</th>
                                                         <th className="px-6 py-4 text-center">Initial Inventory</th>
@@ -823,6 +827,9 @@ const ProductForm: React.FC = () => {
                                                         <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <span className="font-mono font-black text-primary bg-primary/5 px-2 py-1 rounded text-[10px]">{sku.skuCode}</span>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="font-mono text-xs text-gray-500">{sku.slug || 'Auto-generated'}</span>
                                                             </td>
                                                             <td className="px-6 py-4 text-center">
                                                                 <div className="flex flex-col gap-1 items-center">

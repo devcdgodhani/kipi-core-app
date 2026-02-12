@@ -458,3 +458,35 @@ export const generateVoucherCode = (format = 'XXXX-XXXX-XXXX-XXXX') => {
     .map((part) => generateSegment(part.length))
     .join('-');
 };
+
+export const generateSlug = (text: string): string => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+};
+
+export const generateNextCode = (lastCode: string | null, prefix: string = 'P-'): string => {
+  if (!lastCode) {
+    return `${prefix}001`;
+  }
+
+  // Extract the numeric part
+  const numericPart = lastCode.replace(prefix, '');
+  const number = parseInt(numericPart, 10);
+
+  if (isNaN(number)) {
+    return `${prefix}001`;
+  }
+
+  // Increment and pad
+  const nextNumber = number + 1;
+  const padding = Math.max(numericPart.length, 3); // Ensure at least 3 digits
+  return `${prefix}${nextNumber.toString().padStart(padding, '0')}`;
+};
+

@@ -199,6 +199,17 @@ const ProductList: React.FC = () => {
             )
         },
         {
+            header: 'Code',
+            key: 'productCode',
+            render: (product) => (
+                <div className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 rounded-xl bg-gray-50 text-xs font-black text-gray-600 uppercase tracking-wider border border-gray-200">
+                        {product.productCode || 'N/A'}
+                    </span>
+                </div>
+            )
+        },
+        {
             header: 'Categories',
             key: 'categories',
             render: (product) => (

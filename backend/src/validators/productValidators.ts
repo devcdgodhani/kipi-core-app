@@ -29,8 +29,8 @@ const productFilterSchema = baseFilterSchema.extend({
 
 const productCreateSchema = z.object({
   name: z.string().min(1),
-  productCode: z.string().min(1),
-  slug: z.string().optional(),
+  // productCode: z.string().min(1),
+  // slug: z.string().optional(),
   description: z.string().optional(),
   
   basePrice: z.number().min(0),
@@ -53,7 +53,7 @@ const productCreateSchema = z.object({
   status: z.nativeEnum(PRODUCT_STATUS).optional(),
   stock: z.number().optional(),
   skus: z.array(z.object({
-    skuCode: z.string(),
+    // skuCode: z.string(),
     basePrice: z.number().optional(),
     salePrice: z.number().optional(),
     offerPrice: z.number().optional(),

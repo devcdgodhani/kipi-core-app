@@ -25,6 +25,7 @@ export interface ISku {
     name: string;
   };
   skuCode: string;
+  slug?: string;
   variantAttributes: ISkuAttributeValue[];
   basePrice?: number;
   salePrice?: number;
