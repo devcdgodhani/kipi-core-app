@@ -171,12 +171,7 @@ const SkuForm: React.FC = () => {
 
         try {
             const skuCode = formData.skuCode?.trim() || '';
-            const skuRegex = /^[a-zA-Z0-9](.*[a-zA-Z0-9])?$/;
-            if (!skuRegex.test(skuCode)) {
-                setError(`Architecture Violation: SKU "${skuCode}" must start and end with a letter or number.`);
-                setLoading(false);
-                return;
-            }
+
 
             const cleanMedia = (formData.media || []).map(m => ({
                 ...m,
