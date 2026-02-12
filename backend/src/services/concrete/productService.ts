@@ -137,7 +137,10 @@ export class ProductService
       if (!_id) {
           if (!rest.skuCode) {
               const productSlug = generateSlug(product.name);
-              const variantSlug = normalizedAttrs.map((a: any) => generateSlug(String(a.value))).join('-');
+              const variantSlug = normalizedAttrs
+                .filter((a: any) => a.value != null && a.value !== '')
+                .map((a: any) => generateSlug(String(a.value)))
+                .join('-');
               
               // Count existing SKUs for sequential suffix
               const existingSkusCount = await this.skuService.count({ productId });
