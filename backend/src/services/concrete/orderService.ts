@@ -65,17 +65,24 @@ export class OrderService extends MongooseCommonService<IOrderAttributes, IOrder
       let actualPrice = 0;
       let found = false;
 
-      // 1. Try SKU first
+      // 1. Try SKU first (Strict Check)
       if (item.skuId) {
         const sku = await this.skuService.findById(item.skuId.toString());
         if (sku) {
           actualPrice = Number((sku as any).offerPrice || (sku as any).salePrice || (sku as any).price || (sku as any).basePrice || 0);
           if (actualPrice > 0) found = true;
+        } else {
+          // If skuId is provided but not found, throw error instead of falling back to product
+          throw new ApiError(
+            HTTP_STATUS_CODE.NOTFOUND.CODE,
+            HTTP_STATUS_CODE.NOTFOUND.STATUS,
+            `Integrity Violation: SKU ID ${item.skuId} for "${item.name}" was not found in database.`
+          );
         }
       }
 
-      // 2. Try Product if SKU failed or has no price
-      if (!found && item.productId) {
+      // 2. Try Product (Only if no skuId was provided)
+      if (!found && item.productId && !item.skuId) {
         const product = await this.productService.findById(item.productId.toString());
         if (product) {
           actualPrice = Number((product as any).offerPrice || (product as any).salePrice || (product as any).price || (product as any).basePrice || 0);

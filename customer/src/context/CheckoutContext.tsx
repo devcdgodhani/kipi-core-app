@@ -200,7 +200,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
                     return {
                         productId: pId || '',
-                        skuId: sId || pId || '',
+                        skuId: sId || null,
                         name: productRef.name || 'Unknown Product',
                         quantity: item.quantity || 1,
                         price: price,

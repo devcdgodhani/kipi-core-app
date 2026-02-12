@@ -253,8 +253,8 @@ const OrderDetailPage: React.FC = () => {
                             </h2>
                             <div className="space-y-6">
                                 {order.items.map((item, idx) => {
-                                    const pId = typeof item.productId === 'object' ? (item.productId as any)._id : item.productId;
-                                    const sId = typeof item.skuId === 'object' ? (item.skuId as any)._id : item.skuId;
+                                    const pId = (item.productId && typeof item.productId === 'object') ? (item.productId as any)._id : item.productId;
+                                    const sId = (item.skuId && typeof item.skuId === 'object') ? (item.skuId as any)._id : item.skuId;
                                     const productUrl = `/products/${pId}${sId ? `?skuId=${sId}` : ''}`;
 
                                     return (
@@ -281,7 +281,7 @@ const OrderDetailPage: React.FC = () => {
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded">Qty: {item.quantity}</span>
-                                                    {item.skuId && <span className="text-[10px] font-bold text-secondary uppercase tracking-widest font-mono">SKU-{(item.skuId as any)?.toString().slice(-6).toUpperCase()}</span>}
+                                                    {item.skuId && <span className="text-[10px] font-bold text-secondary uppercase tracking-widest font-mono text-ellipsis overflow-hidden max-w-[100px]">SKU-{String(sId || '').slice(-6).toUpperCase()}</span>}
                                                     {order.orderStatus === 'DELIVERED' && (
                                                         <button
                                                             onClick={(e) => {
