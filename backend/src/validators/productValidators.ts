@@ -65,7 +65,7 @@ const productCreateSchema = z.object({
     })).optional(),
     media: z.array(z.any()).optional(),
     status: z.string().optional()
-  })).optional()
+  })).min(1, 'At least one SKU is required')
 });
 
 const productUpdateSchema = productCreateSchema.partial();

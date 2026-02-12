@@ -480,6 +480,14 @@ const ProductForm: React.FC = () => {
         setError(null);
         setSuccess(null);
 
+        // Validate at least one SKU exists
+        const totalSkus = generatedSkus.length + productSkus.length;
+        if (totalSkus === 0) {
+            setError('At least one SKU is required. Please generate or add SKUs before submitting.');
+            setLoading(false);
+            return;
+        }
+
         try {
             const cleanSkus = [...productSkus, ...generatedSkus].map(sku => {
                 const variantPart = sku.variantAttributes?.map((v: any) => v.value).join(' ') || sku.skuCode || '';
