@@ -274,13 +274,9 @@ const ProductForm: React.FC = () => {
 
             const attrKey = getAttrKey(variantAttributesData);
             if (!existingSkuKeys.has(attrKey)) {
-                const cleanPrefix = (formData.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
-                const cleanAttrs = attrs.map(a => String(a).replace(/[^a-zA-Z0-9]/g, '').toUpperCase()).join('-');
-                const skuCode = `${cleanPrefix}-${cleanAttrs}-${Math.floor(Math.random() * 1000)}`;
-                const variantSlugPart = attrs.map(a => String(a)).join(' ');
                 newSkus.push({
-                    skuCode,
-                    slug: generateSlug(`${formData.name} ${variantSlugPart} ${Math.floor(Math.random() * 1000)}`),
+                    skuCode: '', // Let backend generate this
+                    slug: '',    // Let backend generate this
                     basePrice: formData.basePrice || 0,
                     salePrice: formData.salePrice || 0,
                     offerPrice: formData.offerPrice || 0,
@@ -503,23 +499,9 @@ const ProductForm: React.FC = () => {
                 };
             });
 
-            // Validate SKU Code uniqueness within the local list
-            const codes = cleanSkus.map(s => s.skuCode);
-            const duplicates = codes.filter((item, index) => codes.indexOf(item) !== index);
-            if (duplicates.length > 0) {
-                setError(`Duplicate SKU detected: ${duplicates[0]}. Each variant must have a unique code.`);
-                setLoading(false);
-                return;
-            }
 
-            // Validate SKU Code format (starts/ends with alphanumeric)
-            const skuRegex = /^[a-zA-Z0-9](.*[a-zA-Z0-9])?$/;
-            const invalidCodes = cleanSkus.filter(s => !skuRegex.test(s.skuCode));
-            if (invalidCodes.length > 0) {
-                setError(`Error: SKU "${invalidCodes[0].skuCode}" must start and end with a letter or number.`);
-                setLoading(false);
-                return;
-            }
+
+
 
             const cleanMedia = (formData.media || []).map(m => ({
                 ...m,
@@ -822,7 +804,7 @@ const ProductForm: React.FC = () => {
                                             <table className="w-full text-left text-[11px]">
                                                 <thead className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 uppercase tracking-wider text-gray-400 font-black">
                                                     <tr>
-                                                        <th className="px-6 py-4">SKU Code</th>
+                                                        <th className="px-6 py-4">Identity</th>
                                                         <th className="px-6 py-4">Slug</th>
                                                         <th className="px-6 py-4 text-center">Base/Sale/Offer</th>
                                                         <th className="px-6 py-4 text-center">Allocated Lot</th>
@@ -834,7 +816,9 @@ const ProductForm: React.FC = () => {
                                                     {generatedSkus.map((sku, idx) => (
                                                         <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
-                                                                <span className="font-mono font-black text-primary bg-primary/5 px-2 py-1 rounded text-[10px]">{sku.skuCode}</span>
+                                                                <span className="font-mono font-black text-primary bg-primary/5 px-2 py-1 rounded text-[10px]">
+                                                                    {sku.variantAttributes?.map((v: any) => v.value).join(' / ') || 'Base Variant'}
+                                                                </span>
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <span className="font-mono text-xs text-gray-500">{sku.slug || 'Auto-generated'}</span>
