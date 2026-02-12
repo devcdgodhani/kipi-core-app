@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
                                         ? useCustomerAppSettings().settings?.logo as string
                                         : (useCustomerAppSettings().settings?.logo as any)?.preSignedUrl}
                                     alt={brand.name}
-                                    className="h-8 w-auto object-contain"
+                                    className="h-20 w-auto object-contain"
                                 />
                             ) : (
                                 <>

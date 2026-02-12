@@ -137,7 +137,7 @@ const Navbar: React.FC = () => {
                         <img
                             src={typeof settings.logo === 'string' ? settings.logo : (settings.logo as any).preSignedUrl}
                             alt={settings.appName || 'Logo'}
-                            className="h-10 w-auto object-contain"
+                            className="h-20 w-auto object-contain"
                         />
                     ) : (
                         <h1 className="text-2xl font-black tracking-[0.2em] uppercase text-primary">
