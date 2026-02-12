@@ -4,7 +4,6 @@ import * as LucideIcons from 'lucide-react';
 import { productService } from '../../services/product.service';
 import type { Product } from '../../types/product.types';
 import { ROUTES } from '../../routes/routeConfig';
-import { toast } from 'react-hot-toast';
 import BannerSlider from '../../components/Banner/BannerSlider';
 import RecentlyViewed from '../../components/Product/RecentlyViewed';
 import RecommendationSection from '../../components/Product/RecommendationSection';
