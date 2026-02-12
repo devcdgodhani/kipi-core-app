@@ -8,6 +8,7 @@ import { walletService } from '../services/wallet.service';
 import { useCart } from './CartContext';
 import { useWallet } from './WalletContext';
 import Toast from 'react-native-toast-message';
+import { getSafeImageUrl } from '../utils/imageUtils';
 
 interface CheckoutContextType extends CheckoutState {
     setStep: (step: CheckoutState['step']) => void;
@@ -174,12 +175,12 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 .filter(item => selectedItems.includes(item._id))
                 .map(item => ({
                     productId: item.productId,
-                    skuId: item.skuId || item.productId,
+                    skuId: item.skuId || null,
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price,
                     total: item.price * item.quantity,
-                    image: item.thumbnail || ''
+                    image: getSafeImageUrl(item.thumbnail) || ''
                 }));
 
             const orderData: CreateOrderRequest = {

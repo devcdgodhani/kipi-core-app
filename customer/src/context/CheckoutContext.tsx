@@ -198,6 +198,16 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                         productRef?.offerPrice || productRef?.salePrice || productRef?.basePrice ||
                         item.salePrice || item.price || 0;
 
+                    const extractImageUrl = (img: any): string => {
+                        if (!img) return '';
+                        if (typeof img === 'string') return img;
+                        return img.url || img.preSignedUrl || '';
+                    };
+
+                    const image = extractImageUrl(skuRef?.media?.[0]) ||
+                        extractImageUrl(productRef.mainImage) ||
+                        extractImageUrl(productRef.media?.[0]) || '';
+
                     return {
                         productId: pId || '',
                         skuId: sId || null,
@@ -205,7 +215,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                         quantity: item.quantity || 1,
                         price: price,
                         total: price * (item.quantity || 1),
-                        image: skuRef?.media?.[0]?.url || productRef.mainImage || productRef.media?.[0]?.url || ''
+                        image: image
                     };
                 });
 
