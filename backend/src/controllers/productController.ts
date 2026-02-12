@@ -214,10 +214,10 @@ export class ProductController {
   updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { skus, ...updateData } = req.body;
-      const response = await this.productService.update({ _id: req.params.id }, updateData);
+      const response = await this.productService.findOneAndUpdate({ _id: req.params.id }, updateData);
       
-      if (skus && Array.isArray(skus)) {
-          await this.productService.syncSkus({ _id: req.params.id }, skus, req.user?._id);
+      if (skus && Array.isArray(skus) && response) {
+          await this.productService.syncSkus(response, skus, req.user?._id);
       }
 
       const apiResponse: IApiResponse = {

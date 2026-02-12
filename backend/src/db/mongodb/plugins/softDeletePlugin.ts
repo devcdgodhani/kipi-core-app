@@ -6,7 +6,7 @@ import { Schema, Query, Aggregate } from 'mongoose';
  */
 export const softDeletePlugin = (schema: Schema) => {
   // Filter out deleted documents in find queries
-  const queryHooks = ['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments'];
+  const queryHooks = ['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany'];
   
   queryHooks.forEach((hook) => {
     schema.pre(hook as any, function (this: Query<any, any>, next) {

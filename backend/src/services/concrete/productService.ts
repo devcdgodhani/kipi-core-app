@@ -136,7 +136,7 @@ export class ProductService
       // Auto-generate SKU Code and Slug for new SKUs if missing
       if (!_id) {
           if (!rest.skuCode) {
-              const productSlug = generateSlug(product.name);
+              const prefix = product.productCode || generateSlug(product.name);
               const variantSlug = normalizedAttrs
                 .filter((a: any) => a.value != null && a.value !== '')
                 .map((a: any) => generateSlug(String(a.value)))
@@ -146,7 +146,11 @@ export class ProductService
               const existingSkusCount = await this.skuService.count({ productId });
               const suffix = (existingSkusCount + 1).toString().padStart(3, '0');
               
-              rest.skuCode = `${productSlug}-${variantSlug}-${suffix}`.toUpperCase();
+              const parts = [prefix];
+              if (variantSlug) parts.push(variantSlug);
+              parts.push(suffix);
+              
+              rest.skuCode = parts.join('-').toUpperCase();
           }
 
           if (!rest.slug) {
