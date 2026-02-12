@@ -327,7 +327,7 @@ const ProductDetails: React.FC = () => {
 
                                 {/* Wishlist */}
                                 <div className="p-3 border-2 border-primary/10 rounded-xl hover:bg-primary/5 transition-all flex items-center justify-center">
-                                    <WishlistButton productId={product._id} />
+                                    <WishlistButton productId={product._id} skuId={selectedSku?._id} />
                                 </div>
                             </div>
 

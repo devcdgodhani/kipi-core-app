@@ -11,7 +11,7 @@ export const wishlistService = {
   },
 
   // Add to wishlist - Backend uses a single document with products array
-  addToWishlist: async (productId: string): Promise<any> => {
+  addToWishlist: async (productId: string, skuId?: string): Promise<any> => {
     // We first need to get the wishlist to see if it exists
     let wishlist: any;
     try {
@@ -23,23 +23,35 @@ export const wishlistService = {
     if (!wishlist) {
       // Create new wishlist if doesn't exist
       return http.post(WISHLIST_BASE_URL, {
-        products: [{ productId, addedAt: new Date() }]
+        products: [{ productId, skuId, addedAt: new Date() }]
       });
     } else {
       // Update existing wishlist
       const products = [...(wishlist.products || [])];
-      if (!products.find((p: any) => p.productId === productId)) {
-        products.push({ productId, addedAt: new Date() });
+      const alreadyIn = products.find((p: any) => {
+        const pId = p.productId?._id || p.productId;
+        const sId = p.skuId?._id || p.skuId;
+        if (skuId) return pId === productId && sId === skuId;
+        return pId === productId;
+      });
+
+      if (!alreadyIn) {
+        products.push({ productId, skuId, addedAt: new Date() });
       }
       return http.put(`${WISHLIST_BASE_URL}/${wishlist._id}`, { products });
     }
   },
 
   // Remove from wishlist
-  removeFromWishlist: async (productId: string): Promise<any> => {
+  removeFromWishlist: async (productId: string, skuId?: string): Promise<any> => {
     const wishlist: any = await wishlistService.getMyWishlist();
     if (wishlist && wishlist.products) {
-      const products = wishlist.products.filter((p: any) => p.productId?._id !== productId && p.productId !== productId);
+      const products = wishlist.products.filter((p: any) => {
+        const pId = p.productId?._id || p.productId;
+        const sId = p.skuId?._id || p.skuId;
+        if (skuId) return !(pId === productId && sId === skuId);
+        return pId !== productId;
+      });
       return http.put(`${WISHLIST_BASE_URL}/${wishlist._id}`, { products });
     }
   },

@@ -7,9 +7,9 @@ import { useAuth } from './AuthContext';
 
 interface WishlistContextType {
     wishlistItems: Product[];
-    addToWishlist: (product: Product) => Promise<void>;
-    removeFromWishlist: (productId: string) => Promise<void>;
-    isInWishlist: (productId: string) => boolean;
+    addToWishlist: (product: Product, skuId?: string) => Promise<void>;
+    removeFromWishlist: (productId: string, skuId?: string) => Promise<void>;
+    isInWishlist: (productId: string, skuId?: string) => boolean;
     loading: boolean;
 }
 
@@ -52,16 +52,23 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     };
 
-    const addToWishlist = async (product: Product) => {
+    const addToWishlist = async (product: Product, skuId?: string) => {
         try {
             const token = await AsyncStorage.getItem('ACCESS_TOKEN');
             if (token) {
-                await wishlistService.addToWishlist(product._id);
+                await wishlistService.addToWishlist(product._id, skuId);
             }
 
-            const isAlreadyIn = wishlistItems.some(item => item._id === product._id);
+            const isAlreadyIn = wishlistItems.some(item => {
+                const pId = item._id;
+                const sId = (item as any).skuId;
+                if (skuId) return pId === product._id && sId === skuId;
+                return pId === product._id;
+            });
+
             if (!isAlreadyIn) {
-                const newWishlist = [...wishlistItems, product];
+                const newItem = { ...product, skuId };
+                const newWishlist = [...wishlistItems, newItem as any];
                 setWishlistItems(newWishlist);
                 await AsyncStorage.setItem('WISHLIST_ITEMS', JSON.stringify(newWishlist));
             }
@@ -76,14 +83,19 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     };
 
-    const removeFromWishlist = async (productId: string) => {
+    const removeFromWishlist = async (productId: string, skuId?: string) => {
         try {
             const token = await AsyncStorage.getItem('ACCESS_TOKEN');
             if (token) {
-                await wishlistService.removeFromWishlist(productId);
+                await wishlistService.removeFromWishlist(productId, skuId);
             }
 
-            const newWishlist = wishlistItems.filter(item => item._id !== productId);
+            const newWishlist = wishlistItems.filter(item => {
+                const pId = item._id;
+                const sId = (item as any).skuId;
+                if (skuId) return !(pId === productId && sId === skuId);
+                return pId !== productId;
+            });
             setWishlistItems(newWishlist);
             await AsyncStorage.setItem('WISHLIST_ITEMS', JSON.stringify(newWishlist));
 
@@ -96,8 +108,13 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     };
 
-    const isInWishlist = (productId: string) => {
-        return wishlistItems.some(item => item._id === productId);
+    const isInWishlist = (productId: string, skuId?: string) => {
+        return wishlistItems.some(item => {
+            const pId = item._id;
+            const sId = (item as any).skuId;
+            if (skuId) return pId === productId && sId === skuId;
+            return pId === productId;
+        });
     };
 
     return (

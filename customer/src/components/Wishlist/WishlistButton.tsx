@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 interface WishlistButtonProps {
     productId: string;
+    skuId?: string;
     size?: number;
     className?: string;
     filledClassName?: string;
@@ -13,6 +14,7 @@ interface WishlistButtonProps {
 
 const WishlistButton: React.FC<WishlistButtonProps> = ({
     productId,
+    skuId,
     size = 24,
     className = '',
     filledClassName = 'fill-red-500 text-red-500',
@@ -21,7 +23,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
     const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
     const [loading, setLoading] = useState(false);
 
-    const inWishlist = isInWishlist(productId);
+    const inWishlist = isInWishlist(productId, skuId);
 
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -30,9 +32,9 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
         setLoading(true);
         try {
             if (inWishlist) {
-                await removeFromWishlist(productId);
+                await removeFromWishlist(productId, skuId);
             } else {
-                await addToWishlist(productId);
+                await addToWishlist(productId, skuId);
             }
         } catch (error) {
             console.error('Wishlist action failed', error);

@@ -124,7 +124,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 {/* Wishlist Button Overlay */}
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="bg-background/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-background transition-colors">
-                        <WishlistButton productId={product._id} size={18} />
+                        <WishlistButton productId={product._id} skuId={selectedSku?._id} size={18} />
                     </div>
                 </div>
 

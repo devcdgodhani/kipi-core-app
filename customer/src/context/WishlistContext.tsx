@@ -7,9 +7,9 @@ import { toast } from 'react-hot-toast';
 interface WishlistContextType {
     wishlist: Wishlist | null;
     loading: boolean;
-    isInWishlist: (productId: string) => boolean;
-    addToWishlist: (productId: string) => Promise<void>;
-    removeFromWishlist: (productId: string) => Promise<void>;
+    isInWishlist: (productId: string, skuId?: string) => boolean;
+    addToWishlist: (productId: string, skuId?: string) => Promise<void>;
+    removeFromWishlist: (productId: string, skuId?: string) => Promise<void>;
     refreshWishlist: () => Promise<void>;
 }
 
@@ -59,23 +59,32 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }, [userId]);
 
-    const isInWishlist = (productId: string) => {
+    const isInWishlist = (productId: string, skuId?: string) => {
         return (wishlist?.products || []).some(item => {
-            const id = typeof item.productId === 'object' ? (item.productId as any)?._id || (item.productId as any)?.id : item.productId;
-            return id === productId;
+            const pId = typeof item.productId === 'object' ? (item.productId as any)?._id || (item.productId as any)?.id : item.productId;
+            const sId = typeof item.skuId === 'object' ? (item.skuId as any)?._id || (item.skuId as any)?.id : item.skuId;
+
+            if (skuId) {
+                return pId === productId && sId === skuId;
+            }
+            return pId === productId;
         });
     };
 
-    const addToWishlist = async (productId: string) => {
+    const addToWishlist = async (productId: string, skuId?: string) => {
         setLoading(true);
         try {
             if (wishlist) {
                 // Check if already in wishlist
-                if (isInWishlist(productId)) return; // Already present
+                if (isInWishlist(productId, skuId)) return; // Already present
 
                 const updatedProducts = [
-                    ...wishlist.products.map(p => ({ productId: typeof p.productId === 'string' ? p.productId : (p.productId as any)._id, addedAt: p.addedAt })),
-                    { productId, addedAt: new Date().toISOString() }
+                    ...wishlist.products.map(p => ({
+                        productId: typeof p.productId === 'string' ? p.productId : (p.productId as any)._id,
+                        skuId: p.skuId ? (typeof p.skuId === 'string' ? p.skuId : (p.skuId as any)._id) : undefined,
+                        addedAt: p.addedAt
+                    })),
+                    { productId, skuId, addedAt: new Date().toISOString() }
                 ];
 
                 await wishlistService.update(wishlist._id, { products: updatedProducts });
@@ -83,7 +92,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
                 // Create new
                 await wishlistService.create({
                     userId,
-                    products: [{ productId, addedAt: new Date().toISOString() }]
+                    products: [{ productId, skuId, addedAt: new Date().toISOString() }]
                 });
             }
             await refreshWishlist();
@@ -95,17 +104,23 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     };
 
-    const removeFromWishlist = async (productId: string) => {
+    const removeFromWishlist = async (productId: string, skuId?: string) => {
         if (!wishlist) return;
 
         setLoading(true);
         try {
             const updatedProducts = (wishlist.products || [])
                 .map(p => {
-                    const id = typeof p.productId === 'object' ? (p.productId as any)?._id || (p.productId as any)?.id : p.productId;
-                    return { productId: id as string, addedAt: p.addedAt };
+                    const pId = typeof p.productId === 'object' ? (p.productId as any)?._id || (p.productId as any)?.id : p.productId;
+                    const sId = typeof p.skuId === 'object' ? (p.skuId as any)?._id || (p.skuId as any)?.id : p.skuId;
+                    return { productId: pId as string, skuId: sId as string, addedAt: p.addedAt };
                 })
-                .filter(item => item.productId && item.productId !== productId);
+                .filter(item => {
+                    if (skuId) {
+                        return !(item.productId === productId && item.skuId === skuId);
+                    }
+                    return item.productId !== productId;
+                });
 
             await wishlistService.update(wishlist._id, { products: updatedProducts });
             await refreshWishlist();

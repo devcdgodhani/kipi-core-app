@@ -283,17 +283,17 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           <TouchableOpacity
             style={styles.wishlistButton}
             onPress={() => {
-              if (isInWishlist(product._id)) {
-                removeFromWishlist(product._id);
+              if (isInWishlist(product._id, selectedSKU?._id)) {
+                removeFromWishlist(product._id, selectedSKU?._id);
               } else {
-                addToWishlist(product);
+                addToWishlist(product, selectedSKU?._id);
               }
             }}
           >
             <Icon
               name="heart"
               size={22}
-              color={isInWishlist(product._id) ? theme.colors.error : theme.colors.text.secondary}
+                color={isInWishlist(product._id, selectedSKU?._id) ? theme.colors.error : theme.colors.text.secondary}
             />
           </TouchableOpacity>
         </View>
