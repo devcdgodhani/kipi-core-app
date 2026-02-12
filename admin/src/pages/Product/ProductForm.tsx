@@ -323,6 +323,18 @@ const ProductForm: React.FC = () => {
         return result;
     }
 
+    const generateSlug = (text: string) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '');
+    };
+
     const handleSkuChange = (isGenerated: boolean, index: number, field: string, value: any) => {
         const target = isGenerated ? [...generatedSkus] : [...productSkus];
         if (!target[index]) return;
@@ -535,6 +547,7 @@ const ProductForm: React.FC = () => {
 
             const submitData = {
                 ...formData,
+                slug: formData.slug || generateSlug(formData.name || ''),
                 mainImage: (formData.mainImage && typeof formData.mainImage === 'object') ? (formData.mainImage as any)._id : (formData.mainImage || null),
                 media: cleanMedia,
                 skus: cleanSkus,
