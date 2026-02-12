@@ -435,7 +435,7 @@ const ProductForm: React.FC = () => {
         setFormData(prev => {
             const currentAttrs = [...(prev.attributes || [])];
             const index = currentAttrs.findIndex(a =>
-                (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attrId
+                (typeof a.attributeId === 'object' ? (a.attributeId as any)?._id : a.attributeId) === attrId
             );
 
             if (index > -1) {
@@ -717,7 +717,7 @@ const ProductForm: React.FC = () => {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {relevantAttributes.filter(a => !a.isVariant).map(attr => {
-                                            const valObj = formData.attributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attr._id);
+                                            const valObj = formData.attributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)?._id : a.attributeId) === attr._id);
                                             return (
                                                 <div key={attr._id} className="space-y-2">
                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{attr.name}</label>
