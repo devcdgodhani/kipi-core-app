@@ -123,7 +123,7 @@ const ProductForm: React.FC = () => {
                         categoryIds: (Array.isArray(prod.categoryIds) ? prod.categoryIds : []).map((c: any) => typeof c === 'object' ? c._id : c),
                         attributes: (Array.isArray(prod.attributes) ? prod.attributes : []).map((a: any) => ({
                             ...a,
-                            attributeId: typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId
+                            attributeId: typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId
                         }))
                     });
 
@@ -136,7 +136,7 @@ const ProductForm: React.FC = () => {
                         const config: Record<string, string[]> = {};
                         skuRes.data.forEach((sku: ISku) => {
                             sku.variantAttributes?.forEach((va: any) => {
-                                const attrId = typeof va.attributeId === 'object' ? va.attributeId._id : va.attributeId;
+                                const attrId = typeof va.attributeId === 'object' ? va.attributeId?._id : va.attributeId;
                                 if (!config[attrId]) config[attrId] = [];
                                 if (!config[attrId].includes(va.value)) {
                                     config[attrId].push(va.value);
@@ -254,7 +254,7 @@ const ProductForm: React.FC = () => {
         // Helper to canonicalize attributes for comparison
         const getAttrKey = (attrs: { attributeId: any; value: any }[]) => {
             return attrs
-                .map(a => `${typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId}:${a.value}`)
+                .map(a => `${typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId}:${a.value}`)
                 .sort()
                 .join('|');
         };
@@ -490,8 +490,8 @@ const ProductForm: React.FC = () => {
                     lotId: (sku.lotId && typeof sku.lotId === 'object') ? (sku.lotId as any)._id : (sku.lotId || null),
                     variantAttributes: sku.variantAttributes?.map((attr: any) => ({
                         ...attr,
-                        attributeId: (attr.attributeId && typeof attr.attributeId === 'object') ? attr.attributeId._id : attr.attributeId
-                    }))
+                        attributeId: (attr.attributeId && typeof attr.attributeId === 'object') ? attr.attributeId?._id : attr.attributeId
+                    })) || []
                 };
             });
 
@@ -523,9 +523,9 @@ const ProductForm: React.FC = () => {
 
             // 1. Add static/base attributes
             (formData.attributes || []).forEach((a: any) => {
-                const key = `${(typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId)}_${JSON.stringify(a.value)}`;
+                const key = `${(typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId)}_${JSON.stringify(a.value)}`;
                 const attrObj: any = {
-                    attributeId: (typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId),
+                    attributeId: (typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId),
                     value: a.value
                 };
                 if (a.label) {
@@ -537,10 +537,10 @@ const ProductForm: React.FC = () => {
             // 2. Add variant attributes from all SKUs
             cleanSkus.forEach(sku => {
                 (sku.variantAttributes || []).forEach((a: any) => {
-                    const key = `${(typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId)}_${JSON.stringify(a.value)}`;
+                    const key = `${(typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId)}_${JSON.stringify(a.value)}`;
                     if (!attrMap.has(key)) {
                         const attrObj: any = {
-                            attributeId: (typeof a.attributeId === 'object' ? a.attributeId._id : a.attributeId),
+                            attributeId: (typeof a.attributeId === 'object' ? a.attributeId?._id : a.attributeId),
                             value: a.value
                         };
                         if (a.label) {

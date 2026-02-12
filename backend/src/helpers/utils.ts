@@ -460,6 +460,9 @@ export const generateVoucherCode = (format = 'XXXX-XXXX-XXXX-XXXX') => {
 };
 
 export const generateSlug = (text: string): string => {
+  if (!text || text === undefined || text === null) {
+    return '';
+  }
   return text
     .toString()
     .toLowerCase()
