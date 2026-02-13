@@ -214,6 +214,23 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     }
   };
 
+  const images = useMemo(() => {
+    if (!product) return [];
+
+    const skuMedia = selectedSKU?.media?.map(m => m.url).filter(Boolean) || [];
+    const productMedia = product.media?.map(m => m.url).filter(Boolean) || [];
+    const mainImg = getSafeImageUrl(product.mainImage);
+
+    const combined = [...skuMedia, ...productMedia];
+
+    if (combined.length === 0 && mainImg) {
+      combined.push(mainImg);
+    }
+
+    // Remove duplicates
+    return [...new Set(combined)];
+  }, [product, selectedSKU]);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -236,23 +253,6 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       </SafeAreaView>
     );
   }
-
-  const images = useMemo(() => {
-    if (!product) return [];
-
-    const skuMedia = selectedSKU?.media?.map(m => m.url).filter(Boolean) || [];
-    const productMedia = product.media?.map(m => m.url).filter(Boolean) || [];
-    const mainImg = getSafeImageUrl(product.mainImage);
-
-    const combined = [...skuMedia, ...productMedia];
-
-    if (combined.length === 0 && mainImg) {
-      combined.push(mainImg);
-    }
-
-    // Remove duplicates
-    return [...new Set(combined)];
-  }, [product, selectedSKU]);
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity

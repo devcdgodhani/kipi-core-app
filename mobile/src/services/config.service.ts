@@ -2,10 +2,12 @@ import http from './http';
 
 export interface Banner {
   _id: string;
-  name: string;
-  image: string;
+  title: string;
+  subtitle?: string;
+  imageId: any;
+  mobileImageId?: any;
   link?: string;
-  linkType?: 'PRODUCT' | 'CATEGORY' | 'EXTERNAL';
+  linkType?: 'PRODUCT' | 'CATEGORY' | 'EXTERNAL' | 'NONE';
   isActive: boolean;
 }
 

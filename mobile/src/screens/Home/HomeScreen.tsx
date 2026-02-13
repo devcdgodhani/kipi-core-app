@@ -62,6 +62,7 @@ export default function HomeScreen({ navigation }: any) {
       ]);
 
       setAppSettings(settings);
+      console.log('Fetched Banners:', activeBanners);
       setBanners(activeBanners);
       setCategories(allCategories || []);
 
@@ -251,7 +252,16 @@ export default function HomeScreen({ navigation }: any) {
             >
               {banners.map((banner, index) => (
                 <View key={index} style={styles.bannerWrapper}>
-                  <Image source={{ uri: getSafeImageUrl(banner.image) || undefined }} style={styles.bannerImage} />
+                  <Image
+                    source={{ uri: getSafeImageUrl(banner) || undefined }}
+                    style={styles.bannerImage}
+                    onError={(e) => console.log(`Banner ${index} load error:`, e.nativeEvent.error)}
+                    onLoad={() => console.log(`Banner ${index} loaded successfully`)}
+                  />
+                  {/* Debug label - remove after testing */}
+                  <View style={{ position: 'absolute', top: 10, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 5 }}>
+                    <Text style={{ color: 'white', fontSize: 10 }}>Debug: {banner.title}</Text>
+                  </View>
                 </View>
               ))}
             </ScrollView>
