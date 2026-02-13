@@ -884,7 +884,7 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: insets.bottom + 16, // Increase padding to avoid bottom nav
+    paddingBottom: Math.max(insets.bottom, 10) + 60, // Account for tab bar height (60px) + safe area
     backgroundColor: theme.colors.background.paper,
     gap: 12,
     borderTopWidth: 1,
