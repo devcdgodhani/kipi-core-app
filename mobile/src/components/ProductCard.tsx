@@ -2,8 +2,9 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useAppTheme, Theme } from '../theme/theme';
 import { getSafeImageUrl } from '../utils/imageUtils';
-import { productService } from '../services/product.service';
 import Icon from 'react-native-vector-icons/Feather';
+import { useCart } from '../context/CartContext';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -23,12 +24,13 @@ interface Product {
   name: string;
   slug: string;
   thumbnail?: string;
-  mainImage?: string;
+  mainImage?: any;
   basePrice?: number;
   salePrice?: number;
   offerPrice?: number;
   isFlashDeal?: boolean;
   skus?: SKU[];
+  media?: any[];
 }
 
 interface ProductCardProps {
@@ -47,6 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isFlashDeal = false
 }) => {
   const theme = useAppTheme();
+  const { addToCart } = useCart();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Use pre-fetched SKUs from product object
@@ -79,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const price = getProductPrice();
   const basePrice = getBasePrice();
   const hasDiscount = price < basePrice;
-  const imageUri = getSafeImageUrl(product.thumbnail) || getSafeImageUrl(product.mainImage);
+  const imageUri = getSafeImageUrl(product) || getSafeImageUrl(product.media?.[0]);
 
   const handlePress = () => {
     onPress(selectedSku?._id);
@@ -87,7 +90,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleSkuPress = (sku: SKU) => {
     setSelectedSku(sku);
-    onPress(sku._id);
+  };
+
+  const onAddToCart = async (e: any) => {
+    e.stopPropagation();
+    try {
+      const cartItem = {
+        _id: selectedSku?._id || product._id,
+        productId: product._id,
+        name: product.name,
+        price: price,
+        quantity: 1,
+        thumbnail: imageUri || undefined,
+        skuId: selectedSku?._id,
+        skuName: selectedSku?.variantAttributes?.map(a => a.value).join(' / '),
+        maxStock: selectedSku?.quantity || 99
+      };
+
+      await addToCart(cartItem);
+    } catch (error) {
+      console.error('Failed to add to cart', error);
+    }
   };
 
   return (
@@ -125,8 +148,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
 
-        {/* SKU Variants */}
-        {showSkus && productSkus.length > 1 && (
+        <View style={styles.footerRow}>
+          <View style={styles.priceContainer}>
+            <Text style={styles.price}>₹{price.toFixed(0)}</Text>
+            {hasDiscount && (
+              <Text style={styles.oldPrice}>₹{basePrice.toFixed(0)}</Text>
+            )}
+          </View>
+
+          <TouchableOpacity style={styles.addToCartBtn} onPress={onAddToCart}>
+            <Icon name="shopping-cart" size={16} color={theme.colors.text.inverse} />
+          </TouchableOpacity>
+        </View>
+
+        {/* SKU Variants - Show even for single SKU */}
+        {showSkus && productSkus.length >= 1 && (
           <View style={styles.skuContainer}>
             {productSkus.slice(0, 3).map((sku: SKU) => (
               <TouchableOpacity
@@ -142,7 +178,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   styles.skuChipText,
                   selectedSku?._id === sku._id && styles.skuChipTextSelected
                 ]}>
-                  {sku.variantAttributes[0]?.value?.substring(0, 2).toUpperCase() || 'V'}
+                  {sku.variantAttributes[0]?.value?.substring(0, 1).toUpperCase() || 'V'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -151,13 +187,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </View>
         )}
-
-        <View style={styles.priceContainer}>
-          <Text style={styles.price}>₹{price.toFixed(2)}</Text>
-          {hasDiscount && (
-            <Text style={styles.oldPrice}>₹{basePrice.toFixed(2)}</Text>
-          )}
-        </View>
       </View>
     </TouchableOpacity>
   );
@@ -254,18 +283,33 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   priceContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    alignItems: 'baseline',
+    gap: 4,
   },
   price: {
-    fontSize: theme.typography.fontSize.lg,
+    fontSize: theme.typography.fontSize.base,
     fontWeight: theme.typography.fontWeight.black,
     color: theme.colors.primary.main,
   },
   oldPrice: {
-    fontSize: theme.typography.fontSize.xs,
+    fontSize: 10,
     fontWeight: theme.typography.fontWeight.medium,
     color: theme.colors.text.tertiary,
     textDecorationLine: 'line-through',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addToCartBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.sm,
   },
 });

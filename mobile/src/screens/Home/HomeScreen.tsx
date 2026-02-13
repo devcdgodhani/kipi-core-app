@@ -62,7 +62,6 @@ export default function HomeScreen({ navigation }: any) {
       ]);
 
       setAppSettings(settings);
-      console.log('Fetched Banners:', activeBanners);
       setBanners(activeBanners);
       setCategories(allCategories || []);
 
@@ -110,7 +109,7 @@ export default function HomeScreen({ navigation }: any) {
             if (products.length > 0) {
               dataMap[section.sectionId] = products.map((product: any) => ({
                 ...product,
-                thumbnail: getSafeImageUrl(product.mainImage) || getSafeImageUrl(product.media?.[0]?.url) || undefined,
+                thumbnail: getSafeImageUrl(product) || getSafeImageUrl(product.media?.[0]) || undefined,
               }));
             }
           } catch (err) {

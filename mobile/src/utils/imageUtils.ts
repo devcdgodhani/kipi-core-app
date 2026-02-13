@@ -24,10 +24,22 @@ export const getSafeImageUrl = (imageSource: any): string | null => {
       return imageSource.mobileImageId.preSignedUrl || imageSource.mobileImageId.url || null;
     }
 
-    // 4. Check for standard imageId property which might be nested object
+    // 4. Check for standard imageId property
     if (imageSource.imageId) {
       if (typeof imageSource.imageId === 'string') return imageSource.imageId;
       return imageSource.imageId.preSignedUrl || imageSource.imageId.url || null;
+    }
+
+    // 5. Check for mainImage (if product object passed)
+    if (imageSource.mainImage) {
+      if (typeof imageSource.mainImage === 'string') return imageSource.mainImage;
+      return imageSource.mainImage.preSignedUrl || imageSource.mainImage.url || null;
+    }
+
+    // 6. Check for fileStorageId (common in media arrays)
+    if (imageSource.fileStorageId) {
+      if (typeof imageSource.fileStorageId === 'string') return imageSource.fileStorageId;
+      return imageSource.fileStorageId.preSignedUrl || imageSource.fileStorageId.url || null;
     }
   }
 

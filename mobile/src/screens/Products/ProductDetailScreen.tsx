@@ -217,9 +217,9 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   const images = useMemo(() => {
     if (!product) return [];
 
-    const skuMedia = selectedSKU?.media?.map(m => m.url).filter(Boolean) || [];
-    const productMedia = product.media?.map(m => m.url).filter(Boolean) || [];
-    const mainImg = getSafeImageUrl(product.mainImage);
+    const skuMedia = selectedSKU?.media?.map(m => getSafeImageUrl(m)).filter(Boolean) || [];
+    const productMedia = product.media?.map(m => getSafeImageUrl(m)).filter(Boolean) || [];
+    const mainImg = getSafeImageUrl(product);
 
     const combined = [...skuMedia, ...productMedia];
 
@@ -228,7 +228,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     }
 
     // Remove duplicates
-    return [...new Set(combined)];
+    return Array.from(new Set(combined)) as string[];
   }, [product, selectedSKU]);
 
   if (loading) {
@@ -269,19 +269,34 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Image Carousel */}
+          {/* Image Carousel Slider */}
         <View style={styles.imageCarousel}>
-          {images[currentImageIndex] ? (
-            <Image
-              source={{ uri: images[currentImageIndex] || '' }}
-              style={styles.productImage}
-              resizeMode="cover"
+            <FlatList
+              data={images}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                setCurrentImageIndex(index);
+              }}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={{ width: width, height: width }}>
+                  {item ? (
+                    <Image
+                    source={{ uri: item }}
+                    style={styles.productImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.productImage, styles.placeholderImage]}>
+                    <Icon name="image" size={48} color={theme.colors.text.tertiary} />
+                  </View>
+                )}
+                </View>
+              )}
             />
-          ) : (
-            <View style={[styles.productImage, styles.placeholderImage]}>
-                <Icon name="image" size={48} color={theme.colors.text.tertiary} />
-            </View>
-          )}
 
           {images.length > 1 && (
             <View style={styles.imageIndicators}>
@@ -333,8 +348,8 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <Text style={styles.productPrice}>₹{getPrice().toFixed(2)}</Text>
           </View>
 
-          {/* SKU Selection */}
-          {skus.length > 1 && (
+            {/* SKU Selection - Show even for single SKU */}
+            {skus.length >= 1 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Select Variant</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.skuList}>
@@ -486,6 +501,9 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               </TouchableOpacity>
             )}
           </View>
+
+            {/* Spacer for bottom actions */}
+            <View style={{ height: 100 }} />
         </View>
       </ScrollView>
 
@@ -866,11 +884,12 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: insets.bottom > 0 ? insets.bottom : 16,
+    paddingBottom: insets.bottom + 16, // Increase padding to avoid bottom nav
     backgroundColor: theme.colors.background.paper,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.light,
+    zIndex: 1000,
   },
   actionButton: {
     flex: 1,
