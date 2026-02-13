@@ -856,7 +856,7 @@ const ProductForm: React.FC = () => {
                                                                     className="w-40 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black text-gray-700 transition-all outline-none"
                                                                 >
                                                                     <option value="">General Stock</option>
-                                                                    {allLots.map(l => (
+                                                                    {allLots.filter(l => l && l._id).map(l => (
                                                                         <option key={l._id} value={l._id}>{l.lotNumber} ({l.remainingQuantity})</option>
                                                                     ))}
                                                                 </select>
@@ -951,7 +951,7 @@ const ProductForm: React.FC = () => {
                                                         className="w-40 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black text-gray-700 transition-all outline-none"
                                                     >
                                                         <option value="">General Stock</option>
-                                                        {allLots.map(l => (
+                                                        {allLots.filter(l => l && l._id).map(l => (
                                                             <option key={l._id} value={l._id}>{l.lotNumber} ({l.remainingQuantity})</option>
                                                         ))}
                                                     </select>
