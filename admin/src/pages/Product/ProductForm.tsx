@@ -130,7 +130,8 @@ const ProductForm: React.FC = () => {
                     // Fetch associated SKUs
                     const skuRes = await skuService.getAll({ productId: id });
                     if (skuRes?.data) {
-                        setProductSkus(skuRes.data);
+                        // Filter out any null or undefined SKUs
+                        setProductSkus(skuRes.data.filter((sku: ISku) => sku && sku._id));
 
                         // Extract variant configuration from existing SKUs
                         const config: Record<string, string[]> = {};
@@ -897,7 +898,7 @@ const ProductForm: React.FC = () => {
                                         </div>
                                     </div>
                                     <Table
-                                        data={productSkus}
+                                        data={productSkus.filter(sku => sku && sku._id)}
                                         keyExtractor={(item) => item._id!}
                                         columns={[
                                             {
