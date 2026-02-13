@@ -258,10 +258,6 @@ export default function HomeScreen({ navigation }: any) {
                     onError={(e) => console.log(`Banner ${index} load error:`, e.nativeEvent.error)}
                     onLoad={() => console.log(`Banner ${index} loaded successfully`)}
                   />
-                  {/* Debug label - remove after testing */}
-                  <View style={{ position: 'absolute', top: 10, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 5 }}>
-                    <Text style={{ color: 'white', fontSize: 10 }}>Debug: {banner.title}</Text>
-                  </View>
                 </View>
               ))}
             </ScrollView>
