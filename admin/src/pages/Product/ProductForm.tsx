@@ -947,11 +947,11 @@ const ProductForm: React.FC = () => {
                                                 align: 'center',
                                                 render: (sku: ISku, idx?: number) => (
                                                     <select
-                                                        value={typeof sku.lotId === 'object' ? (sku.lotId as any)._id : (sku.lotId || '')}
+                                                        value={typeof sku?.lotId === 'object' ? (sku?.lotId as any)?._id : (sku?.lotId || '')}
                                                         onChange={(e) => handleSkuChange(false, idx!, 'lotId', e.target.value)}
                                                         className="w-40 bg-gray-50 border-2 border-transparent rounded-xl px-3 py-2 focus:bg-white focus:border-primary/20 text-[10px] font-black text-gray-700 transition-all outline-none"
                                                     >
-                                                        <option value="">General Stock</option>
+                                                        <option value="">Select Stock</option>
                                                         {allLots.filter(l => l && l._id).map(l => (
                                                             <option key={l._id} value={l._id}>{l.lotNumber} ({l.remainingQuantity})</option>
                                                         ))}
