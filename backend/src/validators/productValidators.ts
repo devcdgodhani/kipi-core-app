@@ -55,6 +55,7 @@ const productCreateSchema = z.object({
   skus: z.array(z.object({
     // skuCode: z.string(),
     basePrice: z.number().optional(),
+    _id: z.string().optional(),
     salePrice: z.number().optional(),
     offerPrice: z.number().optional(),
     discount: z.number().optional(),
@@ -64,7 +65,8 @@ const productCreateSchema = z.object({
       value: z.any()
     })).optional(),
     media: z.array(z.any()).optional(),
-    status: z.string().optional()
+    status: z.string().optional(),
+    lotId: z.string().optional().default("")
   })).min(1, 'At least one SKU is required')
 });
 
