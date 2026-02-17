@@ -47,6 +47,7 @@ export default function RegisterScreen({ navigation }: any) {
         password,
         mobile,
         type: 'CUSTOMER',
+        countryCode: '+91',
       });
       // Send OTP first
       await authService.sendOtp({
