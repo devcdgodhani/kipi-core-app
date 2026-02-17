@@ -60,6 +60,22 @@ export default function ProductListScreen({ navigation, route }: any) {
     loadFilterableAttributes();
   }, []);
 
+  // Watch for route params changes (e.g., when search is cleared from header)
+  useEffect(() => {
+    const searchParam = route.params?.search || '';
+    const categoryParam = route.params?.category || null;
+
+    // Only update if params actually changed
+    if (searchParam !== filters.search || categoryParam !== filters.selectedCategory) {
+      setFilters(prev => ({
+        ...prev,
+        search: searchParam,
+        selectedCategory: categoryParam,
+        page: 1,
+      }));
+    }
+  }, [route.params?.search, route.params?.category]);
+
   useEffect(() => {
     loadProducts(1);
   }, [filters]);

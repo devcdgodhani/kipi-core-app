@@ -71,19 +71,33 @@ const SearchBar: React.FC<SearchBarProps> = ({
     const handleSubmit = (e?: React.FormEvent, selectedQuery?: string) => {
         e?.preventDefault();
         const finalQuery = selectedQuery || query;
+
+        setIsFocused(false);
+
         if (finalQuery.trim()) {
-            setIsFocused(false);
             if (onSearch) {
                 onSearch(finalQuery);
             } else {
                 navigate(`${ROUTES.PRODUCTS.ROOT}?search=${encodeURIComponent(finalQuery)}`);
+            }
+        } else {
+            // Check if we are already handling clear
+            if (onSearch) {
+                onSearch('');
+            } else {
+                navigate(ROUTES.PRODUCTS.ROOT);
             }
         }
     };
 
     const handleClear = () => {
         setQuery('');
-        if (onSearch) onSearch('');
+        if (onSearch) {
+            onSearch('');
+        } else {
+            // Navigate to products page without search parameter
+            navigate(ROUTES.PRODUCTS.ROOT);
+        }
     };
 
     return (

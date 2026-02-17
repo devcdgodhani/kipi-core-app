@@ -33,14 +33,16 @@ const ProductList: React.FC = () => {
     // Sync state with URL changes (e.g. from Navbar)
     useEffect(() => {
         const categoryParam = searchParams.get('category');
-        const searchParam = searchParams.get('search');
+        const searchParam = searchParams.get('search') || '';
         const inStockParam = searchParams.get('inStock') === 'true';
         const attributesParam = searchParams.get('attributes') ? JSON.parse(decodeURIComponent(searchParams.get('attributes')!)) : {};
 
         const currentCategoryId = filters.categoryIds?.[0] || undefined;
+        const currentSearch = filters.search || '';
+
         // Check if URL params differ from state (external navigation)
         const hasCategoryChanged = categoryParam !== (currentCategoryId ?? null) && (categoryParam !== null || currentCategoryId !== undefined);
-        const hasSearchChanged = (searchParam || '') !== (filters.search || '');
+        const hasSearchChanged = searchParam !== currentSearch;
         const hasInStockChanged = inStockParam !== (filters.inStock || false);
         const hasAttributesChanged = JSON.stringify(attributesParam) !== JSON.stringify(filters.attributes || {});
 
@@ -48,7 +50,7 @@ const ProductList: React.FC = () => {
             setFilters(prev => ({
                 ...prev,
                 categoryIds: categoryParam ? [categoryParam] : (hasCategoryChanged ? undefined : prev.categoryIds),
-                search: hasSearchChanged ? (searchParam || '') : prev.search,
+                search: searchParam,
                 inStock: inStockParam,
                 attributes: attributesParam,
                 page: 1
@@ -58,20 +60,20 @@ const ProductList: React.FC = () => {
 
     useEffect(() => {
         loadProducts();
-        // Update URL params
+        // Update URL params - only include non-empty/non-default values
         const params: any = {};
         if (filters.page && filters.page > 1) params.page = filters.page.toString();
-        if (filters.search) params.search = filters.search;
+        if (filters.search && filters.search.trim()) params.search = filters.search;
         if (filters.categoryIds && filters.categoryIds.length > 0) params.category = filters.categoryIds[0];
         if (filters.minPrice) params.minPrice = filters.minPrice.toString();
         if (filters.maxPrice) params.maxPrice = filters.maxPrice.toString();
-        if (filters.sortBy) params.sortBy = filters.sortBy;
-        if (filters.sortOrder) params.sortOrder = filters.sortOrder;
+        if (filters.sortBy && filters.sortBy !== 'createdAt') params.sortBy = filters.sortBy;
+        if (filters.sortOrder && filters.sortOrder !== 'desc') params.sortOrder = filters.sortOrder;
         if (filters.inStock) params.inStock = 'true';
         if (filters.attributes && Object.keys(filters.attributes).length > 0) {
             params.attributes = encodeURIComponent(JSON.stringify(filters.attributes));
         }
-        setSearchParams(params);
+        setSearchParams(params, { replace: true });
     }, [filters]);
 
     const loadProducts = async () => {
