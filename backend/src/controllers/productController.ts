@@ -118,6 +118,7 @@ export class ProductController {
 
       const { filter, options } = this.productService.generateFilter({
         filters: reqData,
+        searchFields:['slug','name','description','productCode','attributes.name','attributes.value'] as(keyof IProductAttributes)[]
       });
       const response = await this.productService.findAllWithPagination(
         filter,

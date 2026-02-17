@@ -59,7 +59,6 @@ const walletSchema = new Schema<IWalletDocument>(
 
 // Indexes for performance
 walletSchema.index({ status: 1 });
-walletSchema.index({ status: 1 });
 walletSchema.index({ availableBalance: -1 });
 
 export const WalletModel = model<IWalletDocument>('Wallet', walletSchema);
