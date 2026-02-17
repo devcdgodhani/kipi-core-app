@@ -122,8 +122,10 @@ const SkuForm: React.FC = () => {
             if (product) {
                 setParentProduct(product);
                 // Extract unique attributes from product
-                const attrs = product.attributes?.map((a: any) => a.attributeId) || [];
-                setVariantAttributes(attrs);
+                const rawAttrs = product.attributes?.map((a: any) => a.attributeId) || [];
+                // De-duplicate based on _id to prevent multiple rows for same attribute
+                const uniqueAttrs = Array.from(new Map(rawAttrs.filter((a: any) => a && a._id).map((a: any) => [a._id, a])).values());
+                setVariantAttributes(uniqueAttrs as IAttribute[]);
             }
         } catch (err) {
             console.error('Failed to fetch variant attributes', err);
@@ -288,11 +290,16 @@ const SkuForm: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {variantAttributes.map(attr => {
                                         // Try to find value in SKU variantAttributes (for unique variant values)
-                                        const skuValObj = formData.variantAttributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attr._id);
+                                        const skuValObj = formData.variantAttributes?.find(a => {
+                                            const aId = (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId);
+                                            return aId === attr._id;
+                                        });
 
                                         // Try to find value in Product attributes (for shared specification values)
-                                        const parentProduct = allProducts.find(p => p._id === (typeof formData.productId === 'object' ? (formData.productId as any)._id : formData.productId));
-                                        const productValObj = parentProduct?.attributes?.find(a => (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId) === attr._id);
+                                        const productValObj = parentProduct?.attributes?.find(a => {
+                                            const aId = (typeof a.attributeId === 'object' ? (a.attributeId as any)._id : a.attributeId);
+                                            return aId === attr._id;
+                                        });
 
                                         const displayValue = skuValObj?.value ?? productValObj?.value ?? '';
 

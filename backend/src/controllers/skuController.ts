@@ -39,7 +39,8 @@ export class SkuController {
       const skuDoc = await this.skuService.findOne(filter, {}, [
           { path: 'productId', select: 'name productCode' },
           { path: 'variantAttributes.attributeId', select: 'name key label type' },
-          { path: 'media.fileStorageId' }
+          { path: 'media.fileStorageId' },
+          { path: 'lotId', select: 'lotNumber remainingQuantity' }
       ]);
       let sku = skuDoc as any;
 
@@ -83,7 +84,8 @@ export class SkuController {
       options.populate = [
           { path: 'productId', select: 'name productCode' },
           { path: 'variantAttributes.attributeId', select: 'name key label type' },
-          { path: 'media.fileStorageId' }
+          { path: 'media.fileStorageId' },
+          { path: 'lotId', select: 'lotNumber remainingQuantity' }
       ];
       const skus = await this.skuService.findAll(filter, options);
 
@@ -112,7 +114,8 @@ export class SkuController {
 
       options.populate = [
           { path: 'productId', select: 'name' },
-          { path: 'media.fileStorageId' }
+          { path: 'media.fileStorageId' },
+          { path: 'lotId', select: 'lotNumber remainingQuantity' }
       ];
 
       const skuList = await this.skuService.findAllWithPagination(filter, options);

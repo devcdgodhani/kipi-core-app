@@ -18,7 +18,8 @@ export class ProductController {
       });
       const response = await this.productService.findAll(filter, {}, [
         { path: 'media.fileStorageId' }, 
-        { path: 'mainImage' }
+        { path: 'mainImage' },
+        { path: 'attributes.attributeId' }
       ]);
       
       if (Array.isArray(response)) {
@@ -46,7 +47,8 @@ export class ProductController {
       });
       const response = await this.productService.findOne(filter, {}, [
         { path: 'media.fileStorageId' }, 
-        { path: 'mainImage' }
+        { path: 'mainImage' },
+        { path: 'attributes.attributeId' }
       ]);
       
       let productData: any = response;
@@ -125,7 +127,8 @@ export class ProductController {
         options,
         [
           { path: 'media.fileStorageId' }, 
-          { path: 'mainImage' }
+          { path: 'mainImage' },
+          { path: 'attributes.attributeId' }
         ]
       );
 
